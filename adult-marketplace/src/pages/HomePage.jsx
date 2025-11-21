@@ -1,8 +1,7 @@
-// src/pages/HomePage.jsx
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 
-// Mock de criadores (em produção, viria de uma API)
+// Mock de criadores expandido com mais dados LGBT+ relevantes
 const mockCreators = [
   {
     id: 1,
@@ -11,12 +10,17 @@ const mockCreators = [
     category: 'Fotos',
     price: 24.9,
     currency: 'BRL',
-    avatar: 'https://placehold.co/100x100/4f46e5/white?text=L',
+    avatar: 'https://placehold.co/100x100/8B7FE8/white?text=L',
     isVerified: true,
     hasStory: true,
     tags: ['trans', 'sensual', 'artístico'],
+    genderIdentity: 'Trans mulher',
+    orientation: 'Lésbica',
+    contentType: ['Fotos artísticas', 'Vídeos curtos'],
+    aesthetic: ['Sensual', 'Natural'],
     isLive: false,
-    lastPost: 'https://placehold.co/200x200/4f46e5/white?text=Post+L',
+    lastPost: 'https://placehold.co/200x200/8B7FE8/white?text=Post+L',
+    subscribers: 1240,
   },
   {
     id: 2,
@@ -25,12 +29,17 @@ const mockCreators = [
     category: 'Vídeos',
     price: 34.9,
     currency: 'BRL',
-    avatar: 'https://placehold.co/100x100/ec4899/white?text=K',
+    avatar: 'https://placehold.co/100x100/6366F1/white?text=K',
     isVerified: true,
     hasStory: false,
     tags: ['gay', 'fitness', 'teaser'],
+    genderIdentity: 'Cis homem',
+    orientation: 'Gay',
+    contentType: ['Vídeos curtos', 'Lives interativas'],
+    aesthetic: ['Fitness', 'Sensual'],
     isLive: true,
-    lastPost: 'https://placehold.co/200x200/ec4899/white?text=Post+K',
+    lastPost: 'https://placehold.co/200x200/6366F1/white?text=Post+K',
+    subscribers: 2890,
   },
   {
     id: 3,
@@ -39,12 +48,17 @@ const mockCreators = [
     category: 'Chat',
     price: 19.9,
     currency: 'BRL',
-    avatar: 'https://placehold.co/100x100/0ea5e9/white?text=Z',
+    avatar: 'https://placehold.co/100x100/A78BFA/white?text=Z',
     isVerified: false,
     hasStory: true,
     tags: ['nonbinary', 'flirty', 'voice'],
+    genderIdentity: 'Não-binário',
+    orientation: 'Queer',
+    contentType: ['Chat personalizado', 'Voz / áudio sensual'],
+    aesthetic: ['Adorável', 'Natural'],
     isLive: false,
-    lastPost: 'https://placehold.co/200x200/0ea5e9/white?text=Post+Z',
+    lastPost: 'https://placehold.co/200x200/A78BFA/white?text=Post+Z',
+    subscribers: 567,
   },
   {
     id: 4,
@@ -53,12 +67,17 @@ const mockCreators = [
     category: 'Lives',
     price: 29.9,
     currency: 'BRL',
-    avatar: 'https://placehold.co/100x100/f97316/white?text=A',
+    avatar: 'https://placehold.co/100x100/EC4899/white?text=A',
     isVerified: true,
     hasStory: true,
     tags: ['drag', 'show', 'interactive'],
+    genderIdentity: 'Queer',
+    orientation: 'Pansexual',
+    contentType: ['Lives interativas', 'Fotos artísticas'],
+    aesthetic: ['Drag / Performance', 'Sensual'],
     isLive: true,
-    lastPost: 'https://placehold.co/200x200/f97316/white?text=Post+A',
+    lastPost: 'https://placehold.co/200x200/EC4899/white?text=Post+A',
+    subscribers: 3456,
   },
   {
     id: 5,
@@ -67,23 +86,74 @@ const mockCreators = [
     category: 'Fotos + Vídeos',
     price: 39.9,
     currency: 'BRL',
-    avatar: 'https://placehold.co/100x100/8b5cf6/white?text=M',
+    avatar: 'https://placehold.co/100x100/8B5CF6/white?text=M',
     isVerified: true,
     hasStory: false,
     tags: ['lesbian', 'boudoir', 'exclusive'],
+    genderIdentity: 'Cis mulher',
+    orientation: 'Lésbica',
+    contentType: ['Fotos artísticas', 'Vídeos curtos'],
+    aesthetic: ['Sensual', 'Fetichista'],
     isLive: false,
-    lastPost: 'https://placehold.co/200x200/8b5cf6/white?text=Post+M',
+    lastPost: 'https://placehold.co/200x200/8B5CF6/white?text=Post+M',
+    subscribers: 4123,
+  },
+  {
+    id: 6,
+    username: 'alex.dom',
+    displayName: 'Alex',
+    category: 'BDSM',
+    price: 44.9,
+    currency: 'BRL',
+    avatar: 'https://placehold.co/100x100/F97316/white?text=A',
+    isVerified: true,
+    hasStory: true,
+    tags: ['bdsm', 'dominante', 'leather'],
+    genderIdentity: 'Trans homem',
+    orientation: 'Bissexual',
+    contentType: ['Conteúdo educativo', 'Fotos artísticas'],
+    aesthetic: ['Fetichista', 'Dominante'],
+    isLive: false,
+    lastPost: 'https://placehold.co/200x200/F97316/white?text=Post+A',
+    subscribers: 1890,
   },
 ];
 
-// Mock de posts recentes (para simular feed)
+// Mock de posts recentes
 const mockRecentPosts = [
-  { id: 1, creatorId: 1, image: 'https://placehold.co/300x300/4f46e5/white?text=Post1', likes: 120, comments: 15 },
-  { id: 2, creatorId: 2, image: 'https://placehold.co/300x300/ec4899/white?text=Post2', likes: 85, comments: 8 },
-  { id: 3, creatorId: 4, image: 'https://placehold.co/300x300/f97316/white?text=Post3', likes: 200, comments: 25 },
+  { id: 1, creatorId: 1, image: 'https://placehold.co/300x300/8B7FE8/white?text=Post1', likes: 120, comments: 15, isExclusive: true },
+  { id: 2, creatorId: 2, image: 'https://placehold.co/300x300/6366F1/white?text=Post2', likes: 85, comments: 8, isExclusive: false },
+  { id: 3, creatorId: 4, image: 'https://placehold.co/300x300/EC4899/white?text=Post3', likes: 200, comments: 25, isExclusive: true },
 ];
 
-// Função para formatar moeda com base na localização (simplificada)
+// Configuração de filtros categorizados
+const FILTER_CATEGORIES = {
+  genderIdentity: {
+    label: 'Identidade de Gênero',
+    icon: '🏳️‍⚧️',
+    options: ['Trans mulher', 'Trans homem', 'Não-binário', 'Cis homem', 'Cis mulher', 'Queer', 'Gênero fluido'],
+    color: 'indigo'
+  },
+  orientation: {
+    label: 'Orientação',
+    icon: '🏳️‍🌈',
+    options: ['Gay', 'Lésbica', 'Bissexual', 'Pansexual', 'Assexual', 'Queer'],
+    color: 'purple'
+  },
+  contentType: {
+    label: 'Tipo de Conteúdo',
+    icon: '📸',
+    options: ['Fotos artísticas', 'Vídeos curtos', 'Lives interativas', 'Chat personalizado', 'Voz / áudio sensual', 'Conteúdo educativo'],
+    color: 'violet'
+  },
+  aesthetic: {
+    label: 'Estética / Vibe',
+    icon: '✨',
+    options: ['Sensual', 'Fetichista', 'Natural', 'Drag / Performance', 'Fitness', 'Adorável', 'Dominante', 'Submisso'],
+    color: 'pink'
+  }
+};
+
 const formatPrice = (price, currency = 'BRL') => {
   const locale = currency === 'BRL' ? 'pt-BR' : 'en-US';
   return new Intl.NumberFormat(locale, {
@@ -92,25 +162,27 @@ const formatPrice = (price, currency = 'BRL') => {
   }).format(price);
 };
 
+const formatNumber = (num) => {
+  if (num >= 1000) {
+    return (num / 1000).toFixed(1) + 'k';
+  }
+  return num.toString();
+};
+
 export default function HomePage() {
   const [search, setSearch] = useState('');
-  const [selectedTags, setSelectedTags] = useState([]);
-  const [creators, setCreators] = useState(mockCreators);
-  const [activeTab, setActiveTab] = useState('creators'); // Para alternar entre abas: creators, feed, lives
-
-  // Filtragem dinâmica
-  const filteredCreators = creators.filter(creator => {
-    const matchesSearch = creator.displayName.toLowerCase().includes(search.toLowerCase()) ||
-                          creator.username.toLowerCase().includes(search.toLowerCase());
-    const matchesTags = selectedTags.length === 0 ||
-                        selectedTags.some(tag => creator.tags.includes(tag));
-    return matchesSearch && matchesTags;
+  const [selectedFilters, setSelectedFilters] = useState({
+    genderIdentity: [],
+    orientation: [],
+    contentType: [],
+    aesthetic: []
   });
+  const [showFilters, setShowFilters] = useState(false);
+  const [creators, setCreators] = useState(mockCreators);
+  const [activeTab, setActiveTab] = useState('creators');
+  const [sortBy, setSortBy] = useState('popular');
 
-  // Tags únicas para filtro
-  const allTags = [...new Set(mockCreators.flatMap(c => c.tags))].slice(0, 6);
-
-  // Simular modo discreto (em produção, viria de settings do usuário)
+  // Modo discreto
   const [discreetMode, setDiscreetMode] = useState(() => {
     return localStorage.getItem('discreetMode') === 'true';
   });
@@ -119,226 +191,606 @@ export default function HomePage() {
     localStorage.setItem('discreetMode', discreetMode);
   }, [discreetMode]);
 
-  // Criadores ao vivo
+  // Filtragem avançada
+  const filteredCreators = creators
+    .filter(creator => {
+      const matchesSearch = creator.displayName.toLowerCase().includes(search.toLowerCase()) ||
+                            creator.username.toLowerCase().includes(search.toLowerCase());
+      
+      const matchesGender = selectedFilters.genderIdentity.length === 0 ||
+                            selectedFilters.genderIdentity.includes(creator.genderIdentity);
+      
+      const matchesOrientation = selectedFilters.orientation.length === 0 ||
+                                 selectedFilters.orientation.includes(creator.orientation);
+      
+      const matchesContentType = selectedFilters.contentType.length === 0 ||
+                                 selectedFilters.contentType.some(type => creator.contentType.includes(type));
+      
+      const matchesAesthetic = selectedFilters.aesthetic.length === 0 ||
+                               selectedFilters.aesthetic.some(aes => creator.aesthetic.includes(aes));
+      
+      return matchesSearch && matchesGender && matchesOrientation && matchesContentType && matchesAesthetic;
+    })
+    .sort((a, b) => {
+      switch(sortBy) {
+        case 'price-low':
+          return a.price - b.price;
+        case 'price-high':
+          return b.price - a.price;
+        case 'new':
+          return b.id - a.id;
+        case 'trending':
+          return b.subscribers - a.subscribers;
+        default:
+          return 0;
+      }
+    });
+
+  const toggleFilter = (category, value) => {
+    setSelectedFilters(prev => ({
+      ...prev,
+      [category]: prev[category].includes(value)
+        ? prev[category].filter(v => v !== value)
+        : [...prev[category], value]
+    }));
+  };
+
+  const clearAllFilters = () => {
+    setSelectedFilters({
+      genderIdentity: [],
+      orientation: [],
+      contentType: [],
+      aesthetic: []
+    });
+  };
+
+  const activeFiltersCount = Object.values(selectedFilters).flat().length;
   const liveCreators = creators.filter(c => c.isLive);
 
   return (
-    <div className="min-h-screen bg-gray-900 text-white">
-      {/* Header estilo OnlyFans com mais elementos */}
-      <header className="sticky top-0 z-10 bg-gray-900/95 backdrop-blur border-b border-gray-800 p-4">
-        <div className="flex items-center justify-between mb-4">
-          <div className="flex items-center space-x-4">
-            <h1 className="text-xl font-bold">
-              {discreetMode ? 'Conexões' : 'Conexões Privadas'}
-            </h1>
-            {/* Ícone de notificações */}
-            <button className="relative">
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 17h5l-5-5V9a7 7 0 10-14 0v3l-5 5h5v5a2 2 0 002 2h6a2 2 0 002-2v-5z" />
+    <div className="min-h-screen bg-white dark:bg-slate-950">
+      {/* Header Clean & Minimal */}
+      <header className="sticky top-0 z-30 bg-white/80 dark:bg-slate-950/80 backdrop-blur-xl border-b border-slate-200 dark:border-slate-800">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          {/* Top Bar */}
+          <div className="flex items-center justify-between h-16">
+            {/* Logo */}
+            <div className="flex items-center space-x-3">
+              <div className="w-10 h-10 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-xl flex items-center justify-center">
+                <span className="text-white font-black text-xl">P</span>
+              </div>
+              <h1 className="text-xl font-bold text-slate-900 dark:text-white">
+                {discreetMode ? 'Portal' : 'PrideConnect'}
+              </h1>
+            </div>
+
+            {/* Right Actions */}
+            <div className="flex items-center space-x-3">
+              {/* Become Creator */}
+              <Link 
+                to="/creator/1"
+                className="hidden sm:flex items-center space-x-2 bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg font-medium text-sm transition-colors"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
+                  <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-11a1 1 0 10-2 0v2H7a1 1 0 100 2h2v2a1 1 0 102 0v-2h2a1 1 0 100-2h-2V7z" clipRule="evenodd" />
+                </svg>
+                <span>Ser Criador</span>
+              </Link>
+
+              {/* Notifications */}
+              <button className="relative p-2 text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-colors">
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
+                </svg>
+                <span className="absolute top-1 right-1 w-2 h-2 bg-indigo-600 rounded-full"></span>
+              </button>
+
+              {/* Profile */}
+              <Link to="/CreatorPage" className="p-2 text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-colors">
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                  <path fillRule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clipRule="evenodd" />
+                </svg>
+              </Link>
+
+              {/* Discreet Mode */}
+              <button
+                onClick={() => setDiscreetMode(!discreetMode)}
+                className="p-2 text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-colors"
+              >
+                {discreetMode ? (
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                    <path d="M10 12a2 2 0 100-4 2 2 0 000 4z" />
+                    <path fillRule="evenodd" d="M.458 10C1.732 5.943 5.522 3 10 3s8.268 2.943 9.542 7c-1.274 4.057-5.064 7-9.542 7S1.732 14.057.458 10zM14 10a4 4 0 11-8 0 4 4 0 018 0z" clipRule="evenodd" />
+                  </svg>
+                ) : (
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                    <path fillRule="evenodd" d="M3.707 2.293a1 1 0 00-1.414 1.414l14 14a1 1 0 001.414-1.414l-1.473-1.473A10.014 10.014 0 0019.542 10C18.268 5.943 14.478 3 10 3a9.958 9.958 0 00-4.512 1.074l-1.78-1.781zm4.261 4.26l1.514 1.515a2.003 2.003 0 012.45 2.45l1.514 1.514a4 4 0 00-5.478-5.478z" clipRule="evenodd" />
+                    <path d="M12.454 16.697L9.75 13.992a4 4 0 01-3.742-3.741L2.335 6.578A9.98 9.98 0 00.458 10c1.274 4.057 5.065 7 9.542 7 .847 0 1.669-.105 2.454-.303z" />
+                  </svg>
+                )}
+              </button>
+            </div>
+          </div>
+
+          {/* Search & Filters */}
+          <div className="pb-4 space-y-3">
+            {/* Search Bar */}
+            <div className="relative">
+              <svg xmlns="http://www.w3.org/2000/svg" className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
               </svg>
-              <span className="absolute -top-1 -right-1 bg-red-500 text-xs rounded-full h-4 w-4 flex items-center justify-center">3</span>
-            </button>
-          </div>
-          <div className="flex items-center space-x-2">
-            {/* Link para perfil do usuário */}
-            <Link to="/profile" className="text-sm bg-gray-800 px-3 py-1 rounded-full hover:bg-gray-700 transition">
-              Perfil
-            </Link>
-            <button
-              onClick={() => setDiscreetMode(!discreetMode)}
-              className="text-xs bg-gray-800 px-2 py-1 rounded-full hover:bg-gray-700 transition"
-            >
-              {discreetMode ? 'Modo Normal' : 'Modo Discreto'}
-            </button>
-          </div>
-        </div>
+              <input
+                type="text"
+                placeholder="Buscar criadores..."
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                className="w-full pl-12 pr-4 py-3 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl text-slate-900 dark:text-white placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all"
+              />
+              {search && (
+                <button
+                  onClick={() => setSearch('')}
+                  className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200"
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                    <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
+                  </svg>
+                </button>
+              )}
+            </div>
 
-        {/* Barra de busca */}
-        <div className="mb-3">
-          <input
-            type="text"
-            placeholder={discreetMode ? 'Buscar...' : 'Buscar criadores...'}
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            className="w-full bg-gray-800 text-white rounded-full px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-purple-500"
-          />
-        </div>
+            {/* Filter & Sort Controls */}
+            <div className="flex items-center justify-between gap-3">
+              <button
+                onClick={() => setShowFilters(!showFilters)}
+                className={`flex items-center space-x-2 px-4 py-2 rounded-lg font-medium text-sm transition-all ${
+                  showFilters || activeFiltersCount > 0
+                    ? 'bg-indigo-600 text-white'
+                    : 'bg-slate-100 dark:bg-slate-900 text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-800'
+                }`}
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
+                  <path fillRule="evenodd" d="M3 3a1 1 0 011-1h12a1 1 0 011 1v3a1 1 0 01-.293.707L12 11.414V15a1 1 0 01-.293.707l-2 2A1 1 0 018 17v-5.586L3.293 6.707A1 1 0 013 6V3z" clipRule="evenodd" />
+                </svg>
+                <span>Filtros</span>
+                {activeFiltersCount > 0 && (
+                  <span className="bg-white/20 px-2 py-0.5 rounded-full text-xs font-bold">
+                    {activeFiltersCount}
+                  </span>
+                )}
+              </button>
 
-        {/* Filtros por tags (temas LGBT+, interesses) */}
-        <div className="flex gap-2 overflow-x-auto pb-2 hide-scrollbar">
-          {allTags.map(tag => (
+              <select
+                value={sortBy}
+                onChange={(e) => setSortBy(e.target.value)}
+                className="px-4 py-2 bg-slate-100 dark:bg-slate-900 text-slate-700 dark:text-slate-300 rounded-lg font-medium text-sm border border-slate-200 dark:border-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-500 cursor-pointer transition-all"
+              >
+                <option value="popular">Popular</option>
+                <option value="trending">Em Alta</option>
+                <option value="price-low">Menor Preço</option>
+                <option value="price-high">Maior Preço</option>
+                <option value="new">Novos</option>
+              </select>
+            </div>
+
+            {/* Filters Panel */}
+            {showFilters && (
+              <div className="bg-slate-50 dark:bg-slate-900 rounded-xl p-5 border border-slate-200 dark:border-slate-800 animate-slideDown">
+                <div className="flex items-center justify-between mb-4">
+                  <h3 className="font-semibold text-slate-900 dark:text-white">Filtros Avançados</h3>
+                  {activeFiltersCount > 0 && (
+                    <button
+                      onClick={clearAllFilters}
+                      className="text-sm text-indigo-600 hover:text-indigo-700 font-medium"
+                    >
+                      Limpar tudo
+                    </button>
+                  )}
+                </div>
+
+                <div className="space-y-5">
+                  {Object.entries(FILTER_CATEGORIES).map(([key, category]) => (
+                    <div key={key}>
+                      <div className="flex items-center space-x-2 mb-3">
+                        <span>{category.icon}</span>
+                        <h4 className="text-sm font-medium text-slate-700 dark:text-slate-300">{category.label}</h4>
+                        {selectedFilters[key].length > 0 && (
+                          <span className="text-xs bg-indigo-100 dark:bg-indigo-900 text-indigo-600 dark:text-indigo-400 px-2 py-0.5 rounded-full font-medium">
+                            {selectedFilters[key].length}
+                          </span>
+                        )}
+                      </div>
+                      <div className="flex flex-wrap gap-2">
+                        {category.options.map(option => (
+                          <button
+                            key={option}
+                            onClick={() => toggleFilter(key, option)}
+                            className={`text-sm px-3 py-1.5 rounded-lg font-medium transition-all ${
+                              selectedFilters[key].includes(option)
+                                ? 'bg-indigo-600 text-white'
+                                : 'bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700 hover:border-indigo-300 dark:hover:border-indigo-700'
+                            }`}
+                          >
+                            {option}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Active Filter Chips */}
+            {activeFiltersCount > 0 && !showFilters && (
+              <div className="flex gap-2 overflow-x-auto pb-2 hide-scrollbar">
+                {Object.entries(selectedFilters).map(([category, values]) =>
+                  values.map(value => (
+                    <button
+                      key={`${category}-${value}`}
+                      onClick={() => toggleFilter(category, value)}
+                      className="flex items-center space-x-2 text-sm px-3 py-1.5 bg-indigo-600 text-white rounded-lg whitespace-nowrap font-medium hover:bg-indigo-700 transition-colors"
+                    >
+                      <span>{value}</span>
+                      <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
+                        <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" />
+                      </svg>
+                    </button>
+                  ))
+                )}
+              </div>
+            )}
+          </div>
+
+          {/* Tabs */}
+          <div className="flex border-b border-slate-200 dark:border-slate-800 -mb-px">
             <button
-              key={tag}
-              onClick={() => {
-                setSelectedTags(prev =>
-                  prev.includes(tag)
-                    ? prev.filter(t => t !== tag)
-                    : [...prev, tag]
-                );
-              }}
-              className={`text-xs px-3 py-1 rounded-full whitespace-nowrap flex-shrink-0 ${
-                selectedTags.includes(tag)
-                  ? 'bg-purple-600 text-white'
-                  : 'bg-gray-800 text-gray-300 hover:bg-gray-700'
+              onClick={() => setActiveTab('creators')}
+              className={`flex items-center space-x-2 px-4 py-3 font-medium text-sm border-b-2 transition-colors ${
+                activeTab === 'creators'
+                  ? 'border-indigo-600 text-indigo-600'
+                  : 'border-transparent text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-300'
               }`}
             >
-              {tag}
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
+                <path d="M9 6a3 3 0 11-6 0 3 3 0 016 0zM17 6a3 3 0 11-6 0 3 3 0 016 0zM12.93 17c.046-.327.07-.66.07-1a6.97 6.97 0 00-1.5-4.33A5 5 0 0119 16v1h-6.07zM6 11a5 5 0 015 5v1H1v-1a5 5 0 015-5z" />
+              </svg>
+              <span>Criadores</span>
             </button>
-          ))}
-        </div>
-
-        {/* Abas para navegação (Criadores, Feed, Lives) */}
-        <div className="flex justify-around mt-3 border-t border-gray-800 pt-3">
-          <button
-            onClick={() => setActiveTab('creators')}
-            className={`text-sm ${activeTab === 'creators' ? 'text-purple-400 border-b-2 border-purple-400' : 'text-gray-400'}`}
-          >
-            Criadores
-          </button>
-          <button
-            onClick={() => setActiveTab('feed')}
-            className={`text-sm ${activeTab === 'feed' ? 'text-purple-400 border-b-2 border-purple-400' : 'text-gray-400'}`}
-          >
-            Feed
-          </button>
-          <button
-            onClick={() => setActiveTab('lives')}
-            className={`text-sm ${activeTab === 'lives' ? 'text-purple-400 border-b-2 border-purple-400' : 'text-gray-400'}`}
-          >
-            Lives ({liveCreators.length})
-          </button>
+            <button
+              onClick={() => setActiveTab('feed')}
+              className={`flex items-center space-x-2 px-4 py-3 font-medium text-sm border-b-2 transition-colors ${
+                activeTab === 'feed'
+                  ? 'border-indigo-600 text-indigo-600'
+                  : 'border-transparent text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-300'
+              }`}
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
+                <path d="M2 6a2 2 0 012-2h6a2 2 0 012 2v8a2 2 0 01-2 2H4a2 2 0 01-2-2V6zM14.553 7.106A1 1 0 0014 8v4a1 1 0 00.553.894l2 1A1 1 0 0018 13V7a1 1 0 00-1.447-.894l-2 1z" />
+              </svg>
+              <span>Feed</span>
+            </button>
+            <button
+              onClick={() => setActiveTab('lives')}
+              className={`flex items-center space-x-2 px-4 py-3 font-medium text-sm border-b-2 transition-colors relative ${
+                activeTab === 'lives'
+                  ? 'border-indigo-600 text-indigo-600'
+                  : 'border-transparent text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-300'
+              }`}
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
+                <path fillRule="evenodd" d="M4 3a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V5a2 2 0 00-2-2H4zm12 12H4l4-8 3 6 2-4 3 6z" clipRule="evenodd" />
+              </svg>
+              <span>Lives</span>
+              {liveCreators.length > 0 && (
+                <span className="bg-red-500 text-white text-xs px-1.5 py-0.5 rounded-full font-bold">
+                  {liveCreators.length}
+                </span>
+              )}
+            </button>
+          </div>
         </div>
       </header>
 
-      {/* Stories (miniaturas circulares no topo) */}
-      <div className="px-4 pb-4">
-        <div className="flex gap-3 overflow-x-auto hide-scrollbar py-2">
-          {mockCreators
-            .filter(c => c.hasStory)
-            .map(creator => (
-              <div key={`story-${creator.id}`} className="flex flex-col items-center space-y-1">
+      {/* Stories */}
+      <div className="bg-white dark:bg-slate-950 border-b border-slate-200 dark:border-slate-800">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
+          <div className="flex gap-4 overflow-x-auto hide-scrollbar">
+            {mockCreators.filter(c => c.hasStory).map(creator => (
+              <button key={`story-${creator.id}`} className="flex flex-col items-center space-y-2 flex-shrink-0 group">
                 <div className="relative">
-                  <img
-                    src={creator.avatar}
-                    alt={creator.displayName}
-                    className="w-14 h-14 rounded-full border-2 border-purple-500 object-cover"
-                  />
-                  <div className="absolute inset-0 rounded-full bg-gradient-to-tr from-purple-500 to-pink-500 -z-10"></div>
-                  {creator.isLive && (
-                    <div className="absolute -top-1 -right-1 w-3 h-3 bg-red-500 rounded-full border-2 border-gray-900 animate-pulse"></div>
+                  <div className={`w-16 h-16 rounded-full p-0.5 ${creator.isLive ? 'bg-gradient-to-tr from-red-500 to-pink-500' : 'bg-gradient-to-tr from-indigo-500 to-purple-500'}`}>
+                    <img
+                      src={creator.avatar}
+                      alt={creator.displayName}
+                      className="w-full h-full rounded-full border-2 border-white dark:border-slate-950 object-cover"
+                    />
+                  </div>
+                  {creator.isVerified && (
+                    <div className="absolute -bottom-1 -right-1 w-5 h-5 bg-indigo-600 rounded-full flex items-center justify-center border-2 border-white dark:border-slate-950">
+                      <svg xmlns="http://www.w3.org/2000/svg" className="h-3 w-3 text-white" viewBox="0 0 20 20" fill="currentColor">
+                        <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                      </svg>
+                    </div>
                   )}
                 </div>
-                <span className="text-xs max-w-[60px] truncate text-center">
+                <span className="text-xs font-medium text-slate-700 dark:text-slate-300 max-w-[64px] truncate">
                   {creator.displayName}
                 </span>
-              </div>
+              </button>
             ))}
+          </div>
         </div>
       </div>
 
-      {/* Conteúdo principal baseado na aba ativa */}
-      <main className="p-4 pt-0">
+      {/* Main Content */}
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
         {activeTab === 'creators' && (
           <>
-            {/* Grade de criadores */}
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
+            {/* Results Count */}
+            <div className="mb-6">
+              <p className="text-sm text-slate-600 dark:text-slate-400">
+                {filteredCreators.length} {filteredCreators.length === 1 ? 'criador encontrado' : 'criadores encontrados'}
+              </p>
+            </div>
+
+            {/* Creators Grid */}
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4">
               {filteredCreators.map((creator) => (
                 <Link
                   key={creator.id}
                   to={`/creator/${creator.id}`}
-                  className="bg-gray-800 rounded-xl overflow-hidden shadow hover:bg-gray-750 transition group"
+                  className="group"
                 >
-                  {/* Avatar com efeito hover */}
-                  <div className="relative">
-                    <img
-                      src={creator.avatar}
-                      alt={creator.displayName}
-                      className="w-full aspect-square object-cover"
-                    />
-                    {creator.hasStory && (
-                      <div className="absolute top-1 right-1 w-3 h-3 bg-green-500 rounded-full border-2 border-gray-900"></div>
-                    )}
-                    {creator.isVerified && (
-                      <div className="absolute bottom-1 right-1 w-4 h-4 bg-blue-500 rounded-full flex items-center justify-center">
-                        <svg xmlns="http://www.w3.org/2000/svg" className="h-3 w-3 text-white" viewBox="0 0 20 20" fill="currentColor">
-                          <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
-                        </svg>
-                      </div>
-                    )}
-                    {creator.isLive && (
-                      <div className="absolute top-1 left-1 bg-red-500 text-white text-xs px-1 py-0.5 rounded">AO VIVO</div>
-                    )}
-                  </div>
+                  <div className="bg-white dark:bg-slate-900 rounded-xl overflow-hidden border border-slate-200 dark:border-slate-800 hover:border-indigo-300 dark:hover:border-indigo-700 transition-all hover:shadow-lg">
+                    {/* Avatar */}
+                    <div className="relative aspect-square overflow-hidden bg-slate-100 dark:bg-slate-800">
+                      <img
+                        src={creator.avatar}
+                        alt={creator.displayName}
+                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                      />
+                      
+                      {/* Verified Badge */}
+                      {creator.isVerified && (
+                        <div className="absolute top-2 right-2 w-6 h-6 bg-indigo-600 rounded-full flex items-center justify-center shadow-lg">
+                          <svg xmlns="http://www.w3.org/2000/svg" className="h-3.5 w-3.5 text-white" viewBox="0 0 20 20" fill="currentColor">
+                            <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                          </svg>
+                        </div>
+                      )}
 
-                  <div className="p-3">
-                    <h3 className="font-semibold text-sm truncate">{creator.displayName}</h3>
-                    <p className="text-xs text-gray-400 truncate">{creator.category}</p>
-                    <p className="text-sm text-purple-400 font-medium mt-1">
-                      {formatPrice(creator.price, creator.currency)}/mês
-                    </p>
+                      {/* Live Badge */}
+                      {creator.isLive && (
+                        <div className="absolute top-2 left-2 bg-red-500 text-white text-xs px-2 py-1 rounded-md font-bold flex items-center space-x-1">
+                          <span className="w-1.5 h-1.5 bg-white rounded-full animate-pulse"></span>
+                          <span>LIVE</span>
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Info */}
+                    <div className="p-3">
+                      <h3 className="font-semibold text-sm text-slate-900 dark:text-white truncate mb-1">
+                        {creator.displayName}
+                      </h3>
+                      <p className="text-xs text-slate-500 dark:text-slate-400 truncate mb-2">
+                        @{creator.username}
+                      </p>
+                      
+                      {/* Tags */}
+                      <div className="flex flex-wrap gap-1 mb-3">
+                        {creator.tags.slice(0, 2).map(tag => (
+                          <span key={tag} className="text-xs bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 px-2 py-0.5 rounded">
+                            {tag}
+                          </span>
+                        ))}
+                      </div>
+                      
+                      {/* Price */}
+                      <div className="flex items-baseline justify-between">
+                        <span className="text-base font-bold text-indigo-600 dark:text-indigo-400">
+                          {formatPrice(creator.price, creator.currency)}
+                        </span>
+                        <span className="text-xs text-slate-500">/mês</span>
+                      </div>
+
+                      {/* Subscribers */}
+                      <p className="text-xs text-slate-500 dark:text-slate-400 mt-2">
+                        {formatNumber(creator.subscribers)} assinantes
+                      </p>
+                    </div>
                   </div>
                 </Link>
               ))}
             </div>
 
+            {/* Empty State */}
             {filteredCreators.length === 0 && (
-              <p className="text-center text-gray-500 mt-8">Nenhum criador encontrado.</p>
+              <div className="text-center py-12">
+                <svg xmlns="http://www.w3.org/2000/svg" className="mx-auto h-12 w-12 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                <h3 className="mt-2 text-sm font-medium text-slate-900 dark:text-white">Nenhum criador encontrado</h3>
+                <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">Tente ajustar seus filtros ou buscar por outro termo</p>
+                {activeFiltersCount > 0 && (
+                  <button
+                    onClick={clearAllFilters}
+                    className="mt-4 inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+                  >
+                    Limpar filtros
+                  </button>
+                )}
+              </div>
             )}
           </>
         )}
 
         {activeTab === 'feed' && (
-          <>
-            {/* Feed de posts recentes */}
-            <div className="space-y-4">
-              {mockRecentPosts.map(post => (
-                <div key={post.id} className="bg-gray-800 rounded-xl overflow-hidden">
-                  <img src={post.image} alt="Post" className="w-full" />
-                  <div className="p-3">
+          <div className="max-w-2xl mx-auto space-y-6">
+            {mockRecentPosts.map(post => {
+              const creator = mockCreators.find(c => c.id === post.creatorId);
+              return (
+                <div key={post.id} className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 overflow-hidden">
+                  {/* Post Header */}
+                  <div className="flex items-center justify-between p-4">
+                    <div className="flex items-center space-x-3">
+                      <img src={creator.avatar} alt={creator.displayName} className="w-10 h-10 rounded-full" />
+                      <div>
+                        <h4 className="font-semibold text-sm text-slate-900 dark:text-white">{creator.displayName}</h4>
+                        <p className="text-xs text-slate-500">há 2 horas</p>
+                      </div>
+                    </div>
+                    <button className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200">
+                      <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                        <path d="M10 6a2 2 0 110-4 2 2 0 010 4zM10 12a2 2 0 110-4 2 2 0 010 4zM10 18a2 2 0 110-4 2 2 0 010 4z" />
+                      </svg>
+                    </button>
+                  </div>
+
+                  {/* Post Image */}
+                  <div className="relative">
+                    <img src={post.image} alt="Post" className="w-full aspect-square object-cover" />
+                    {post.isExclusive && (
+                      <div className="absolute top-4 right-4 bg-indigo-600 text-white text-xs px-3 py-1 rounded-full font-bold">
+                        Exclusivo
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Post Footer */}
+                  <div className="p-4">
                     <div className="flex items-center justify-between">
-                      <span className="text-sm text-gray-400">❤️ {post.likes} 💬 {post.comments}</span>
-                      <button className="text-purple-400 text-sm">Ver mais</button>
+                      <div className="flex items-center space-x-4">
+                        <button className="flex items-center space-x-2 text-slate-600 dark:text-slate-400 hover:text-red-500 dark:hover:text-red-400">
+                          <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
+                          </svg>
+                          <span className="text-sm font-medium">{post.likes}</span>
+                        </button>
+                        <button className="flex items-center space-x-2 text-slate-600 dark:text-slate-400 hover:text-indigo-500 dark:hover:text-indigo-400">
+                          <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+                          </svg>
+                          <span className="text-sm font-medium">{post.comments}</span>
+                        </button>
+                      </div>
+                      <button className="text-slate-600 dark:text-slate-400 hover:text-indigo-500 dark:hover:text-indigo-400">
+                        <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z" />
+                        </svg>
+                      </button>
                     </div>
                   </div>
                 </div>
-              ))}
-            </div>
-          </>
+              );
+            })}
+          </div>
         )}
 
         {activeTab === 'lives' && (
           <>
-            {/* Lives ao vivo */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              {liveCreators.map(creator => (
-                <div key={creator.id} className="bg-gray-800 rounded-xl overflow-hidden">
-                  <div className="relative">
-                    <img src={creator.lastPost} alt="Live" className="w-full aspect-video object-cover" />
-                    <div className="absolute inset-0 bg-black bg-opacity-50 flex items-center justify-center">
-                      <button className="bg-red-500 text-white px-4 py-2 rounded-full">Entrar na Live</button>
+            {liveCreators.length > 0 ? (
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                {liveCreators.map(creator => (
+                  <div key={creator.id} className="group">
+                    <div className="bg-white dark:bg-slate-900 rounded-xl overflow-hidden border-2 border-red-200 dark:border-red-900">
+                      <div className="relative">
+                        <img src={creator.lastPost} alt="Live" className="w-full aspect-video object-cover" />
+                        <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent flex items-center justify-center">
+                          <div className="absolute top-4 left-4 bg-red-500 text-white text-sm px-3 py-1.5 rounded-md font-bold flex items-center space-x-2">
+                            <span className="w-2 h-2 bg-white rounded-full animate-pulse"></span>
+                            <span>AO VIVO</span>
+                          </div>
+                          <button className="bg-white dark:bg-slate-900 text-slate-900 dark:text-white px-6 py-3 rounded-lg font-bold hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors">
+                            Assistir Agora
+                          </button>
+                        </div>
+                      </div>
+                      <div className="p-4">
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center space-x-3">
+                            <img src={creator.avatar} alt={creator.displayName} className="w-10 h-10 rounded-full border-2 border-red-500" />
+                            <div>
+                              <h3 className="font-semibold text-sm text-slate-900 dark:text-white">{creator.displayName}</h3>
+                              <p className="text-xs text-slate-500">{creator.category}</p>
+                            </div>
+                          </div>
+                          <div className="flex items-center space-x-1 text-slate-600 dark:text-slate-400">
+                            <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
+                              <path d="M10 12a2 2 0 100-4 2 2 0 000 4z" />
+                              <path fillRule="evenodd" d="M.458 10C1.732 5.943 5.522 3 10 3s8.268 2.943 9.542 7c-1.274 4.057-5.064 7-9.542 7S1.732 14.057.458 10zM14 10a4 4 0 11-8 0 4 4 0 018 0z" clipRule="evenodd" />
+                            </svg>
+                            <span className="text-sm font-medium">1.2k</span>
+                          </div>
+                        </div>
+                      </div>
                     </div>
-                    <div className="absolute top-2 left-2 bg-red-500 text-white text-xs px-2 py-1 rounded">AO VIVO</div>
                   </div>
-                  <div className="p-3">
-                    <h3 className="font-semibold">{creator.displayName}</h3>
-                    <p className="text-xs text-gray-400">{creator.category}</p>
-                  </div>
-                </div>
-              ))}
-            </div>
-            {liveCreators.length === 0 && (
-              <p className="text-center text-gray-500 mt-8">Nenhuma live ao vivo no momento.</p>
+                ))}
+              </div>
+            ) : (
+              <div className="text-center py-12">
+                <svg xmlns="http://www.w3.org/2000/svg" className="mx-auto h-12 w-12 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                </svg>
+                <h3 className="mt-2 text-sm font-medium text-slate-900 dark:text-white">Nenhuma live ao vivo</h3>
+                <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">Volte mais tarde para ver conteúdo ao vivo!</p>
+              </div>
             )}
           </>
         )}
-
-        {/* Rodapé com política de privacidade discreta e ênfase em segurança */}
-        <div className="text-center text-gray-600 text-xs mt-12 mb-20">
-          {discreetMode
-            ? 'Serviços digitais seguros e confidenciais. Criptografia end-to-end para todas as interações.'
-            : 'Pagamentos 100% discretos. Nenhum detalhe sensível aparece no extrato bancário. Protegemos sua privacidade com criptografia avançada.'}
-        </div>
       </main>
+
+      {/* Footer */}
+      <footer className="bg-slate-50 dark:bg-slate-900 border-t border-slate-200 dark:border-slate-800 mt-12">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+          <div className="text-center space-y-4">
+            <div className="flex items-center justify-center space-x-3 text-2xl">
+              <span>🔒</span>
+              <span>🏳️‍🌈</span>
+              <span>✨</span>
+            </div>
+            <p className="text-sm text-slate-600 dark:text-slate-400 max-w-2xl mx-auto">
+              {discreetMode
+                ? 'Plataforma segura e confidencial com criptografia end-to-end.'
+                : 'Pagamentos 100% discretos. Proteção total da sua privacidade. Espaço seguro para a comunidade LGBT+.'}
+            </p>
+            <p className="text-sm font-medium text-indigo-600 dark:text-indigo-400">
+              Feito com 💜 para a comunidade LGBT+
+            </p>
+            <div className="flex items-center justify-center space-x-6 text-xs text-slate-500 dark:text-slate-400 pt-4">
+              <Link to="/terms" className="hover:text-indigo-600 dark:hover:text-indigo-400">Termos</Link>
+              <Link to="/privacy" className="hover:text-indigo-600 dark:hover:text-indigo-400">Privacidade</Link>
+              <Link to="/dmca" className="hover:text-indigo-600 dark:hover:text-indigo-400">DMCA</Link>
+              <Link to="/support" className="hover:text-indigo-600 dark:hover:text-indigo-400">Suporte</Link>
+            </div>
+          </div>
+        </div>
+      </footer>
+
+      {/* Styles */}
+      <style jsx>{`
+        .hide-scrollbar {
+          -ms-overflow-style: none;
+          scrollbar-width: none;
+        }
+        .hide-scrollbar::-webkit-scrollbar {
+          display: none;
+        }
+        @keyframes slideDown {
+          from {
+            opacity: 0;
+            transform: translateY(-10px);
+          }
+          to {
+            opacity: 1;
+            transform: translateY(0);
+          }
+        }
+        .animate-slideDown {
+          animation: slideDown 0.3s ease-out;
+        }
+      `}</style>
     </div>
   );
 }
