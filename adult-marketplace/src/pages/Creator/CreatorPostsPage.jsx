@@ -224,7 +224,7 @@ export default function CreatorPostsPage() {
             </div>
 
             <Link
-              to="/upload-content"
+              to="/creator/upload"
               className="flex items-center space-x-2 bg-indigo-600 hover:bg-indigo-700 text-white font-medium px-4 py-2 rounded-lg transition-colors"
             >
               <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
