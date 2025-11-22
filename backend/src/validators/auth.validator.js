@@ -1,5 +1,9 @@
 import Joi from 'joi';
 
+// Constants for age validation
+const MILLISECONDS_PER_YEAR = 365.25 * 24 * 60 * 60 * 1000;
+const MINIMUM_AGE = 18;
+
 /**
  * Register validation schema
  */
@@ -27,8 +31,8 @@ export const registerSchema = Joi.object({
     'any.required': 'Display name is required',
   }),
   birthDate: Joi.date().max('now').required().custom((value, helpers) => {
-    const age = Math.floor((new Date() - new Date(value)) / (365.25 * 24 * 60 * 60 * 1000));
-    if (age < 18) {
+    const age = Math.floor((new Date() - new Date(value)) / MILLISECONDS_PER_YEAR);
+    if (age < MINIMUM_AGE) {
       return helpers.error('any.invalid');
     }
     return value;

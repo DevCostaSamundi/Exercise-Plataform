@@ -48,7 +48,7 @@ class AuthController {
           username,
           password: hashedPassword,
           displayName,
-          birthDate: birthDate ? new Date(birthDate) : null,
+          birthDate: new Date(birthDate),
           genderIdentity,
           orientation,
           firstName,
