@@ -1,0 +1,233 @@
+import prisma from '../config/database.js';
+import ApiResponse from '../utils/response.js';
+import { NotFoundError, ForbiddenError, ConflictError } from '../utils/errors.js';
+
+class CreatorController {
+  /**
+   * Get all creators
+   */
+  async getCreators(req, res, next) {
+    try {
+      const { page = 1, limit = 20, verified } = req.query;
+      const skip = (page - 1) * limit;
+
+      const where = {};
+      if (verified !== undefined) {
+        where.isVerified = verified === 'true';
+      }
+
+      const [creators, total] = await Promise.all([
+        prisma.creator.findMany({
+          where,
+          skip,
+          take: parseInt(limit),
+          include: {
+            user: {
+              select: {
+                username: true,
+                avatar: true,
+              },
+            },
+          },
+          orderBy: {
+            followersCount: 'desc',
+          },
+        }),
+        prisma.creator.count({ where }),
+      ]);
+
+      return ApiResponse.paginated(
+        res,
+        creators,
+        { page: parseInt(page), limit: parseInt(limit), total },
+        'Creators retrieved successfully'
+      );
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  /**
+   * Get creator by ID
+   */
+  async getCreatorById(req, res, next) {
+    try {
+      const { id } = req.params;
+
+      const creator = await prisma.creator.findUnique({
+        where: { id },
+        include: {
+          user: {
+            select: {
+              username: true,
+              avatar: true,
+              bio: true,
+            },
+          },
+          _count: {
+            select: {
+              posts: true,
+              products: true,
+              subscriptions: true,
+            },
+          },
+        },
+      });
+
+      if (!creator) {
+        throw new NotFoundError('Creator not found');
+      }
+
+      return ApiResponse.success(res, creator, 'Creator retrieved successfully');
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  /**
+   * Become a creator (upgrade user to creator)
+   */
+  async becomeCreator(req, res, next) {
+    try {
+      const { displayName, description, subscriptionPrice } = req.body;
+
+      // Check if user is already a creator
+      const existingCreator = await prisma.creator.findUnique({
+        where: { userId: req.user.id },
+      });
+
+      if (existingCreator) {
+        throw new ConflictError('User is already a creator');
+      }
+
+      // Create creator profile
+      const creator = await prisma.creator.create({
+        data: {
+          userId: req.user.id,
+          displayName,
+          description,
+          subscriptionPrice: subscriptionPrice || 0,
+        },
+        include: {
+          user: {
+            select: {
+              username: true,
+              avatar: true,
+            },
+          },
+        },
+      });
+
+      // Update user role
+      await prisma.user.update({
+        where: { id: req.user.id },
+        data: { role: 'CREATOR' },
+      });
+
+      return ApiResponse.success(
+        res,
+        creator,
+        'Creator profile created successfully',
+        201
+      );
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  /**
+   * Update creator profile
+   */
+  async updateCreator(req, res, next) {
+    try {
+      const { id } = req.params;
+      const { displayName, description, coverImage, subscriptionPrice, socialLinks } = req.body;
+
+      // Get creator
+      const creator = await prisma.creator.findUnique({
+        where: { id },
+      });
+
+      if (!creator) {
+        throw new NotFoundError('Creator not found');
+      }
+
+      // Check ownership
+      if (creator.userId !== req.user.id && req.user.role !== 'ADMIN') {
+        throw new ForbiddenError('You can only update your own creator profile');
+      }
+
+      // Update creator
+      const updatedCreator = await prisma.creator.update({
+        where: { id },
+        data: {
+          displayName,
+          description,
+          coverImage,
+          subscriptionPrice,
+          socialLinks,
+        },
+        include: {
+          user: {
+            select: {
+              username: true,
+              avatar: true,
+            },
+          },
+        },
+      });
+
+      return ApiResponse.success(
+        res,
+        updatedCreator,
+        'Creator profile updated successfully'
+      );
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  /**
+   * Get creator statistics
+   */
+  async getCreatorStats(req, res, next) {
+    try {
+      const { id } = req.params;
+
+      const creator = await prisma.creator.findUnique({
+        where: { id },
+      });
+
+      if (!creator) {
+        throw new NotFoundError('Creator not found');
+      }
+
+      // Check ownership
+      if (creator.userId !== req.user.id && req.user.role !== 'ADMIN') {
+        throw new ForbiddenError('You can only view your own statistics');
+      }
+
+      const stats = await prisma.creator.findUnique({
+        where: { id },
+        select: {
+          earnings: true,
+          followersCount: true,
+          postsCount: true,
+          _count: {
+            select: {
+              posts: true,
+              products: true,
+              subscriptions: true,
+            },
+          },
+        },
+      });
+
+      return ApiResponse.success(res, stats, 'Statistics retrieved successfully');
+    } catch (error) {
+      next(error);
+    }
+  }
+}
+
+export default new CreatorController();
