@@ -463,7 +463,10 @@ export default function ForgotPasswordPage() {
                 </svg>
                 <span>Redirecionando...</span>
               </div>
-
+              <div>
+                voce pode clicar no link abaixo se nao quiser esperar
+                <p></p>
+              </div>
               <Link 
                 to="/login" 
                 className="inline-block mt-4 text-indigo-600 dark:text-indigo-400 hover:text-indigo-700 dark:hover:text-indigo-300 font-medium text-sm"
