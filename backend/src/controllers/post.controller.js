@@ -89,8 +89,22 @@ class PostController {
 
       // Check access for private posts
       if (!post.isPublic && (!req.user || req.user.role !== 'ADMIN')) {
-        // TODO: Check if user is subscribed to creator
-        throw new ForbiddenError('This content is for subscribers only');
+        // Check if user is subscribed to creator
+        if (req.user) {
+          const subscription = await prisma.subscription.findFirst({
+            where: {
+              userId: req.user.id,
+              creatorId: post.creatorId,
+              status: 'ACTIVE',
+            },
+          });
+
+          if (!subscription) {
+            throw new ForbiddenError('This content is for subscribers only');
+          }
+        } else {
+          throw new ForbiddenError('This content is for subscribers only');
+        }
       }
 
       // Increment views

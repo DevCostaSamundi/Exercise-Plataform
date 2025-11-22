@@ -3,6 +3,7 @@ import prisma from '../config/database.js';
 import JwtService from '../services/jwt.service.js';
 import emailService from '../services/email.service.js';
 import ApiResponse from '../utils/response.js';
+import logger from '../utils/logger.js';
 import { ConflictError, UnauthorizedError, NotFoundError } from '../utils/errors.js';
 
 class AuthController {
@@ -55,7 +56,7 @@ class AuthController {
 
       // Send welcome email (don't wait for it)
       emailService.sendWelcomeEmail(user.email, user.username).catch((err) => {
-        console.error('Failed to send welcome email:', err);
+        logger.error('Failed to send welcome email:', err);
       });
 
       return ApiResponse.success(

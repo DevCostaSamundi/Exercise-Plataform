@@ -4,6 +4,17 @@ import logger from '../utils/logger.js';
 
 class UploadService {
   /**
+   * Delete local file after upload or on error
+   */
+  async #deleteLocalFile(filePath) {
+    try {
+      await fs.unlink(filePath);
+    } catch (error) {
+      logger.error('Error deleting local file:', error);
+    }
+  }
+
+  /**
    * Upload file to Cloudinary
    */
   async uploadFile(filePath, folder = 'prideconnect') {
@@ -14,7 +25,7 @@ class UploadService {
       });
 
       // Delete local file after upload
-      await fs.unlink(filePath);
+      await this.#deleteLocalFile(filePath);
 
       return {
         url: result.secure_url,
@@ -26,11 +37,7 @@ class UploadService {
     } catch (error) {
       logger.error('Error uploading file to Cloudinary:', error);
       // Try to delete local file even if upload fails
-      try {
-        await fs.unlink(filePath);
-      } catch (unlinkError) {
-        logger.error('Error deleting local file:', unlinkError);
-      }
+      await this.#deleteLocalFile(filePath);
       throw error;
     }
   }
@@ -89,7 +96,7 @@ class UploadService {
       });
 
       // Delete local file after upload
-      await fs.unlink(filePath);
+      await this.#deleteLocalFile(filePath);
 
       return {
         url: result.secure_url,
@@ -100,11 +107,7 @@ class UploadService {
       };
     } catch (error) {
       logger.error('Error uploading image:', error);
-      try {
-        await fs.unlink(filePath);
-      } catch (unlinkError) {
-        logger.error('Error deleting local file:', unlinkError);
-      }
+      await this.#deleteLocalFile(filePath);
       throw error;
     }
   }
@@ -120,7 +123,7 @@ class UploadService {
       });
 
       // Delete local file after upload
-      await fs.unlink(filePath);
+      await this.#deleteLocalFile(filePath);
 
       return {
         url: result.secure_url,
@@ -130,11 +133,7 @@ class UploadService {
       };
     } catch (error) {
       logger.error('Error uploading video:', error);
-      try {
-        await fs.unlink(filePath);
-      } catch (unlinkError) {
-        logger.error('Error deleting local file:', unlinkError);
-      }
+      await this.#deleteLocalFile(filePath);
       throw error;
     }
   }

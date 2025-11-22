@@ -2,6 +2,9 @@ import multer from 'multer';
 import path from 'path';
 import { BadRequestError } from '../utils/errors.js';
 
+// Parse allowed file types once at module initialization
+const ALLOWED_FILE_TYPES = (process.env.ALLOWED_FILE_TYPES || 'image/jpeg,image/png,image/gif,video/mp4').split(',');
+
 // Configure storage
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
@@ -15,9 +18,7 @@ const storage = multer.diskStorage({
 
 // File filter
 const fileFilter = (req, file, cb) => {
-  const allowedTypes = (process.env.ALLOWED_FILE_TYPES || 'image/jpeg,image/png,image/gif,video/mp4').split(',');
-  
-  if (allowedTypes.includes(file.mimetype)) {
+  if (ALLOWED_FILE_TYPES.includes(file.mimetype)) {
     cb(null, true);
   } else {
     cb(new BadRequestError(`File type ${file.mimetype} is not allowed`), false);

@@ -6,11 +6,7 @@
  */
 
 import prisma from '../config/database.js';
-
-export default prisma;
-
-// Re-export commonly used Prisma enums for convenience
-export const {
+import { 
   UserRole,
   KYCStatus,
   MediaType,
@@ -19,4 +15,18 @@ export const {
   ProductType,
   OrderStatus,
   PaymentStatus,
-} = prisma;
+} from '@prisma/client';
+
+export default prisma;
+
+// Re-export commonly used Prisma enums for convenience
+export {
+  UserRole,
+  KYCStatus,
+  MediaType,
+  SubscriptionStatus,
+  ProductCategory,
+  ProductType,
+  OrderStatus,
+  PaymentStatus,
+};
