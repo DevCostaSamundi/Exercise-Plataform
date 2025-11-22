@@ -8,22 +8,20 @@ Aqui está uma proposta bem estruturada e detalhada para o teu Marketplace, pens
 
 Pagamentos: Sistema de wallet único. O criador saca tudo junto (ganhos de assinatura + marketplace) via PIX, transferência, etc.
 
-### Nome sugerido para o Marketplace
-- “Creator Shop”  
+### Nome sugerido para o Marketplace  
 - “Lust Market”  
-- “Secret Store”  
-- “Naughty Shop”  
-- “Private Bazaar”  
 - “FanMart”  
-- “Desire Drop”
 
-Eu pessoalmente gosto mais de “Creator Shop” (simples, claro e profissional) ou “Secret Store” (mais sensual e alinhado com Privacy).
+*   **Nome Sugerido:** Algo que ressoe com a comunidade e com a ideia de exclusividade e autenticidade. Exemplos: "Pride Shop", "Casa Criadora", "Arcanum" (mistério, algo único), "Our Goods" (jogo de palavras com "nossos bens" e "nós somos bons").
+*   **Posicionamento:** "O único lugar onde você compra diretamente do artista e da voz que você admira. Produtos únicos, com a identidade e o carinho da comunidade."
+
 
 ### Quem pode vender?
 Apenas criadores verificados na plataforma (com KYC completo e conta aprovada para monetização).  
 Isso evita fraudes e mantém a confiança dos compradores.
 
 ### Tipos de produtos permitidos (foco no que realmente vende no nicho adulto)
+
 1. Produtos físicos personalizados  
    - Calcinhas/sutiãs usados ou não (o rei das vendas)  
    - Meias, collants, lingerie usada  
@@ -32,6 +30,12 @@ Isso evita fraudes e mantém a confiança dos compradores.
    - Preservativos usados (selados, muito pedido)  
    - Cabelo, unhas postiças, etc.  
    - Polaroids ou fotos impressas assinadas (nuas ou não)
+
+Arte Digital:**
+   *   Wallpapers e ilustrações de alta resolução.
+   *   Stickers e pacotes para redes sociais.
+   *   NFTs (se for uma direção que a plataforma queira seguir no futuro).
+   *   Desenhos Hentai sexuais
 
 2. Produtos digitais entregues fisicamente  
    - Pen drives com conteúdo exclusivo (vídeos nunca postados)  
@@ -47,6 +51,25 @@ Isso evita fraudes e mantém a confiança dos compradores.
    - Videochamada gravada + enviada em pen drive  
    - Sexting pack impresso (conversas picantes impressas + fotos)  
    - Nome tatuado temporariamente + prova em vídeo e foto enviada
+
+Funcionalidades Principais do Marketplace**
+
+**Para os Compradores/Fãs:**
+
+ **Loja Integrada no Perfil:** Cada criador terá uma aba "Loja" ou "Produtos" em seu perfil, com a mesma identidade visual.
+ 
+ **Busca e Descobrimento:**
+    *   Página principal do Marketplace com produtos em destaque, tendências e novidades.
+    *   Filtros por categoria (Digital/Físico), preço, criador, *tags* (#trans, #art, #fotografia, #moda).
+    *   Barra de busca para encontrar produtos específicos.
+ 
+ **Carrinho de Compras Unificado:** Possibilidade de comprar produtos de vários criadores em uma única transação.
+
+*   **Avaliações e Comentários:** Sistema de feedback para construir confiança.
+
+*   **Lista de Desejos:** Para os fãs salvarem produtos para comprar depois.
+
+*   **Área do Cliente:** Histórico de compras, downloads de produtos digitais e     rastreamento de produtos físicos.
 
 ### Funcionalidades essenciais do Marketplace
 1. Loja individual de cada criador  
@@ -84,7 +107,32 @@ Isso evita fraudes e mantém a confiança dos compradores.
 
 ### Comissões sugeridas
 - 15–20% da plataforma (mais baixo que OnlyFans nos subs, para incentivar)  
-- Ou 20% fixo + taxa de processamento do cartão
+- Ou 20% fixo + taxa de processamento do cartão.
+
+**Para os Criadores/Vendedores:**
+
+*   **Painel de Vendas Simplificado:**
+    *   Cadastro fácil de produtos (título, descrição, fotos, preço, categoria, *tags*).
+    *   Diferenciação clara entre produto digital (upload de arquivo) e físico (gestão de estoque, se aplicável).
+    *   Ferramenta para criar *kits* ou *bundles* (ex.: 1 e-book + 3 wallpapers com preço especial).
+*   **Ferramentas de Promoção:**
+    *   Possibilidade de criar códigos de desconto.
+    *   Ofertas por tempo limitado.
+    *   Destacar produtos no topo do perfil.
+*   **Dashboard Analítico:**
+    *   Visão geral de vendas, lucro, produtos mais populares.
+    *   Dados demográficos dos compradores (quanto a plataforma permitir, respeitando a LGPD).
+*   **Logística para Produtos Físicos (Parceria Estratégica):**
+    *   Integração com APIs de correios/transportadoras para cálculo de frete e geração de etiquetas.
+    *   A plataforma pode atuar como intermediária logística (*fulfillment center*) ou apenas facilitar o processo para o criador.
+*   **Assinatura vs. Marketplace:** O valor da assinatura mensal do criador é uma coisa. As vendas no Marketplace são outra, separadas. Um criador pode ter um perfil gratuito e ganhar apenas pelas vendas no Marketplace.
+
+*   **Pagamentos aos Criadores:**
+    *   Sistema de *payout* claro (ex.: uma vez por mês, quando o saldo atingir um valor mínimo).
+    *   Múltiplas formas de saque (PIX, transferência bancária, PayPal).
+*   **Política de Reembolso e Suporte:**
+    *   Regras claras para cada tipo de produto. Para digitais, geralmente não há reembolso após o download. Para físicos, políticas padrão de e-commerce.
+    *   Uma equipe de suporte para mediar disputas entre criadores e compradores.
 
 ### Funcionalidades premium (diferencial competitivo)
 - “WishList” pública da criadora (ex: “Quero uma Louboutin, me manda!”) → fãs compram e ela recebe + cria conteúdo usando  
@@ -316,12 +364,20 @@ Apenas criadores verificados com KYC + aprovação manual da equipe (zero chance
 - Wishlist pública  
 - Merch oficial + integração com logística automática
 
-Se fizeres exatamente assim, em 90 dias tens o Marketplace mais quente do Brasil – ninguém chega perto.
+### **5. Segurança, Privacidade e Moderação (Inspirado no Privacy)**
 
-Queres agora que eu te entregue pronto:
-- Textos de descrição de produtos que convertem 10x mais  
-- Layout das telas (mobile) do Secret Drop  
-- Termos de uso completos do Marketplace  
-- Script de anúncio para recrutar as primeiras 100 criadoras
+Este é um pilar crítico, especialmente para a comunidade LGBT.
 
-É só falar qual queres primeiro! Vai bombar pra caralho. 🔥
+*   **Verificação de Criadores:** Processo rigoroso para verificar a identidade e a idade dos criadores antes de permitir a venda. Isso combate fraudes e garante a autenticidade.
+*   **Proteção de Conteúdo:** Implementar medidas contra a pirataria e *leaks*.
+    *   Marca d'água digital em fotos/vídeos.
+    *   Download de arquivos com nome personalizado (com o ID do comprador).
+    *   Streaming de vídeos para evitar download direto (quando aplicável).
+*   **Direitos de Propriedade Intelectual:** Termos de uso claros que protegem os direitos autorais dos criadores sobre seus produtos. A plataforma deve ter um processo para remoção de produtos que infringem direitos autorais.
+*   **Moderação de Produtos:**
+    *   Políticas claras sobre o que pode ou não ser vendido (ex.: proibição de produtos com discurso de ódio, armas, etc.).
+    *   Sistema de denúncia para produtos inadequados.
+    *   Equipe de moderação diversa e treinada para entender as nuances da comunidade LGBT.
+*   **Privacidade dos Dados:** Total aderência à LGPD. Os dados de compra e endereço dos fãs não devem ser compartilhados com os criadores sem consentimento explícito (para produtos físicos, o endereço é necessário, mas deve ser tratado com confidencialidade).
+
+O Meu Marketplace não será apenas uma loja, mas uma extensão da economia criativa e da expressão dos criadores LGBT. Ao focar na **autenticidade, segurança e facilidade de uso**, você cria um ecossistema onde os criadores podem monetizar seu talento de múltiplas formas e os fãs podem se conectar com eles de maneira mais profunda e tangível.
