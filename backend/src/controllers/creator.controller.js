@@ -28,7 +28,9 @@ class CreatorController {
   async getCreators(req, res, next) {
     try {
       const { page = 1, limit = 20, verified } = req.query;
-      const skip = (page - 1) * limit;
+      const pageNum = parseInt(page, 10);
+      const limitNum = parseInt(limit, 10);
+      const skip = (pageNum - 1) * limitNum;
 
       const where = {};
       if (verified !== undefined) {
@@ -39,7 +41,7 @@ class CreatorController {
         prisma.creator.findMany({
           where,
           skip,
-          take: parseInt(limit, 10),
+          take: limitNum,
           include: {
             user: {
               select: {
@@ -58,7 +60,7 @@ class CreatorController {
       return ApiResponse.paginated(
         res,
         creators,
-        { page: parseInt(page, 10), limit: parseInt(limit, 10), total },
+        { page: pageNum, limit: limitNum, total },
         'Creators retrieved successfully'
       );
     } catch (error) {

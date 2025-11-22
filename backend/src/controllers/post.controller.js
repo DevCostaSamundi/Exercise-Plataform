@@ -29,7 +29,9 @@ class PostController {
   async getPosts(req, res, next) {
     try {
       const { page = 1, limit = 20, creatorId, mediaType, isPublic } = req.query;
-      const skip = (page - 1) * limit;
+      const pageNum = parseInt(page, 10);
+      const limitNum = parseInt(limit, 10);
+      const skip = (pageNum - 1) * limitNum;
 
       const where = {};
       
@@ -49,7 +51,7 @@ class PostController {
         prisma.post.findMany({
           where,
           skip,
-          take: parseInt(limit, 10),
+          take: limitNum,
           include: {
             creator: {
               include: {
@@ -72,7 +74,7 @@ class PostController {
       return ApiResponse.paginated(
         res,
         posts,
-        { page: parseInt(page, 10), limit: parseInt(limit, 10), total },
+        { page: pageNum, limit: limitNum, total },
         'Posts retrieved successfully'
       );
     } catch (error) {
