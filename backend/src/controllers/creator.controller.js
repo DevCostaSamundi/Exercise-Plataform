@@ -39,7 +39,7 @@ class CreatorController {
         prisma.creator.findMany({
           where,
           skip,
-          take: parseInt(limit),
+          take: parseInt(limit, 10),
           include: {
             user: {
               select: {
@@ -58,7 +58,7 @@ class CreatorController {
       return ApiResponse.paginated(
         res,
         creators,
-        { page: parseInt(page), limit: parseInt(limit), total },
+        { page: parseInt(page, 10), limit: parseInt(limit, 10), total },
         'Creators retrieved successfully'
       );
     } catch (error) {

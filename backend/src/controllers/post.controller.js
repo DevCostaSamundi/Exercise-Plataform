@@ -49,7 +49,7 @@ class PostController {
         prisma.post.findMany({
           where,
           skip,
-          take: parseInt(limit),
+          take: parseInt(limit, 10),
           include: {
             creator: {
               include: {
@@ -72,7 +72,7 @@ class PostController {
       return ApiResponse.paginated(
         res,
         posts,
-        { page: parseInt(page), limit: parseInt(limit), total },
+        { page: parseInt(page, 10), limit: parseInt(limit, 10), total },
         'Posts retrieved successfully'
       );
     } catch (error) {
