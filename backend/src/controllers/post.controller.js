@@ -4,6 +4,26 @@ import { NotFoundError, ForbiddenError } from '../utils/errors.js';
 
 class PostController {
   /**
+   * Helper to verify post ownership
+   */
+  async #verifyPostOwnership(postId, userId, userRole) {
+    const post = await prisma.post.findUnique({
+      where: { id: postId },
+      include: { creator: true },
+    });
+
+    if (!post) {
+      throw new NotFoundError('Post not found');
+    }
+
+    if (post.creator.userId !== userId && userRole !== 'ADMIN') {
+      throw new ForbiddenError('You can only modify your own posts');
+    }
+
+    return post;
+  }
+
+  /**
    * Get all posts
    */
   async getPosts(req, res, next) {
@@ -88,9 +108,14 @@ class PostController {
       }
 
       // Check access for private posts
-      if (!post.isPublic && (!req.user || req.user.role !== 'ADMIN')) {
-        // Check if user is subscribed to creator
-        if (req.user) {
+      if (!post.isPublic) {
+        // Admins have access to all content
+        if (req.user?.role === 'ADMIN') {
+          // Admin access granted
+        } else if (!req.user) {
+          throw new ForbiddenError('This content is for subscribers only');
+        } else {
+          // Check if user is subscribed to creator
           const subscription = await prisma.subscription.findFirst({
             where: {
               userId: req.user.id,
@@ -102,8 +127,6 @@ class PostController {
           if (!subscription) {
             throw new ForbiddenError('This content is for subscribers only');
           }
-        } else {
-          throw new ForbiddenError('This content is for subscribers only');
         }
       }
 
@@ -179,20 +202,8 @@ class PostController {
       const { id } = req.params;
       const { title, content, isPublic, isPPV, ppvPrice } = req.body;
 
-      // Get post
-      const post = await prisma.post.findUnique({
-        where: { id },
-        include: { creator: true },
-      });
-
-      if (!post) {
-        throw new NotFoundError('Post not found');
-      }
-
-      // Check ownership
-      if (post.creator.userId !== req.user.id && req.user.role !== 'ADMIN') {
-        throw new ForbiddenError('You can only update your own posts');
-      }
+      // Verify ownership
+      await this.#verifyPostOwnership(id, req.user.id, req.user.role);
 
       const updatedPost = await prisma.post.update({
         where: { id },
@@ -230,20 +241,8 @@ class PostController {
     try {
       const { id } = req.params;
 
-      // Get post
-      const post = await prisma.post.findUnique({
-        where: { id },
-        include: { creator: true },
-      });
-
-      if (!post) {
-        throw new NotFoundError('Post not found');
-      }
-
-      // Check ownership
-      if (post.creator.userId !== req.user.id && req.user.role !== 'ADMIN') {
-        throw new ForbiddenError('You can only delete your own posts');
-      }
+      // Verify ownership
+      const post = await this.#verifyPostOwnership(id, req.user.id, req.user.role);
 
       await prisma.post.delete({
         where: { id },

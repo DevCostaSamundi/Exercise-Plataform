@@ -4,6 +4,25 @@ import { NotFoundError, ForbiddenError, ConflictError } from '../utils/errors.js
 
 class CreatorController {
   /**
+   * Helper to verify creator ownership
+   */
+  async #verifyCreatorOwnership(creatorId, userId, userRole) {
+    const creator = await prisma.creator.findUnique({
+      where: { id: creatorId },
+    });
+
+    if (!creator) {
+      throw new NotFoundError('Creator not found');
+    }
+
+    if (creator.userId !== userId && userRole !== 'ADMIN') {
+      throw new ForbiddenError('You can only modify your own creator profile');
+    }
+
+    return creator;
+  }
+
+  /**
    * Get all creators
    */
   async getCreators(req, res, next) {
@@ -143,19 +162,8 @@ class CreatorController {
       const { id } = req.params;
       const { displayName, description, coverImage, subscriptionPrice, socialLinks } = req.body;
 
-      // Get creator
-      const creator = await prisma.creator.findUnique({
-        where: { id },
-      });
-
-      if (!creator) {
-        throw new NotFoundError('Creator not found');
-      }
-
-      // Check ownership
-      if (creator.userId !== req.user.id && req.user.role !== 'ADMIN') {
-        throw new ForbiddenError('You can only update your own creator profile');
-      }
+      // Verify ownership
+      await this.#verifyCreatorOwnership(id, req.user.id, req.user.role);
 
       // Update creator
       const updatedCreator = await prisma.creator.update({
@@ -194,18 +202,8 @@ class CreatorController {
     try {
       const { id } = req.params;
 
-      const creator = await prisma.creator.findUnique({
-        where: { id },
-      });
-
-      if (!creator) {
-        throw new NotFoundError('Creator not found');
-      }
-
-      // Check ownership
-      if (creator.userId !== req.user.id && req.user.role !== 'ADMIN') {
-        throw new ForbiddenError('You can only view your own statistics');
-      }
+      // Verify ownership
+      await this.#verifyCreatorOwnership(id, req.user.id, req.user.role);
 
       const stats = await prisma.creator.findUnique({
         where: { id },
