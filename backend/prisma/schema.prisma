@@ -17,6 +17,10 @@ model User {
   password      String
   firstName     String?
   lastName      String?
+  displayName   String?
+  birthDate     DateTime?
+  genderIdentity String?
+  orientation   String?
   avatar        String?
   bio           String?
   isVerified    Boolean   @default(false)
