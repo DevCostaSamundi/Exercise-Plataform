@@ -9,7 +9,6 @@ Pagamentos: Sistema de wallet único. O criador saca tudo junto (ganhos de assin
 *   **Nome Sugerido:** Algo que ressoe com a comunidade e com a ideia de exclusividade e autenticidade. Exemplos: "Pride Shop", "Casa Criadora", "Arcanum" (mistério, algo único), "Our Goods" (jogo de palavras com "nossos bens" e "nós somos bons").
 *   **Posicionamento:** "O único lugar onde você compra diretamente do artista e da voz que você admira. Produtos únicos, com a identidade e o carinho da comunidade."
 
-
 ### Quem pode vender?
 Apenas criadores verificados na plataforma (com KYC completo e conta aprovada para monetização).  
 Isso evita fraudes e mantém a confiança dos compradores.
