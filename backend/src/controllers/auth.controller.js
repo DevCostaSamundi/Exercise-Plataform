@@ -12,7 +12,17 @@ class AuthController {
    */
   async register(req, res, next) {
     try {
-      const { email, username, password, firstName, lastName } = req.body;
+      const { 
+        email, 
+        username, 
+        password, 
+        displayName,
+        birthDate,
+        genderIdentity,
+        orientation,
+        firstName, 
+        lastName 
+      } = req.body;
 
       // Check if user already exists
       const existingUser = await prisma.user.findFirst({
@@ -37,6 +47,10 @@ class AuthController {
           email,
           username,
           password: hashedPassword,
+          displayName,
+          birthDate: new Date(birthDate),
+          genderIdentity,
+          orientation,
           firstName,
           lastName,
         },
@@ -44,6 +58,10 @@ class AuthController {
           id: true,
           email: true,
           username: true,
+          displayName: true,
+          birthDate: true,
+          genderIdentity: true,
+          orientation: true,
           firstName: true,
           lastName: true,
           role: true,
@@ -55,7 +73,7 @@ class AuthController {
       const tokens = JwtService.generateTokens(user.id, user.role);
 
       // Send welcome email (don't wait for it)
-      emailService.sendWelcomeEmail(user.email, user.username).catch((err) => {
+      emailService.sendWelcomeEmail(user.email, user.displayName || user.username).catch((err) => {
         logger.error('Failed to send welcome email:', err);
       });
 
