@@ -33,11 +33,18 @@ class EmailService {
    * Send welcome email
    */
   async sendWelcomeEmail(email, username) {
-    const subject = 'Welcome to PrideConnect!';
+    // In development, avoid sending real emails — just log and resolve.
+    if (process.env.NODE_ENV === 'development') {
+      console.log(`DEV email: enviar boas-vindas para ${email}`);
+      return Promise.resolve();
+    }
+
+    const subject = 'Bem-vindo ao PrideConnect';
     const html = `
-      <h1>Welcome to PrideConnect, ${username}!</h1>
-      <p>Thank you for joining our platform.</p>
-      <p>We're excited to have you as part of our community!</p>
+      <h1>Bem-vindo, ${username}!</h1>
+      <p>Obrigado por se juntar ao PrideConnect. Estamos felizes em ter você aqui.</p>
+      <p>Explore conteúdo exclusivo e conecte-se com a comunidade.</p>
+      <p>— Equipe PrideConnect</p>
     `;
 
     return this.sendEmail(email, subject, html);

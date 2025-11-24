@@ -21,8 +21,23 @@ export default function RegisterPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
-  const genderOptions = ['Cis homem', 'Cis mulher', 'Trans homem', 'Trans mulher', 'Não-binário', 'Queer', 'Gênero fluido', 'Prefiro não dizer'];
-  const orientationOptions = ['Gay', 'Lésbica', 'Bissexual', 'Pansexual', 'Assexual', 'Queer', 'Prefiro não dizer'];
+  const genderOptions = ['Cis homem', 
+    'Cis mulher', 
+    'Trans homem', 
+    'Trans mulher', 
+    'Não-binário', 
+    'Queer', 
+    'Gênero fluido', 
+    'Prefiro não dizer'];
+  
+    const orientationOptions = ['Gay', 
+    'Demissexual', 
+    'Lésbica', 
+    'Bissexual', 
+    'Pansexual', 
+    'Assexual', 
+    'Queer', 
+    'Prefiro não dizer'];
 
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
@@ -112,7 +127,7 @@ export default function RegisterPage() {
 
   const handleNext = () => {
     let newErrors = {};
-    
+
     if (step === 1) {
       newErrors = validateStep1();
     } else if (step === 2) {
@@ -133,7 +148,7 @@ export default function RegisterPage() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
+
     const newErrors = validateStep3();
     if (Object.keys(newErrors).length > 0) {
       setErrors(newErrors);
@@ -141,21 +156,26 @@ export default function RegisterPage() {
     }
 
     setIsLoading(true);
-    
+
     try {
-      // TODO: Integrar com API
-      // const response = await fetch('/api/auth/register', {
-      //   method: 'POST',
-      //   headers: { 'Content-Type': 'application/json' },
-      //   body: JSON.stringify(formData)
-      // });
-      
+      const response = await fetch('http://localhost:5000/api/v1/auth/register', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(formData)
+      });
+
+      if (!response.ok) {
+        setErrors({ submit: result.message || 'Erro ao criar conta' });
+        return;
+      }
+
       await new Promise(resolve => setTimeout(resolve, 2000));
-      
-      // Salvar token
-      localStorage.setItem('authToken', 'fake-jwt-token-123');
-      localStorage.setItem('userType', 'subscriber');
-      
+
+      // Salvar token (substituir por resposta real quando disponível)
+      localStorage.setItem('authToken', result.data.accessToken);
+      localStorage.setItem('refreshToken', result.data.refreshToken);
+      localStorage.setItem('user', JSON.stringify(result.data.user));
+
       // Redirecionar
       navigate('/', { state: { welcomeMessage: true } });
     } catch (error) {
@@ -186,19 +206,17 @@ export default function RegisterPage() {
           <div className="flex items-center justify-between max-w-md mx-auto">
             {[1, 2, 3].map((s) => (
               <div key={s} className="flex items-center flex-1">
-                <div className={`w-10 h-10 rounded-full flex items-center justify-center font-bold transition-all ${
-                  s <= step 
-                    ? 'bg-indigo-600 text-white' 
-                    : 'bg-slate-200 dark:bg-slate-800 text-slate-400'
-                }`}>
+                <div className={`w-10 h-10 rounded-full flex items-center justify-center font-bold transition-all ${s <= step
+                  ? 'bg-indigo-600 text-white'
+                  : 'bg-slate-200 dark:bg-slate-800 text-slate-400'
+                  }`}>
                   {s < step ? '✓' : s}
                 </div>
                 {s < 3 && (
-                  <div className={`flex-1 h-1 mx-2 transition-all ${
-                    s < step 
-                      ? 'bg-indigo-600' 
-                      : 'bg-slate-200 dark:bg-slate-800'
-                  }`}></div>
+                  <div className={`flex-1 h-1 mx-2 transition-all ${s < step
+                    ? 'bg-indigo-600'
+                    : 'bg-slate-200 dark:bg-slate-800'
+                    }`}></div>
                 )}
               </div>
             ))}
@@ -231,9 +249,8 @@ export default function RegisterPage() {
                     name="email"
                     value={formData.email}
                     onChange={handleChange}
-                    className={`w-full px-4 py-3 bg-slate-50 dark:bg-slate-800 border ${
-                      errors.email ? 'border-red-300' : 'border-slate-200 dark:border-slate-700'
-                    } rounded-lg text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500`}
+                    className={`w-full px-4 py-3 bg-slate-50 dark:bg-slate-800 border ${errors.email ? 'border-red-300' : 'border-slate-200 dark:border-slate-700'
+                      } rounded-lg text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500`}
                     placeholder="seu@email.com"
                   />
                   {errors.email && <p className="mt-1 text-sm text-red-600">{errors.email}</p>}
@@ -252,9 +269,8 @@ export default function RegisterPage() {
                       name="username"
                       value={formData.username}
                       onChange={handleChange}
-                      className={`w-full pl-10 pr-4 py-3 bg-slate-50 dark:bg-slate-800 border ${
-                        errors.username ? 'border-red-300' : 'border-slate-200 dark:border-slate-700'
-                      } rounded-lg text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500`}
+                      className={`w-full pl-10 pr-4 py-3 bg-slate-50 dark:bg-slate-800 border ${errors.username ? 'border-red-300' : 'border-slate-200 dark:border-slate-700'
+                        } rounded-lg text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500`}
                       placeholder="nomedeusuario"
                     />
                   </div>
@@ -273,9 +289,8 @@ export default function RegisterPage() {
                       name="password"
                       value={formData.password}
                       onChange={handleChange}
-                      className={`w-full px-4 py-3 pr-12 bg-slate-50 dark:bg-slate-800 border ${
-                        errors.password ? 'border-red-300' : 'border-slate-200 dark:border-slate-700'
-                      } rounded-lg text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500`}
+                      className={`w-full px-4 py-3 pr-12 bg-slate-50 dark:bg-slate-800 border ${errors.password ? 'border-red-300' : 'border-slate-200 dark:border-slate-700'
+                        } rounded-lg text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500`}
                       placeholder="••••••••"
                     />
                     <button
@@ -302,9 +317,8 @@ export default function RegisterPage() {
                       name="confirmPassword"
                       value={formData.confirmPassword}
                       onChange={handleChange}
-                      className={`w-full px-4 py-3 pr-12 bg-slate-50 dark:bg-slate-800 border ${
-                        errors.confirmPassword ? 'border-red-300' : 'border-slate-200 dark:border-slate-700'
-                      } rounded-lg text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500`}
+                      className={`w-full px-4 py-3 pr-12 bg-slate-50 dark:bg-slate-800 border ${errors.confirmPassword ? 'border-red-300' : 'border-slate-200 dark:border-slate-700'
+                        } rounded-lg text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500`}
                       placeholder="••••••••"
                     />
                     <button
@@ -338,9 +352,8 @@ export default function RegisterPage() {
                     name="displayName"
                     value={formData.displayName}
                     onChange={handleChange}
-                    className={`w-full px-4 py-3 bg-slate-50 dark:bg-slate-800 border ${
-                      errors.displayName ? 'border-red-300' : 'border-slate-200 dark:border-slate-700'
-                    } rounded-lg text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500`}
+                    className={`w-full px-4 py-3 bg-slate-50 dark:bg-slate-800 border ${errors.displayName ? 'border-red-300' : 'border-slate-200 dark:border-slate-700'
+                      } rounded-lg text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500`}
                     placeholder="Como você quer ser chamado"
                   />
                   {errors.displayName && <p className="mt-1 text-sm text-red-600">{errors.displayName}</p>}
@@ -358,9 +371,8 @@ export default function RegisterPage() {
                     value={formData.birthDate}
                     onChange={handleChange}
                     max={new Date(new Date().setFullYear(new Date().getFullYear() - 18)).toISOString().split('T')[0]}
-                    className={`w-full px-4 py-3 bg-slate-50 dark:bg-slate-800 border ${
-                      errors.birthDate ? 'border-red-300' : 'border-slate-200 dark:border-slate-700'
-                    } rounded-lg text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500`}
+                    className={`w-full px-4 py-3 bg-slate-50 dark:bg-slate-800 border ${errors.birthDate ? 'border-red-300' : 'border-slate-200 dark:border-slate-700'
+                      } rounded-lg text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500`}
                   />
                   {errors.birthDate && <p className="mt-1 text-sm text-red-600">{errors.birthDate}</p>}
                   <p className="mt-1 text-xs text-slate-500">Você deve ter 18 anos ou mais</p>
@@ -376,9 +388,8 @@ export default function RegisterPage() {
                     name="genderIdentity"
                     value={formData.genderIdentity}
                     onChange={handleChange}
-                    className={`w-full px-4 py-3 bg-slate-50 dark:bg-slate-800 border ${
-                      errors.genderIdentity ? 'border-red-300' : 'border-slate-200 dark:border-slate-700'
-                    } rounded-lg text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500`}
+                    className={`w-full px-4 py-3 bg-slate-50 dark:bg-slate-800 border ${errors.genderIdentity ? 'border-red-300' : 'border-slate-200 dark:border-slate-700'
+                      } rounded-lg text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500`}
                   >
                     <option value="">Selecione...</option>
                     {genderOptions.map(option => (
@@ -398,9 +409,8 @@ export default function RegisterPage() {
                     name="orientation"
                     value={formData.orientation}
                     onChange={handleChange}
-                    className={`w-full px-4 py-3 bg-slate-50 dark:bg-slate-800 border ${
-                      errors.orientation ? 'border-red-300' : 'border-slate-200 dark:border-slate-700'
-                    } rounded-lg text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500`}
+                    className={`w-full px-4 py-3 bg-slate-50 dark:bg-slate-800 border ${errors.orientation ? 'border-red-300' : 'border-slate-200 dark:border-slate-700'
+                      } rounded-lg text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500`}
                   >
                     <option value="">Selecione...</option>
                     {orientationOptions.map(option => (

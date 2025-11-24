@@ -20,11 +20,12 @@ export default function CreatorRegisterPage() {
     // Content Info
     contentTypes: [],
     aesthetic: [],
-    subscriptionPrice: 24.90,
+    subscriptionPrice: '',
     // Payment Info
     fullName: '',
     cpf: '',
     pixKey: '',
+    criptoKey: '',
     pixKeyType: 'email', // email, cpf, phone, random
     // Verification
     idDocument: null,
@@ -44,7 +45,7 @@ export default function CreatorRegisterPage() {
 
   const handleChange = (e) => {
     const { name, value, type, checked, files } = e.target;
-    
+
     if (type === 'file') {
       setFormData(prev => ({ ...prev, [name]: files[0] }));
     } else if (type === 'checkbox') {
@@ -52,7 +53,7 @@ export default function CreatorRegisterPage() {
     } else {
       setFormData(prev => ({ ...prev, [name]: value }));
     }
-    
+
     if (errors[name]) {
       setErrors(prev => ({ ...prev, [name]: '' }));
     }
@@ -71,13 +72,13 @@ export default function CreatorRegisterPage() {
     const newErrors = {};
     if (!formData.email) newErrors.email = 'Email é obrigatório';
     else if (!/\S+@\S+\.\S+/.test(formData.email)) newErrors.email = 'Email inválido';
-    
+
     if (!formData.username) newErrors.username = 'Nome de usuário é obrigatório';
     else if (formData.username.length < 3) newErrors.username = 'Mínimo 3 caracteres';
-    
+
     if (!formData.password) newErrors.password = 'Senha é obrigatória';
     else if (formData.password.length < 8) newErrors.password = 'Mínimo 8 caracteres';
-    
+
     if (formData.password !== formData.confirmPassword) {
       newErrors.confirmPassword = 'As senhas não coincidem';
     }
@@ -137,7 +138,7 @@ export default function CreatorRegisterPage() {
 
   const handleNext = () => {
     let newErrors = {};
-    
+
     if (step === 1) newErrors = validateStep1();
     else if (step === 2) newErrors = validateStep2();
     else if (step === 3) newErrors = validateStep3();
@@ -159,7 +160,7 @@ export default function CreatorRegisterPage() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
+
     const newErrors = validateStep5();
     if (Object.keys(newErrors).length > 0) {
       setErrors(newErrors);
@@ -167,19 +168,20 @@ export default function CreatorRegisterPage() {
     }
 
     setIsLoading(true);
-    
+
     try {
       // TODO: Upload de documentos e criar conta de criador
-      // const formDataToSend = new FormData();
-      // Object.keys(formData).forEach(key => {
-      //   formDataToSend.append(key, formData[key]);
-      // });
-      
+      const formDataToSend = new FormData();
+      Object.keys(formData).forEach(key => {
+        formDataToSend.append(key, formData[key]);
+      });
+
       await new Promise(resolve => setTimeout(resolve, 2500));
-      
-      localStorage.setItem('authToken', 'fake-creator-token-456');
-      localStorage.setItem('userType', 'creator');
-      
+
+      localStorage.setItem('authToken', result.data.acessToken);
+      localStorage.setItem('refreshToken', result.data.refreshToken);
+      localStorage.setItem('user', JSON.stringify(result.data.user));
+
       // Redirecionar para dashboard do criador
       navigate('/creator/dashboard', { state: { newCreator: true } });
     } catch (error) {
@@ -221,17 +223,15 @@ export default function CreatorRegisterPage() {
           <div className="flex items-center justify-between mb-3">
             {[1, 2, 3, 4, 5].map((s) => (
               <div key={s} className="flex items-center flex-1">
-                <div className={`w-10 h-10 rounded-full flex items-center justify-center font-bold text-sm transition-all ${
-                  s <= step 
-                    ? 'bg-indigo-600 text-white' 
+                <div className={`w-10 h-10 rounded-full flex items-center justify-center font-bold text-sm transition-all ${s <= step
+                    ? 'bg-indigo-600 text-white'
                     : 'bg-slate-200 dark:bg-slate-800 text-slate-400'
-                }`}>
+                  }`}>
                   {s < step ? '✓' : s}
                 </div>
                 {s < 5 && (
-                  <div className={`flex-1 h-1 mx-1 transition-all ${
-                    s < step ? 'bg-indigo-600' : 'bg-slate-200 dark:bg-slate-800'
-                  }`}></div>
+                  <div className={`flex-1 h-1 mx-1 transition-all ${s < step ? 'bg-indigo-600' : 'bg-slate-200 dark:bg-slate-800'
+                    }`}></div>
                 )}
               </div>
             ))}
@@ -262,9 +262,8 @@ export default function CreatorRegisterPage() {
                     name="email"
                     value={formData.email}
                     onChange={handleChange}
-                    className={`w-full px-4 py-3 bg-slate-50 dark:bg-slate-800 border ${
-                      errors.email ? 'border-red-300' : 'border-slate-200 dark:border-slate-700'
-                    } rounded-lg text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500`}
+                    className={`w-full px-4 py-3 bg-slate-50 dark:bg-slate-800 border ${errors.email ? 'border-red-300' : 'border-slate-200 dark:border-slate-700'
+                      } rounded-lg text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500`}
                     placeholder="seu@email.com"
                   />
                   {errors.email && <p className="mt-1 text-sm text-red-600">{errors.email}</p>}
@@ -281,9 +280,8 @@ export default function CreatorRegisterPage() {
                       name="username"
                       value={formData.username}
                       onChange={handleChange}
-                      className={`w-full pl-10 pr-4 py-3 bg-slate-50 dark:bg-slate-800 border ${
-                        errors.username ? 'border-red-300' : 'border-slate-200 dark:border-slate-700'
-                      } rounded-lg text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500`}
+                      className={`w-full pl-10 pr-4 py-3 bg-slate-50 dark:bg-slate-800 border ${errors.username ? 'border-red-300' : 'border-slate-200 dark:border-slate-700'
+                        } rounded-lg text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500`}
                       placeholder="seunome"
                     />
                   </div>
@@ -300,9 +298,8 @@ export default function CreatorRegisterPage() {
                       name="password"
                       value={formData.password}
                       onChange={handleChange}
-                      className={`w-full px-4 py-3 pr-12 bg-slate-50 dark:bg-slate-800 border ${
-                        errors.password ? 'border-red-300' : 'border-slate-200 dark:border-slate-700'
-                      } rounded-lg text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500`}
+                      className={`w-full px-4 py-3 pr-12 bg-slate-50 dark:bg-slate-800 border ${errors.password ? 'border-red-300' : 'border-slate-200 dark:border-slate-700'
+                        } rounded-lg text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500`}
                       placeholder="••••••••"
                     />
                     <button
@@ -325,9 +322,8 @@ export default function CreatorRegisterPage() {
                     name="confirmPassword"
                     value={formData.confirmPassword}
                     onChange={handleChange}
-                    className={`w-full px-4 py-3 bg-slate-50 dark:bg-slate-800 border ${
-                      errors.confirmPassword ? 'border-red-300' : 'border-slate-200 dark:border-slate-700'
-                    } rounded-lg text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500`}
+                    className={`w-full px-4 py-3 bg-slate-50 dark:bg-slate-800 border ${errors.confirmPassword ? 'border-red-300' : 'border-slate-200 dark:border-slate-700'
+                      } rounded-lg text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500`}
                     placeholder="••••••••"
                   />
                   {errors.confirmPassword && <p className="mt-1 text-sm text-red-600">{errors.confirmPassword}</p>}
@@ -353,9 +349,8 @@ export default function CreatorRegisterPage() {
                     name="displayName"
                     value={formData.displayName}
                     onChange={handleChange}
-                    className={`w-full px-4 py-3 bg-slate-50 dark:bg-slate-800 border ${
-                      errors.displayName ? 'border-red-300' : 'border-slate-200 dark:border-slate-700'
-                    } rounded-lg text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500`}
+                    className={`w-full px-4 py-3 bg-slate-50 dark:bg-slate-800 border ${errors.displayName ? 'border-red-300' : 'border-slate-200 dark:border-slate-700'
+                      } rounded-lg text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500`}
                     placeholder="Como você quer ser chamado"
                   />
                   {errors.displayName && <p className="mt-1 text-sm text-red-600">{errors.displayName}</p>}
@@ -372,9 +367,8 @@ export default function CreatorRegisterPage() {
                       value={formData.birthDate}
                       onChange={handleChange}
                       max={new Date(new Date().setFullYear(new Date().getFullYear() - 18)).toISOString().split('T')[0]}
-                      className={`w-full px-4 py-3 bg-slate-50 dark:bg-slate-800 border ${
-                        errors.birthDate ? 'border-red-300' : 'border-slate-200 dark:border-slate-700'
-                      } rounded-lg text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500`}
+                      className={`w-full px-4 py-3 bg-slate-50 dark:bg-slate-800 border ${errors.birthDate ? 'border-red-300' : 'border-slate-200 dark:border-slate-700'
+                        } rounded-lg text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500`}
                     />
                     {errors.birthDate && <p className="mt-1 text-sm text-red-600">{errors.birthDate}</p>}
                   </div>
@@ -403,9 +397,8 @@ export default function CreatorRegisterPage() {
                       name="genderIdentity"
                       value={formData.genderIdentity}
                       onChange={handleChange}
-                      className={`w-full px-4 py-3 bg-slate-50 dark:bg-slate-800 border ${
-                        errors.genderIdentity ? 'border-red-300' : 'border-slate-200 dark:border-slate-700'
-                      } rounded-lg text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500`}
+                      className={`w-full px-4 py-3 bg-slate-50 dark:bg-slate-800 border ${errors.genderIdentity ? 'border-red-300' : 'border-slate-200 dark:border-slate-700'
+                        } rounded-lg text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500`}
                     >
                       <option value="">Selecione...</option>
                       {genderOptions.map(opt => (
@@ -442,9 +435,8 @@ export default function CreatorRegisterPage() {
                     value={formData.bio}
                     onChange={handleChange}
                     rows={5}
-                    className={`w-full px-4 py-3 bg-slate-50 dark:bg-slate-800 border ${
-                      errors.bio ? 'border-red-300' : 'border-slate-200 dark:border-slate-700'
-                    } rounded-lg text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500 resize-none`}
+                    className={`w-full px-4 py-3 bg-slate-50 dark:bg-slate-800 border ${errors.bio ? 'border-red-300' : 'border-slate-200 dark:border-slate-700'
+                      } rounded-lg text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500 resize-none`}
                     placeholder="Conte sobre você, seu conteúdo e o que torna você único..."
                   ></textarea>
                   <p className="mt-1 text-xs text-slate-500">{formData.bio.length}/500 caracteres</p>
@@ -472,11 +464,10 @@ export default function CreatorRegisterPage() {
                         key={type}
                         type="button"
                         onClick={() => handleMultiSelect('contentTypes', type)}
-                        className={`px-4 py-3 rounded-lg text-sm font-medium transition-all ${
-                          formData.contentTypes.includes(type)
+                        className={`px-4 py-3 rounded-lg text-sm font-medium transition-all ${formData.contentTypes.includes(type)
                             ? 'bg-indigo-600 text-white'
                             : 'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700 hover:border-indigo-300'
-                        }`}
+                          }`}
                       >
                         {type}
                       </button>
@@ -495,11 +486,10 @@ export default function CreatorRegisterPage() {
                         key={aes}
                         type="button"
                         onClick={() => handleMultiSelect('aesthetic', aes)}
-                        className={`px-4 py-3 rounded-lg text-sm font-medium transition-all ${
-                          formData.aesthetic.includes(aes)
+                        className={`px-4 py-3 rounded-lg text-sm font-medium transition-all ${formData.aesthetic.includes(aes)
                             ? 'bg-purple-600 text-white'
                             : 'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700 hover:border-purple-300'
-                        }`}
+                          }`}
                       >
                         {aes}
                       </button>
@@ -522,14 +512,13 @@ export default function CreatorRegisterPage() {
                       min="9.90"
                       max="199.90"
                       step="0.10"
-                      className={`w-full pl-12 pr-4 py-3 bg-slate-50 dark:bg-slate-800 border ${
-                        errors.subscriptionPrice ? 'border-red-300' : 'border-slate-200 dark:border-slate-700'
-                      } rounded-lg text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500`}
+                      className={`w-full pl-12 pr-4 py-3 bg-slate-50 dark:bg-slate-800 border ${errors.subscriptionPrice ? 'border-red-300' : 'border-slate-200 dark:border-slate-700'
+                        } rounded-lg text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500`}
                     />
                   </div>
                   <p className="mt-1 text-xs text-slate-500">Preço mínimo: R$ 9,90 | Máximo: R$ 199,90</p>
                   {errors.subscriptionPrice && <p className="mt-1 text-sm text-red-600">{errors.subscriptionPrice}</p>}
-                  
+
                   {/* Earnings Preview */}
                   <div className="mt-4 bg-slate-50 dark:bg-slate-800 rounded-lg p-4">
                     <p className="text-sm font-medium text-slate-900 dark:text-white mb-2">💰 Previsão de Ganhos</p>
@@ -577,9 +566,8 @@ export default function CreatorRegisterPage() {
                     name="fullName"
                     value={formData.fullName}
                     onChange={handleChange}
-                    className={`w-full px-4 py-3 bg-slate-50 dark:bg-slate-800 border ${
-                      errors.fullName ? 'border-red-300' : 'border-slate-200 dark:border-slate-700'
-                    } rounded-lg text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500`}
+                    className={`w-full px-4 py-3 bg-slate-50 dark:bg-slate-800 border ${errors.fullName ? 'border-red-300' : 'border-slate-200 dark:border-slate-700'
+                      } rounded-lg text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500`}
                     placeholder="Seu Nome Completo"
                   />
                   {errors.fullName && <p className="mt-1 text-sm text-red-600">{errors.fullName}</p>}
@@ -594,9 +582,8 @@ export default function CreatorRegisterPage() {
                     name="cpf"
                     value={formData.cpf}
                     onChange={handleChange}
-                    className={`w-full px-4 py-3 bg-slate-50 dark:bg-slate-800 border ${
-                      errors.cpf ? 'border-red-300' : 'border-slate-200 dark:border-slate-700'
-                    } rounded-lg text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500`}
+                    className={`w-full px-4 py-3 bg-slate-50 dark:bg-slate-800 border ${errors.cpf ? 'border-red-300' : 'border-slate-200 dark:border-slate-700'
+                      } rounded-lg text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500`}
                     placeholder="000.000.000-00"
                     maxLength="14"
                   />
@@ -629,14 +616,13 @@ export default function CreatorRegisterPage() {
                     name="pixKey"
                     value={formData.pixKey}
                     onChange={handleChange}
-                    className={`w-full px-4 py-3 bg-slate-50 dark:bg-slate-800 border ${
-                      errors.pixKey ? 'border-red-300' : 'border-slate-200 dark:border-slate-700'
-                    } rounded-lg text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500`}
+                    className={`w-full px-4 py-3 bg-slate-50 dark:bg-slate-800 border ${errors.pixKey ? 'border-red-300' : 'border-slate-200 dark:border-slate-700'
+                      } rounded-lg text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500`}
                     placeholder={
                       formData.pixKeyType === 'email' ? 'seu@email.com' :
-                      formData.pixKeyType === 'cpf' ? '000.000.000-00' :
-                      formData.pixKeyType === 'phone' ? '(00) 00000-0000' :
-                      'Chave aleatória'
+                        formData.pixKeyType === 'cpf' ? '000.000.000-00' :
+                          formData.pixKeyType === 'phone' ? '(00) 00000-0000' :
+                            'Chave aleatória'
                     }
                   />
                   {errors.pixKey && <p className="mt-1 text-sm text-red-600">{errors.pixKey}</p>}

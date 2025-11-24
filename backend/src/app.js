@@ -60,15 +60,5 @@ app.use(`/api/${API_VERSION}/users`, userRoutes);
 app.use(`/api/${API_VERSION}/creators`, creatorRoutes);
 app.use(`/api/${API_VERSION}/posts`, postRoutes);
 
-// 404 handler
-app.use((req, res) => {
-  res.status(404).json({
-    status: 'error',
-    message: 'Route not found',
-  });
-});
-
-// Error handling middleware (must be last)
-app.use(errorMiddleware);
 
 export default app;

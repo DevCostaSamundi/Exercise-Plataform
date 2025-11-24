@@ -4,6 +4,7 @@ import JwtService from '../services/jwt.service.js';
 import emailService from '../services/email.service.js';
 import ApiResponse from '../utils/response.js';
 import logger from '../utils/logger.js';
+
 import { ConflictError, UnauthorizedError, NotFoundError } from '../utils/errors.js';
 
 class AuthController {

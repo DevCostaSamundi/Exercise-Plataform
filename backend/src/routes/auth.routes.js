@@ -23,6 +23,14 @@ router.post('/register', validate(registerSchema), authController.register);
  * @desc    Login user
  * @access  Public
  */
+
+router.post('/creator-register', validate(registerSchema), authController.creatorRegister);
+/**
+ * @route POST /api/v1/auth/creator-register
+ * @desc  creator-register new user
+ * @access Public
+ */
+
 router.post('/login', validate(loginSchema), authController.login);
 
 /**

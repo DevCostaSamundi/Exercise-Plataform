@@ -119,6 +119,25 @@ const mockCreators = [
     lastPost: 'https://placehold.co/200x200/F97316/white?text=Post+A',
     subscribers: 1890,
   },
+  {
+    id: 7,
+    username: 'Petr.Pt',
+    displayName: 'Pustr',
+    category: 'BDSM',
+    price: 44.9,
+    currency: 'BRL',
+    avatar: 'https://placehold.co/100x100/F97316/white?text=A',
+    isVerified: true,
+    hasStory: true,
+    tags: ['bdsm', 'dominante', 'leather'],
+    genderIdentity: 'Trans homem',
+    orientation: 'Bissexual',
+    contentType: ['Conteúdo educativo', 'Fotos artísticas'],
+    aesthetic: ['Fetichista', 'Dominante'],
+    isLive: false,
+    lastPost: 'https://placehold.co/200x200/F97316/white?text=Post+A',
+    subscribers: 1890,
+  },
 ];
 
 // Mock de posts recentes

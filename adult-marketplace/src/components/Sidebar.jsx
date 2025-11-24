@@ -36,7 +36,7 @@ export default function Sidebar() {
       {/* Sidebar */}
       <aside
         className={`fixed md:sticky top-0 left-0 h-screen bg-white dark:bg-slate-900 border-r border-slate-200 dark:border-slate-800 z-40 transition-all duration-300 ${
-          isCollapsed ? '-translate-x-full md:translate-x-0 md:w-20' : 'translate-x-0 w-64'
+          isCollapsed ? '-translate-x-full md:translate-x-0 md:w-20' : 'translate-x-0 w-50'
         }`}
       >
         <div className="flex flex-col h-full py-4 px-3">
