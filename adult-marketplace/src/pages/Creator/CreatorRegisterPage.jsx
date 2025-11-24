@@ -35,8 +35,13 @@ export default function CreatorRegisterPage() {
     contentOwnership: false,
   });
   const [errors, setErrors] = useState({});
+  const [fileErrors, setFileErrors] = useState({});
   const [isLoading, setIsLoading] = useState(false);
+  const [progress, setProgress] = useState(0);
   const [showPassword, setShowPassword] = useState(false);
+
+  const maxFileSize = 5 * 1024 * 1024;
+  const allowedTypes = ['image/jpeg', 'image/png', 'image/gif', 'application/pdf'];
 
   const genderOptions = ['Cis homem', 'Cis mulher', 'Trans homem', 'Trans mulher', 'Não-binário', 'Queer', 'Gênero fluido'];
   const orientationOptions = ['Gay', 'Lésbica', 'Bissexual', 'Pansexual', 'Assexual', 'Queer'];
@@ -45,17 +50,29 @@ export default function CreatorRegisterPage() {
 
   const handleChange = (e) => {
     const { name, value, type, checked, files } = e.target;
-
     if (type === 'file') {
-      setFormData(prev => ({ ...prev, [name]: files[0] }));
-    } else if (type === 'checkbox') {
-      setFormData(prev => ({ ...prev, [name]: checked }));
-    } else {
-      setFormData(prev => ({ ...prev, [name]: value }));
-    }
+      const file = files[0];
 
-    if (errors[name]) {
-      setErrors(prev => ({ ...prev, [name]: '' }));
+      if (file) {
+        if (file.size > maxFileSize) {
+          setFileErrors(prev => ({ ...prev, [name]: 'Arquivo muito grande. Max 5MB' }));
+          return;
+        }
+        if (!allowedTypes.includes(file.type)) {
+          setFileErrors(prev => ({ ...prev, [name]: 'Tipo de arquivo invalido.' }));
+          return;
+        }
+        setFileErrors(prev => ({ ...prev, [name]: undefined }));
+        setFormData(prev => ({ ...prev, [name]: file || null }));
+      } else if (type === 'checkbox') {
+        setFormData(prev => ({ ...prev, [name]: checked }));
+      } else {
+        setFormData(prev => ({ ...prev, [name]: value }));
+      }
+
+      if (errors[name]) {
+        setErrors(prev => ({ ...prev, [name]: '' }));
+      }
     }
   };
 
@@ -167,24 +184,125 @@ export default function CreatorRegisterPage() {
       return;
     }
 
+    const fe = {};
+    if (formData.idDocument && formData.idDocument.size > maxFileSize) fe.idDocument = 'ID muito grande (max 5MB)';
+    if (formData.selfieWithId && formData.selfieWithId > maxFileSize) fe.selfieWithId = 'Selfie muito grande (max 5MB)';
+    if (Object.keys(fe), length) {
+      setFileErrors(fe);
+      return;
+    }
+
     setIsLoading(true);
+    setProgress(0);
+    setErrors({});
 
     try {
       // TODO: Upload de documentos e criar conta de criador
-      const formDataToSend = new FormData();
-      Object.keys(formData).forEach(key => {
-        formDataToSend.append(key, formData[key]);
+      const payload = new FormData();
+
+      payload.append('email', formData.email);
+      payload.append('username', formData.username);
+      payload.append('password', formData.password);
+      payload.append('confirmPassword', formData.confirmPassword);
+      payload.append('displayName', formData.displayName);
+      payload.append('birthDate', formData.birthDate || '');
+      payload.append('genderIdentity', formData.genderIdentity || '');
+      payload.append('orientation', formData.orientation || '');
+      payload.append('location', formData.location || '');
+      payload.append('bio', formData.bio || '');
+      payload.append('subscriptionPrice', formData.subscriptionPrice ? String(formData.subscriptionPrice) : '');
+      payload.append('fullName', formData.fullName || '');
+      payload.append('cpf', formData.cpf || '');
+      payload.append('pixKey', formData.pixKey || '');
+      payload.append('pixKeyType', formData.pixKeyType || '');
+      payload.append('criptoKey', formData.criptoKey || '');
+      payload.append('agreeTerms', formData.agreeTerms ? 'true' : 'false');
+      payload.append('ageConfirm', formData.ageConfirm ? 'true' : 'false');
+      payload.append('contentOwnership', formData.contentOwnership ? 'true' : 'false');
+
+      payload.append('contentTypes', JSON.stringify(formData.contentTypes));
+      payload.append('aesthetic', JSON.stringify(formData.aesthetic));
+
+      if (formData.idDocument) {
+        payload.append('idDocument', formData.idDocument);
+      }
+
+      if (formData.selfieWithId) {
+        payload.append('selfieWithId', formData.selfieWithId);
+      }
+
+      await new Promise((resolve, reject) => {
+        const xhr = new XMLHttpRequest();
+        xhr.open(
+          'POST',
+          'http://localhost:5000/api/av1/auth/creator-register',
+          true
+        );
+        xhr.withCredentials = true;
+
+        xhr.upload.onprogress = (event) => {
+          if (event.lengthComputable) {
+            const percent = Math.round((event.loaded / event.total) * 100);
+            setProgress(percent);
+          }
+        };
+
+        xhr.onload = () => {
+          try {
+            const status = xhr.status;
+            const responseText = xhr.responseText;
+            const result = responseText ? JSON.parse(responseText) : null;
+
+            if (status >= 200 && status < 300) {
+              if (result?.data.accessToken) {
+                localStorage.setItem('authToken', result.data.acessToken);
+                localStorage.setItem('user', JSON.stringify(result.data.user));
+
+              }
+              resolve(result);
+            } else {
+              if (status === 409) {
+                setErrors(prev => ({ ...prev, submit: result?.message || 'Email ou usuario ja cadastrado' }));
+              } else if (result?.errors) {
+                setErrors(prev => ({ ...prev, ...result.errors }));
+              } else {
+                setErrors(prev => ({ ...prev, submit: result?.message || 'Erro ao criar conta' }));
+
+              }
+              reject(result); 
+            }
+          } catch (err) {
+            setErrors(prev => ({ ...prev, submit: 'Resposta invalida do servidor' }));
+            reject(err);
+          }
+      };
+
+      xhr.onerror = () => {
+        setErrors(prev => ({ ...prev, submit: 'Erro de rede ao enviar os dados' }));
+        reject(new Error('network error'));
+      };
+
+
+      const response = await fetch('http://localhost:5000/api/auth/creator-register', {
+        method: 'POST',
+        body: payload,
+        credentials: 'include'
       });
 
-      await new Promise(resolve => setTimeout(resolve, 2500));
+      const result = await response.json().catch(() => ({ message: 'Erro inesperado' }));
 
-      localStorage.setItem('authToken', result.data.acessToken);
-      localStorage.setItem('refreshToken', result.data.refreshToken);
-      localStorage.setItem('user', JSON.stringify(result.data.user));
+      if (!response.ok) {
+        setErrors(prev => ({ ...prev, submit: result.message || 'Erro ao criar conta' }));
+        if (result.errors && typeof result.errors === 'object') {
+          setErrors(prev => ({ ...prev, ...result.errors }))
+        }
+        return;
+      }
 
       // Redirecionar para dashboard do criador
       navigate('/creator/dashboard', { state: { newCreator: true } });
     } catch (error) {
+      console.log("Creator registration error", error);
       setErrors({ submit: 'Erro ao criar conta. Tente novamente.' });
     } finally {
       setIsLoading(false);
@@ -224,8 +342,8 @@ export default function CreatorRegisterPage() {
             {[1, 2, 3, 4, 5].map((s) => (
               <div key={s} className="flex items-center flex-1">
                 <div className={`w-10 h-10 rounded-full flex items-center justify-center font-bold text-sm transition-all ${s <= step
-                    ? 'bg-indigo-600 text-white'
-                    : 'bg-slate-200 dark:bg-slate-800 text-slate-400'
+                  ? 'bg-indigo-600 text-white'
+                  : 'bg-slate-200 dark:bg-slate-800 text-slate-400'
                   }`}>
                   {s < step ? '✓' : s}
                 </div>
@@ -465,8 +583,8 @@ export default function CreatorRegisterPage() {
                         type="button"
                         onClick={() => handleMultiSelect('contentTypes', type)}
                         className={`px-4 py-3 rounded-lg text-sm font-medium transition-all ${formData.contentTypes.includes(type)
-                            ? 'bg-indigo-600 text-white'
-                            : 'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700 hover:border-indigo-300'
+                          ? 'bg-indigo-600 text-white'
+                          : 'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700 hover:border-indigo-300'
                           }`}
                       >
                         {type}
@@ -487,8 +605,8 @@ export default function CreatorRegisterPage() {
                         type="button"
                         onClick={() => handleMultiSelect('aesthetic', aes)}
                         className={`px-4 py-3 rounded-lg text-sm font-medium transition-all ${formData.aesthetic.includes(aes)
-                            ? 'bg-purple-600 text-white'
-                            : 'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700 hover:border-purple-300'
+                          ? 'bg-purple-600 text-white'
+                          : 'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700 hover:border-purple-300'
                           }`}
                       >
                         {aes}

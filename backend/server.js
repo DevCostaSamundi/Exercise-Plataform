@@ -1,10 +1,13 @@
 import dotenv from 'dotenv';
+import cookieParser from 'cookie-parser'; 
 import app from './src/app.js';
 import logger from './src/utils/logger.js';
 import authRoutes from './src/routes/auth.routes.js';
 
 // Load environment variables
 dotenv.config();
+
+app.use(cookieParser());
 
 app.use('/api/v1/auth', authRoutes);
 

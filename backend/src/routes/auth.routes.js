@@ -8,6 +8,7 @@ import {
   resetPasswordSchema,
   refreshTokenSchema,
 } from '../validators/auth.validator.js';
+import { upload } from '../middleware/upload.middleware.js';
 
 const router = express.Router();
 
@@ -24,12 +25,14 @@ router.post('/register', validate(registerSchema), authController.register);
  * @access  Public
  */
 
-router.post('/creator-register', validate(registerSchema), authController.creatorRegister);
-/**
- * @route POST /api/v1/auth/creator-register
- * @desc  creator-register new user
- * @access Public
- */
+router.post(
+  '/creator-register', 
+  upload.fields([
+    { name: 'idDocument', maxCount: 1 },
+    { name: 'selfieWithId', maxCount: 1 },
+  ]), 
+  authController.creatorRegister
+);
 
 router.post('/login', validate(loginSchema), authController.login);
 

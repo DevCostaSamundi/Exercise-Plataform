@@ -1,52 +1,36 @@
 import multer from 'multer';
 import path from 'path';
-import { BadRequestError } from '../utils/errors.js';
+import fs from 'fs';
 
-// Parse allowed file types once at module initialization
-const ALLOWED_FILE_TYPES = (process.env.ALLOWED_FILE_TYPES || 'image/jpeg,image/png,image/gif,video/mp4').split(',');
+// Pasta de destino (crie se não existir)
+const UPLOAD_DIR = path.resolve(process.cwd(), 'uploads');
+if (!fs.existsSync(UPLOAD_DIR)) fs.mkdirSync(UPLOAD_DIR, { recursive: true });
 
-// Configure storage
+// Storage em disco - em produção substitua por Cloudinary/S3
 const storage = multer.diskStorage({
-  destination: (req, file, cb) => {
-    cb(null, 'uploads/');
-  },
+  destination: (req, file, cb) => cb(null, UPLOAD_DIR),
   filename: (req, file, cb) => {
-    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1e9);
-    cb(null, file.fieldname + '-' + uniqueSuffix + path.extname(file.originalname));
-  },
+    const ext = path.extname(file.originalname);
+    const base = path.basename(file.originalname, ext).replace(/\s+/g, '-');
+    cb(null, `${Date.now()}-${base}${ext}`);
+  }
 });
 
-// File filter
-const fileFilter = (req, file, cb) => {
-  if (ALLOWED_FILE_TYPES.includes(file.mimetype)) {
+function fileFilter (req, file, cb) {
+  // Permitir imagens e pdfs para documentos
+  const allowed = /jpeg|jpg|png|gif|pdf/;
+  const ext = file.mimetype || '';
+  if (/image\/|application\/pdf/.test(ext)) {
     cb(null, true);
   } else {
-    cb(new BadRequestError(`File type ${file.mimetype} is not allowed`), false);
+    cb(new Error('Invalid file type'), false);
   }
-};
+}
 
-// Configure multer
-const upload = multer({
+export const upload = multer({
   storage,
   fileFilter,
   limits: {
-    fileSize: parseInt(process.env.MAX_FILE_SIZE, 10) || 10 * 1024 * 1024, // 10MB default
+    fileSize: 5 * 1024 * 1024, // 5 MB
   },
 });
-
-/**
- * Middleware for single file upload
- */
-export const uploadSingle = (fieldName) => upload.single(fieldName);
-
-/**
- * Middleware for multiple files upload
- */
-export const uploadMultiple = (fieldName, maxCount = 10) => upload.array(fieldName, maxCount);
-
-/**
- * Middleware for multiple fields upload
- */
-export const uploadFields = (fields) => upload.fields(fields);
-
-export default upload;
