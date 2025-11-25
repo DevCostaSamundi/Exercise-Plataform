@@ -29,6 +29,7 @@ This will start a PostgreSQL container with:
 - **Container name**: `exercise-postgres`
 - **Database**: `exercise_platform`
 - **User**: `exercise_user`
+- **Password**: `devpassword123` (default for development, can be overridden via POSTGRES_PASSWORD env var)
 - **Port**: `5432` (mapped to localhost)
 - **Persistent storage**: Named volume `pgdata`
 
@@ -67,16 +68,20 @@ cp .env.example .env
 
 Edit the `.env` file and update the following variables:
 
-- **DATABASE_URL**: Replace `YOUR_PASSWORD_HERE` with your chosen password (must match the password in `docker-compose.yml`)
+- **DATABASE_URL**: The default password is `devpassword123`. For production, change this to a strong password.
 - **JWT_SECRET**: Generate a secure random string (e.g., using `node -e "console.log(require('crypto').randomBytes(64).toString('base64'))"`)
 - **JWT_REFRESH_SECRET**: Generate another secure random string
 - **CLOUDINARY_***: Add your Cloudinary credentials if you need file upload functionality
 - **EMAIL_***: Configure your email service if you need email functionality
 
-**Example DATABASE_URL**:
+**Example DATABASE_URL with default password**:
 ```
-DATABASE_URL="postgresql://exercise_user:mypassword123@localhost:5432/exercise_platform?schema=public"
+DATABASE_URL="postgresql://exercise_user:devpassword123@localhost:5432/exercise_platform?schema=public"
 ```
+
+**Note**: The default password `devpassword123` matches the default in `docker-compose.yml`. To use a different password:
+1. Set `POSTGRES_PASSWORD` environment variable before running `docker-compose up`
+2. Update the password in your `.env` file's DATABASE_URL to match
 
 ### 4. Verify Database Connection
 
@@ -194,7 +199,7 @@ If migrations fail:
 
 ## Next Steps
 
-- Read the main [README.md](backend/README.md) for API documentation
+- Read the main [README.md](./backend/README.md) for API documentation
 - Explore the API endpoints at `http://localhost:5000/api/v1`
 - Check the Prisma schema at `backend/prisma/schema.prisma`
 - Review the project structure in `backend/src/`

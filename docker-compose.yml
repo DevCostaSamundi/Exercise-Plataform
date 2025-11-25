@@ -6,7 +6,7 @@ services:
     container_name: exercise-postgres
     environment:
       POSTGRES_USER: exercise_user
-      POSTGRES_PASSWORD: YOUR_PASSWORD_HERE
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-devpassword123}
       POSTGRES_DB: exercise_platform
     ports:
       - "5432:5432"
