@@ -165,7 +165,7 @@ class AuthController {
         where: { OR: [{ email: normalizedEmail }, { username: normalizedUsername }] }
       });
       if (existingUser) {
-        return ApiResponse.error(res, 'Email or username already registered');
+        return ApiResponse.error(res, 'Email or username already registered', 409);
       }
 
 
@@ -175,12 +175,12 @@ class AuthController {
       if (req.files) {
         if (req.files.idDocument && req.files.idDocument[0]) {
           const file = req.files.idDocument[0];
-          const result = await CloudinaryService.uploadBufferToCloudinary(file.buffer, { folder: 'kyc/id_documents', resource_type: 'image' });
+          const result = await cloudinaryService.uploadBufferToCloudinary(file.buffer, { folder: 'kyc/id_documents', resource_type: 'image' });
           kycDocs.idDocument = { url: result.secure_url, public_id: result.public_id };
         }
         if (req.files.selfieWithId && req.files.selfieWithId[0]) {
           const file = req.files.selfieWithId[0];
-          const result = await CloudinaryService.uploadBufferToCloudinary(file.buffer, { folder: 'kyc/selfies', resource_type: 'image' });
+          const result = await cloudinaryService.uploadBufferToCloudinary(file.buffer, { folder: 'kyc/selfies', resource_type: 'image' });
           kycDocs.selfieWithId = { url: result.secure_url, public_id: result.public_id };
         }
       }
