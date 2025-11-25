@@ -51,7 +51,7 @@ export default function CreatorRegisterPage() {
   const handleChange = (e) => {
     const { name, value, type, checked, files } = e.target;
     if (type === 'file') {
-      const file = files[0];
+      const file = files?.[0] || null;
 
       if (file) {
         if (file.size > maxFileSize) {
@@ -64,6 +64,9 @@ export default function CreatorRegisterPage() {
         }
         setFileErrors(prev => ({ ...prev, [name]: undefined }));
         setFormData(prev => ({ ...prev, [name]: file }));
+      } else {
+        // Clear the file if no file selected
+        setFormData(prev => ({ ...prev, [name]: null }));
       }
     } else if (type === 'checkbox') {
       setFormData(prev => ({ ...prev, [name]: checked }));
