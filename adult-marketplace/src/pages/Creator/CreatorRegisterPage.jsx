@@ -289,7 +289,7 @@ export default function CreatorRegisterPage() {
         credentials: 'include'
       });
 
-      const result = await response.json().catch(() => ({ message: 'Erro inesperado' }));
+     const result = await response.json().catch(() => ({ message: 'Erro inesperado' }));
 
       if (!response.ok) {
         setErrors(prev => ({ ...prev, submit: result.message || 'Erro ao criar conta' }));
@@ -298,8 +298,7 @@ export default function CreatorRegisterPage() {
         }
         return;
       }
-
-      // Redirecionar para dashboard do criador
+     // Redirecionar para dashboard do criador
       navigate('/creator/dashboard', { state: { newCreator: true } });
     } catch (error) {
       console.log("Creator registration error", error);
