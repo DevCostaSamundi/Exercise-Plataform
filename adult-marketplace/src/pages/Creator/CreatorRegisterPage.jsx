@@ -51,7 +51,7 @@ export default function CreatorRegisterPage() {
   const handleChange = (e) => {
     const { name, value, type, checked, files } = e.target;
     if (type === 'file') {
-      const file = files[0];
+      const file = files?.[0] || null;
 
       if (file) {
         if (file.size > maxFileSize) {
@@ -63,16 +63,19 @@ export default function CreatorRegisterPage() {
           return;
         }
         setFileErrors(prev => ({ ...prev, [name]: undefined }));
-        setFormData(prev => ({ ...prev, [name]: file || null }));
-      } else if (type === 'checkbox') {
-        setFormData(prev => ({ ...prev, [name]: checked }));
+        setFormData(prev => ({ ...prev, [name]: file }));
       } else {
-        setFormData(prev => ({ ...prev, [name]: value }));
+        // Clear the file if no file selected
+        setFormData(prev => ({ ...prev, [name]: null }));
       }
+    } else if (type === 'checkbox') {
+      setFormData(prev => ({ ...prev, [name]: checked }));
+    } else {
+      setFormData(prev => ({ ...prev, [name]: value }));
+    }
 
-      if (errors[name]) {
-        setErrors(prev => ({ ...prev, [name]: '' }));
-      }
+    if (errors[name]) {
+      setErrors(prev => ({ ...prev, [name]: '' }));
     }
   };
 
@@ -185,9 +188,9 @@ export default function CreatorRegisterPage() {
     }
 
     const fe = {};
-    if (formData.idDocument && formData.idDocument.size > maxFileSize) fe.idDocument = 'ID muito grande (max 5MB)';
-    if (formData.selfieWithId && formData.selfieWithId > maxFileSize) fe.selfieWithId = 'Selfie muito grande (max 5MB)';
-    if (Object.keys(fe), length) {
+    if (formData.idDocument instanceof File && formData.idDocument.size > maxFileSize) fe.idDocument = 'ID muito grande (max 5MB)';
+    if (formData.selfieWithId instanceof File && formData.selfieWithId.size > maxFileSize) fe.selfieWithId = 'Selfie muito grande (max 5MB)';
+    if (Object.keys(fe).length) {
       setFileErrors(fe);
       return;
     }
@@ -197,7 +200,6 @@ export default function CreatorRegisterPage() {
     setErrors({});
 
     try {
-      // TODO: Upload de documentos e criar conta de criador
       const payload = new FormData();
 
       payload.append('email', formData.email);
@@ -235,7 +237,7 @@ export default function CreatorRegisterPage() {
         const xhr = new XMLHttpRequest();
         xhr.open(
           'POST',
-          'http://localhost:5000/api/av1/auth/creator-register',
+          'http://localhost:5000/api/v1/auth/creator-register',
           true
         );
         xhr.withCredentials = true;
@@ -254,10 +256,9 @@ export default function CreatorRegisterPage() {
             const result = responseText ? JSON.parse(responseText) : null;
 
             if (status >= 200 && status < 300) {
-              if (result?.data.accessToken) {
-                localStorage.setItem('authToken', result.data.acessToken);
+              if (result?.data?.accessToken) {
+                localStorage.setItem('authToken', result.data.accessToken);
                 localStorage.setItem('user', JSON.stringify(result.data.user));
-
               }
               resolve(result);
             } else {
@@ -267,38 +268,24 @@ export default function CreatorRegisterPage() {
                 setErrors(prev => ({ ...prev, ...result.errors }));
               } else {
                 setErrors(prev => ({ ...prev, submit: result?.message || 'Erro ao criar conta' }));
-
               }
-              reject(result); 
+              reject(result);
             }
           } catch (err) {
             setErrors(prev => ({ ...prev, submit: 'Resposta invalida do servidor' }));
             reject(err);
           }
-      };
+        };
 
-      xhr.onerror = () => {
-        setErrors(prev => ({ ...prev, submit: 'Erro de rede ao enviar os dados' }));
-        reject(new Error('network error'));
-      };
+        xhr.onerror = () => {
+          setErrors(prev => ({ ...prev, submit: 'Erro de rede ao enviar os dados' }));
+          reject(new Error('network error'));
+        };
 
-
-      const response = await fetch('http://localhost:5000/api/auth/creator-register', {
-        method: 'POST',
-        body: payload,
-        credentials: 'include'
+        xhr.send(payload);
       });
 
-     const result = await response.json().catch(() => ({ message: 'Erro inesperado' }));
-
-      if (!response.ok) {
-        setErrors(prev => ({ ...prev, submit: result.message || 'Erro ao criar conta' }));
-        if (result.errors && typeof result.errors === 'object') {
-          setErrors(prev => ({ ...prev, ...result.errors }))
-        }
-        return;
-      }
-     // Redirecionar para dashboard do criador
+      // Redirecionar para dashboard do criador
       navigate('/creator/dashboard', { state: { newCreator: true } });
     } catch (error) {
       console.log("Creator registration error", error);

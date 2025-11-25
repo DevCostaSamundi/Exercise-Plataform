@@ -1,29 +1,23 @@
 import multer from 'multer';
 import path from 'path';
-import fs from 'fs';
 
-// Pasta de destino (crie se não existir)
-const UPLOAD_DIR = path.resolve(process.cwd(), 'uploads');
-if (!fs.existsSync(UPLOAD_DIR)) fs.mkdirSync(UPLOAD_DIR, { recursive: true });
+// Use memory storage for production-ready uploads to Cloudinary/S3
+const storage = multer.memoryStorage();
 
-// Storage em disco - em produção substitua por Cloudinary/S3
-const storage = multer.diskStorage({
-  destination: (req, file, cb) => cb(null, UPLOAD_DIR),
-  filename: (req, file, cb) => {
-    const ext = path.extname(file.originalname);
-    const base = path.basename(file.originalname, ext).replace(/\s+/g, '-');
-    cb(null, `${Date.now()}-${base}${ext}`);
-  }
-});
+function fileFilter(req, file, cb) {
+  // Validate by mimetype
+  const validMimetypes = /^image\/(jpeg|jpg|png|gif)$|^application\/pdf$/;
+  const mimetypeValid = validMimetypes.test(file.mimetype);
 
-function fileFilter (req, file, cb) {
-  // Permitir imagens e pdfs para documentos
-  const allowed = /jpeg|jpg|png|gif|pdf/;
-  const ext = file.mimetype || '';
-  if (/image\/|application\/pdf/.test(ext)) {
+  // Validate by extension as additional check
+  const ext = path.extname(file.originalname).toLowerCase();
+  const validExtensions = /^\.(jpeg|jpg|png|gif|pdf)$/;
+  const extValid = validExtensions.test(ext);
+
+  if (mimetypeValid && extValid) {
     cb(null, true);
   } else {
-    cb(new Error('Invalid file type'), false);
+    cb(new Error('Invalid file type. Only images (jpeg, jpg, png, gif) and PDF files are allowed.'), false);
   }
 }
 

@@ -35,7 +35,7 @@ class EmailService {
   async sendWelcomeEmail(email, username) {
     // In development, avoid sending real emails — just log and resolve.
     if (process.env.NODE_ENV === 'development') {
-      console.log(`DEV email: enviar boas-vindas para ${email}`);
+      logger.info(`DEV email: enviar boas-vindas para ${email}`);
       return Promise.resolve();
     }
 
