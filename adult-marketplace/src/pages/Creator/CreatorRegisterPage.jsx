@@ -188,8 +188,8 @@ export default function CreatorRegisterPage() {
     }
 
     const fe = {};
-    if (formData.idDocument && formData.idDocument.size > maxFileSize) fe.idDocument = 'ID muito grande (max 5MB)';
-    if (formData.selfieWithId && formData.selfieWithId.size > maxFileSize) fe.selfieWithId = 'Selfie muito grande (max 5MB)';
+    if (formData.idDocument instanceof File && formData.idDocument.size > maxFileSize) fe.idDocument = 'ID muito grande (max 5MB)';
+    if (formData.selfieWithId instanceof File && formData.selfieWithId.size > maxFileSize) fe.selfieWithId = 'Selfie muito grande (max 5MB)';
     if (Object.keys(fe).length) {
       setFileErrors(fe);
       return;
