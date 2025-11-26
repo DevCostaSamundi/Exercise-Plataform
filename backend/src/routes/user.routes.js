@@ -48,4 +48,18 @@ router.put('/email', validate(updateEmailSchema), userController.updateEmail);
  */
 router.delete('/account', userController.deleteAccount);
 
+/**
+ * @route   GET /api/v1/users/:id/subscription-status
+ * @desc    Check if user has active subscription to a creator
+ * @access  Private
+ */
+router.get('/:id/subscription-status', userController.getSubscriptionStatus);
+
+/**
+ * @route   GET /api/v1/users/:id/has-tipped
+ * @desc    Check if user has ever tipped a creator
+ * @access  Private
+ */
+router.get('/:id/has-tipped', userController.getHasTipped);
+
 export default router;
