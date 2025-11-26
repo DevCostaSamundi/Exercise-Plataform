@@ -228,6 +228,38 @@ class CreatorController {
       next(error);
     }
   }
+
+  /**
+   * Get creator chat configuration
+   */
+  async getChatConfig(req, res, next) {
+    try {
+      const { id } = req.params;
+
+      const creator = await prisma.creator.findUnique({
+        where: { id },
+        select: {
+          id: true,
+          userId: true,
+        },
+      });
+
+      if (!creator) {
+        throw new NotFoundError('Creator not found');
+      }
+
+      // For now, return a default config
+      // In production, you might want to store this in the database
+      const config = {
+        dmPolicy: 'EVERYONE', // default: anyone can DM
+        creatorId: creator.userId,
+      };
+
+      return ApiResponse.success(res, config, 'Chat config retrieved successfully');
+    } catch (error) {
+      next(error);
+    }
+  }
 }
 
 export default new CreatorController();

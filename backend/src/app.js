@@ -9,6 +9,7 @@ import authRoutes from './routes/auth.routes.js';
 import userRoutes from './routes/user.routes.js';
 import creatorRoutes from './routes/creator.routes.js';
 import postRoutes from './routes/post.routes.js';
+import chatRoutes from './routes/chat.routes.js';
 
 // Import middleware
 import errorMiddleware from './middleware/error.middleware.js';
@@ -63,6 +64,7 @@ app.use(`/api/${API_VERSION}/auth`, authRoutes);
 app.use(`/api/${API_VERSION}/users`, userRoutes);
 app.use(`/api/${API_VERSION}/creators`, creatorRoutes);
 app.use(`/api/${API_VERSION}/posts`, postRoutes);
+app.use(`/api/${API_VERSION}`, chatRoutes);
 
 
 export default app;
