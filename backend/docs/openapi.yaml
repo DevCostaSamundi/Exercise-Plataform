@@ -1,0 +1,1015 @@
+openapi: 3.0.3
+info:
+  title: PrideConnect API
+  description: Backend API for PrideConnect - LGBT+ Adult Content Platform
+  version: 1.0.0
+  contact:
+    name: PrideConnect Support
+    email: support@prideconnect.com
+
+servers:
+  - url: http://localhost:5000/api/v1
+    description: Local development server
+  - url: https://api.prideconnect.com/api/v1
+    description: Production server
+
+tags:
+  - name: Authentication
+    description: User authentication and authorization
+  - name: Creators
+    description: Content creator management
+  - name: Products
+    description: Marketplace products
+  - name: Uploads
+    description: File upload management
+  - name: Checkout
+    description: Checkout and payment sessions
+  - name: Payments
+    description: Payment webhooks and processing
+
+security:
+  - bearerAuth: []
+
+paths:
+  /auth/register:
+    post:
+      tags:
+        - Authentication
+      summary: Register a new user
+      description: Create a new user account
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateUser'
+            example:
+              email: "user@example.com"
+              username: "johndoe"
+              password: "securePassword123"
+              confirmPassword: "securePassword123"
+              displayName: "John Doe"
+              birthDate: "1990-01-01"
+              genderIdentity: "Cis homem"
+              orientation: "Gay"
+              agreeTerms: true
+              ageConfirm: true
+              firstName: "John"
+              lastName: "Doe"
+      responses:
+        '201':
+          description: User registered successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthResponse'
+              example:
+                status: "success"
+                message: "Registration successful"
+                data:
+                  user:
+                    id: "550e8400-e29b-41d4-a716-446655440000"
+                    email: "user@example.com"
+                    username: "johndoe"
+                    displayName: "John Doe"
+                    role: "USER"
+                    createdAt: "2024-01-01T00:00:00.000Z"
+                  accessToken: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+                  refreshToken: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '409':
+          description: User already exists
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                status: "error"
+                message: "Email already registered"
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /auth/login:
+    post:
+      tags:
+        - Authentication
+      summary: Login user
+      description: Authenticate user and return access tokens
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LoginRequest'
+            example:
+              email: "user@example.com"
+              password: "securePassword123"
+      responses:
+        '200':
+          description: Login successful
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthResponse'
+              example:
+                status: "success"
+                message: "Login successful"
+                data:
+                  user:
+                    id: "550e8400-e29b-41d4-a716-446655440000"
+                    email: "user@example.com"
+                    username: "johndoe"
+                    displayName: "John Doe"
+                    role: "USER"
+                    isActive: true
+                  accessToken: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+                  refreshToken: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /auth/refresh:
+    post:
+      tags:
+        - Authentication
+      summary: Refresh access token
+      description: Get a new access token using refresh token
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                refreshToken:
+                  type: string
+                  description: Refresh token (optional if sent via cookie)
+            example:
+              refreshToken: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+      responses:
+        '200':
+          description: Token refreshed successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: "success"
+                  message:
+                    type: string
+                    example: "Token refreshed"
+                  data:
+                    type: object
+                    properties:
+                      accessToken:
+                        type: string
+              example:
+                status: "success"
+                message: "Token refreshed"
+                data:
+                  accessToken: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /auth/me:
+    get:
+      tags:
+        - Authentication
+      summary: Get current user
+      description: Get authenticated user's profile information
+      responses:
+        '200':
+          description: User profile retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: "success"
+                  data:
+                    $ref: '#/components/schemas/User'
+              example:
+                status: "success"
+                data:
+                  id: "550e8400-e29b-41d4-a716-446655440000"
+                  email: "user@example.com"
+                  username: "johndoe"
+                  displayName: "John Doe"
+                  role: "USER"
+                  isActive: true
+                  createdAt: "2024-01-01T00:00:00.000Z"
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /creators:
+    get:
+      tags:
+        - Creators
+      summary: Get all creators
+      description: Retrieve a paginated list of content creators
+      security: []
+      parameters:
+        - name: page
+          in: query
+          schema:
+            type: integer
+            default: 1
+          description: Page number
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 20
+            maximum: 100
+          description: Number of items per page
+        - name: search
+          in: query
+          schema:
+            type: string
+          description: Search creators by name
+        - name: isVerified
+          in: query
+          schema:
+            type: boolean
+          description: Filter by verification status
+      responses:
+        '200':
+          description: List of creators retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: "success"
+                  data:
+                    type: object
+                    properties:
+                      creators:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/Creator'
+                      pagination:
+                        $ref: '#/components/schemas/Pagination'
+              example:
+                status: "success"
+                data:
+                  creators:
+                    - id: "creator-1"
+                      userId: "user-1"
+                      displayName: "Alex Creator"
+                      description: "Content creator specializing in art"
+                      isVerified: true
+                      subscriptionPrice: 9.99
+                      followersCount: 1250
+                      postsCount: 45
+                  pagination:
+                    page: 1
+                    limit: 20
+                    total: 100
+                    totalPages: 5
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /creators/{id}:
+    get:
+      tags:
+        - Creators
+      summary: Get creator by ID
+      description: Retrieve detailed information about a specific creator
+      security: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+          description: Creator ID
+      responses:
+        '200':
+          description: Creator retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: "success"
+                  data:
+                    $ref: '#/components/schemas/Creator'
+              example:
+                status: "success"
+                data:
+                  id: "creator-1"
+                  userId: "user-1"
+                  displayName: "Alex Creator"
+                  coverImage: "https://cloudinary.com/image.jpg"
+                  description: "Content creator specializing in art and photography"
+                  isVerified: true
+                  subscriptionPrice: 9.99
+                  followersCount: 1250
+                  postsCount: 45
+                  createdAt: "2024-01-01T00:00:00.000Z"
+        '404':
+          description: Creator not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                status: "error"
+                message: "Creator not found"
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /products:
+    get:
+      tags:
+        - Products
+      summary: Get all products
+      description: Retrieve a paginated list of marketplace products
+      security: []
+      parameters:
+        - name: page
+          in: query
+          schema:
+            type: integer
+            default: 1
+          description: Page number
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 20
+            maximum: 100
+          description: Number of items per page
+        - name: category
+          in: query
+          schema:
+            type: string
+            enum: [PHYSICAL_ITEM, DIGITAL_CONTENT, EXPERIENCE, MERCHANDISE, ART, OTHER]
+          description: Filter by product category
+        - name: creatorId
+          in: query
+          schema:
+            type: string
+          description: Filter by creator ID
+        - name: minPrice
+          in: query
+          schema:
+            type: number
+          description: Minimum price filter
+        - name: maxPrice
+          in: query
+          schema:
+            type: number
+          description: Maximum price filter
+      responses:
+        '200':
+          description: List of products retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: "success"
+                  data:
+                    type: object
+                    properties:
+                      products:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/Product'
+                      pagination:
+                        $ref: '#/components/schemas/Pagination'
+              example:
+                status: "success"
+                data:
+                  products:
+                    - id: "product-1"
+                      name: "Digital Art Pack"
+                      description: "Collection of exclusive digital artwork"
+                      category: "DIGITAL_CONTENT"
+                      type: "DIGITAL"
+                      price: 29.99
+                      isActive: true
+                      soldCount: 150
+                  pagination:
+                    page: 1
+                    limit: 20
+                    total: 50
+                    totalPages: 3
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /products/{id}:
+    get:
+      tags:
+        - Products
+      summary: Get product by ID
+      description: Retrieve detailed information about a specific product
+      security: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+          description: Product ID
+      responses:
+        '200':
+          description: Product retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: "success"
+                  data:
+                    $ref: '#/components/schemas/Product'
+              example:
+                status: "success"
+                data:
+                  id: "product-1"
+                  creatorId: "creator-1"
+                  name: "Digital Art Pack"
+                  description: "Collection of exclusive digital artwork"
+                  category: "DIGITAL_CONTENT"
+                  type: "DIGITAL"
+                  price: 29.99
+                  images: ["https://cloudinary.com/image1.jpg"]
+                  isActive: true
+                  soldCount: 150
+                  viewsCount: 1250
+                  createdAt: "2024-01-01T00:00:00.000Z"
+        '404':
+          description: Product not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                status: "error"
+                message: "Product not found"
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /uploads/presign:
+    post:
+      tags:
+        - Uploads
+      summary: Get presigned URL for file upload
+      description: Generate a presigned URL for uploading files to cloud storage
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PresignRequest'
+            example:
+              fileName: "profile-photo.jpg"
+              fileType: "image/jpeg"
+              folder: "avatars"
+      responses:
+        '200':
+          description: Presigned URL generated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PresignResponse'
+              example:
+                status: "success"
+                data:
+                  uploadUrl: "https://cloudinary.com/upload-endpoint"
+                  publicUrl: "https://cloudinary.com/avatars/profile-photo.jpg"
+                  signature: "abc123signature"
+                  timestamp: 1234567890
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /checkout/create-session:
+    post:
+      tags:
+        - Checkout
+      summary: Create checkout session
+      description: Create a new checkout session for purchasing products or subscriptions
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CheckoutRequest'
+            example:
+              items:
+                - productId: "product-1"
+                  quantity: 1
+              successUrl: "https://prideconnect.com/checkout/success"
+              cancelUrl: "https://prideconnect.com/checkout/cancel"
+      responses:
+        '200':
+          description: Checkout session created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CheckoutResponse'
+              example:
+                status: "success"
+                data:
+                  sessionId: "cs_test_a1b2c3d4"
+                  checkoutUrl: "https://checkout.stripe.com/pay/cs_test_a1b2c3d4"
+                  expiresAt: "2024-01-01T01:00:00.000Z"
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /payments/webhook:
+    post:
+      tags:
+        - Payments
+      summary: Payment webhook
+      description: Handle payment provider webhooks (e.g., Stripe, PayPal)
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/WebhookEvent'
+            example:
+              id: "evt_1234567890"
+              type: "payment_intent.succeeded"
+              data:
+                object:
+                  id: "pi_1234567890"
+                  amount: 2999
+                  currency: "usd"
+                  status: "succeeded"
+      responses:
+        '200':
+          description: Webhook processed successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: "success"
+                  message:
+                    type: string
+                    example: "Webhook processed"
+              example:
+                status: "success"
+                message: "Webhook processed"
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: JWT token obtained from login or register endpoint
+    cookieAuth:
+      type: apiKey
+      in: cookie
+      name: refreshToken
+      description: Refresh token stored in httpOnly cookie
+
+  schemas:
+    User:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        email:
+          type: string
+          format: email
+        username:
+          type: string
+        displayName:
+          type: string
+        firstName:
+          type: string
+          nullable: true
+        lastName:
+          type: string
+          nullable: true
+        birthDate:
+          type: string
+          format: date
+          nullable: true
+        genderIdentity:
+          type: string
+          nullable: true
+        orientation:
+          type: string
+          nullable: true
+        avatar:
+          type: string
+          nullable: true
+        bio:
+          type: string
+          nullable: true
+        role:
+          type: string
+          enum: [USER, CREATOR, ADMIN]
+        isVerified:
+          type: boolean
+        isActive:
+          type: boolean
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+
+    CreateUser:
+      type: object
+      required:
+        - email
+        - username
+        - password
+        - confirmPassword
+        - displayName
+        - birthDate
+        - genderIdentity
+        - orientation
+        - agreeTerms
+        - ageConfirm
+      properties:
+        email:
+          type: string
+          format: email
+        username:
+          type: string
+          minLength: 3
+          maxLength: 30
+        password:
+          type: string
+          minLength: 8
+        confirmPassword:
+          type: string
+        displayName:
+          type: string
+          maxLength: 100
+        birthDate:
+          type: string
+          format: date
+        genderIdentity:
+          type: string
+          enum:
+            - Cis homem
+            - Cis mulher
+            - Trans homem
+            - Trans mulher
+            - Não-binário
+            - Queer
+            - Gênero fluido
+            - Prefiro não dizer
+        orientation:
+          type: string
+          enum:
+            - Gay
+            - Lésbica
+            - Bissexual
+            - Pansexual
+            - Assexual
+            - Queer
+            - Prefiro não dizer
+        agreeTerms:
+          type: boolean
+        ageConfirm:
+          type: boolean
+        firstName:
+          type: string
+          maxLength: 50
+        lastName:
+          type: string
+          maxLength: 50
+
+    LoginRequest:
+      type: object
+      required:
+        - email
+        - password
+      properties:
+        email:
+          type: string
+          format: email
+        password:
+          type: string
+
+    AuthResponse:
+      type: object
+      properties:
+        status:
+          type: string
+          example: "success"
+        message:
+          type: string
+        data:
+          type: object
+          properties:
+            user:
+              $ref: '#/components/schemas/User'
+            accessToken:
+              type: string
+            refreshToken:
+              type: string
+
+    Creator:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        userId:
+          type: string
+          format: uuid
+        displayName:
+          type: string
+        coverImage:
+          type: string
+          nullable: true
+        description:
+          type: string
+          nullable: true
+        isVerified:
+          type: boolean
+        kycStatus:
+          type: string
+          enum: [PENDING, APPROVED, REJECTED, RESUBMIT]
+        subscriptionPrice:
+          type: number
+          format: decimal
+        earnings:
+          type: number
+          format: decimal
+        followersCount:
+          type: integer
+        postsCount:
+          type: integer
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+
+    Product:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        creatorId:
+          type: string
+          format: uuid
+        name:
+          type: string
+        description:
+          type: string
+        category:
+          type: string
+          enum: [PHYSICAL_ITEM, DIGITAL_CONTENT, EXPERIENCE, MERCHANDISE, ART, OTHER]
+        type:
+          type: string
+          enum: [PHYSICAL, DIGITAL, HYBRID]
+        price:
+          type: number
+          format: decimal
+        images:
+          type: array
+          items:
+            type: string
+          nullable: true
+        stock:
+          type: integer
+          nullable: true
+        isUnlimited:
+          type: boolean
+        digitalFileUrl:
+          type: string
+          nullable: true
+        isActive:
+          type: boolean
+        soldCount:
+          type: integer
+        viewsCount:
+          type: integer
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+
+    PresignRequest:
+      type: object
+      required:
+        - fileName
+        - fileType
+      properties:
+        fileName:
+          type: string
+          description: Name of the file to upload
+        fileType:
+          type: string
+          description: MIME type of the file
+        folder:
+          type: string
+          description: Folder path in cloud storage
+          default: "uploads"
+
+    PresignResponse:
+      type: object
+      properties:
+        status:
+          type: string
+          example: "success"
+        data:
+          type: object
+          properties:
+            uploadUrl:
+              type: string
+              description: URL to upload the file
+            publicUrl:
+              type: string
+              description: Public URL of the uploaded file
+            signature:
+              type: string
+              description: Upload signature
+            timestamp:
+              type: integer
+              description: Timestamp for the upload
+
+    CheckoutRequest:
+      type: object
+      required:
+        - items
+        - successUrl
+        - cancelUrl
+      properties:
+        items:
+          type: array
+          items:
+            type: object
+            properties:
+              productId:
+                type: string
+              quantity:
+                type: integer
+                minimum: 1
+        successUrl:
+          type: string
+          format: uri
+        cancelUrl:
+          type: string
+          format: uri
+        metadata:
+          type: object
+          additionalProperties: true
+
+    CheckoutResponse:
+      type: object
+      properties:
+        status:
+          type: string
+          example: "success"
+        data:
+          type: object
+          properties:
+            sessionId:
+              type: string
+              description: Checkout session ID
+            checkoutUrl:
+              type: string
+              description: URL to redirect user to complete checkout
+            expiresAt:
+              type: string
+              format: date-time
+              description: When the checkout session expires
+
+    WebhookEvent:
+      type: object
+      properties:
+        id:
+          type: string
+          description: Event ID
+        type:
+          type: string
+          description: Event type
+        data:
+          type: object
+          description: Event data
+          additionalProperties: true
+        created:
+          type: integer
+          description: Timestamp of event creation
+
+    Pagination:
+      type: object
+      properties:
+        page:
+          type: integer
+          description: Current page number
+        limit:
+          type: integer
+          description: Number of items per page
+        total:
+          type: integer
+          description: Total number of items
+        totalPages:
+          type: integer
+          description: Total number of pages
+
+    ErrorResponse:
+      type: object
+      properties:
+        status:
+          type: string
+          example: "error"
+        message:
+          type: string
+          description: Error message
+        errors:
+          type: array
+          items:
+            type: object
+            properties:
+              field:
+                type: string
+              message:
+                type: string
+
+  responses:
+    BadRequest:
+      description: Bad request - Invalid input
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          example:
+            status: "error"
+            message: "Validation failed"
+            errors:
+              - field: "email"
+                message: "Invalid email format"
+
+    Unauthorized:
+      description: Unauthorized - Authentication required
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          example:
+            status: "error"
+            message: "Authentication required"
+
+    InternalServerError:
+      description: Internal server error
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          example:
+            status: "error"
+            message: "Internal server error"
