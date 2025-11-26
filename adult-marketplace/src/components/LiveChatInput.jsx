@@ -74,10 +74,49 @@ export default function LiveChatInput({ liveId }) {
     });
   };
 
+  const sendTip = async (amount) => {
+    if (!user) {
+      alert('Faça login para enviar tips');
+      return;
+    }
+
+    // In production, this would open a payment modal
+    // For now, we stub the payment as successful
+    const socket = getSocket();
+    if (!socket) {
+      alert('Sem conexão em tempo real');
+      return;
+    }
+
+    // TODO: Replace with proper modal component for better UX
+    // This is a stub for MVP - payment integration pending
+    const confirmTip = confirm(`Enviar tip de R$${amount}? (STUB - sem pagamento real)`);
+    if (!confirmTip) return;
+
+    socket.emit('tip:send', { liveId, amount, content: text || `Tip de R$${amount}` }, (err, savedMessage) => {
+      if (err) {
+        alert('Erro ao enviar tip');
+      } else {
+        alert(`Tip de R$${amount} enviado com sucesso!`);
+        setText('');
+      }
+    });
+  };
+
   return (
-    <div className="flex space-x-2">
-      <input className="flex-1 p-2 rounded" value={text} onChange={e=>setText(e.target.value)} placeholder="Escreva algo..." />
-      <button className="bg-indigo-600 text-white px-4 py-2 rounded" onClick={trySend}>Enviar</button>
+    <div className="space-y-2">
+      <div className="flex space-x-2">
+        <input className="flex-1 p-2 rounded" value={text} onChange={e=>setText(e.target.value)} placeholder="Escreva algo..." />
+        <button className="bg-indigo-600 text-white px-4 py-2 rounded" onClick={trySend}>Enviar</button>
+      </div>
+      <div className="flex space-x-2">
+        <button 
+          className="bg-yellow-500 text-white px-3 py-1 rounded text-sm"
+          onClick={() => sendTip(10)}
+        >
+          💰 Tip R$10
+        </button>
+      </div>
     </div>
   );
 }

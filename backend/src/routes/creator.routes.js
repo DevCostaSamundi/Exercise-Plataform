@@ -39,4 +39,11 @@ router.put('/:id', authenticate, creatorController.updateCreator);
  */
 router.get('/:id/stats', authenticate, creatorController.getCreatorStats);
 
+/**
+ * @route   GET /api/v1/creators/:id/chat-config
+ * @desc    Get creator chat configuration
+ * @access  Public
+ */
+router.get('/:id/chat-config', creatorController.getChatConfig);
+
 export default router;

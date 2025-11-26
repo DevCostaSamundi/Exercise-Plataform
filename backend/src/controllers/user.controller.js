@@ -173,6 +173,57 @@ class UserController {
       next(error);
     }
   }
+
+  /**
+   * Check if user has an active subscription to a creator
+   */
+  async getSubscriptionStatus(req, res, next) {
+    try {
+      const { id } = req.params;
+      const { creatorId } = req.query;
+
+      if (!creatorId) {
+        return ApiResponse.error(res, 'creatorId is required', 400);
+      }
+
+      const subscription = await prisma.subscription.findFirst({
+        where: {
+          userId: id,
+          creatorId: creatorId,
+          status: 'ACTIVE',
+        },
+      });
+
+      return ApiResponse.success(res, { isSubscriber: !!subscription }, 'Subscription status retrieved');
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  /**
+   * Check if user has ever tipped a creator
+   */
+  async getHasTipped(req, res, next) {
+    try {
+      const { id } = req.params;
+      const { creatorId } = req.query;
+
+      if (!creatorId) {
+        return ApiResponse.error(res, 'creatorId is required', 400);
+      }
+
+      const tip = await prisma.tip.findFirst({
+        where: {
+          fromUserId: id,
+          toCreatorId: creatorId,
+        },
+      });
+
+      return ApiResponse.success(res, { hasTipped: !!tip }, 'Tip status retrieved');
+    } catch (error) {
+      next(error);
+    }
+  }
 }
 
 export default new UserController();

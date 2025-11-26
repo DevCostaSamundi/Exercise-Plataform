@@ -5,7 +5,7 @@ import app from './src/app.js';
 import logger from './src/utils/logger.js';
 import authRoutes from './src/routes/auth.routes.js';
 import initSocket from './src/socket/index.js';
-import errorHandle from '/backend/src/middleware/error.middleware.js';
+import errorHandle from './src/middleware/error.middleware.js';
 
 // Load environment variables
 dotenv.config();
@@ -39,7 +39,7 @@ app.use(errorHandle);
 
 const PORT = process.env.PORT || 5000;
 
-const server = http.creatorServer(app);
+const server = http.createServer(app);
 initSocket(server);
 // Start server
 server.listen(PORT, () => {
