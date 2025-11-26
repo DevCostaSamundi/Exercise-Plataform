@@ -301,3 +301,91 @@ model Review {
   @@unique([userId, productId])
   @@map("reviews")
 }
+
+model Chat {
+  id         String    @id @default(uuid())
+  type       ChatType
+  creatorId  String?   // para DMs entre fã <-> creator
+  liveId     String?   // para chats ligados a lives
+  policy     DMPolicy? // usado para DMs
+  permanent  Boolean   @default(false)
+  participants ChatParticipant[]
+  messages   Message[]
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
+}
+
+model ChatParticipant {
+  id       String   @id @default(uuid())
+  chatId   String
+  userId   String
+  joinedAt DateTime @default(now())
+  lastSeen DateTime?
+  chat     Chat     @relation(fields: [chatId], references: [id])
+}
+
+model Message {
+  id            String       @id @default(uuid())
+  chatId        String
+  fromUserId    String
+  type          MessageType  @default(TEXT)
+  content       String?
+  meta          Json?
+  amount        Float?
+  isHighlighted Boolean      @default(false)
+  highlightUntil DateTime?
+  messageState  MessageState @default(SENT)
+  createdAt     DateTime     @default(now())
+  deletedAt     DateTime?
+  chat          Chat         @relation(fields: [chatId], references: [id])
+}
+
+model Live {
+  id        String   @id @default(uuid())
+  creatorId String
+  config    Json?    // { mode, slowModeSeconds, tippersWindowMinutes, minTipToHighlight, requireAuthToChat, bannedWords: string[] }
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Tip {
+  id         String   @id @default(uuid())
+  fromUserId String
+  toCreatorId String
+  messageId  String?
+  amount     Float
+  currency   String   @default("BRL")
+  status     String
+  meta       Json?
+  createdAt  DateTime @default(now())
+}
+
+enum ChatType {
+  DIRECT      // DM 1×1 normal
+  LIVE        // chat da live
+  GROUP       // futuro (se quiseres)
+}
+
+enum DMPolicy {
+  EVERYONE          // qualquer pessoa pode mandar DM
+  TIPPED_ONLY       // só quem já deu tip alguma vez
+  SUBSCRIBERS_ONLY  // só assinantes premium
+  NO_ONE            // DMs bloqueados
+}
+
+enum MessageType {
+  TEXT
+  IMAGE
+  VIDEO
+  TIP
+  GIFT
+  SYSTEM            // ex: "Usuário entrou na live"
+}
+
+enum MessageState {
+  SENT
+  DELIVERED
+  READ
+  DELETED
+  HIGHLIGHTED       // para tip messages na live
+}

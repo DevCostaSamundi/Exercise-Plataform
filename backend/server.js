@@ -1,7 +1,11 @@
 import dotenv from 'dotenv';
+import cookieParser from 'cookie-parser';
+import  http from 'http';
 import app from './src/app.js';
 import logger from './src/utils/logger.js';
 import authRoutes from './src/routes/auth.routes.js';
+import initSocket from './src/socket/index.js';
+import errorHandle from '/backend/src/middleware/error.middleware.js';
 
 // Load environment variables
 dotenv.config();
@@ -30,10 +34,15 @@ app.get('/api/v1', (req, res) => {
 app.use('/api', (req, res) => {
   res.status(404).json({ status: 'error', message: 'API endpoint not found' });
 });
+
+app.use(errorHandle);
+
 const PORT = process.env.PORT || 5000;
 
+const server = http.creatorServer(app);
+initSocket(server);
 // Start server
-const server = app.listen(PORT, () => {
+server.listen(PORT, () => {
   logger.info(`🚀 Server running in ${process.env.NODE_ENV} mode on port ${PORT}`);
   logger.info(`📍 API available at http://localhost:${PORT}/api/${process.env.API_VERSION || 'v1'}`);
 });
