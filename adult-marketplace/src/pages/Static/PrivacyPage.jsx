@@ -1,12 +1,17 @@
+import { Link } from 'react-router-dom';
+
 export default function PrivacyPage() {
   return (
-    <div className="min-h-screen bg-slate-950 text-slate-50 flex items-center justify-center px-4">
-      <div className="max-w-2xl text-center space-y-4">
-        <h1 className="text-3xl font-bold">Política de Privacidade</h1>
-        <p className="text-slate-400">
-          Esta é uma página placeholder para a Política de Privacidade. Aqui no futuro você vai colocar o
-          conteúdo sobre como os dados dos usuários são coletados, usados e protegidos.
-        </p>
+    <div className="min-h-screen bg-slate-50 dark:bg-slate-950 py-12 px-4">
+      <div className="max-w-4xl mx-auto bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 p-8">
+        <Link to="/" className="text-indigo-600 hover:text-indigo-700 mb-4 inline-block" aria-label="Voltar para página inicial">← Voltar</Link>
+        <h1 className="text-3xl font-bold text-slate-900 dark:text-white mb-6">Política de Privacidade</h1>
+        <div className="prose dark:prose-invert max-w-none">
+          <p className="text-slate-600 dark:text-slate-400">
+            Esta página será preenchida com a política de privacidade completa da plataforma.
+          </p>
+          {/* Conteúdo completo será adicionado depois */}
+        </div>
       </div>
     </div>
   );
