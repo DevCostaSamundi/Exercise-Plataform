@@ -19,7 +19,7 @@ export default function ProtectedRoute({ children, requireCreator = false }) {
     return <Navigate to="/login" replace />;
   }
 
-  if (requireCreator && user.role !== 'creator') {
+  if (requireCreator && (!user.role || user.role !== 'creator')) {
     return <Navigate to="/" replace />;
   }
 
