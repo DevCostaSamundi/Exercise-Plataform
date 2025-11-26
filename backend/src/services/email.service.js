@@ -7,9 +7,6 @@ class EmailService {
     this.transporter = nodemailer.createTransport(emailConfig);
   }
 
-  /**
-   * Send email
-   */
   async sendEmail(to, subject, html, text = null) {
     try {
       const mailOptions = {
@@ -29,11 +26,8 @@ class EmailService {
     }
   }
 
-  /**
-   * Send welcome email
-   */
   async sendWelcomeEmail(email, username) {
-    // In development, avoid sending real emails — just log and resolve.
+ 
     if (process.env.NODE_ENV === 'development') {
       logger.info(`DEV email: enviar boas-vindas para ${email}`);
       return Promise.resolve();
@@ -50,9 +44,6 @@ class EmailService {
     return this.sendEmail(email, subject, html);
   }
 
-  /**
-   * Send password reset email
-   */
   async sendPasswordResetEmail(email, resetToken) {
     const resetUrl = `${process.env.FRONTEND_URL}/reset-password?token=${resetToken}`;
     const subject = 'Password Reset Request';
@@ -67,9 +58,6 @@ class EmailService {
     return this.sendEmail(email, subject, html);
   }
 
-  /**
-   * Send verification email
-   */
   async sendVerificationEmail(email, verificationToken) {
     const verifyUrl = `${process.env.FRONTEND_URL}/verify-email?token=${verificationToken}`;
     const subject = 'Verify Your Email';
@@ -83,9 +71,6 @@ class EmailService {
     return this.sendEmail(email, subject, html);
   }
 
-  /**
-   * Send order confirmation email
-   */
   async sendOrderConfirmationEmail(email, orderDetails) {
     const subject = 'Order Confirmation';
     const html = `

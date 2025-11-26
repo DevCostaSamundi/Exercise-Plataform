@@ -3,31 +3,26 @@ import { Link, useNavigate } from 'react-router-dom';
 
 export default function CreatorRegisterPage() {
   const navigate = useNavigate();
-  const [step, setStep] = useState(1); // 1: Basic, 2: Profile, 3: Content, 4: Payment, 5: Verification
+  const [step, setStep] = useState(1);
   const [formData, setFormData] = useState({
-    // Basic Info
     email: '',
     username: '',
     password: '',
     confirmPassword: '',
-    // Profile Info
     displayName: '',
     birthDate: '',
     genderIdentity: '',
     orientation: '',
     location: '',
     bio: '',
-    // Content Info
     contentTypes: [],
     aesthetic: [],
     subscriptionPrice: '',
-    // Payment Info
     fullName: '',
     cpf: '',
     pixKey: '',
     criptoKey: '',
-    pixKeyType: 'email', // email, cpf, phone, random
-    // Verification
+    pixKeyType: 'email',
     idDocument: null,
     selfieWithId: null,
     agreeTerms: false,
@@ -65,7 +60,6 @@ export default function CreatorRegisterPage() {
         setFileErrors(prev => ({ ...prev, [name]: undefined }));
         setFormData(prev => ({ ...prev, [name]: file }));
       } else {
-        // Clear the file if no file selected
         setFormData(prev => ({ ...prev, [name]: null }));
       }
     } else if (type === 'checkbox') {

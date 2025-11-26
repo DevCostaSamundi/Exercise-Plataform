@@ -6,9 +6,15 @@ import authRoutes from './src/routes/auth.routes.js';
 // Load environment variables
 dotenv.config();
 
+app.set('trust proxy', 1);
+
 app.use('/api/v1/auth', authRoutes);
 
-// só responde para GET /api/v1
+// Root -> redireciona para /api/v1
+app.get('/', (req, res) => {
+  res.redirect(`/api/${process.env.API_VERSION || 'v1'}`);
+});
+
 app.get('/api/v1', (req, res) => {
   res.json({
     status: 'OK',
@@ -31,8 +37,6 @@ const server = app.listen(PORT, () => {
   logger.info(`🚀 Server running in ${process.env.NODE_ENV} mode on port ${PORT}`);
   logger.info(`📍 API available at http://localhost:${PORT}/api/${process.env.API_VERSION || 'v1'}`);
 });
-
-
 
 // Handle unhandled promise rejections
 process.on('unhandledRejection', (err) => {
