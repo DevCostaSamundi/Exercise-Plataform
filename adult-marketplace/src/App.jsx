@@ -14,6 +14,7 @@ import CreatorPostsPage from './pages/Creator/CreatorPostsPage';
 import UploadContentPage from './pages/Creator/UploadContentPage';
 
 import AgeGate from './components/AgeGate';
+import ProtectedRoute from './components/ProtectedRoute';
 
 // Placeholders (ver seções abaixo; você pode criar os arquivos correspondentes)
 import TermsPage from './pages/Static/TermsPage';
@@ -55,17 +56,80 @@ function App() {
 
           {/* Criador - registro + área logada */}
           <Route path="/creator-register" element={<CreatorRegisterPage />} />
-          <Route path="/creator/dashboard" element={<CreatorDashboardPage />} />
-          <Route path="/creator/posts" element={<CreatorPostsPage />} />
-          <Route path="/creator/upload" element={<UploadContentPage />} />
+          <Route 
+            path="/creator/dashboard" 
+            element={
+              <ProtectedRoute requireCreator>
+                <CreatorDashboardPage />
+              </ProtectedRoute>
+            } 
+          />
+          <Route 
+            path="/creator/posts" 
+            element={
+              <ProtectedRoute requireCreator>
+                <CreatorPostsPage />
+              </ProtectedRoute>
+            } 
+          />
+          <Route 
+            path="/creator/upload" 
+            element={
+              <ProtectedRoute requireCreator>
+                <UploadContentPage />
+              </ProtectedRoute>
+            } 
+          />
 
           {/* Criador - páginas auxiliares (placeholders) */}
-          <Route path="/creator/profile" element={<CreatorProfilePage />} />
-          <Route path="/creator/messages" element={<CreatorMessagesPage />} />
-          <Route path="/creator/earnings" element={<CreatorEarningsPage />} />
-          <Route path="/creator/subscribers" element={<CreatorSubscribersPage />} />
-          <Route path="/creator/notifications" element={<CreatorNotificationsPage />} />
-          <Route path="/creator/posts/:id/edit" element={<CreatorPostEditPage />} />
+          <Route 
+            path="/creator/profile" 
+            element={
+              <ProtectedRoute requireCreator>
+                <CreatorProfilePage />
+              </ProtectedRoute>
+            } 
+          />
+          <Route 
+            path="/creator/messages" 
+            element={
+              <ProtectedRoute requireCreator>
+                <CreatorMessagesPage />
+              </ProtectedRoute>
+            } 
+          />
+          <Route 
+            path="/creator/earnings" 
+            element={
+              <ProtectedRoute requireCreator>
+                <CreatorEarningsPage />
+              </ProtectedRoute>
+            } 
+          />
+          <Route 
+            path="/creator/subscribers" 
+            element={
+              <ProtectedRoute requireCreator>
+                <CreatorSubscribersPage />
+              </ProtectedRoute>
+            } 
+          />
+          <Route 
+            path="/creator/notifications" 
+            element={
+              <ProtectedRoute requireCreator>
+                <CreatorNotificationsPage />
+              </ProtectedRoute>
+            } 
+          />
+          <Route 
+            path="/creator/posts/:id/edit" 
+            element={
+              <ProtectedRoute requireCreator>
+                <CreatorPostEditPage />
+              </ProtectedRoute>
+            } 
+          />
 
           {/* Estático / institucional */}
           <Route path="/terms" element={<TermsPage />} />

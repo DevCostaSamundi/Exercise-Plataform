@@ -1,16 +1,62 @@
-# React + Vite
+# 🏳️‍🌈 PrideConnect - Frontend
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+Plataforma de conteúdo exclusivo focada na comunidade LGBT+.
 
-Currently, two official plugins are available:
+## 🚀 Como Rodar
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+### Pré-requisitos
+- Node.js 18+ instalado
+- Backend rodando em `http://localhost:5000`
 
-## React Compiler
+### Instalação
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+```bash
+# Instalar dependências
+npm install
 
-## Expanding the ESLint configuration
+# Rodar em desenvolvimento
+npm run dev
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+# Build para produção
+npm run build
+
+# Preview da build
+npm run preview
+```
+
+### Variáveis de Ambiente
+
+Crie um arquivo `.env` na raiz:
+
+```env
+VITE_API_URL=http://localhost:5000/api/v1
+```
+
+## 📂 Estrutura
+
+```
+src/
+├── components/        # Componentes reutilizáveis
+├── contexts/         # React Context (Auth, Chat, etc)
+├── pages/            # Páginas da aplicação
+│   ├── Creator/     # Páginas do painel do criador
+│   └── Static/      # Páginas estáticas (termos, privacidade)
+├── services/        # API e Socket.IO
+└── App.jsx          # Rotas principais
+```
+
+## 🔐 Verificação de Idade
+
+A aplicação exige que o usuário confirme ter **18+ anos** antes de acessar qualquer conteúdo.
+
+## 🛠️ Tecnologias
+
+- **React 19** + **Vite**
+- **React Router DOM** (rotas)
+- **Tailwind CSS** (estilização)
+- **Axios** (requisições HTTP)
+- **Socket.IO Client** (tempo real)
+
+## 📝 Licença
+
+Propriedade de DevCostaSamundi
