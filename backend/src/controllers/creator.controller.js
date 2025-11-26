@@ -248,10 +248,10 @@ class CreatorController {
         throw new NotFoundError('Creator not found');
       }
 
-      // For now, return a default config
-      // In production, you might want to store this in the database
+      // TODO: Store DM policy in database when implementing creator settings
+      // For now, return a default config matching Prisma schema default
       const config = {
-        dmPolicy: 'EVERYONE', // default: anyone can DM
+        dmPolicy: 'EVERYONE', // matches DMPolicy enum default
         creatorId: creator.userId,
       };
 

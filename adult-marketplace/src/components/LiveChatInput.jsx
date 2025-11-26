@@ -88,6 +88,8 @@ export default function LiveChatInput({ liveId }) {
       return;
     }
 
+    // TODO: Replace with proper modal component for better UX
+    // This is a stub for MVP - payment integration pending
     const confirmTip = confirm(`Enviar tip de R$${amount}? (STUB - sem pagamento real)`);
     if (!confirmTip) return;
 
