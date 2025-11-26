@@ -36,16 +36,14 @@ api.interceptors.response.use(
       originalRequest._retry = true;
 
       try {
+        // Try to refresh the token (works with both localStorage and cookie)
+        // The backend will check both req.body.refreshToken and req.cookies.refreshToken
         const refreshToken = localStorage.getItem('refreshToken');
-        if (!refreshToken) {
-          // No refresh token available, redirect to login
-          throw new Error('No refresh token available');
-        }
-
-        // Try to refresh the token
+        const refreshPayload = refreshToken ? { refreshToken } : {};
+        
         const response = await axios.post(
           `${import.meta.env.VITE_API_URL || 'http://localhost:5000/api/v1'}/auth/refresh`,
-          { refreshToken },
+          refreshPayload,
           { withCredentials: true }
         );
 
@@ -60,13 +58,14 @@ api.interceptors.response.use(
         // Retry the original request
         return api(originalRequest);
       } catch (refreshError) {
-        // Refresh failed, clear tokens and redirect to login
+        // Refresh failed, clear tokens
         localStorage.removeItem('accessToken');
         localStorage.removeItem('refreshToken');
         localStorage.removeItem('user');
         
-        // Redirect to login page
-        window.location.href = '/login';
+        // Dispatch custom event for navigation handling
+        // This allows React components to handle navigation properly
+        window.dispatchEvent(new CustomEvent('auth:logout'));
         
         return Promise.reject(refreshError);
       }

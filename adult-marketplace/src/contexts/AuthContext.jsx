@@ -47,7 +47,18 @@ export const AuthProvider = ({ children }) => {
       }
     };
 
+    // Handle logout event from API interceptor
+    const handleLogoutEvent = () => {
+      setUser(null);
+      setError('Your session has expired. Please login again.');
+    };
+
+    window.addEventListener('auth:logout', handleLogoutEvent);
     loadUser();
+
+    return () => {
+      window.removeEventListener('auth:logout', handleLogoutEvent);
+    };
   }, []);
 
   const login = async (credentials) => {
