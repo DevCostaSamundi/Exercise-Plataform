@@ -3,6 +3,7 @@ import { authAPI } from '../services/api';
 
 const AuthContext = createContext(null);
 
+// eslint-disable-next-line react-refresh/only-export-components
 export const useAuth = () => {
   const context = useContext(AuthContext);
   if (!context) {
@@ -31,7 +32,7 @@ export const AuthProvider = ({ children }) => {
             const response = await authAPI.getMe();
             setUser(response.data.data);
             localStorage.setItem('user', JSON.stringify(response.data.data));
-          } catch (err) {
+          } catch {
             // Token is invalid, clear it
             localStorage.removeItem('user');
             localStorage.removeItem('accessToken');
