@@ -24,26 +24,37 @@ app.use(helmet());
 // CORS configuration
 const allowedOrigins = [
   process.env.FRONTEND_URL || 'http://localhost:5173',
-  'http://localhost:3000', // se já usaste 3000 antes
-  'http://localhost:5173' // reforçar
+  'http://localhost:5173',
+  'http://localhost:3000',
 ];
 
 const corsOptions = {
   origin: (origin, callback) => {
-    if (!origin) return callback(null, true); // allow non-browser tools like curl
-    if (allowedOrigins.includes(origin)) return callback(null, true);
-    return callback(new Error('CORS not allowed'), false);
+    // Allow requests with no origin (like mobile apps or curl requests)
+    if (!origin) return callback(null, true);
+    
+    if (allowedOrigins.includes(origin)) {
+      callback(null, true);
+    } else {
+      callback(new Error('Not allowed by CORS'));
+    }
   },
   credentials: true,
-  optionsSuccessStatus: 200,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
+  exposedHeaders: ['Content-Range', 'X-Content-Range'],
+  maxAge: 600, // 10 minutes
 };
+
 app.use(cors(corsOptions));
 
 // Rate limiting
 const limiter = rateLimit({
-  windowMs: parseInt(process.env.RATE_LIMIT_WINDOW_MS, 10) || 15 * 60 * 1000, // 15 minutes
+  windowMs: parseInt(process.env.RATE_LIMIT_WINDOW_MS, 10) || 15 * 60 * 1000,
   max: parseInt(process.env.RATE_LIMIT_MAX_REQUESTS, 10) || 100,
   message: 'Too many requests from this IP, please try again later.',
+  standardHeaders: true,
+  legacyHeaders: false,
 });
 app.use('/api', limiter);
 
@@ -78,5 +89,16 @@ app.use(`/api/${API_VERSION}/posts`, postRoutes);
 app.use(`/api/${API_VERSION}/lives`, liveRoutes);
 app.use(`/api/${API_VERSION}`, chatRoutes);
 
+// 404 handler for undefined routes
+app.use('/api', (req, res) => {
+  res.status(404).json({ 
+    status: 'error', 
+    message: 'API endpoint not found',
+    path: req.path 
+  });
+});
+
+// Error handling middleware (must be last)
+app.use(errorMiddleware);
 
 export default app;

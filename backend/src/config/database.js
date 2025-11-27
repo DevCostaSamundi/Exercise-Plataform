@@ -17,14 +17,26 @@ if (process.env.NODE_ENV === 'development') {
   });
 }
 
-// Test database connection
+// Test database connection with better error handling
 prisma.$connect()
   .then(() => {
     logger.info('✅ Database connected successfully');
   })
   .catch((error) => {
-    logger.error('❌ Database connection failed:', error);
-    process.exit(1);
+    logger.error('❌ Database connection failed:', error.message);
+    logger.error('💡 Please check your DATABASE_URL in .env file');
+    logger.error('💡 Make sure PostgreSQL is running and credentials are correct');
+    // Don't exit immediately in development to allow for hot reloading
+    if (process.env.NODE_ENV === 'production') {
+      process.exit(1);
+    } else {
+      logger.warn('⚠️  Continuing in development mode without database connection');
+    }
   });
+
+// Graceful shutdown
+process.on('beforeExit', async () => {
+  await prisma.$disconnect();
+});
 
 export default prisma;
