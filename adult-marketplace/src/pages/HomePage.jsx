@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { Link } from 'react-router-dom';
-import { creatorsAPI } from '../services/api';
+import creatorsAPI from '../services/creatorsAPI';
 import Sidebar from '../components/Sidebar';
 import RightSidebar from '../components/RightSidebar';
 
