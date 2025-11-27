@@ -17,7 +17,7 @@ export default function ProductPage() {
       <div className="min-h-screen bg-gray-900 text-white flex items-center justify-center">
         <div className="text-center">
           <h2 className="text-2xl font-bold mb-4">Criador não encontrado</h2>
-          <Link to="/" className="text-purple-400 hover:underline">Voltar para a página inicial</Link>
+          <Link to="/" className="text-purple-400 hover:underline">Voltar para a página inicialnpm run dev</Link>
         </div>
       </div>
     );
