@@ -4,6 +4,13 @@ import { creatorsAPI } from '../services/api';
 import Sidebar from '../components/Sidebar';
 import RightSidebar from '../components/RightSidebar';
 
+// Mock creators for feed tab (to be replaced when posts API is implemented)
+const mockFeedCreators = {
+  1: { id: 1, displayName: 'Luna', avatar: 'https://placehold.co/100x100/8B7FE8/white?text=L' },
+  2: { id: 2, displayName: 'Kai', avatar: 'https://placehold.co/100x100/6366F1/white?text=K' },
+  4: { id: 4, displayName: 'Aria', avatar: 'https://placehold.co/100x100/EC4899/white?text=A' },
+};
+
 // Mock de posts recentes (keep for feed tab)
 const mockRecentPosts = [
   { id: 1, creatorId: 1, image: 'https://placehold.co/300x300/8B7FE8/white?text=Post1', likes: 120, comments: 15, isExclusive: true },
@@ -96,10 +103,6 @@ export default function HomePage() {
       const params = {
         page: pageNum,
         limit: 12,
-        verified: selectedFilters.genderIdentity.length > 0 || 
-                 selectedFilters.orientation.length > 0 ||
-                 selectedFilters.contentType.length > 0 ||
-                 selectedFilters.aesthetic.length > 0 ? undefined : undefined,
       };
 
       // Add search if exists
@@ -704,7 +707,7 @@ export default function HomePage() {
           {activeTab === 'feed' && (
             <div className="max-w-2xl mx-auto space-y-6">
               {mockRecentPosts.map(post => {
-                const creator = creators.find(c => c.id === post.creatorId);
+                const creator = mockFeedCreators[post.creatorId];
                 if (!creator) return null;
                 return (
                   <div key={post.id} className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 overflow-hidden">
