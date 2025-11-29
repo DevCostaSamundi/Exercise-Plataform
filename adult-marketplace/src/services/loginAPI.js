@@ -8,15 +8,19 @@ const creatorsAPI = {
       ...(params.category && { category: params.category }),
       ...(params.search && { search: params.search }),
     };
-    return api.get('/creators', { params: queryParams });
+    return api.get('/login', { params: queryParams });
   },
 
   getById: async (id) => {
-    return api.get(`/creators/${id}`);
+    return api.get(`/login/${id}`);
   },
 
   getFeatured: async () => {
-    return api.get('/creators/featured');
+    return api.get('/login');
+  },
+
+  login: async (data) => {
+    return api.post('/api/v1/auth/login', data);
   },
 };
 

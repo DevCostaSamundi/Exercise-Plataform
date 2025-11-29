@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-
+import api from '../services/api';
+import creatorsAPI from '../services/loginAPI';
 export default function LoginPage() {
   const navigate = useNavigate();
   const [formData, setFormData] = useState({
@@ -54,19 +55,21 @@ export default function LoginPage() {
     setIsLoading(true);
     
     try {
-      // TODO: Integrar com API de autenticação
-      // const response = await fetch('/api/auth/login', {
-      //   method: 'POST',
-      //   headers: { 'Content-Type': 'application/json' },
-      //   body: JSON.stringify(formData)
-      // });
+      const response = await api.login({
+        email: formData.email,
+        password: formData.password,
+      });
+      
+      const { accessToken, refreshToken, user } = response.data.data;
       
       // Simulação de login (remover em produção)
       await new Promise(resolve => setTimeout(resolve, 1500));
       
       // Salvar token no localStorage
-      localStorage.setItem('authToken', 'fake-jwt-token-123');
-      localStorage.setItem('userType', 'subscriber'); // ou 'creator'
+      localStorage.setItem('accessToken', accessToken);
+      localStorage.setItem('refreshToken', refreshToken);
+      localStorage.setItem('user', JSON.stringify(user) );
+      // ou 'creator'
       
       // Redirecionar para home
       navigate('/');

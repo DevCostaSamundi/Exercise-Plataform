@@ -1,3 +1,4 @@
+// src/app.js
 import express from 'express';
 import cors from 'cors';
 import helmet from 'helmet';
@@ -21,23 +22,28 @@ const app = express();
 // Security middleware
 app.use(helmet());
 
-// CORS configuration
+// ------------------- CORS -------------------
+// Allowed origins
 const allowedOrigins = [
   process.env.FRONTEND_URL || 'http://localhost:5173',
   'http://localhost:5173',
   'http://localhost:3000',
 ];
 
+// CORS configuration
 const corsOptions = {
-  origin: (origin, callback) => {
-    // Allow requests with no origin (like mobile apps or curl requests)
+  origin: function (origin, callback) {
+    // Allow requests with no origin (like curl or mobile apps)
     if (!origin) return callback(null, true);
-    
-    if (allowedOrigins.includes(origin)) {
-      callback(null, true);
-    } else {
-      callback(new Error('Not allowed by CORS'));
+
+    // Allow origins in allowedOrigins list
+    if (allowedOrigins.some(o => origin.startsWith(o))) {
+      return callback(null, true);
     }
+
+    // Block all other origins
+    console.warn(`Blocked CORS request from origin: ${origin}`);
+    return callback(new Error('Not allowed by CORS'));
   },
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH'],
@@ -48,7 +54,7 @@ const corsOptions = {
 
 app.use(cors(corsOptions));
 
-// Rate limiting
+// ------------------- Rate Limiting -------------------
 const limiter = rateLimit({
   windowMs: parseInt(process.env.RATE_LIMIT_WINDOW_MS, 10) || 15 * 60 * 1000,
   max: parseInt(process.env.RATE_LIMIT_MAX_REQUESTS, 10) || 100,
@@ -58,20 +64,18 @@ const limiter = rateLimit({
 });
 app.use('/api', limiter);
 
-// Cookie parsing middleware
+// ------------------- Middleware -------------------
 app.use(cookieParser());
-
-// Body parsing middleware
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
-// Request logging middleware
+// Request logging
 app.use((req, res, next) => {
   logger.info(`${req.method} ${req.path}`);
   next();
 });
 
-// Health check endpoint
+// ------------------- Health Check -------------------
 app.get('/health', (req, res) => {
   res.status(200).json({
     status: 'success',
@@ -80,25 +84,37 @@ app.get('/health', (req, res) => {
   });
 });
 
-// API routes
+// ------------------- API Routes -------------------
 const API_VERSION = process.env.API_VERSION || 'v1';
+
+// Auth routes (inclui /register, /login, /creator-register, etc)
 app.use(`/api/${API_VERSION}/auth`, authRoutes);
+
+// User routes
 app.use(`/api/${API_VERSION}/users`, userRoutes);
+
+// Creator routes
 app.use(`/api/${API_VERSION}/creators`, creatorRoutes);
+
+// Post routes
 app.use(`/api/${API_VERSION}/posts`, postRoutes);
+
+// Live routes
 app.use(`/api/${API_VERSION}/lives`, liveRoutes);
+
+// Chat routes
 app.use(`/api/${API_VERSION}`, chatRoutes);
 
 // 404 handler for undefined routes
 app.use('/api', (req, res) => {
-  res.status(404).json({ 
-    status: 'error', 
+  res.status(404).json({
+    status: 'error',
     message: 'API endpoint not found',
-    path: req.path 
+    path: req.path,
   });
 });
 
-// Error handling middleware (must be last)
+// ------------------- Error Handling Middleware -------------------
 app.use(errorMiddleware);
 
 export default app;

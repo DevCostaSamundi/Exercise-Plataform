@@ -16,16 +16,16 @@ class AuthController {
    */
   async register(req, res, next) {
     try {
-      const { 
-        email, 
-        username, 
-        password, 
+      const {
+        email,
+        username,
+        password,
         displayName,
         birthDate,
         genderIdentity,
         orientation,
-        firstName, 
-        lastName 
+        firstName,
+        lastName
       } = req.body;
 
       // Normalize
@@ -160,7 +160,7 @@ class AuthController {
         return ApiResponse.error(res, 'Bio must have at least 50 characters', 400);
       }
 
-            // Check duplicates (normalize before checking)
+      // Check duplicates (normalize before checking)
       const existingUser = await prisma.user.findFirst({
         where: { OR: [{ email: normalizedEmail }, { username: normalizedUsername }] }
       });
@@ -319,7 +319,7 @@ class AuthController {
    */
   async refresh(req, res, next) {
     try {
-      const refreshToken  = req.body.refreshToken || req.cookies?.refreshToken;
+      const refreshToken = req.body.refreshToken || req.cookies?.refreshToken;
       if (!refreshToken) throw new UnauthorizedError('Refresh token required');
       // Verify refresh token
       const decoded = JwtService.verifyRefreshToken(refreshToken);
@@ -339,6 +339,102 @@ class AuthController {
 
       return ApiResponse.success(res, { accessToken }, 'Token refreshed');
     } catch (error) {
+      next(error);
+    }
+  }
+
+  async register(req, res, next) {
+    try {
+      console.log('📥 Dados recebidos:', req.body);
+
+      const {
+        email,
+        username,
+        password,
+        displayName,
+        birthDate,
+        genderIdentity,
+        orientation,
+        firstName,
+        lastName
+      } = req.body;
+
+      // Normalize
+      const normalizedEmail = email?.trim().toLowerCase();
+      const normalizedUsername = username?.trim();
+
+      console.log('🔍 Verificando duplicatas para:', { normalizedEmail, normalizedUsername });
+
+      // Check if user already exists
+      const existingUser = await prisma.user.findFirst({
+        where: {
+          OR: [{ email: normalizedEmail }, { username: normalizedUsername }],
+        },
+      });
+
+      if (existingUser) {
+        console.log('❌ Usuário já existe:', existingUser);
+        if (existingUser.email === normalizedEmail) {
+          throw new ConflictError('Email already registered');
+        }
+        throw new ConflictError('Username already taken');
+      }
+
+      console.log('✅ Usuário não existe, criando...');
+
+      // Hash password
+      const hashedPassword = await bcrypt.hash(password, 10);
+
+      // Create user
+      const user = await prisma.user.create({
+        data: {
+          email: normalizedEmail,
+          username: normalizedUsername,
+          password: hashedPassword,
+          displayName,
+          birthDate: birthDate ? new Date(birthDate) : null,
+          genderIdentity,
+          orientation,
+          firstName,
+          lastName,
+        },
+        select: {
+          id: true,
+          email: true,
+          username: true,
+          displayName: true,
+          birthDate: true,
+          genderIdentity: true,
+          orientation: true,
+          firstName: true,
+          lastName: true,
+          role: true,
+          createdAt: true,
+        },
+      });
+
+      console.log('✅ Usuário criado:', user);
+
+      // Generate tokens
+      const tokens = JwtService.generateTokens(user.id, user.role);
+
+      console.log('✅ Tokens gerados');
+
+      // Send welcome email (don't wait for it)
+      emailService.sendWelcomeEmail(user.email, user.displayName || user.username).catch((err) => {
+        logger.error('Failed to send welcome email:', err);
+      });
+
+      console.log('✅ Enviando resposta de sucesso');
+
+      return ApiResponse.success(
+        res,
+        { user, ...tokens },
+        'Registration successful',
+        201
+      );
+    } catch (error) {
+      console.error('❌ Erro no registro:', error);
       next(error);
     }
   }

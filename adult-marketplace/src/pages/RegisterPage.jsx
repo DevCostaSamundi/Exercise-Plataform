@@ -21,22 +21,22 @@ export default function RegisterPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
-  const genderOptions = ['Cis homem', 
-    'Cis mulher', 
-    'Trans homem', 
-    'Trans mulher', 
-    'Não-binário', 
-    'Queer', 
-    'Gênero fluido', 
+  const genderOptions = ['Cis homem',
+    'Cis mulher',
+    'Trans homem',
+    'Trans mulher',
+    'Não-binário',
+    'Queer',
+    'Gênero fluido',
     'Prefiro não dizer'];
-  
-    const orientationOptions = ['Gay', 
-    'Demissexual', 
-    'Lésbica', 
-    'Bissexual', 
-    'Pansexual', 
-    'Assexual', 
-    'Queer', 
+
+  const orientationOptions = ['Gay',
+    'Demissexual',
+    'Lésbica',
+    'Bissexual',
+    'Pansexual',
+    'Assexual',
+    'Queer',
     'Prefiro não dizer'];
 
   const handleChange = (e) => {
@@ -158,28 +158,85 @@ export default function RegisterPage() {
     setIsLoading(true);
 
     try {
+      console.log('🚀 Enviando dados de registro:', formData);
+
       const response = await fetch('http://localhost:5000/api/v1/auth/register', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+        },
         body: JSON.stringify(formData)
       });
 
+      console.log('📡 Response status:', response.status);
+      console.log('📡 Response ok:', response.ok);
+      console.log('📡 Response headers:', response.headers);
+
+      // Tenta ler como texto primeiro para ver o que está vindo
+      const textResponse = await response.text();
+      console.log('📄 Response text:', textResponse);
+
+      let result;
+      try {
+        result = JSON.parse(textResponse);
+        console.log('✅ Response data (parsed):', result);
+      } catch (parseError) {
+        console.error('❌ Erro ao fazer parse do JSON:', parseError);
+        console.error('❌ Texto recebido:', textResponse);
+        throw new Error('Resposta inválida do servidor');
+      }
+
       if (!response.ok) {
-        setErrors({ submit: result.message || 'Erro ao criar conta' });
+        const errorMessage = result.message || 'Erro ao criar conta';
+        console.error('❌ Erro do servidor:', errorMessage);
+
+        // Detectar qual campo está duplicado e voltar para o step correto
+        if (errorMessage.toLowerCase().includes('email')) {
+          setErrors({ email: 'Este email já está cadastrado' });
+          setStep(1);
+        } else if (errorMessage.toLowerCase().includes('username')) {
+          setErrors({ username: 'Este nome de usuário já está em uso' });
+          setStep(1);
+        } else {
+          setErrors({ submit: errorMessage });
+        }
         return;
       }
 
-      await new Promise(resolve => setTimeout(resolve, 2000));
+      console.log('✅ Registro bem-sucedido!');
+      console.log('📦 Dados retornados:', result);
 
-      // Salvar token (substituir por resposta real quando disponível)
-      localStorage.setItem('authToken', result.data.accessToken);
-      localStorage.setItem('refreshToken', result.data.refreshToken);
-      localStorage.setItem('user', JSON.stringify(result.data.user));
+      // Salvar tokens - verificar a estrutura correta
+      const accessToken = result.data?.accessToken || result.accessToken;
+      const refreshToken = result.data?.refreshToken || result.refreshToken;
+      const user = result.data?.user || result.user;
 
+      console.log('🔑 Access Token:', accessToken ? '✅ Existe' : '❌ Não encontrado');
+      console.log('🔑 Refresh Token:', refreshToken ? '✅ Existe' : '❌ Não encontrado');
+      console.log('👤 User:', user ? '✅ Existe' : '❌ Não encontrado');
+
+      if (accessToken) {
+        localStorage.setItem('authToken', accessToken);
+        console.log('💾 Token salvo no localStorage');
+      }
+      if (refreshToken) {
+        localStorage.setItem('refreshToken', refreshToken);
+        console.log('💾 Refresh token salvo no localStorage');
+      }
+      if (user) {
+        localStorage.setItem('user', JSON.stringify(user));
+        console.log('💾 Usuário salvo no localStorage:', user);
+      }
+
+      console.log('🎉 Redirecionando para home...');
       // Redirecionar
       navigate('/', { state: { welcomeMessage: true } });
     } catch (error) {
-      setErrors({ submit: 'Erro ao criar conta. Tente novamente.' });
+      console.error('❌ Registration error (catch):', error);
+      console.error('❌ Error name:', error.name);
+      console.error('❌ Error message:', error.message);
+      console.error('❌ Error stack:', error.stack);
+      setErrors({ submit: `Erro ao criar conta: ${error.message}` });
     } finally {
       setIsLoading(false);
     }

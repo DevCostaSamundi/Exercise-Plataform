@@ -280,7 +280,7 @@ export default function CreatorRegisterPage() {
       });
 
       // Redirecionar para dashboard do criador
-      navigate('/creator/dashboard', { state: { newCreator: true } });
+      navigate('/creator-dashboard', { state: { newCreator: true } });
     } catch (error) {
       console.log("Creator registration error", error);
       setErrors({ submit: 'Erro ao criar conta. Tente novamente.' });

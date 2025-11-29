@@ -1,5 +1,6 @@
 import axios from 'axios';
 
+
 // Create axios instance with base configuration
 const api = axios.create({
   baseURL: import.meta.env.VITE_API_URL || 'http://localhost:5000/api/v1',
@@ -77,12 +78,12 @@ api.interceptors.response.use(
 
 // API methods
 export const authAPI = {
-  register: (userData) => api.post('/auth/register', userData),
-  login: (credentials) => api.post('/auth/login', credentials),
-  logout: () => api.post('/auth/logout'),
-  refresh: (refreshToken) => api.post('/auth/refresh', { refreshToken }),
-  getMe: () => api.get('/auth/me'),
-  forgotPassword: (email) => api.post('/auth/forgot-password', { email }),
+  register: (userData) => api.post('/auth/v1/register', userData),
+  login: (credentials) => api.post('/auth/v1/login', credentials),
+  logout: () => api.post('/auth/v1/logout'),
+  refresh: (refreshToken) => api.post('/auth/v1/refresh', { refreshToken }),
+  getMe: () => api.get('/auth/v1/me'),
+  forgotPassword: (email) => api.post('/auth/v1/forgot-password', { email }),
   resetPassword: (token, password) => api.post('/auth/reset-password', { token, password }),
 };
 

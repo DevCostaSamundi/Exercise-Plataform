@@ -57,7 +57,7 @@ function App() {
           {/* Criador - registro + área logada */}
           <Route path="/creator-register" element={<CreatorRegisterPage />} />
           <Route 
-            path="/creator/dashboard" 
+            path="/creator-dashboard" 
             element={
               <ProtectedRoute requireCreator>
                 <CreatorDashboardPage />
