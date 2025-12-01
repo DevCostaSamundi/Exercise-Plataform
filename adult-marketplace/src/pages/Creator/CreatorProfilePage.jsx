@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
-
+import Modal from '../../components/Modal.jsx';
+import PaymentModal from '../../components/PaymentModal.jsx';
 
 export default function CreatorProfilePage() {
   const { id } = useParams();
@@ -9,10 +10,13 @@ export default function CreatorProfilePage() {
   const [showSubscribeModal, setShowSubscribeModal] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
-  
+
   const [creator, setCreator] = useState(null);
   const [posts, setPosts] = useState([]);
   const [isSubscribed, setIsSubscribed] = useState(false);
+
+  const [showPaymentModal, setShowPaymentModal] = useState(false);
+  const [paymentData, setPaymentData] = useState(null);
 
   // Validar se ID existe
   useEffect(() => {
@@ -49,7 +53,7 @@ export default function CreatorProfilePage() {
         }
 
         const creatorData = await creatorRes.json();
-        
+
         if (!creatorData.data) {
           setError('Dados do criador inválidos');
           setIsLoading(false);
@@ -129,46 +133,14 @@ export default function CreatorProfilePage() {
       navigate('/login', { state: { returnTo: `/creator/${id}` } });
       return;
     }
-    setShowSubscribeModal(true);
-  };
-
-  const handleCheckout = async (paymentMethod) => {
-    try {
-      const token = localStorage.getItem('authToken');
-      const res = await fetch(
-        'http://localhost:5000/api/v1/subscriptions/create',
-        {
-          method: 'POST',
-          credentials: 'include',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${token}`
-          },
-          body: JSON.stringify({
-            creatorId: id,
-            paymentMethod: paymentMethod // 'crypto', 'card', 'pix'
-          })
-        }
-      );
-
-      if (!res.ok) {
-        const error = await res.json();
-        alert('Erro ao processar assinatura: ' + error.message);
-        return;
-      }
-
-      const data = await res.json();
-      
-      // Redirecionar para checkout baseado no método
-      if (data.data?.checkoutUrl) {
-        window.location.href = data.data.checkoutUrl;
-      } else {
-        alert('Link de checkout não disponível');
-      }
-    } catch (err) {
-      console.error('Erro ao criar assinatura:', err);
-      alert('Erro ao processar pagamento');
-    }
+    
+    // Preparar dados do pagamento
+    setPaymentData({
+      creatorId: creator.id,
+      type: 'SUBSCRIPTION',
+      amountUSD: creator.subscriptionPrice || 30,
+    });
+    setShowPaymentModal(true);
   };
 
   // Loading state
@@ -223,7 +195,7 @@ export default function CreatorProfilePage() {
             }}
           />
           <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent"></div>
-          
+
           {/* Back Button */}
           <Link
             to="/"
@@ -279,7 +251,7 @@ export default function CreatorProfilePage() {
                     {creator.displayName}
                   </h1>
                   <p className="text-slate-600 dark:text-slate-400 mb-3">@{creator.username}</p>
-                  
+
                   <div className="flex flex-wrap gap-4 text-sm">
                     <div className="flex items-center space-x-1">
                       <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-slate-400" viewBox="0 0 20 20" fill="currentColor">
@@ -386,17 +358,17 @@ export default function CreatorProfilePage() {
                 <div className="flex items-center space-x-3">
                   {creator.socialLinks.instagram && (
                     <a href={creator.socialLinks.instagram} target="_blank" rel="noopener noreferrer" className="p-2 bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:text-pink-600 dark:hover:text-pink-400 rounded-lg transition-colors">
-                      <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073z"/></svg>
+                      <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073z" /></svg>
                     </a>
                   )}
                   {creator.socialLinks.twitter && (
                     <a href={creator.socialLinks.twitter} target="_blank" rel="noopener noreferrer" className="p-2 bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:text-blue-600 dark:hover:text-blue-400 rounded-lg transition-colors">
-                      <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M23.953 4.57a10 10 0 01-2.825.775 4.958 4.958 0 002.163-2.723c-.951.555-2.005.959-3.127 1.184a4.92 4.92 0 00-8.384 4.482C7.69 8.095 4.067 6.13 1.64 3.162a4.822 4.822 0 00-.666 2.475c0 1.71.87 3.213 2.188 4.096a4.904 4.904 0 01-2.228-.616v.06a4.923 4.923 0 003.946 4.827 4.996 4.996 0 01-2.212.085 4.936 4.936 0 004.604 3.417a9.867 9.867 0 01-6.102 2.105c-.39 0-.779-.023-1.17-.067a13.995 13.995 0 007.557 2.209c9.053 0 13.998-7.496 13.998-13.985 0-.21 0-.42-.015-.63A9.935 9.935 0 0024 4.59z"/></svg>
+                      <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M23.953 4.57a10 10 0 01-2.825.775 4.958 4.958 0 002.163-2.723c-.951.555-2.005.959-3.127 1.184a4.92 4.92 0 00-8.384 4.482C7.69 8.095 4.067 6.13 1.64 3.162a4.822 4.822 0 00-.666 2.475c0 1.71.87 3.213 2.188 4.096a4.904 4.904 0 01-2.228-.616v.06a4.923 4.923 0 003.946 4.827 4.996 4.996 0 01-2.212.085 4.936 4.936 0 004.604 3.417a9.867 9.867 0 01-6.102 2.105c-.39 0-.779-.023-1.17-.067a13.995 13.995 0 007.557 2.209c9.053 0 13.998-7.496 13.998-13.985 0-.21 0-.42-.015-.63A9.935 9.935 0 0024 4.59z" /></svg>
                     </a>
                   )}
                   {creator.socialLinks.tiktok && (
                     <a href={creator.socialLinks.tiktok} target="_blank" rel="noopener noreferrer" className="p-2 bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white rounded-lg transition-colors">
-                      <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M12.525.02c1.31-.02 2.61-.01 3.91-.02.08 1.53.63 3.09 1.75 4.17 1.12 1.11 2.7 1.62 4.24 1.79v4.03c-1.44-.05-2.89-.35-4.2-.97-.57-.26-1.1-.59-1.62-.93-.01 2.92.01 5.84-.02 8.75-.08 1.4-.54 2.79-1.35 3.94-1.31 1.92-3.58 3.17-5.91 3.21-1.43.08-2.86-.31-4.08-1.03-2.02-1.19-3.44-3.37-3.65-5.71-.02-.5-.03-1-.01-1.49.18-1.9 1.12-3.72 2.58-4.96 1.66-1.44 3.98-2.13 6.15-1.72.02 1.48-.04 2.96-.04 4.44-.99-.32-2.15-.23-3.02.37-.63.41-1.11 1.04-1.36 1.75-.21.51-.15 1.07-.14 1.61.24 1.64 1.82 3.02 3.5 2.87 1.12-.01 2.19-.66 2.77-1.61.19-.33.4-.67.41-1.06.1-1.79.06-3.57.07-5.36.01-4.03-.01-8.05.02-12.07z"/></svg>
+                      <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M12.525.02c1.31-.02 2.61-.01 3.91-.02.08 1.53.63 3.09 1.75 4.17 1.12 1.11 2.7 1.62 4.24 1.79v4.03c-1.44-.05-2.89-.35-4.2-.97-.57-.26-1.1-.59-1.62-.93-.01 2.92.01 5.84-.02 8.75-.08 1.4-.54 2.79-1.35 3.94-1.31 1.92-3.58 3.17-5.91 3.21-1.43.08-2.86-.31-4.08-1.03-2.02-1.19-3.44-3.37-3.65-5.71-.02-.5-.03-1-.01-1.49.18-1.9 1.12-3.72 2.58-4.96 1.66-1.44 3.98-2.13 6.15-1.72.02 1.48-.04 2.96-.04 4.44-.99-.32-2.15-.23-3.02.37-.63.41-1.11 1.04-1.36 1.75-.21.51-.15 1.07-.14 1.61.24 1.64 1.82 3.02 3.5 2.87 1.12-.01 2.19-.66 2.77-1.61.19-.33.4-.67.41-1.06.1-1.79.06-3.57.07-5.36.01-4.03-.01-8.05.02-12.07z" /></svg>
                     </a>
                   )}
                 </div>
@@ -407,11 +379,10 @@ export default function CreatorProfilePage() {
             <div className="flex border-b border-slate-200 dark:border-slate-800 mt-8 -mb-px">
               <button
                 onClick={() => setActiveTab('posts')}
-                className={`flex items-center space-x-2 px-6 py-4 font-medium text-sm border-b-2 transition-colors ${
-                  activeTab === 'posts'
+                className={`flex items-center space-x-2 px-6 py-4 font-medium text-sm border-b-2 transition-colors ${activeTab === 'posts'
                     ? 'border-indigo-600 text-indigo-600'
                     : 'border-transparent text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-300'
-                }`}
+                  }`}
               >
                 <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
                   <path fillRule="evenodd" d="M4 3a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V5a2 2 0 00-2-2H4zm12 12H4l4-8 3 6 2-4 3 6z" clipRule="evenodd" />
@@ -420,11 +391,10 @@ export default function CreatorProfilePage() {
               </button>
               <button
                 onClick={() => setActiveTab('about')}
-                className={`flex items-center space-x-2 px-6 py-4 font-medium text-sm border-b-2 transition-colors ${
-                  activeTab === 'about'
+                className={`flex items-center space-x-2 px-6 py-4 font-medium text-sm border-b-2 transition-colors ${activeTab === 'about'
                     ? 'border-indigo-600 text-indigo-600'
                     : 'border-transparent text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-300'
-                }`}
+                  }`}
               >
                 <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
                   <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
@@ -456,7 +426,7 @@ export default function CreatorProfilePage() {
                               e.target.src = 'https://placehold.co/300x300/8B7FE8/white?text=Post';
                             }}
                           />
-                          
+
                           {/* Locked Overlay */}
                           {post.isLocked && !isSubscribed && (
                             <div className="absolute inset-0 bg-black/70 backdrop-blur-sm rounded-lg flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
@@ -528,71 +498,20 @@ export default function CreatorProfilePage() {
         </div>
       </div>
 
-      {/* Subscribe Modal */}
-      {showSubscribeModal && (
-        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-          <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 max-w-md w-full p-6 shadow-2xl">
-            <div className="flex items-center justify-between mb-6">
-              <h3 className="text-xl font-bold text-slate-900 dark:text-white">Escolha um método</h3>
-              <button
-                onClick={() => setShowSubscribeModal(false)}
-                className="p-2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 rounded-lg transition-colors"
-              >
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" viewBox="0 0 20 20" fill="currentColor">
-                  <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" />
-                </svg>
-              </button>
-            </div>
-
-            <div className="space-y-3">
-              <button
-                onClick={() => handleCheckout('crypto')}
-                className="w-full flex items-center space-x-3 p-4 border-2 border-slate-200 dark:border-slate-700 rounded-lg hover:border-indigo-600 dark:hover:border-indigo-400 hover:bg-indigo-50 dark:hover:bg-indigo-900/10 transition-colors"
-              >
-                <span className="text-2xl">₿</span>
-                <div className="flex-1 text-left">
-                  <h4 className="font-semibold text-slate-900 dark:text-white">Criptomoeda</h4>
-                  <p className="text-xs text-slate-500">BTC, ETH, USDT...</p>
-                </div>
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-slate-400" viewBox="0 0 20 20" fill="currentColor">
-                  <path fillRule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clipRule="evenodd" />
-                </svg>
-              </button>
-
-              <button
-                onClick={() => handleCheckout('card')}
-                className="w-full flex items-center space-x-3 p-4 border-2 border-slate-200 dark:border-slate-700 rounded-lg hover:border-indigo-600 dark:hover:border-indigo-400 hover:bg-indigo-50 dark:hover:bg-indigo-900/10 transition-colors"
-              >
-                <span className="text-2xl">💳</span>
-                <div className="flex-1 text-left">
-                  <h4 className="font-semibold text-slate-900 dark:text-white">Cartão (Stripe)</h4>
-                  <p className="text-xs text-slate-500">Crédito/Débito</p>
-                </div>
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-slate-400" viewBox="0 0 20 20" fill="currentColor">
-                  <path fillRule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clipRule="evenodd" />
-                </svg>
-              </button>
-
-              <button
-                onClick={() => handleCheckout('pix')}
-                className="w-full flex items-center space-x-3 p-4 border-2 border-slate-200 dark:border-slate-700 rounded-lg hover:border-indigo-600 dark:hover:border-indigo-400 hover:bg-indigo-50 dark:hover:bg-indigo-900/10 transition-colors"
-              >
-                <span className="text-2xl">🇧🇷</span>
-                <div className="flex-1 text-left">
-                  <h4 className="font-semibold text-slate-900 dark:text-white">PIX</h4>
-                  <p className="text-xs text-slate-500">Brasil</p>
-                </div>
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-slate-400" viewBox="0 0 20 20" fill="currentColor">
-                  <path fillRule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clipRule="evenodd" />
-                </svg>
-              </button>
-            </div>
-
-            <p className="text-xs text-center text-slate-500 dark:text-slate-400 mt-4">
-              Pagamento 100% seguro e discreto. Renovação mensal automática.
-            </p>
-          </div>
-        </div>
+      {/* Payment Modal */}
+      {showPaymentModal && paymentData && (
+        <PaymentModal
+          isOpen={showPaymentModal}
+          onClose={() => setShowPaymentModal(false)}
+          paymentData={paymentData}
+          onSuccess={(payment) => {
+            setShowPaymentModal(false);
+            setIsSubscribed(true);
+            alert('✅ Assinatura ativada com sucesso!');
+            // Recarregar página ou atualizar estado
+            window.location.reload();
+          }}
+        />
       )}
     </div>
   );

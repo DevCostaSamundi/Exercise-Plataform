@@ -3,18 +3,25 @@ import CreatorSidebar from '../../components/CreatorSidebar';
 import { Link } from 'react-router-dom';
 import messageService from '../../services/messageService';
 import { useMessageSocket } from '../../hooks/useMessageSocket';
+import PaymentModal from '../../components/PaymentModal';
+
 
 export default function CreatorMessagesPage() {
   const [search, setSearch] = useState('');
   const [selectedConversationId, setSelectedConversationId] = useState(null);
   const [messageInput, setMessageInput] = useState('');
-  
+
   // Estados da API
   const [conversations, setConversations] = useState([]);
   const [messages, setMessages] = useState([]);
   const [loading, setLoading] = useState(true);
   const [sending, setSending] = useState(false);
   const [error, setError] = useState(null);
+
+  //
+  const [showPaymentModal, setShowPaymentModal] = useState(false);
+  const [paymentData, setPaymentData] = useState(null);
+  const [lockedMessageId, setLockedMessageId] = useState(null);
 
   // Estados de upload
   const [uploadedFiles, setUploadedFiles] = useState([]);
@@ -31,14 +38,14 @@ export default function CreatorMessagesPage() {
 
   // WebSocket
   const currentUser = JSON.parse(localStorage.getItem('user') || '{}');
-  const { 
-    isConnected, 
-    newMessage, 
-    typingUsers, 
+  const {
+    isConnected,
+    newMessage,
+    typingUsers,
     sendMessage: sendSocketMessage,
     startTyping,
     stopTyping,
-    setNewMessage 
+    setNewMessage
   } = useMessageSocket(currentUser.id);
 
   // Buscar conversas ao montar componente
@@ -68,16 +75,16 @@ export default function CreatorMessagesPage() {
       }
 
       // Atualizar lista de conversas
-      setConversations(prev => prev.map(conv => 
+      setConversations(prev => prev.map(conv =>
         conv.id === newMessage.conversationId
           ? {
-              ...conv,
-              lastMessage: {
-                text: newMessage.content. text || 'Mídia',
-                timestamp: new Date(),
-              },
-              unreadCount: conv.id === selectedConversationId ? 0 : conv.unreadCount + 1,
-            }
+            ...conv,
+            lastMessage: {
+              text: newMessage.content.text || 'Mídia',
+              timestamp: new Date(),
+            },
+            unreadCount: conv.id === selectedConversationId ? 0 : conv.unreadCount + 1,
+          }
           : conv
       ));
 
@@ -96,8 +103,8 @@ export default function CreatorMessagesPage() {
       setLoading(true);
       setError(null);
       const response = await messageService.getConversations();
-      setConversations(response. data || []);
-      
+      setConversations(response.data || []);
+
       if (response.data && response.data.length > 0) {
         setSelectedConversationId(response.data[0].id);
       }
@@ -122,8 +129,8 @@ export default function CreatorMessagesPage() {
 
   // Upload de arquivo
   const handleFileSelect = async (e) => {
-    const files = Array.from(e.target. files);
-    
+    const files = Array.from(e.target.files);
+
     if (files.length === 0) return;
 
     // Validar quantidade (máximo 5)
@@ -137,7 +144,7 @@ export default function CreatorMessagesPage() {
     try {
       const uploadPromises = files.map(file => messageService.uploadMedia(file));
       const results = await Promise.all(uploadPromises);
-      
+
       const newFiles = results.map(r => r.data);
       setUploadedFiles(prev => [...prev, ...newFiles]);
     } catch (err) {
@@ -146,7 +153,7 @@ export default function CreatorMessagesPage() {
     } finally {
       setUploading(false);
       if (fileInputRef.current) {
-        fileInputRef.current. value = '';
+        fileInputRef.current.value = '';
       }
     }
   };
@@ -159,8 +166,8 @@ export default function CreatorMessagesPage() {
   // Enviar mensagem normal
   const handleSendMessage = async (e) => {
     e.preventDefault();
-    
-    if ((! messageInput.trim() && uploadedFiles.length === 0) || ! selectedConversationId) return;
+
+    if ((!messageInput.trim() && uploadedFiles.length === 0) || !selectedConversationId) return;
 
     const selectedConv = conversations.find(c => c.id === selectedConversationId);
     if (!selectedConv) return;
@@ -172,7 +179,7 @@ export default function CreatorMessagesPage() {
 
     try {
       setSending(true);
-      
+
       // Usar WebSocket se conectado
       if (isConnected) {
         sendSocketMessage({
@@ -195,16 +202,16 @@ export default function CreatorMessagesPage() {
       }
 
       // Atualizar última mensagem da conversa
-      setConversations(prev => prev. map(conv => 
+      setConversations(prev => prev.map(conv =>
         conv.id === selectedConversationId
           ? {
-              ...conv,
-              lastMessage: {
-                text: messageInput.trim() || 'Mídia',
-                sender: { _id: currentUser.id },
-                timestamp: new Date(),
-              },
-            }
+            ...conv,
+            lastMessage: {
+              text: messageInput.trim() || 'Mídia',
+              sender: { _id: currentUser.id },
+              timestamp: new Date(),
+            },
+          }
           : conv
       ));
 
@@ -231,34 +238,34 @@ export default function CreatorMessagesPage() {
       return;
     }
 
-    const selectedConv = conversations.find(c => c. id === selectedConversationId);
+    const selectedConv = conversations.find(c => c.id === selectedConversationId);
     if (!selectedConv) return;
 
     try {
       setSending(true);
-      
+
       const response = await messageService.sendPaidMessage(
         selectedConversationId,
         selectedConv.otherUser.id,
         {
           text: messageInput.trim() || 'Conteúdo exclusivo 🔒',
-          mediaUrl: uploadedFiles.map(f => f. url),
+          mediaUrl: uploadedFiles.map(f => f.url),
         },
         ppvPrice
       );
 
       setMessages(prev => [...prev, response.data]);
-      
-      setConversations(prev => prev. map(conv => 
+
+      setConversations(prev => prev.map(conv =>
         conv.id === selectedConversationId
           ? {
-              ...conv,
-              lastMessage: {
-                text: `💰 Conteúdo pago - R$ ${ppvPrice. toFixed(2)}`,
-                sender: { _id: currentUser.id },
-                timestamp: new Date(),
-              },
-            }
+            ...conv,
+            lastMessage: {
+              text: `💰 Conteúdo pago - R$ ${ppvPrice.toFixed(2)}`,
+              sender: { _id: currentUser.id },
+              timestamp: new Date(),
+            },
+          }
           : conv
       ));
 
@@ -268,8 +275,8 @@ export default function CreatorMessagesPage() {
       setPpvPrice(10);
       scrollToBottom();
     } catch (err) {
-      console. error('Erro ao enviar mensagem paga:', err);
-      alert('Erro ao enviar mensagem paga: ' + err. message);
+      console.error('Erro ao enviar mensagem paga:', err);
+      alert('Erro ao enviar mensagem paga: ' + err.message);
     } finally {
       setSending(false);
     }
@@ -277,10 +284,10 @@ export default function CreatorMessagesPage() {
 
   // Indicador de digitação
   const handleInputChange = (e) => {
-    setMessageInput(e.target. value);
+    setMessageInput(e.target.value);
 
     const selectedConv = conversations.find(c => c.id === selectedConversationId);
-    if (! selectedConv) return;
+    if (!selectedConv) return;
 
     // Iniciar indicador de digitação
     startTyping(selectedConversationId, selectedConv.otherUser.id);
@@ -297,12 +304,12 @@ export default function CreatorMessagesPage() {
 
   // Filtrar conversas por busca
   const filteredConversations = useMemo(() => {
-    if (!search. trim()) return conversations;
+    if (!search.trim()) return conversations;
 
     const s = search.toLowerCase();
     return conversations.filter(
       (c) =>
-        c.otherUser.displayName?. toLowerCase().includes(s) ||
+        c.otherUser.displayName?.toLowerCase().includes(s) ||
         c.otherUser.username?.toLowerCase().includes(s)
     );
   }, [conversations, search]);
@@ -320,7 +327,7 @@ export default function CreatorMessagesPage() {
     if (diffInHours < 1) {
       return `Há ${Math.floor(diffInHours * 60)} min`;
     } else if (diffInHours < 24) {
-      return `Há ${Math. floor(diffInHours)}h`;
+      return `Há ${Math.floor(diffInHours)}h`;
     } else if (diffInHours < 48) {
       return 'Ontem';
     } else {
@@ -332,21 +339,21 @@ export default function CreatorMessagesPage() {
     const date = new Date(timestamp);
     const today = new Date();
     const isToday = date.toDateString() === today.toDateString();
-    
+
     if (isToday) {
       return `Hoje, ${date.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}`;
     }
-    
+
     const yesterday = new Date(today);
     yesterday.setDate(yesterday.getDate() - 1);
     const isYesterday = date.toDateString() === yesterday.toDateString();
-    
+
     if (isYesterday) {
       return `Ontem, ${date.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}`;
     }
-    
-    return date.toLocaleDateString('pt-BR', { 
-      day: '2-digit', 
+
+    return date.toLocaleDateString('pt-BR', {
+      day: '2-digit',
       month: 'short',
       hour: '2-digit',
       minute: '2-digit'
@@ -382,7 +389,7 @@ export default function CreatorMessagesPage() {
                 className="p-2 rounded-lg text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800"
               >
                 <svg
-                  xmlns="http://www.w3. org/2000/svg"
+                  xmlns="http://www. org/2000/svg"
                   className="h-5 w-5"
                   viewBox="0 0 20 20"
                   fill="currentColor"
@@ -439,7 +446,7 @@ export default function CreatorMessagesPage() {
                 <input
                   type="text"
                   value={search}
-                  onChange={(e) => setSearch(e. target.value)}
+                  onChange={(e) => setSearch(e.target.value)}
                   placeholder="Buscar assinante..."
                   className="w-full pl-9 pr-3 py-2 rounded-lg bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs text-slate-900 dark:text-slate-100 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500"
                 />
@@ -450,8 +457,8 @@ export default function CreatorMessagesPage() {
             <div className="flex-1 overflow-y-auto divide-y divide-slate-200 dark:divide-slate-800">
               {filteredConversations.length === 0 ? (
                 <div className="p-6 text-center text-xs text-slate-500 dark:text-slate-400">
-                  {conversations.length === 0 
-                    ? 'Nenhuma conversa ainda.  Aguarde mensagens de assinantes!' 
+                  {conversations.length === 0
+                    ? 'Nenhuma conversa ainda.  Aguarde mensagens de assinantes!'
                     : 'Nenhuma conversa encontrada. '}
                 </div>
               ) : (
@@ -460,12 +467,11 @@ export default function CreatorMessagesPage() {
                   return (
                     <button
                       key={conv.id}
-                      onClick={() => setSelectedConversationId(conv. id)}
-                      className={`w-full text-left px-3 py-3 flex items-center space-x-3 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors ${
-                        isSelected
+                      onClick={() => setSelectedConversationId(conv.id)}
+                      className={`w-full text-left px-3 py-3 flex items-center space-x-3 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors ${isSelected
                           ? 'bg-slate-100 dark:bg-slate-800/70'
                           : ''
-                      }`}
+                        }`}
                     >
                       <div className="relative">
                         <img
@@ -487,7 +493,7 @@ export default function CreatorMessagesPage() {
                           <p className="text-sm font-semibold text-slate-900 dark:text-slate-100 truncate">
                             {conv.otherUser.displayName || conv.otherUser.username}
                           </p>
-                          {conv.lastMessage?. timestamp && (
+                          {conv.lastMessage?.timestamp && (
                             <span className="text-[11px] text-slate-400 ml-2">
                               {formatMessageTime(conv.lastMessage.timestamp)}
                             </span>
@@ -511,9 +517,9 @@ export default function CreatorMessagesPage() {
 
           {/* Coluna direita: janela de chat */}
           <section className="flex-1 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl flex flex-col">
-            {! selectedConversation ? (
+            {!selectedConversation ? (
               <div className="flex-1 flex items-center justify-center text-sm text-slate-500 dark:text-slate-400">
-                Selecione uma conversa para começar. 
+                Selecione uma conversa para começar.
               </div>
             ) : (
               <>
@@ -522,10 +528,10 @@ export default function CreatorMessagesPage() {
                   <div className="flex items-center space-x-3">
                     <img
                       src={selectedConversation.otherUser.avatar || `https://placehold.co/48x48/8B7FE8/white?text=${selectedConversation.otherUser.displayName?.[0] || 'U'}`}
-                      alt={selectedConversation. otherUser.displayName}
+                      alt={selectedConversation.otherUser.displayName}
                       className="w-9 h-9 rounded-full object-cover"
                       onError={(e) => {
-                        e.target.src = `https://placehold.co/48x48/8B7FE8/white?text=${selectedConversation.otherUser. displayName?.[0] || 'U'}`;
+                        e.target.src = `https://placehold.co/48x48/8B7FE8/white?text=${selectedConversation.otherUser.displayName?.[0] || 'U'}`;
                       }}
                     />
                     <div>
@@ -553,52 +559,89 @@ export default function CreatorMessagesPage() {
                 <div className="flex-1 overflow-y-auto px-4 py-3 space-y-3 bg-slate-50 dark:bg-slate-950/40">
                   {messages.length === 0 ? (
                     <div className="text-xs text-center text-slate-500 dark:text-slate-400 mt-10">
-                      Nenhuma mensagem ainda. Envie a primeira! 
+                      Nenhuma mensagem ainda. Envie a primeira!
                     </div>
                   ) : (
                     messages.map((msg) => {
                       const isCurrentUser = msg.sender._id === currentUser.id;
                       const isPaid = msg.type === 'paid';
-                      
+
                       return (
                         <div
                           key={msg._id}
-                          className={`flex ${
-                            isCurrentUser ? 'justify-end' : 'justify-start'
-                          }`}
+                          className={`flex ${isCurrentUser ? 'justify-end' : 'justify-start'
+                            }`}
                         >
                           <div
-                            className={`max-w-[75%] rounded-2xl px-3 py-2 text-sm ${
-                              isCurrentUser
+                            className={`max-w-[75%] rounded-2xl px-3 py-2 text-sm ${isCurrentUser
                                 ? 'bg-indigo-600 text-white rounded-br-sm'
                                 : 'bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 rounded-bl-sm'
-                            } ${isPaid ? 'border-2 border-yellow-400' : ''}`}
+                              } ${isPaid ? 'border-2 border-yellow-400' : ''}`}
                           >
                             {/* Mensagem paga */}
                             {isPaid && (
                               <div className="flex items-center space-x-2 mb-2 pb-2 border-b border-yellow-400/30">
                                 <span className="text-yellow-400">💰</span>
                                 <span className="text-xs font-semibold">
-                                  Conteúdo Pago - R$ {msg.content.price?. toFixed(2)}
+                                  Conteúdo Pago - R$ {msg.content.price?.toFixed(2)}
                                 </span>
                               </div>
                             )}
 
-                            {/* Mídia */}
-                            {msg.content.mediaUrl && msg.content.mediaUrl.length > 0 && (
+                            {/* Se a mensagem é paga e não foi desbloqueada */}
+                            {msg.content.isPaid && !msg.isUnlocked && (
+                              <div className="bg-slate-100 dark:bg-slate-800 rounded-lg p-4 flex items-center justify-between">
+                                <div className="flex items-center space-x-3">
+                                  <div className="w-12 h-12 bg-indigo-100 dark:bg-indigo-900/20 rounded-full flex items-center justify-center">
+                                    <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-indigo-600" viewBox="0 0 20 20" fill="currentColor">
+                                      <path fillRule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clipRule="evenodd" />
+                                    </svg>
+                                  </div>
+                                  <div>
+                                    <p className="font-semibold text-slate-900 dark:text-white">Conteúdo Bloqueado</p>
+                                    <p className="text-sm text-slate-500">
+                                      {msg.content.mediaUrl?.length > 0 && `${msg.content.mediaUrl.length} mídia(s) • `}
+                                      ${msg.content.price}
+                                    </p>
+                                  </div>
+                                </div>
+                                <button
+                                  onClick={() => {
+                                    setPaymentData({
+                                      creatorId: selectedConversation.otherUser.id,
+                                      type: 'PPV_MESSAGE',
+                                      amountUSD: msg.content.price,
+                                      messageId: msg._id,
+                                    });
+                                    setLockedMessageId(msg._id);
+                                    setShowPaymentModal(true);
+                                  }}
+                                  className="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg font-semibold transition-colors flex items-center space-x-2"
+                                >
+                                  <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                                    <path d="M8. 433 7.418c.155-.103.346-.196.567-.267v1.698a2.305 2.305 0 01-.567-. 267C8.07 8.34 8 8.114 8 8c0-.114.07-.34.433-.582zM11 12.849v-1.698c.22.071.412.164.567.267.364.243.433.468.433.582 0 .114-.07.34-.433.582a2.305 2.305 0 01-.567.267z" />
+                                    <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-13a1 1 0 10-2 0v.092a4.535 4.535 0 00-1.676.662C6.602 6.234 6 7.009 6 8c0 . 99.602 1.765 1.324 2.246.48.32 1.054.545 1.676.662v1.941c-.391-. 127-.68-.317-.843-.504a1 1 0 10-1.51 1.31c. 562. 649 1.413 1.076 2.353 1.253V15a1 1 0 102 0v-.092a4. 535 4.535 0 001.676-.662C13.398 13.766 14 12.991 14 12c0-.99-.602-1.765-1.324-2.246A4.535 4.535 0 0011 9.092V7.151c.391.127.68.317.843.504a1 1 0 101.511-1.31c-.563-.649-1.413-1.076-2. 354-1.253V5z" clipRule="evenodd" />
+                                  </svg>
+                                  <span>Desbloquear</span>
+                                </button>
+                              </div>
+                            )}
+
+                            {/* Mídia (somente se desbloqueada ou não é paga) */}
+                            {(!msg.content.isPaid || msg.isUnlocked) && msg.content.mediaUrl && msg.content.mediaUrl.length > 0 && (
                               <div className="mb-2 space-y-2">
                                 {msg.content.mediaUrl.map((url, idx) => (
                                   <div key={idx} className="rounded-lg overflow-hidden">
                                     {msg.type === 'video' ? (
-                                      <video 
-                                        src={url} 
-                                        controls 
+                                      <video
+                                        src={url}
+                                        controls
                                         className="w-full max-w-sm rounded-lg"
                                       />
                                     ) : (
-                                      <img 
-                                        src={url} 
-                                        alt="Mídia" 
+                                      <img
+                                        src={url}
+                                        alt="Mídia"
                                         className="w-full max-w-sm rounded-lg"
                                       />
                                     )}
@@ -610,16 +653,15 @@ export default function CreatorMessagesPage() {
                             {/* Texto */}
                             {msg.content.text && (
                               <p className="whitespace-pre-wrap break-words">
-                                {msg.content. text}
+                                {msg.content.text}
                               </p>
                             )}
 
                             <p
-                              className={`text-[10px] mt-1 ${
-                                isCurrentUser
+                              className={`text-[10px] mt-1 ${isCurrentUser
                                   ? 'text-indigo-100/80'
                                   : 'text-slate-400'
-                              }`}
+                                }`}
                             >
                               {formatFullTime(msg.createdAt)}
                             </p>
@@ -652,14 +694,14 @@ export default function CreatorMessagesPage() {
                       {uploadedFiles.map((file, idx) => (
                         <div key={idx} className="relative group flex-shrink-0">
                           {file.type === 'video' ? (
-                            <video 
-                              src={file.url} 
+                            <video
+                              src={file.url}
                               className="w-20 h-20 object-cover rounded-lg"
                             />
                           ) : (
-                            <img 
-                              src={file.url} 
-                              alt="Preview" 
+                            <img
+                              src={file.url}
+                              alt="Preview"
                               className="w-20 h-20 object-cover rounded-lg"
                             />
                           )}
@@ -689,7 +731,7 @@ export default function CreatorMessagesPage() {
                     onChange={handleFileSelect}
                     className="hidden"
                   />
-                  
+
                   <button
                     type="button"
                     onClick={() => fileInputRef.current?.click()}
@@ -716,7 +758,7 @@ export default function CreatorMessagesPage() {
                     >
                       <svg xmlns="http://www.w3. org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
                         <path d="M8. 433 7.418c.155-.103.346-.196.567-.267v1.698a2.305 2.305 0 01-.567-. 267C8.07 8.34 8 8.114 8 8c0-.114.07-.34.433-.582zM11 12.849v-1.698c.22.071.412.164.567.267.364.243.433.468.433.582 0 .114-.07.34-.433.582a2.305 2.305 0 01-.567.267z" />
-                        <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-13a1 1 0 10-2 0v.092a4.535 4.535 0 00-1.676.662C6.602 6.234 6 7.009 6 8c0 . 99.602 1.765 1.324 2.246.48.32 1.054.545 1.676.662v1.941c-.391-. 127-.68-.317-.843-.504a1 1 0 10-1.51 1.31c. 562. 649 1.413 1.076 2.353 1.253V15a1 1 0 102 0v-.092a4. 535 4.535 0 001.676-.662C13.398 13.766 14 12.991 14 12c0-.99-.602-1.765-1.324-2.246A4.535 4.535 0 0011 9.092V7.151c.391.127.68.317.843.504a1 1 0 101.511-1.31c-.563-.649-1. 413-1.076-2. 354-1.253V5z" clipRule="evenodd" />
+                        <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-13a1 1 0 10-2 0v.092a4.535 4.535 0 00-1.676.662C6.602 6.234 6 7.009 6 8c0 .99.602 1.765 1.324 2.246.48.32 1.054.545 1.676.662v1.941c-.391-.127-.68-.317-.843-.504a1 1 0 10-1.51 1.31c.562.649 1.413 1.076 2.353 1.253V15a1 1 0 102 0v-.092a4.535 4.535 0 001.676-.662C13.398 13.766 14 12.991 14 12c0-.99-.602-1.765-1.324-2.246A4.535 4.535 0 0011 9.092V7.151c.391.127.68.317.843.504a1 1 0 101.511-1.31c-.563-.649-1.413-1.076-2.354-1.253V5z" clipRule="evenodd" />
                       </svg>
                     </button>
                   )}
@@ -732,7 +774,7 @@ export default function CreatorMessagesPage() {
 
                   <button
                     type="submit"
-                    disabled={(! messageInput.trim() && uploadedFiles.length === 0) || sending || uploading}
+                    disabled={(!messageInput.trim() && uploadedFiles.length === 0) || sending || uploading}
                     className="px-4 py-2 rounded-lg bg-indigo-600 text-white text-sm font-semibold hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                   >
                     {sending ? 'Enviando...' : 'Enviar'}
@@ -807,14 +849,36 @@ export default function CreatorMessagesPage() {
               </button>
               <button
                 onClick={handleSendPPV}
-                disabled={sending || ! ppvPrice || ppvPrice < 5 || ppvPrice > 500}
+                disabled={sending || !ppvPrice || ppvPrice < 5 || ppvPrice > 500}
                 className="flex-1 px-4 py-3 rounded-lg bg-gradient-to-r from-yellow-500 to-orange-500 hover:from-yellow-600 hover:to-orange-600 text-white font-bold transition-all disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                {sending ?  'Enviando...' : 'Enviar PPV'}
+                {sending ? 'Enviando...' : 'Enviar PPV'}
               </button>
             </div>
           </div>
         </div>
+      )}
+
+      {/* Payment Modal */}
+      {showPaymentModal && paymentData && (
+        <PaymentModal
+          isOpen={showPaymentModal}
+          onClose={() => {
+            setShowPaymentModal(false);
+            setLockedMessageId(null);
+          }}
+          paymentData={paymentData}
+          onSuccess={(payment) => {
+            setShowPaymentModal(false);
+            setLockedMessageId(null);
+            // Atualizar mensagem para desbloqueada
+            setMessages(prev => prev.map(m => 
+              m._id === lockedMessageId 
+                ? { ...m, isUnlocked: true }
+                : m
+            ));
+          }}
+        />
       )}
     </div>
   );

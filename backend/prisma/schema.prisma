@@ -27,6 +27,10 @@ model User {
   isActive      Boolean   @default(true)
   role          UserRole  @default(USER)
   
+  payments      Payment[] @relation("UserPayments")
+  wallet        UserWallet?
+
+
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
   
@@ -83,6 +87,10 @@ model Creator {
   posts           Post[]
   products        Product[]
   subscriptions   Subscription[]
+
+  receivedPayments  Payment[]   @relation("CreatorPayments")
+  balance           CreatorBalance?
+  withdrawals       Withdrawal[]
   
   @@map("creators")
 }
@@ -388,4 +396,216 @@ model Message {
   @@index([senderId, createdAt])
   @@index([status])
   @@map("messages")
+}
+
+// ============================================
+// SISTEMA DE PAGAMENTOS
+// ============================================
+
+model Payment {
+  id              String        @id @default(uuid())
+  
+  // Relacionamentos
+  userId          String
+  user            User          @relation("UserPayments", fields: [userId], references: [id], onDelete: Cascade)
+  
+  creatorId       String? 
+  creator         Creator?      @relation("CreatorPayments", fields: [creatorId], references: [id])
+  
+  // Tipo de pagamento
+  type            PaymentType
+  
+  // Referências
+  subscriptionId  String?
+  postId          String?
+  messageId       String?
+  
+  // Valores em FIAT
+  amountUSD       Decimal       @db.Decimal(10, 2)
+  amountBRL       Decimal?       @db.Decimal(10, 2)
+  currency        String        @default("USD")
+  
+  // Valores em Cripto
+  cryptoCurrency  String?        // BTC, ETH, USDT_TRC20, etc
+  cryptoAmount    String?       // Quantidade exata em cripto
+  cryptoAddress   String?       // Endereço de recebimento gerado
+  expectedAmount  String?       // Quantidade esperada
+  actuallyPaid    String?       // Quantidade realmente paga
+  
+  // Blockchain
+  txHash          String?       // Transaction hash
+  confirmations   Int           @default(0)
+  networkFee      String?       // Taxa de rede paga
+  
+  // Status
+  status          PaymentStatus @default(PENDING)
+  
+  // Gateway usado
+  gateway         PaymentGateway
+  gatewayOrderId  String?       @unique // ID externo do gateway
+  gatewayData     Json?         // Dados extras do gateway
+  
+  // Taxas da plataforma
+  platformFee     Decimal       @db.Decimal(10, 2) @default(0) // 10%
+  gatewayFee      Decimal       @db.Decimal(10, 2) @default(0) // Taxa do gateway
+  netAmount       Decimal       @db. Decimal(10, 2) // Valor líquido para o criador
+  
+  // Timestamps
+  paidAt          DateTime? 
+  confirmedAt     DateTime?
+  expiresAt       DateTime?
+  
+  // Metadados
+  ipAddress       String?
+  userAgent       String?
+  metadata        Json?
+  
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+  
+  @@index([userId])
+  @@index([creatorId])
+  @@index([status])
+  @@index([gateway])
+  @@index([txHash])
+  @@index([gatewayOrderId])
+  @@index([type])
+  @@map("payments")
+}
+
+model CreatorBalance {
+  id              String        @id @default(uuid())
+  creatorId       String        @unique
+  creator         Creator       @relation(fields: [creatorId], references: [id], onDelete: Cascade)
+  
+  // Saldo disponível
+  availableUSD    Decimal       @db. Decimal(10, 2) @default(0)
+  
+  // Saldo pendente (aguardando confirmação)
+  pendingUSD      Decimal       @db. Decimal(10, 2) @default(0)
+  
+  // Total de ganhos
+  lifetimeEarnings Decimal      @db.Decimal(10, 2) @default(0)
+  
+  // Saques
+  totalWithdrawn  Decimal       @db.Decimal(10, 2) @default(0)
+  
+  // Estatísticas
+  lastPaymentAt   DateTime?
+  lastWithdrawalAt DateTime?
+  
+  updatedAt       DateTime      @updatedAt
+  
+  @@map("creator_balances")
+}
+
+model Withdrawal {
+  id              String           @id @default(uuid())
+  creatorId       String
+  creator         Creator          @relation(fields: [creatorId], references: [id], onDelete: Cascade)
+  
+  // Valores
+  amountUSD       Decimal          @db.Decimal(10, 2)
+  
+  // Destino Cripto
+  cryptoCurrency  String           // BTC, ETH, USDT_TRC20, etc
+  cryptoAmount    String
+  destinationAddress String
+  
+  // Blockchain
+  txHash          String?
+  networkFee      Decimal?          @db.Decimal(10, 2)
+  
+  // Status
+  status          WithdrawalStatus @default(PENDING)
+  
+  // Taxas
+  platformFee     Decimal          @db.Decimal(10, 2) @default(2) // Taxa fixa $2
+  netAmount       Decimal          @db. Decimal(10, 2) // Valor líquido enviado
+  
+  // Gateway
+  gateway         PaymentGateway?
+  gatewayTxId     String?
+  
+  // Aprovação (se necessário)
+  approvedBy      String?
+  approvedAt      DateTime?
+  rejectedReason  String?
+  
+  // Timestamps
+  processedAt     DateTime?
+  completedAt     DateTime?
+  
+  createdAt       DateTime         @default(now())
+  updatedAt       DateTime         @updatedAt
+  
+  @@index([creatorId])
+  @@index([status])
+  @@map("withdrawals")
+}
+
+model UserWallet {
+  id              String        @id @default(uuid())
+  userId          String
+  user            User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  // Saldo depositado (sistema de carteira interna)
+  balanceUSD      Decimal       @db.Decimal(10, 2) @default(0)
+  
+  // Histórico
+  totalDeposited  Decimal       @db. Decimal(10, 2) @default(0)
+  totalSpent      Decimal       @db. Decimal(10, 2) @default(0)
+  
+  // Auto-renovação
+  autoRenewEnabled Boolean      @default(false)
+  lowBalanceAlert  Boolean      @default(true)
+  alertThreshold   Decimal      @db.Decimal(10, 2) @default(20)
+  
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+  
+  @@unique([userId])
+  @@map("user_wallets")
+}
+
+// Enums
+enum PaymentType {
+  SUBSCRIPTION
+  SUBSCRIPTION_RENEWAL
+  PPV_MESSAGE
+  PPV_POST
+  TIP
+  WALLET_DEPOSIT
+  GIFT
+}
+
+enum PaymentStatus {
+  PENDING          // Aguardando pagamento
+  WAITING          // Pagamento detectado, aguardando confirmações
+  CONFIRMING       // Confirmando no blockchain
+  COMPLETED        // Confirmado e processado
+  FAILED           // Falhou
+  EXPIRED          // Expirou (15 min)
+  PARTIALLY_PAID   // Pagou menos que o esperado
+  REFUNDED         // Reembolsado
+  CANCELLED        // Cancelado pelo usuário
+}
+
+enum PaymentGateway {
+  NOWPAYMENTS      // API externa (fácil)
+  BTCPAY           // Self-hosted (economia)
+  COINPAYMENTS     // Alternativa
+  PIX              // Brasil
+  STRIPE           // Cartão
+  MANUAL           // Transferência manual
+}
+
+enum WithdrawalStatus {
+  PENDING          // Solicitado
+  APPROVED         // Aprovado (se necessário)
+  PROCESSING       // Processando
+  COMPLETED        // Enviado
+  FAILED           // Falhou
+  CANCELLED        // Cancelado
+  REJECTED         // Rejeitado (fraude)
 }

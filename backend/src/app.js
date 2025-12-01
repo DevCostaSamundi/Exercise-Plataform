@@ -17,6 +17,10 @@ import creatorDashboardRoutes from './routes/creatorDashboard.routes.js';
 // Import message routes
 import messageRoutes from './routes/message.routes.js';
 
+// Import payment routes
+import paymentRoutes from './routes/payment.routes.js';
+import withdrawalRoutes from './routes/withdrawal.routes.js';
+
 // Import middleware
 import errorMiddleware from './middleware/error.middleware.js';
 import logger from './utils/logger.js';
@@ -124,6 +128,11 @@ app.use(`/api/${API_VERSION}/messages`, messageRoutes);
 
 // Chat routes
 app.use(`/api/${API_VERSION}`, chatRoutes);
+
+app.use(`/api/${API_VERSION}/payments`, paymentRoutes);
+
+// Withdrawal routes
+app.use(`/api/${API_VERSION}/withdrawals`, withdrawalRoutes);
 
 // 404 handler for undefined routes
 app.use('/api', (req, res) => {
