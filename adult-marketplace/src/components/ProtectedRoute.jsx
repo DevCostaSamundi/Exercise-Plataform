@@ -1,27 +1,50 @@
-import { Navigate } from 'react-router-dom';
-import { useAuth } from '../contexts/AuthContext';
+import { Navigate, useLocation } from 'react-router-dom';
 
 export default function ProtectedRoute({ children, requireCreator = false }) {
-  const { user, loading } = useAuth();
-
-  if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-slate-50 dark:bg-slate-950">
-        <div className="text-center">
-          <div className="w-16 h-16 border-4 border-indigo-600 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-          <p className="text-slate-600 dark:text-slate-400">Carregando...</p>
-        </div>
-      </div>
-    );
+  const location = useLocation();
+  
+  // Pegar token e usuário do localStorage
+  const authToken = localStorage.getItem('authToken');
+  const userStr = localStorage.getItem('user');
+  
+  // Debug
+  console.log('🔐 ProtectedRoute - Token existe? ', !!authToken);
+  console. log('🔐 ProtectedRoute - User string:', userStr);
+  
+  // Se não tem token OU não tem dados de usuário, redireciona para login
+  if (!authToken || !userStr) {
+    console.warn('❌ Sem autenticação - redirecionando para /login');
+    return <Navigate to="/login" state={{ from: location }} replace />;
   }
-
-  if (!user) {
-    return <Navigate to="/login" replace />;
+  
+  let user = null;
+  try {
+    user = JSON.parse(userStr);
+    console.log('👤 ProtectedRoute - User parsed:', user);
+  } catch (error) {
+    console. error('❌ Erro ao parsear user do localStorage:', error);
+    // Se falhar ao parsear, limpa e redireciona
+    localStorage. removeItem('authToken');
+    localStorage.removeItem('user');
+    return <Navigate to="/login" state={{ from: location }} replace />;
   }
-
-  if (requireCreator && (!user.role || user.role !== 'creator')) {
-    return <Navigate to="/" replace />;
+  
+  // Se a rota requer criador, verifica se é criador
+  if (requireCreator) {
+    const isCreator = 
+      user?.role?. toLowerCase() === 'creator' || 
+      user?.isCreator === true;
+    
+    console.log('🎭 ProtectedRoute - Requer criador?', requireCreator);
+    console.log('🎭 ProtectedRoute - É criador?', isCreator);
+    console.log('🎭 ProtectedRoute - Role:', user?.role);
+    
+    if (!isCreator) {
+      console.warn('❌ Não é criador - redirecionando para /');
+      return <Navigate to="/" replace />;
+    }
   }
-
+  
+  console.log('✅ ProtectedRoute - Autorizado!  Renderizando children');
   return children;
 }

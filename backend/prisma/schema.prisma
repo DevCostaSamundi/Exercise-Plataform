@@ -30,11 +30,17 @@ model User {
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
   
-  // Relations
-  creator       Creator?
+  // Relations originais
+  creator       Creator? 
   subscriptions Subscription[]
   orders        Order[]
   reviews       Review[]
+  
+  // 👇 ADICIONE ESTAS LINHAS - Relações de mensagens
+  creatorConversations     Conversation[] @relation("CreatorConversations")
+  subscriberConversations  Conversation[] @relation("SubscriberConversations")
+  sentMessages             Message[]      @relation("SentMessages")
+  receivedMessages         Message[]      @relation("ReceivedMessages")
   
   @@map("users")
 }
@@ -302,90 +308,84 @@ model Review {
   @@map("reviews")
 }
 
-model Chat {
-  id         String    @id @default(uuid())
-  type       ChatType
-  creatorId  String?   // para DMs entre fã <-> creator
-  liveId     String?   // para chats ligados a lives
-  policy     DMPolicy? // usado para DMs
-  permanent  Boolean   @default(false)
-  participants ChatParticipant[]
-  messages   Message[]
-  createdAt  DateTime  @default(now())
-  updatedAt  DateTime  @updatedAt
-}
+// ============================================
+// SISTEMA DE MENSAGENS
+// ============================================
 
-model ChatParticipant {
-  id       String   @id @default(uuid())
-  chatId   String
-  userId   String
-  joinedAt DateTime @default(now())
-  lastSeen DateTime?
-  chat     Chat     @relation(fields: [chatId], references: [id])
+model Conversation {
+  id        String   @id @default(uuid())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Participantes
+  creatorId    String
+  creator      User   @relation("CreatorConversations", fields: [creatorId], references: [id], onDelete: Cascade)
+  
+  subscriberId String
+  subscriber   User   @relation("SubscriberConversations", fields: [subscriberId], references: [id], onDelete: Cascade)
+
+  // Última mensagem
+  lastMessageText      String?
+  lastMessageSenderId  String?
+  lastMessageTimestamp DateTime?
+
+  // Contadores de não lidas
+  unreadCountCreator    Int @default(0)
+  unreadCountSubscriber Int @default(0)
+
+  // Status
+  status String @default("active") // active, archived, blocked
+  isVIP  Boolean @default(false)
+
+  // Relações
+  messages Message[]
+
+  @@unique([creatorId, subscriberId])
+  @@index([creatorId, status])
+  @@index([subscriberId, status])
+  @@index([lastMessageTimestamp])
+  @@map("conversations")
 }
 
 model Message {
-  id            String       @id @default(uuid())
-  chatId        String
-  fromUserId    String
-  type          MessageType  @default(TEXT)
-  content       String?
-  meta          Json?
-  amount        Float?
-  isHighlighted Boolean      @default(false)
-  highlightUntil DateTime?
-  messageState  MessageState @default(SENT)
-  createdAt     DateTime     @default(now())
-  deletedAt     DateTime?
-  chat          Chat         @relation(fields: [chatId], references: [id])
-}
-
-model Live {
   id        String   @id @default(uuid())
-  creatorId String
-  config    Json?    // { mode, slowModeSeconds, tippersWindowMinutes, minTipToHighlight, requireAuthToChat, bannedWords: string[] }
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
-}
 
-model Tip {
-  id         String   @id @default(uuid())
-  fromUserId String
-  toCreatorId String
-  messageId  String?
-  amount     Float
-  currency   String   @default("BRL")
-  status     String
-  meta       Json?
-  createdAt  DateTime @default(now())
-}
+  // Relação com conversa
+  conversationId String
+  conversation   Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
 
-enum ChatType {
-  DIRECT      // DM 1×1 normal
-  LIVE        // chat da live
-  GROUP       // futuro (se quiseres)
-}
+  // Remetente e destinatário
+  senderId    String
+  sender      User   @relation("SentMessages", fields: [senderId], references: [id], onDelete: Cascade)
+  
+  recipientId String
+  recipient   User   @relation("ReceivedMessages", fields: [recipientId], references: [id], onDelete: Cascade)
 
-enum DMPolicy {
-  EVERYONE          // qualquer pessoa pode mandar DM
-  TIPPED_ONLY       // só quem já deu tip alguma vez
-  SUBSCRIBERS_ONLY  // só assinantes premium
-  NO_ONE            // DMs bloqueados
-}
+  // Tipo e conteúdo
+  type String @default("text") // text, image, video, paid
 
-enum MessageType {
-  TEXT
-  IMAGE
-  VIDEO
-  TIP
-  GIFT
-  SYSTEM            // ex: "Usuário entrou na live"
-}
+  // Conteúdo
+  contentText     String?
+  contentMediaUrl String[] // Array de URLs
+  contentPrice    Float?
+  contentIsPaid   Boolean  @default(false)
 
-enum MessageState {
-  SENT
-  DELIVERED
-  READ
-  DELETED
-  HIGHLIGHTED       // para tip messages na live
+  // Status
+  status String @default("sent") // sent, delivered, read, failed
+  readAt DateTime?
+
+  // Metadados
+  metadataIpAddress       String?
+  metadataUserAgent       String?
+  metadataFlagged         Boolean @default(false)
+  metadataModerationAction String? 
+
+  deletedAt DateTime?
+
+  @@index([conversationId, createdAt])
+  @@index([senderId, createdAt])
+  @@index([status])
+  @@map("messages")
 }

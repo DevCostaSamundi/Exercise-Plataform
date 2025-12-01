@@ -12,6 +12,10 @@ import creatorRoutes from './routes/creator.routes.js';
 import postRoutes from './routes/post.routes.js';
 import chatRoutes from './routes/chat.routes.js';
 import liveRoutes from './routes/live.routes.js';
+import creatorDashboardRoutes from './routes/creatorDashboard.routes.js';
+
+// Import message routes
+import messageRoutes from './routes/message.routes.js';
 
 // Import middleware
 import errorMiddleware from './middleware/error.middleware.js';
@@ -24,6 +28,8 @@ app.use(helmet());
 
 // ------------------- CORS -------------------
 // Allowed origins
+// ------------------- CORS -------------------
+// Allowed origins
 const allowedOrigins = [
   process.env.FRONTEND_URL || 'http://localhost:5173',
   'http://localhost:5173',
@@ -33,23 +39,28 @@ const allowedOrigins = [
 // CORS configuration
 const corsOptions = {
   origin: function (origin, callback) {
-    // Allow requests with no origin (like curl or mobile apps)
+    // ✅ IMPORTANTE: Permitir requests sem origin (curl, Postman, mobile apps)
     if (!origin) return callback(null, true);
 
-    // Allow origins in allowedOrigins list
-    if (allowedOrigins.some(o => origin.startsWith(o))) {
+    // ✅ Permitir origens na lista
+    if (allowedOrigins. some(o => origin.startsWith(o))) {
       return callback(null, true);
     }
 
-    // Block all other origins
+    // ⚠️ APENAS EM DESENVOLVIMENTO: Permitir localhost em qualquer porta
+    if (process.env. NODE_ENV !== 'production' && origin.includes('localhost')) {
+      return callback(null, true);
+    }
+
+    // ❌ Bloquear outras origens
     console.warn(`Blocked CORS request from origin: ${origin}`);
     return callback(new Error('Not allowed by CORS'));
   },
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH'],
-  allowedHeaders: ['Content-Type', 'Authorization'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
   exposedHeaders: ['Content-Range', 'X-Content-Range'],
-  maxAge: 600, // 10 minutes
+  maxAge: 600,
 };
 
 app.use(cors(corsOptions));
@@ -96,11 +107,20 @@ app.use(`/api/${API_VERSION}/users`, userRoutes);
 // Creator routes
 app.use(`/api/${API_VERSION}/creators`, creatorRoutes);
 
+// creator dashboard routes
+app.use(`/api/${API_VERSION}/creator-dashboard`, creatorDashboardRoutes);
+
+//
+app.use(`/api/${API_VERSION}/creator/:id`, creatorRoutes);
 // Post routes
 app.use(`/api/${API_VERSION}/posts`, postRoutes);
 
 // Live routes
 app.use(`/api/${API_VERSION}/lives`, liveRoutes);
+
+
+// Message routes
+app.use(`/api/${API_VERSION}/messages`, messageRoutes);
 
 // Chat routes
 app.use(`/api/${API_VERSION}`, chatRoutes);

@@ -36,7 +36,7 @@ export default function CreatorSidebar() {
         <div className="flex flex-col h-full py-4 px-3">
           {/* Logo / título */}
           <div className="flex items-center justify-between px-2 mb-6">
-            <Link to="/creator/dashboard" className="flex items-center space-x-3">
+            <Link to="/creator-dashboard" className="flex items-center space-x-3">
               <div className="w-10 h-10 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-xl flex items-center justify-center flex-shrink-0">
                 <span className="text-white font-black text-xl">P</span>
               </div>
@@ -78,7 +78,7 @@ export default function CreatorSidebar() {
           {/* Navegação principal */}
           <nav className="flex-1 space-y-1 overflow-y-auto">
             <NavLink
-              to="/creator/dashboard"
+              to="/creator-dashboard"
               className={({ isActive }) => `${linkBase} ${isActive ? linkActive : linkInactive}`}
               title="Dashboard"
             >
@@ -188,7 +188,7 @@ export default function CreatorSidebar() {
             {/* Profile */}
             {!isCollapsed && (
               <NavLink
-                to="/creator/profile"
+                to="/creator/:id"
                 className="flex items-center space-x-3 px-3 py-3 rounded-lg hover:bg-slate-800 transition-colors mb-2"
               >
                 <div className="w-10 h-10 bg-gradient-to-br from-pink-500 to-purple-600 rounded-full flex items-center justify-center flex-shrink-0">

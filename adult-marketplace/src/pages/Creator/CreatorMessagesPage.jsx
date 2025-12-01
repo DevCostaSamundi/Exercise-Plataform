@@ -1,135 +1,372 @@
-import { useState, useMemo } from 'react';
+import { useState, useEffect, useMemo, useRef } from 'react';
 import CreatorSidebar from '../../components/CreatorSidebar';
 import { Link } from 'react-router-dom';
-
-// Mock de conversas e mensagens
-const mockConversations = [
-  {
-    id: 1,
-    subscriberName: 'Maria Silva',
-    subscriberUsername: 'maria.silva',
-    avatar: 'https://placehold.co/48x48/8B7FE8/white?text=M',
-    lastMessage: 'Obrigada pelo último conteúdo, foi incrível! 💜',
-    lastMessageTime: 'Há 2h',
-    unreadCount: 2,
-    isSubscriber: true,
-    isVIP: true,
-  },
-  {
-    id: 2,
-    subscriberName: 'João Pedro',
-    subscriberUsername: 'joaopedro',
-    avatar: 'https://placehold.co/48x48/6366F1/white?text=J',
-    lastMessage: 'Você vai postar algo novo essa semana?',
-    lastMessageTime: 'Ontem',
-    unreadCount: 0,
-    isSubscriber: true,
-    isVIP: false,
-  },
-  {
-    id: 3,
-    subscriberName: 'Ana Costa',
-    subscriberUsername: 'anacosta',
-    avatar: 'https://placehold.co/48x48/A78BFA/white?text=A',
-    lastMessage: 'Tem como fazer um conteúdo personalizado?',
-    lastMessageTime: 'Seg',
-    unreadCount: 1,
-    isSubscriber: true,
-    isVIP: false,
-  },
-];
-
-const mockMessagesByConversation = {
-  1: [
-    {
-      id: 1,
-      from: 'subscriber',
-      text: 'Oi Luna! 💜',
-      time: 'Hoje, 14:05',
-    },
-    {
-      id: 2,
-      from: 'subscriber',
-      text: 'Obrigada pelo último conteúdo, foi incrível!',
-      time: 'Hoje, 14:06',
-    },
-    {
-      id: 3,
-      from: 'creator',
-      text: 'Aiii, feliz que você gostou! 😍 Semana que vem tem mais.',
-      time: 'Hoje, 14:10',
-    },
-  ],
-  2: [
-    {
-      id: 4,
-      from: 'subscriber',
-      text: 'Você vai postar algo novo essa semana?',
-      time: 'Ontem, 21:15',
-    },
-    {
-      id: 5,
-      from: 'creator',
-      text: 'Sim! Vou postar fotos novas sexta-feira 😉',
-      time: 'Ontem, 21:20',
-    },
-  ],
-  3: [
-    {
-      id: 6,
-      from: 'subscriber',
-      text: 'Tem como fazer um conteúdo personalizado?',
-      time: 'Seg, 18:02',
-    },
-  ],
-};
+import messageService from '../../services/messageService';
+import { useMessageSocket } from '../../hooks/useMessageSocket';
 
 export default function CreatorMessagesPage() {
   const [search, setSearch] = useState('');
-  const [selectedConversationId, setSelectedConversationId] = useState(
-    mockConversations[0]?.id ?? null,
-  );
+  const [selectedConversationId, setSelectedConversationId] = useState(null);
   const [messageInput, setMessageInput] = useState('');
+  
+  // Estados da API
+  const [conversations, setConversations] = useState([]);
+  const [messages, setMessages] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [sending, setSending] = useState(false);
+  const [error, setError] = useState(null);
 
-  const conversations = useMemo(() => {
-    let list = [...mockConversations];
+  // Estados de upload
+  const [uploadedFiles, setUploadedFiles] = useState([]);
+  const [uploading, setUploading] = useState(false);
+  const fileInputRef = useRef(null);
 
-    if (search.trim()) {
-      const s = search.toLowerCase();
-      list = list.filter(
-        (c) =>
-          c.subscriberName.toLowerCase().includes(s) ||
-          c.subscriberUsername.toLowerCase().includes(s),
-      );
+  // Estados de PPV
+  const [showPPVModal, setShowPPVModal] = useState(false);
+  const [ppvPrice, setPpvPrice] = useState(10);
+
+  // Ref para scroll automático
+  const messagesEndRef = useRef(null);
+  const typingTimeoutRef = useRef(null);
+
+  // WebSocket
+  const currentUser = JSON.parse(localStorage.getItem('user') || '{}');
+  const { 
+    isConnected, 
+    newMessage, 
+    typingUsers, 
+    sendMessage: sendSocketMessage,
+    startTyping,
+    stopTyping,
+    setNewMessage 
+  } = useMessageSocket(currentUser.id);
+
+  // Buscar conversas ao montar componente
+  useEffect(() => {
+    fetchConversations();
+  }, []);
+
+  // Buscar mensagens quando conversa é selecionada
+  useEffect(() => {
+    if (selectedConversationId) {
+      fetchMessages(selectedConversationId);
+    }
+  }, [selectedConversationId]);
+
+  // Scroll automático para última mensagem
+  useEffect(() => {
+    scrollToBottom();
+  }, [messages]);
+
+  // Lidar com nova mensagem via WebSocket
+  useEffect(() => {
+    if (newMessage) {
+      // Verificar se é da conversa atual
+      if (newMessage.conversationId === selectedConversationId) {
+        setMessages(prev => [...prev, newMessage]);
+        scrollToBottom();
+      }
+
+      // Atualizar lista de conversas
+      setConversations(prev => prev.map(conv => 
+        conv.id === newMessage.conversationId
+          ? {
+              ...conv,
+              lastMessage: {
+                text: newMessage.content. text || 'Mídia',
+                timestamp: new Date(),
+              },
+              unreadCount: conv.id === selectedConversationId ? 0 : conv.unreadCount + 1,
+            }
+          : conv
+      ));
+
+      // Limpar a nova mensagem
+      setNewMessage(null);
+    }
+  }, [newMessage, selectedConversationId, setNewMessage]);
+
+  const scrollToBottom = () => {
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  };
+
+  // Buscar conversas
+  const fetchConversations = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+      const response = await messageService.getConversations();
+      setConversations(response. data || []);
+      
+      if (response.data && response.data.length > 0) {
+        setSelectedConversationId(response.data[0].id);
+      }
+    } catch (err) {
+      console.error('Erro ao buscar conversas:', err);
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Buscar mensagens
+  const fetchMessages = async (conversationId) => {
+    try {
+      const response = await messageService.getMessages(conversationId);
+      setMessages(response.data || []);
+    } catch (err) {
+      console.error('Erro ao buscar mensagens:', err);
+      setError(err.message);
+    }
+  };
+
+  // Upload de arquivo
+  const handleFileSelect = async (e) => {
+    const files = Array.from(e.target. files);
+    
+    if (files.length === 0) return;
+
+    // Validar quantidade (máximo 5)
+    if (uploadedFiles.length + files.length > 5) {
+      alert('Máximo 5 arquivos por mensagem');
+      return;
     }
 
-    // Ordenar por: quem tem não lidas primeiro, depois ordem original (mock)
-    list.sort((a, b) => {
-      if (a.unreadCount > 0 && b.unreadCount === 0) return -1;
-      if (a.unreadCount === 0 && b.unreadCount > 0) return 1;
-      return 0;
-    });
+    setUploading(true);
 
-    return list;
-  }, [search]);
+    try {
+      const uploadPromises = files.map(file => messageService.uploadMedia(file));
+      const results = await Promise.all(uploadPromises);
+      
+      const newFiles = results.map(r => r.data);
+      setUploadedFiles(prev => [...prev, ...newFiles]);
+    } catch (err) {
+      console.error('Erro ao fazer upload:', err);
+      alert('Erro ao fazer upload: ' + err.message);
+    } finally {
+      setUploading(false);
+      if (fileInputRef.current) {
+        fileInputRef.current. value = '';
+      }
+    }
+  };
+
+  // Remover arquivo
+  const handleRemoveFile = (index) => {
+    setUploadedFiles(prev => prev.filter((_, i) => i !== index));
+  };
+
+  // Enviar mensagem normal
+  const handleSendMessage = async (e) => {
+    e.preventDefault();
+    
+    if ((! messageInput.trim() && uploadedFiles.length === 0) || ! selectedConversationId) return;
+
+    const selectedConv = conversations.find(c => c.id === selectedConversationId);
+    if (!selectedConv) return;
+
+    const content = {
+      text: messageInput.trim(),
+      mediaUrl: uploadedFiles.map(f => f.url),
+    };
+
+    try {
+      setSending(true);
+      
+      // Usar WebSocket se conectado
+      if (isConnected) {
+        sendSocketMessage({
+          conversationId: selectedConversationId,
+          senderId: currentUser.id,
+          recipientId: selectedConv.otherUser.id,
+          content,
+          type: uploadedFiles.length > 0 ? (uploadedFiles[0].type === 'video' ? 'video' : 'image') : 'text',
+        });
+      } else {
+        // Fallback para HTTP
+        const response = await messageService.sendMessage(
+          selectedConversationId,
+          selectedConv.otherUser.id,
+          content,
+          uploadedFiles.length > 0 ? (uploadedFiles[0].type === 'video' ? 'video' : 'image') : 'text'
+        );
+
+        setMessages(prev => [...prev, response.data]);
+      }
+
+      // Atualizar última mensagem da conversa
+      setConversations(prev => prev. map(conv => 
+        conv.id === selectedConversationId
+          ? {
+              ...conv,
+              lastMessage: {
+                text: messageInput.trim() || 'Mídia',
+                sender: { _id: currentUser.id },
+                timestamp: new Date(),
+              },
+            }
+          : conv
+      ));
+
+      setMessageInput('');
+      setUploadedFiles([]);
+      scrollToBottom();
+    } catch (err) {
+      console.error('Erro ao enviar mensagem:', err);
+      alert('Erro ao enviar mensagem: ' + err.message);
+    } finally {
+      setSending(false);
+    }
+  };
+
+  // Enviar mensagem paga (PPV)
+  const handleSendPPV = async () => {
+    if (uploadedFiles.length === 0) {
+      alert('Adicione mídia para criar conteúdo pago');
+      return;
+    }
+
+    if (!ppvPrice || ppvPrice < 5 || ppvPrice > 500) {
+      alert('Preço deve estar entre R$ 5,00 e R$ 500,00');
+      return;
+    }
+
+    const selectedConv = conversations.find(c => c. id === selectedConversationId);
+    if (!selectedConv) return;
+
+    try {
+      setSending(true);
+      
+      const response = await messageService.sendPaidMessage(
+        selectedConversationId,
+        selectedConv.otherUser.id,
+        {
+          text: messageInput.trim() || 'Conteúdo exclusivo 🔒',
+          mediaUrl: uploadedFiles.map(f => f. url),
+        },
+        ppvPrice
+      );
+
+      setMessages(prev => [...prev, response.data]);
+      
+      setConversations(prev => prev. map(conv => 
+        conv.id === selectedConversationId
+          ? {
+              ...conv,
+              lastMessage: {
+                text: `💰 Conteúdo pago - R$ ${ppvPrice. toFixed(2)}`,
+                sender: { _id: currentUser.id },
+                timestamp: new Date(),
+              },
+            }
+          : conv
+      ));
+
+      setMessageInput('');
+      setUploadedFiles([]);
+      setShowPPVModal(false);
+      setPpvPrice(10);
+      scrollToBottom();
+    } catch (err) {
+      console. error('Erro ao enviar mensagem paga:', err);
+      alert('Erro ao enviar mensagem paga: ' + err. message);
+    } finally {
+      setSending(false);
+    }
+  };
+
+  // Indicador de digitação
+  const handleInputChange = (e) => {
+    setMessageInput(e.target. value);
+
+    const selectedConv = conversations.find(c => c.id === selectedConversationId);
+    if (! selectedConv) return;
+
+    // Iniciar indicador de digitação
+    startTyping(selectedConversationId, selectedConv.otherUser.id);
+
+    // Parar após 3 segundos de inatividade
+    if (typingTimeoutRef.current) {
+      clearTimeout(typingTimeoutRef.current);
+    }
+
+    typingTimeoutRef.current = setTimeout(() => {
+      stopTyping(selectedConversationId, selectedConv.otherUser.id);
+    }, 3000);
+  };
+
+  // Filtrar conversas por busca
+  const filteredConversations = useMemo(() => {
+    if (!search. trim()) return conversations;
+
+    const s = search.toLowerCase();
+    return conversations.filter(
+      (c) =>
+        c.otherUser.displayName?. toLowerCase().includes(s) ||
+        c.otherUser.username?.toLowerCase().includes(s)
+    );
+  }, [conversations, search]);
 
   const selectedConversation = conversations.find(
-    (c) => c.id === selectedConversationId,
+    (c) => c.id === selectedConversationId
   );
 
-  const messages =
-    mockMessagesByConversation[selectedConversationId] ?? [];
+  // Formatar timestamp
+  const formatMessageTime = (timestamp) => {
+    const date = new Date(timestamp);
+    const now = new Date();
+    const diffInHours = (now - date) / (1000 * 60 * 60);
 
-  const handleSendMessage = (e) => {
-    e.preventDefault();
-    if (!messageInput.trim() || !selectedConversationId) return;
-
-    // Aqui você depois vai chamar a API.
-    alert(
-      `Mensagem enviada para ${selectedConversation?.subscriberName}: "${messageInput.trim()}" (mock)`,
-    );
-    setMessageInput('');
+    if (diffInHours < 1) {
+      return `Há ${Math.floor(diffInHours * 60)} min`;
+    } else if (diffInHours < 24) {
+      return `Há ${Math. floor(diffInHours)}h`;
+    } else if (diffInHours < 48) {
+      return 'Ontem';
+    } else {
+      return date.toLocaleDateString('pt-BR', { day: '2-digit', month: 'short' });
+    }
   };
+
+  const formatFullTime = (timestamp) => {
+    const date = new Date(timestamp);
+    const today = new Date();
+    const isToday = date.toDateString() === today.toDateString();
+    
+    if (isToday) {
+      return `Hoje, ${date.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}`;
+    }
+    
+    const yesterday = new Date(today);
+    yesterday.setDate(yesterday.getDate() - 1);
+    const isYesterday = date.toDateString() === yesterday.toDateString();
+    
+    if (isYesterday) {
+      return `Ontem, ${date.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}`;
+    }
+    
+    return date.toLocaleDateString('pt-BR', { 
+      day: '2-digit', 
+      month: 'short',
+      hour: '2-digit',
+      minute: '2-digit'
+    });
+  };
+
+  // Loading state
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-slate-50 dark:bg-slate-950 flex">
+        <CreatorSidebar />
+        <div className="flex-1 flex items-center justify-center">
+          <div className="text-center">
+            <div className="inline-block animate-spin rounded-full h-12 w-12 border-4 border-indigo-600 border-t-transparent"></div>
+            <p className="mt-4 text-slate-600 dark:text-slate-400">Carregando mensagens...</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-slate-50 dark:bg-slate-950 flex">
@@ -141,18 +378,18 @@ export default function CreatorMessagesPage() {
           <div className="max-w-7xl mx-auto h-16 px-4 sm:px-6 lg:px-8 flex items-center justify-between">
             <div className="flex items-center space-x-3">
               <Link
-                to="/creator/dashboard"
+                to="/creator-dashboard"
                 className="p-2 rounded-lg text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800"
               >
                 <svg
-                  xmlns="http://www.w3.org/2000/svg"
+                  xmlns="http://www.w3. org/2000/svg"
                   className="h-5 w-5"
                   viewBox="0 0 20 20"
                   fill="currentColor"
                 >
                   <path
                     fillRule="evenodd"
-                    d="M9.707 16.707a1 1 0 01-1.414 0l-6-6a1 1 0 010-1.414l6-6a1 1 0 111.414 1.414L5.414 9H17a1 1 0 110 2H5.414l4.293 4.293a1 1 0 010 1.414z"
+                    d="M9. 707 16.707a1 1 0 01-1.414 0l-6-6a1 1 0 010-1. 414l6-6a1 1 0 111.414 1.414L5.414 9H17a1 1 0 110 2H5.414l4.293 4.293a1 1 0 010 1.414z"
                     clipRule="evenodd"
                   />
                 </svg>
@@ -169,24 +406,24 @@ export default function CreatorMessagesPage() {
 
             <div className="hidden sm:flex items-center space-x-2 text-xs text-slate-500 dark:text-slate-400">
               <span className="inline-flex items-center space-x-1">
-                <span className="w-2 h-2 rounded-full bg-emerald-500" />
-                <span>Online</span>
+                <span className={`w-2 h-2 rounded-full ${isConnected ? 'bg-emerald-500' : 'bg-red-500'}`} />
+                <span>{isConnected ? 'Online' : 'Offline'}</span>
               </span>
               <span>•</span>
-              <span>{mockConversations.length} conversa(s)</span>
+              <span>{conversations.length} conversa(s)</span>
             </div>
           </div>
         </header>
 
         {/* Conteúdo: layout em 2 colunas */}
-        <main className="flex-1 max-w-7xl mx-auto w-full px-4 sm:px-6 lg:px-8 py-4 flex gap-4">
+        <main className="flex-1 max-w-7xl mx-auto w-full px-4 sm:px-6 lg:px-8 py-4 flex gap-4 overflow-hidden">
           {/* Coluna esquerda: lista de conversas */}
           <section className="w-full md:w-80 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl flex flex-col">
             {/* Busca */}
             <div className="p-3 border-b border-slate-200 dark:border-slate-800">
               <div className="relative">
                 <svg
-                  xmlns="http://www.w3.org/2000/svg"
+                  xmlns="http://www.w3. org/2000/svg"
                   className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400"
                   fill="none"
                   viewBox="0 0 24 24"
@@ -202,7 +439,7 @@ export default function CreatorMessagesPage() {
                 <input
                   type="text"
                   value={search}
-                  onChange={(e) => setSearch(e.target.value)}
+                  onChange={(e) => setSearch(e. target.value)}
                   placeholder="Buscar assinante..."
                   className="w-full pl-9 pr-3 py-2 rounded-lg bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs text-slate-900 dark:text-slate-100 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500"
                 />
@@ -211,17 +448,19 @@ export default function CreatorMessagesPage() {
 
             {/* Lista de conversas */}
             <div className="flex-1 overflow-y-auto divide-y divide-slate-200 dark:divide-slate-800">
-              {conversations.length === 0 ? (
+              {filteredConversations.length === 0 ? (
                 <div className="p-6 text-center text-xs text-slate-500 dark:text-slate-400">
-                  Nenhuma conversa encontrada.
+                  {conversations.length === 0 
+                    ? 'Nenhuma conversa ainda.  Aguarde mensagens de assinantes!' 
+                    : 'Nenhuma conversa encontrada. '}
                 </div>
               ) : (
-                conversations.map((conv) => {
+                filteredConversations.map((conv) => {
                   const isSelected = conv.id === selectedConversationId;
                   return (
                     <button
                       key={conv.id}
-                      onClick={() => setSelectedConversationId(conv.id)}
+                      onClick={() => setSelectedConversationId(conv. id)}
                       className={`w-full text-left px-3 py-3 flex items-center space-x-3 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors ${
                         isSelected
                           ? 'bg-slate-100 dark:bg-slate-800/70'
@@ -230,9 +469,12 @@ export default function CreatorMessagesPage() {
                     >
                       <div className="relative">
                         <img
-                          src={conv.avatar}
-                          alt={conv.subscriberName}
+                          src={conv.otherUser.avatar || `https://placehold.co/48x48/8B7FE8/white?text=${conv.otherUser.displayName?.[0] || 'U'}`}
+                          alt={conv.otherUser.displayName}
                           className="w-10 h-10 rounded-full object-cover"
+                          onError={(e) => {
+                            e.target.src = `https://placehold.co/48x48/8B7FE8/white?text=${conv.otherUser.displayName?.[0] || 'U'}`;
+                          }}
                         />
                         {conv.isVIP && (
                           <span className="absolute -bottom-1 -right-1 bg-yellow-400 text-[10px] px-1 rounded-full text-black font-bold border border-slate-900">
@@ -243,14 +485,16 @@ export default function CreatorMessagesPage() {
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center justify-between">
                           <p className="text-sm font-semibold text-slate-900 dark:text-slate-100 truncate">
-                            {conv.subscriberName}
+                            {conv.otherUser.displayName || conv.otherUser.username}
                           </p>
-                          <span className="text-[11px] text-slate-400 ml-2">
-                            {conv.lastMessageTime}
-                          </span>
+                          {conv.lastMessage?. timestamp && (
+                            <span className="text-[11px] text-slate-400 ml-2">
+                              {formatMessageTime(conv.lastMessage.timestamp)}
+                            </span>
+                          )}
                         </div>
                         <p className="text-xs text-slate-500 dark:text-slate-400 truncate">
-                          {conv.lastMessage}
+                          {conv.lastMessage?.text || 'Sem mensagens'}
                         </p>
                       </div>
                       {conv.unreadCount > 0 && (
@@ -267,9 +511,9 @@ export default function CreatorMessagesPage() {
 
           {/* Coluna direita: janela de chat */}
           <section className="flex-1 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl flex flex-col">
-            {!selectedConversation ? (
+            {! selectedConversation ? (
               <div className="flex-1 flex items-center justify-center text-sm text-slate-500 dark:text-slate-400">
-                Selecione uma conversa para começar.
+                Selecione uma conversa para começar. 
               </div>
             ) : (
               <>
@@ -277,113 +521,221 @@ export default function CreatorMessagesPage() {
                 <div className="px-4 py-3 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between">
                   <div className="flex items-center space-x-3">
                     <img
-                      src={selectedConversation.avatar}
-                      alt={selectedConversation.subscriberName}
+                      src={selectedConversation.otherUser.avatar || `https://placehold.co/48x48/8B7FE8/white?text=${selectedConversation.otherUser.displayName?.[0] || 'U'}`}
+                      alt={selectedConversation. otherUser.displayName}
                       className="w-9 h-9 rounded-full object-cover"
+                      onError={(e) => {
+                        e.target.src = `https://placehold.co/48x48/8B7FE8/white?text=${selectedConversation.otherUser. displayName?.[0] || 'U'}`;
+                      }}
                     />
                     <div>
                       <p className="text-sm font-semibold text-slate-900 dark:text-slate-100">
-                        {selectedConversation.subscriberName}
+                        {selectedConversation.otherUser.displayName || selectedConversation.otherUser.username}
                       </p>
                       <p className="text-xs text-slate-500 dark:text-slate-400">
-                        @{selectedConversation.subscriberUsername}{' '}
-                        {selectedConversation.isSubscriber && '• Assinante'}
+                        @{selectedConversation.otherUser.username}
+                        {selectedConversation.otherUser.isVerified && ' • Verificado'}
                       </p>
                     </div>
                   </div>
 
                   <div className="flex items-center space-x-2 text-xs text-slate-500 dark:text-slate-400">
-                    <button className="px-2 py-1 rounded-lg border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800">
+                    <Link
+                      to={`/creator/${selectedConversation.otherUser.id}`}
+                      className="px-2 py-1 rounded-lg border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800"
+                    >
                       Ver perfil
-                    </button>
-                    <button className="p-2 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800">
-                      <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        className="h-4 w-4"
-                        viewBox="0 0 20 20"
-                        fill="currentColor"
-                      >
-                        <path d="M10 6a2 2 0 110-4 2 2 0 010 4zM10 12a2 2 0 110-4 2 2 0 010 4zM10 18a2 2 0 110-4 2 2 0 010 4z" />
-                      </svg>
-                    </button>
+                    </Link>
                   </div>
                 </div>
 
                 {/* Área de mensagens */}
                 <div className="flex-1 overflow-y-auto px-4 py-3 space-y-3 bg-slate-50 dark:bg-slate-950/40">
-                  {messages.map((msg) => {
-                    const isCreator = msg.from === 'creator';
-                    return (
-                      <div
-                        key={msg.id}
-                        className={`flex ${
-                          isCreator ? 'justify-end' : 'justify-start'
-                        }`}
-                      >
+                  {messages.length === 0 ? (
+                    <div className="text-xs text-center text-slate-500 dark:text-slate-400 mt-10">
+                      Nenhuma mensagem ainda. Envie a primeira! 
+                    </div>
+                  ) : (
+                    messages.map((msg) => {
+                      const isCurrentUser = msg.sender._id === currentUser.id;
+                      const isPaid = msg.type === 'paid';
+                      
+                      return (
                         <div
-                          className={`max-w-[75%] rounded-2xl px-3 py-2 text-sm ${
-                            isCreator
-                              ? 'bg-indigo-600 text-white rounded-br-sm'
-                              : 'bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 rounded-bl-sm'
+                          key={msg._id}
+                          className={`flex ${
+                            isCurrentUser ? 'justify-end' : 'justify-start'
                           }`}
                         >
-                          <p className="whitespace-pre-wrap break-words">
-                            {msg.text}
-                          </p>
-                          <p
-                            className={`text-[10px] mt-1 ${
-                              isCreator
-                                ? 'text-indigo-100/80'
-                                : 'text-slate-400'
-                            }`}
+                          <div
+                            className={`max-w-[75%] rounded-2xl px-3 py-2 text-sm ${
+                              isCurrentUser
+                                ? 'bg-indigo-600 text-white rounded-br-sm'
+                                : 'bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 rounded-bl-sm'
+                            } ${isPaid ? 'border-2 border-yellow-400' : ''}`}
                           >
-                            {msg.time}
-                          </p>
+                            {/* Mensagem paga */}
+                            {isPaid && (
+                              <div className="flex items-center space-x-2 mb-2 pb-2 border-b border-yellow-400/30">
+                                <span className="text-yellow-400">💰</span>
+                                <span className="text-xs font-semibold">
+                                  Conteúdo Pago - R$ {msg.content.price?. toFixed(2)}
+                                </span>
+                              </div>
+                            )}
+
+                            {/* Mídia */}
+                            {msg.content.mediaUrl && msg.content.mediaUrl.length > 0 && (
+                              <div className="mb-2 space-y-2">
+                                {msg.content.mediaUrl.map((url, idx) => (
+                                  <div key={idx} className="rounded-lg overflow-hidden">
+                                    {msg.type === 'video' ? (
+                                      <video 
+                                        src={url} 
+                                        controls 
+                                        className="w-full max-w-sm rounded-lg"
+                                      />
+                                    ) : (
+                                      <img 
+                                        src={url} 
+                                        alt="Mídia" 
+                                        className="w-full max-w-sm rounded-lg"
+                                      />
+                                    )}
+                                  </div>
+                                ))}
+                              </div>
+                            )}
+
+                            {/* Texto */}
+                            {msg.content.text && (
+                              <p className="whitespace-pre-wrap break-words">
+                                {msg.content. text}
+                              </p>
+                            )}
+
+                            <p
+                              className={`text-[10px] mt-1 ${
+                                isCurrentUser
+                                  ? 'text-indigo-100/80'
+                                  : 'text-slate-400'
+                              }`}
+                            >
+                              {formatFullTime(msg.createdAt)}
+                            </p>
+                          </div>
+                        </div>
+                      );
+                    })
+                  )}
+
+                  {/* Indicador de digitação */}
+                  {typingUsers[selectedConversationId] && typingUsers[selectedConversationId] !== currentUser.id && (
+                    <div className="flex justify-start">
+                      <div className="bg-white dark:bg-slate-800 text-slate-500 dark:text-slate-400 rounded-2xl px-4 py-2 text-sm">
+                        <div className="flex space-x-1">
+                          <div className="w-2 h-2 bg-slate-400 rounded-full animate-bounce" style={{ animationDelay: '0ms' }}></div>
+                          <div className="w-2 h-2 bg-slate-400 rounded-full animate-bounce" style={{ animationDelay: '150ms' }}></div>
+                          <div className="w-2 h-2 bg-slate-400 rounded-full animate-bounce" style={{ animationDelay: '300ms' }}></div>
                         </div>
                       </div>
-                    );
-                  })}
-
-                  {messages.length === 0 && (
-                    <div className="text-xs text-center text-slate-500 dark:text-slate-400 mt-10">
-                      Nenhuma mensagem ainda. Envie a primeira!
                     </div>
                   )}
+
+                  <div ref={messagesEndRef} />
                 </div>
+
+                {/* Preview de arquivos */}
+                {uploadedFiles.length > 0 && (
+                  <div className="px-4 py-2 border-t border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900/50">
+                    <div className="flex items-center space-x-2 overflow-x-auto">
+                      {uploadedFiles.map((file, idx) => (
+                        <div key={idx} className="relative group flex-shrink-0">
+                          {file.type === 'video' ? (
+                            <video 
+                              src={file.url} 
+                              className="w-20 h-20 object-cover rounded-lg"
+                            />
+                          ) : (
+                            <img 
+                              src={file.url} 
+                              alt="Preview" 
+                              className="w-20 h-20 object-cover rounded-lg"
+                            />
+                          )}
+                          <button
+                            onClick={() => handleRemoveFile(idx)}
+                            className="absolute -top-2 -right-2 w-6 h-6 bg-red-500 text-white rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
+                          >
+                            ×
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
 
                 {/* Input de nova mensagem */}
                 <form
                   onSubmit={handleSendMessage}
                   className="border-t border-slate-200 dark:border-slate-800 px-3 py-2 flex items-center space-x-2 bg-white dark:bg-slate-900"
                 >
+                  {/* Botão de anexar */}
+                  <input
+                    ref={fileInputRef}
+                    type="file"
+                    accept="image/*,video/*"
+                    multiple
+                    onChange={handleFileSelect}
+                    className="hidden"
+                  />
+                  
                   <button
                     type="button"
-                    className="p-2 rounded-lg text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800"
+                    onClick={() => fileInputRef.current?.click()}
+                    disabled={uploading || uploadedFiles.length >= 5}
+                    className="p-2 rounded-lg text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 disabled:opacity-50"
+                    title="Anexar mídia"
                   >
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      className="h-5 w-5"
-                      viewBox="0 0 20 20"
-                      fill="currentColor"
-                    >
-                      <path d="M4 3a2 2 0 00-2 2v2.586A1.5 1.5 0 013.5 8h1A1.5 1.5 0 016 9.5v1A1.5 1.5 0 014.5 12h-1A1.5 1.5 0 012 13.5V16a2 2 0 002 2h2.586A1.5 1.5 0 018 16.5v-1A1.5 1.5 0 019.5 14h1a1.5 1.5 0 011.5 1.5v1A1.5 1.5 0 0013.5 18H16a2 2 0 002-2v-2.586A1.5 1.5 0 0016.5 12h-1A1.5 1.5 0 0114 10.5v-1A1.5 1.5 0 0115.5 8h1A1.5 1.5 0 0018 6.5V5a2 2 0 00-2-2h-2.586A1.5 1.5 0 0012 4.5v1A1.5 1.5 0 0110.5 7h-1A1.5 1.5 0 018 5.5v-1A1.5 1.5 0 006.586 3H4z" />
-                    </svg>
+                    {uploading ? (
+                      <div className="w-5 h-5 border-2 border-indigo-600 border-t-transparent rounded-full animate-spin"></div>
+                    ) : (
+                      <svg xmlns="http://www.w3. org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                        <path fillRule="evenodd" d="M4 3a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V5a2 2 0 00-2-2H4zm12 12H4l4-8 3 6 2-4 3 6z" clipRule="evenodd" />
+                      </svg>
+                    )}
                   </button>
+
+                  {/* Botão PPV */}
+                  {uploadedFiles.length > 0 && (
+                    <button
+                      type="button"
+                      onClick={() => setShowPPVModal(true)}
+                      className="p-2 rounded-lg text-yellow-500 hover:text-yellow-600 hover:bg-yellow-50 dark:hover:bg-yellow-900/20"
+                      title="Enviar como conteúdo pago"
+                    >
+                      <svg xmlns="http://www.w3. org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                        <path d="M8. 433 7.418c.155-.103.346-.196.567-.267v1.698a2.305 2.305 0 01-.567-. 267C8.07 8.34 8 8.114 8 8c0-.114.07-.34.433-.582zM11 12.849v-1.698c.22.071.412.164.567.267.364.243.433.468.433.582 0 .114-.07.34-.433.582a2.305 2.305 0 01-.567.267z" />
+                        <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-13a1 1 0 10-2 0v.092a4.535 4.535 0 00-1.676.662C6.602 6.234 6 7.009 6 8c0 . 99.602 1.765 1.324 2.246.48.32 1.054.545 1.676.662v1.941c-.391-. 127-.68-.317-.843-.504a1 1 0 10-1.51 1.31c. 562. 649 1.413 1.076 2.353 1.253V15a1 1 0 102 0v-.092a4. 535 4.535 0 001.676-.662C13.398 13.766 14 12.991 14 12c0-.99-.602-1.765-1.324-2.246A4.535 4.535 0 0011 9.092V7.151c.391.127.68.317.843.504a1 1 0 101.511-1.31c-.563-.649-1. 413-1.076-2. 354-1.253V5z" clipRule="evenodd" />
+                      </svg>
+                    </button>
+                  )}
 
                   <input
                     type="text"
                     value={messageInput}
-                    onChange={(e) => setMessageInput(e.target.value)}
+                    onChange={handleInputChange}
                     placeholder="Escreva uma mensagem..."
-                    className="flex-1 text-sm px-3 py-2 rounded-lg bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-slate-100 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                    disabled={sending || uploading}
+                    className="flex-1 text-sm px-3 py-2 rounded-lg bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-slate-100 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 disabled:opacity-50"
                   />
 
                   <button
                     type="submit"
-                    disabled={!messageInput.trim()}
+                    disabled={(! messageInput.trim() && uploadedFiles.length === 0) || sending || uploading}
                     className="px-4 py-2 rounded-lg bg-indigo-600 text-white text-sm font-semibold hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                   >
-                    Enviar
+                    {sending ? 'Enviando...' : 'Enviar'}
                   </button>
                 </form>
               </>
@@ -391,6 +743,79 @@ export default function CreatorMessagesPage() {
           </section>
         </main>
       </div>
+
+      {/* Modal PPV */}
+      {showPPVModal && (
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+          <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 max-w-md w-full p-6 shadow-2xl">
+            <div className="flex items-center justify-between mb-6">
+              <h3 className="text-xl font-bold text-slate-900 dark:text-white">💰 Conteúdo Pago</h3>
+              <button
+                onClick={() => setShowPPVModal(false)}
+                className="p-2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 rounded-lg transition-colors"
+              >
+                <svg xmlns="http://www. w3.org/2000/svg" className="h-6 w-6" viewBox="0 0 20 20" fill="currentColor">
+                  <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4. 293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4. 293a1 1 0 01-1.414 1. 414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" />
+                </svg>
+              </button>
+            </div>
+
+            <div className="mb-6">
+              <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
+                Defina o preço (R$ 5,00 - R$ 500,00)
+              </label>
+              <div className="relative">
+                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500">R$</span>
+                <input
+                  type="number"
+                  min="5"
+                  max="500"
+                  step="0.01"
+                  value={ppvPrice}
+                  onChange={(e) => setPpvPrice(parseFloat(e.target.value))}
+                  className="w-full pl-10 pr-4 py-3 rounded-lg bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white text-lg font-semibold focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                />
+              </div>
+              <p className="text-xs text-slate-500 dark:text-slate-400 mt-2">
+                Você receberá ~R$ {(ppvPrice * 0.8).toFixed(2)} (80% após taxas)
+              </p>
+            </div>
+
+            <div className="mb-6">
+              <p className="text-sm text-slate-600 dark:text-slate-400 mb-2">
+                📸 {uploadedFiles.length} arquivo(s) anexado(s)
+              </p>
+              <div className="flex space-x-2 overflow-x-auto">
+                {uploadedFiles.map((file, idx) => (
+                  <div key={idx} className="flex-shrink-0">
+                    {file.type === 'video' ? (
+                      <video src={file.url} className="w-16 h-16 object-cover rounded-lg" />
+                    ) : (
+                      <img src={file.url} alt="Preview" className="w-16 h-16 object-cover rounded-lg" />
+                    )}
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            <div className="flex space-x-3">
+              <button
+                onClick={() => setShowPPVModal(false)}
+                className="flex-1 px-4 py-3 rounded-lg border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 font-semibold hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors"
+              >
+                Cancelar
+              </button>
+              <button
+                onClick={handleSendPPV}
+                disabled={sending || ! ppvPrice || ppvPrice < 5 || ppvPrice > 500}
+                className="flex-1 px-4 py-3 rounded-lg bg-gradient-to-r from-yellow-500 to-orange-500 hover:from-yellow-600 hover:to-orange-600 text-white font-bold transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {sending ?  'Enviando...' : 'Enviar PPV'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
