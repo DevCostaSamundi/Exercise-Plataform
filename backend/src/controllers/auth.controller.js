@@ -8,7 +8,7 @@ import ApiResponse from '../utils/response.js';
 import cloudinaryService from '../services/cloudinary.service.js';
 import logger from '../utils/logger.js';
 
-import { ConflictError, UnauthorizedError, NotFoundError } from '../utils/errors.js';
+import { ConflictError, UnauthorizedError } from '../utils/errors.js';
 
 class AuthController {
   /**

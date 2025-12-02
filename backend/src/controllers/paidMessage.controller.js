@@ -73,7 +73,7 @@ export const sendPaidMessage = async (req, res) => {
     await prisma.conversation.update({
       where: { id: conversationId },
       data: {
-        lastMessageText: `💰 Conteúdo pago - R$ ${price. toFixed(2)}`,
+        lastMessageText: `💰 Conteúdo pago - R$ ${price.toFixed(2)}`,
         lastMessageSenderId: userId,
         lastMessageTimestamp: new Date(),
         unreadCountSubscriber: { increment: 1 },
@@ -83,20 +83,20 @@ export const sendPaidMessage = async (req, res) => {
     const formatted = {
       _id: message.id,
       sender: {
-        _id: message. sender.id,
+        _id: message.sender.id,
         username: message.sender.username,
         displayName: message.sender.displayName,
-        avatar: message. sender.avatar,
+        avatar: message.sender.avatar,
       },
       content: {
         text: message.contentText,
         mediaUrl: message.contentMediaUrl,
         price: message.contentPrice,
-        isPaid: message. contentIsPaid,
+        isPaid: message.contentIsPaid,
       },
       type: message.type,
       status: message.status,
-      createdAt: message. createdAt,
+      createdAt: message.createdAt,
     };
 
     res.status(201).json({
@@ -104,7 +104,7 @@ export const sendPaidMessage = async (req, res) => {
       data: formatted,
     });
   } catch (error) {
-    logger. error('Error sending paid message:', error);
+    logger.error('Error sending paid message:', error);
     res.status(500).json({
       success: false,
       message: 'Erro ao enviar mensagem paga',
@@ -116,11 +116,11 @@ export const sendPaidMessage = async (req, res) => {
 export const unlockPaidMessage = async (req, res) => {
   try {
     const { messageId } = req.params;
-    const userId = req. user.id;
+    const userId = req.user.id;
     const { paymentMethod = 'crypto' } = req.body;
 
     // Buscar mensagem
-    const message = await prisma. message.findUnique({
+    const message = await prisma.message.findUnique({
       where: { id: messageId },
       include: {
         sender: {
@@ -141,8 +141,8 @@ export const unlockPaidMessage = async (req, res) => {
     }
 
     // Verificar se é o destinatário
-    if (message. recipientId !== userId) {
-      return res.status(403). json({
+    if (message.recipientId !== userId) {
+      return res.status(403).json({
         success: false,
         message: 'Acesso negado',
       });

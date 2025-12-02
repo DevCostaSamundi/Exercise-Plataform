@@ -33,7 +33,7 @@ export const nowpaymentsWebhook = async (req, res) => {
 
     res.status(200).json({ success: true });
   } catch (error) {
-    logger. error('NOWPayments webhook error:', error);
+    logger.error('NOWPayments webhook error:', error);
     res.status(500).json({ error: 'Webhook processing failed' });
   }
 };
@@ -44,7 +44,7 @@ export const nowpaymentsWebhook = async (req, res) => {
 export const btcpayWebhook = async (req, res) => {
   try {
     const signature = req.headers['btcpay-sig'];
-    const payload = req. body;
+    const payload = req.body;
 
     // Validar assinatura
     const isValid = paymentService.btcpay.validateWebhookSignature(payload, signature);
@@ -97,7 +97,7 @@ export const btcpayWebhook = async (req, res) => {
     res.status(200).json({ success: true });
   } catch (error) {
     logger.error('BTCPay webhook error:', error);
-    res.status(500). json({ error: 'Webhook processing failed' });
+    res.status(500).json({ error: 'Webhook processing failed' });
   }
 };
 
@@ -120,7 +120,7 @@ export const pixWebhook = async (req, res) => {
       // Buscar nosso payment pelo external_reference
       const payment = await prisma.payment.findFirst({
         where: {
-          gatewayOrderId: paymentId. toString(),
+          gatewayOrderId: paymentId.toString(),
         },
       });
 

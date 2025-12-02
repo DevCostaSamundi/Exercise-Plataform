@@ -1,8 +1,9 @@
-import { NOWPaymentsService } from './nowpayments. service. js';
+import { NOWPaymentsService } from './nowpayments.service.js';
 import { BTCPayService } from './btcpay.service.js';
-import { PIXService } from './pix. service.js';
+import { PIXService } from './pix.service.js';
 import prisma from '../../config/database.js';
 import logger from '../../utils/logger.js';
+import notificationService from '../notification.service.js';
 
 class PaymentService {
   constructor() {
@@ -99,7 +100,7 @@ class PaymentService {
           gatewayResponse = await this.nowpayments.createPayment({
             price_amount: amountUSD,
             price_currency: 'usd',
-            pay_currency: cryptoCurrency. toLowerCase(). replace('_', ''),
+            pay_currency: cryptoCurrency.toLowerCase().replace('_', ''),
             order_id: payment.id,
             order_description: this.getOrderDescription(type),
             ipn_callback_url: `${process.env.API_URL}/webhooks/payment/nowpayments`,
@@ -111,7 +112,7 @@ class PaymentService {
             amount: amountUSD,
             currency: 'USD',
             orderId: payment.id,
-            notificationUrl: `${process.env. API_URL}/webhooks/payment/btcpay`,
+            notificationUrl: `${process.env.API_URL}/webhooks/payment/btcpay`,
           });
           break;
           
@@ -127,7 +128,7 @@ class PaymentService {
       }
 
       // Atualizar com dados do gateway
-      const updatedPayment = await prisma. payment.update({
+      const updatedPayment = await prisma.payment.update({
         where: { id: payment.id },
         data: {
           gatewayOrderId: gatewayResponse.orderId || gatewayResponse.payment_id,
@@ -138,11 +139,11 @@ class PaymentService {
       });
 
       return {
-        paymentId: updatedPayment. id,
+        paymentId: updatedPayment.id,
         cryptoCurrency,
         cryptoAmount: gatewayResponse.pay_amount,
         address: gatewayResponse.pay_address || gatewayResponse.depositAddress,
-        qrCode: gatewayResponse. qr_code || null,
+        qrCode: gatewayResponse.qr_code || null,
         expiresAt: updatedPayment.expiresAt,
         gatewayData: gatewayResponse,
       };
@@ -207,13 +208,13 @@ class PaymentService {
       throw new Error('Payment not found');
     }
 
-    const newStatus = this.mapGatewayStatus(statusData. status, payment.gateway);
+    const newStatus = this.mapGatewayStatus(statusData.status, payment.gateway);
     
     const updated = await prisma.payment.update({
       where: { id: paymentId },
       data: {
         status: newStatus,
-        actuallyPaid: statusData.actually_paid?. toString(),
+        actuallyPaid: statusData.actually_paid?.toString(),
         txHash: statusData.tx_hash,
         confirmations: statusData.confirmations || 0,
         ...(newStatus === 'COMPLETED' && { confirmedAt: new Date() }),
@@ -246,7 +247,7 @@ class PaymentService {
           break;
           
         case 'PPV_POST':
-          await this. unlockPost(payment);
+          await this.unlockPost(payment);
           break;
           
         case 'TIP':
@@ -262,6 +263,9 @@ class PaymentService {
       if (payment.creatorId) {
         await this.addToCreatorBalance(payment.creatorId, payment.netAmount);
       }
+
+      // Notificar sobre pagamento recebido
+      await notificationService.notifyPaymentReceived(payment);
 
       logger.info(`Payment processed successfully: ${payment.id}`);
     } catch (error) {
@@ -291,20 +295,56 @@ class PaymentService {
   }
 
   /**
-   * Ativar assinatura
+   * Ativar assinatura após pagamento confirmado
    */
   async activateSubscription(payment) {
-    const metadata = payment.metadata;
-    
-    if (metadata. subscriptionId) {
-      await prisma.subscription.update({
-        where: { id: metadata. subscriptionId },
+    try {
+      const metadata = payment.metadata || {};
+      
+      // Verificar se já existe assinatura ativa
+      const existingSubscription = await prisma.subscription.findFirst({
+        where: {
+          userId: payment.userId,
+          creatorId: payment.creatorId,
+          status: 'ACTIVE',
+        },
+      });
+
+      if (existingSubscription) {
+        // Apenas renovar
+        await prisma.subscription.update({
+          where: { id: existingSubscription.id },
+          data: {
+            endDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000), // +30 dias
+          },
+        });
+        
+        logger.info(`Subscription renewed: ${existingSubscription.id}`);
+        return;
+      }
+
+      // Criar nova assinatura
+      const subscription = await prisma.subscription.create({
         data: {
+          userId: payment.userId,
+          creatorId: payment.creatorId,
           status: 'ACTIVE',
           startDate: new Date(),
           endDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000), // 30 dias
+          autoRenew: true,
+          amount: payment.amountUSD,
+          paymentMethod: payment.cryptoCurrency,
         },
       });
+
+      logger.info(`Subscription created: ${subscription.id}`);
+
+      // TODO: Enviar email de boas-vindas
+      // TODO: Notificar criador (novo assinante)
+      
+    } catch (error) {
+      logger.error('Error activating subscription:', error);
+      throw error;
     }
   }
 
@@ -315,13 +355,55 @@ class PaymentService {
     const metadata = payment.metadata;
     
     if (metadata.messageId) {
-      await prisma. message.update({
+      await prisma.message.update({
         where: { id: metadata.messageId },
         data: {
           contentIsPaid: true,
         },
       });
     }
+  }
+
+  /**
+   * Desbloquear post pago
+   */
+  async unlockPost(payment) {
+    const metadata = payment.metadata;
+    
+    if (metadata.postId) {
+      await prisma.postPurchase.create({
+        data: {
+          userId: payment.userId,
+          postId: metadata.postId,
+          paymentId: payment.id,
+        },
+      });
+    }
+  }
+
+  /**
+   * Processar gorjeta
+   */
+  async processTip(payment) {
+    // Gorjetas são apenas registradas e adicionadas ao saldo
+    // O saldo já é adicionado em processCompletedPayment
+    logger.info(`Tip processed: ${payment.amountUSD} USD to creator ${payment.creatorId}`);
+  }
+
+  /**
+   * Adicionar ao saldo da carteira
+   */
+  async addToWallet(payment) {
+    await prisma.wallet.upsert({
+      where: { userId: payment.userId },
+      create: {
+        userId: payment.userId,
+        balanceUSD: payment.amountUSD,
+      },
+      update: {
+        balanceUSD: { increment: payment.amountUSD },
+      },
+    });
   }
 
   /**

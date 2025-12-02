@@ -3,9 +3,9 @@ import logger from '../utils/logger.js';
 
 // Configurar Cloudinary
 cloudinary.config({
-  cloud_name: process. env.CLOUDINARY_CLOUD_NAME,
+  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
   api_key: process.env.CLOUDINARY_API_KEY,
-  api_secret: process.env. CLOUDINARY_API_SECRET,
+  api_secret: process.env.CLOUDINARY_API_SECRET,
 });
 
 export const uploadMessageMedia = async (req, res) => {
@@ -21,7 +21,7 @@ export const uploadMessageMedia = async (req, res) => {
 
     // Validar tipo de arquivo
     const allowedTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp', 'video/mp4', 'video/webm'];
-    if (!allowedTypes.includes(req.file. mimetype)) {
+    if (!allowedTypes.includes(req.file.mimetype)) {
       return res.status(400).json({
         success: false,
         message: 'Tipo de arquivo não suportado',
@@ -70,7 +70,7 @@ export const uploadMessageMedia = async (req, res) => {
       },
     });
   } catch (error) {
-    logger. error('Error uploading message media:', error);
+    logger.error('Error uploading message media:', error);
     res.status(500).json({
       success: false,
       message: 'Erro ao fazer upload',

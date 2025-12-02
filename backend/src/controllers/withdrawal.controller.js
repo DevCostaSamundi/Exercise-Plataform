@@ -39,7 +39,7 @@ export const requestWithdrawal = async (req, res) => {
     }
 
     // Verificar saldo
-    const availableBalance = creator.balance?. availableUSD || 0;
+    const availableBalance = creator.balance?.availableUSD || 0;
     
     if (availableBalance < amountUSD) {
       return res.status(400).json({
@@ -116,7 +116,7 @@ export const requestWithdrawal = async (req, res) => {
       },
     });
   } catch (error) {
-    logger. error('Request withdrawal error:', error);
+    logger.error('Request withdrawal error:', error);
     res.status(500).json({
       success: false,
       message: 'Failed to request withdrawal',
@@ -131,7 +131,7 @@ export const processWithdrawal = async (req, res) => {
   try {
     const { withdrawalId } = req.params;
 
-    const withdrawal = await prisma.withdrawal. findUnique({
+    const withdrawal = await prisma.withdrawal.findUnique({
       where: { id: withdrawalId },
       include: { creator: true },
     });
@@ -144,14 +144,14 @@ export const processWithdrawal = async (req, res) => {
     }
 
     if (withdrawal.status !== 'PENDING') {
-      return res. status(400).json({
+      return res.status(400).json({
         success: false,
-        message: `Withdrawal already ${withdrawal.status. toLowerCase()}`,
+        message: `Withdrawal already ${withdrawal.status.toLowerCase()}`,
       });
     }
 
     // Atualizar para PROCESSING
-    await prisma.withdrawal. update({
+    await prisma.withdrawal.update({
       where: { id: withdrawalId },
       data: { status: 'PROCESSING' },
     });
@@ -173,11 +173,11 @@ export const processWithdrawal = async (req, res) => {
     });
 
     // Atualizar saldo do criador
-    await prisma. creatorBalance.update({
+    await prisma.creatorBalance.update({
       where: { creatorId: withdrawal.creatorId },
       data: {
         pendingUSD: { decrement: withdrawal.amountUSD },
-        totalWithdrawn: { increment: withdrawal. amountUSD },
+        totalWithdrawn: { increment: withdrawal.amountUSD },
         lastWithdrawalAt: new Date(),
       },
     });
@@ -233,9 +233,9 @@ export const getCreatorWithdrawals = async (req, res) => {
       skip: parseInt(offset),
     });
 
-    const total = await prisma.withdrawal. count({ where });
+    const total = await prisma.withdrawal.count({ where });
 
-    res. json({
+    res.json({
       success: true,
       data: withdrawals,
       pagination: {
@@ -245,7 +245,7 @@ export const getCreatorWithdrawals = async (req, res) => {
       },
     });
   } catch (error) {
-    logger. error('Get withdrawals error:', error);
+    logger.error('Get withdrawals error:', error);
     res.status(500).json({
       success: false,
       message: 'Failed to get withdrawals',
@@ -260,7 +260,7 @@ export const getCreatorBalance = async (req, res) => {
   try {
     const userId = req.user.id;
 
-    const creator = await prisma. creator.findUnique({
+    const creator = await prisma.creator.findUnique({
       where: { userId },
       include: {
         balance: true,
@@ -317,7 +317,7 @@ export const getCreatorBalance = async (req, res) => {
         monthlyEarnings: monthlyStats._sum.netAmount || 0,
         monthlyTransactions: monthlyStats._count || 0,
         lastPaymentAt: balance.lastPaymentAt,
-        lastWithdrawalAt: balance. lastWithdrawalAt,
+        lastWithdrawalAt: balance.lastWithdrawalAt,
       },
     });
   } catch (error) {
@@ -359,7 +359,7 @@ export const cancelWithdrawal = async (req, res) => {
       });
     }
 
-    if (withdrawal. status !== 'PENDING') {
+    if (withdrawal.status !== 'PENDING') {
       return res.status(400).json({
         success: false,
         message: 'Can only cancel pending withdrawals',

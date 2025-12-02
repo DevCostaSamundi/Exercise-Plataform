@@ -1,6 +1,6 @@
 import axios from 'axios';
 import crypto from 'crypto';
-import logger from '../../utils/logger. js';
+import logger from '../../utils/logger.js';
 
 export class NOWPaymentsService {
   constructor() {
@@ -24,7 +24,7 @@ export class NOWPaymentsService {
    */
   async createPayment(data) {
     try {
-      const response = await this.client. post('/payment', {
+      const response = await this.client.post('/payment', {
         price_amount: data.price_amount,
         price_currency: data.price_currency,
         pay_currency: data.pay_currency,
@@ -38,7 +38,7 @@ export class NOWPaymentsService {
       logger.info('NOWPayments payment created:', response.data);
       return response.data;
     } catch (error) {
-      logger.error('NOWPayments create payment error:', error. response?.data || error.message);
+      logger.error('NOWPayments create payment error:', error.response?.data || error.message);
       throw new Error(error.response?.data?.message || 'Failed to create payment');
     }
   }
@@ -48,7 +48,7 @@ export class NOWPaymentsService {
    */
   async getPaymentStatus(paymentId) {
     try {
-      const response = await this.client. get(`/payment/${paymentId}`);
+      const response = await this.client.get(`/payment/${paymentId}`);
       return response.data;
     } catch (error) {
       logger.error('NOWPayments get status error:', error.response?.data || error.message);
@@ -62,7 +62,7 @@ export class NOWPaymentsService {
   async getAvailableCurrencies() {
     try {
       const response = await this.client.get('/currencies');
-      return response.data. currencies;
+      return response.data.currencies;
     } catch (error) {
       logger.error('NOWPayments get currencies error:', error);
       throw error;
@@ -74,11 +74,11 @@ export class NOWPaymentsService {
    */
   async estimatePrice(amountUSD, currency) {
     try {
-      const response = await this.client. get('/estimate', {
+      const response = await this.client.get('/estimate', {
         params: {
           amount: amountUSD,
           currency_from: 'usd',
-          currency_to: currency. toLowerCase(),
+          currency_to: currency.toLowerCase(),
         },
       });
       return response.data;

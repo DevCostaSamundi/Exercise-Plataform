@@ -1,49 +1,24 @@
 import express from 'express';
-import creatorController from '../controllers/creator.controller.js';
-import { authenticate, authorize } from '../middleware/auth.middleware.js';
+import { authenticate, optionalAuth } from '../middleware/auth.middleware.js';
+import {
+  getCreatorProfile,
+  getCreatorPosts,
+  listCreators,
+} from '../controllers/creator.controller.js';
 
 const router = express.Router();
 
-/**
- * @route   GET /api/v1/creators
- * @desc    Get all creators
- * @access  Public
- */
-router.get('/', creatorController.getCreators);
+// ============================================
+// ROTAS PÚBLICAS
+// ============================================
 
-/**
- * @route   GET /api/v1/creators/:id
- * @desc    Get creator by ID
- * @access  Public
- */
-router.get('/:id', creatorController.getCreatorById);
+// GET /api/v1/creators - Listar criadores
+router.get('/', listCreators);
 
-/**
- * @route   POST /api/v1/creators
- * @desc    Become a creator
- * @access  Private
- */
-router.post('/', authenticate, creatorController.becomeCreator);
+// GET /api/v1/creators/:id - Perfil público do criador (optional auth)
+router.get('/:id', optionalAuth, getCreatorProfile);
 
-/**
- * @route   PUT /api/v1/creators/:id
- * @desc    Update creator profile
- * @access  Private (Creator/Admin)
- */
-router.put('/:id', authenticate, creatorController.updateCreator);
-
-/**
- * @route   GET /api/v1/creators/:id/stats
- * @desc    Get creator statistics
- * @access  Private (Creator/Admin)
- */
-router.get('/:id/stats', authenticate, creatorController.getCreatorStats);
-
-/**
- * @route   GET /api/v1/creators/:id/chat-config
- * @desc    Get creator chat configuration
- * @access  Public
- */
-router.get('/:id/chat-config', creatorController.getChatConfig);
+// GET /api/v1/creators/:id/posts - Posts do criador (optional auth)
+router.get('/:id/posts', optionalAuth, getCreatorPosts);
 
 export default router;

@@ -1,265 +1,268 @@
 import prisma from '../config/database.js';
-import ApiResponse from '../utils/response.js';
-import { NotFoundError, ForbiddenError, ConflictError } from '../utils/errors.js';
+import logger from '../utils/logger.js';
 
-class CreatorController {
-  /**
-   * Helper to verify creator ownership
-   */
-  async #verifyCreatorOwnership(creatorId, userId, userRole) {
+/**
+ * Obter perfil público do criador
+ */
+export const getCreatorProfile = async (req, res) => {
+  try {
+    const { id } = req.params;
+
     const creator = await prisma.creator.findUnique({
-      where: { id: creatorId },
+      where: { id },
+      include: {
+        user: {
+          select: {
+            username: true,
+            displayName: true,
+            avatar: true,
+            bio: true,
+            genderIdentity: true,
+            orientation: true,
+            isVerified: true,
+            createdAt: true,
+          },
+        },
+        _count: {
+          select: {
+            posts: true,
+            subscriptions: true,
+          },
+        },
+      },
     });
 
     if (!creator) {
-      throw new NotFoundError('Creator not found');
+      return res.status(404).json({
+        success: false,
+        message: 'Creator not found',
+      });
     }
 
-    if (creator.userId !== userId && userRole !== 'ADMIN') {
-      throw new ForbiddenError('You can only modify your own creator profile');
-    }
+    // Contar mídias
+    const mediaCounts = await prisma.post.groupBy({
+      by: ['mediaType'],
+      where: { creatorId: id },
+      _count: true,
+    });
 
-    return creator;
+    const photos = mediaCounts.find(m => m.mediaType === 'IMAGE')?._count || 0;
+    const videos = mediaCounts.find(m => m.mediaType === 'VIDEO')?._count || 0;
+
+    // Formatar resposta
+    const response = {
+      id: creator.id,
+      userId: creator.userId,
+      username: creator.user.username,
+      displayName: creator.displayName || creator.user.displayName,
+      bio: creator.user.bio,
+      description: creator.description,
+      avatar: creator.user.avatar,
+      coverImage: creator.coverImage,
+      isVerified: creator.isVerified || creator.user.isVerified,
+      subscriptionPrice: creator.subscriptionPrice,
+      genderIdentity: creator.user.genderIdentity,
+      orientation: creator.user.orientation,
+      location: 'Brasil',
+      joinDate: creator.user.createdAt,
+      socialLinks: creator.socialLinks,
+      subscribers: creator._count.subscriptions,
+      posts: creator._count.posts,
+      photos,
+      videos,
+      tags: extractTags(creator.description),
+    };
+
+    res.json({
+      success: true,
+      data: response,
+    });
+  } catch (error) {
+    logger.error('Get creator profile error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to get creator profile',
+    });
   }
+};
 
-  /**
-   * Get all creators
-   */
-  async getCreators(req, res, next) {
-    try {
-      const { page = 1, limit = 20, verified } = req.query;
-      const pageNum = parseInt(page, 10);
-      const limitNum = parseInt(limit, 10);
-      const skip = (pageNum - 1) * limitNum;
+/**
+ * Obter posts do criador
+ */
+export const getCreatorPosts = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const userId = req.user?.id;
+    const { limit = 20, offset = 0 } = req.query;
 
-      const where = {};
-      if (verified !== undefined) {
-        where.isVerified = verified === 'true';
-      }
-
-      const [creators, total] = await Promise.all([
-        prisma.creator.findMany({
-          where,
-          skip,
-          take: limitNum,
-          include: {
-            user: {
-              select: {
-                username: true,
-                avatar: true,
-              },
-            },
-          },
-          orderBy: {
-            followersCount: 'desc',
-          },
-        }),
-        prisma.creator.count({ where }),
-      ]);
-
-      return ApiResponse.paginated(
-        res,
-        creators,
-        { page: pageNum, limit: limitNum, total },
-        'Creators retrieved successfully'
-      );
-    } catch (error) {
-      next(error);
+    // Verificar se usuário está inscrito
+    let isSubscribed = false;
+    if (userId) {
+      const subscription = await prisma.subscription.findFirst({
+        where: {
+          userId,
+          creatorId: id,
+          status: 'ACTIVE',
+        },
+      });
+      isSubscribed = !!subscription;
     }
-  }
 
-  /**
-   * Get creator by ID
-   */
-  async getCreatorById(req, res, next) {
-    try {
-      const { id } = req.params;
+    // Buscar posts
+    const posts = await prisma.post.findMany({
+      where: {
+        creatorId: id,
+        ...(!isSubscribed && { isPublic: true }),
+      },
+      select: {
+        id: true,
+        title: true,
+        mediaUrls: true,
+        mediaType: true,
+        isPublic: true,
+        isPPV: true,
+        ppvPrice: true,
+        likesCount: true,
+        commentsCount: true,
+        viewsCount: true,
+        createdAt: true,
+      },
+      orderBy: { createdAt: 'desc' },
+      take: parseInt(limit),
+      skip: parseInt(offset),
+    });
 
-      const creator = await prisma.creator.findUnique({
-        where: { id },
-        include: {
-          user: {
-            select: {
-              username: true,
-              avatar: true,
-              bio: true,
-            },
-          },
-          _count: {
-            select: {
-              posts: true,
-              products: true,
-              subscriptions: true,
-            },
-          },
-        },
-      });
+    // Formatar posts
+    const formattedPosts = posts.map(post => {
+      const mediaUrls = Array.isArray(post.mediaUrls) ? post.mediaUrls : [];
+      const thumbnail = mediaUrls[0] || 'https://placehold.co/300x300/6366F1/white?text=Post';
 
-      if (!creator) {
-        throw new NotFoundError('Creator not found');
-      }
-
-      return ApiResponse.success(res, creator, 'Creator retrieved successfully');
-    } catch (error) {
-      next(error);
-    }
-  }
-
-  /**
-   * Become a creator (upgrade user to creator)
-   */
-  async becomeCreator(req, res, next) {
-    try {
-      const { displayName, description, subscriptionPrice } = req.body;
-
-      // Check if user is already a creator
-      const existingCreator = await prisma.creator.findUnique({
-        where: { userId: req.user.id },
-      });
-
-      if (existingCreator) {
-        throw new ConflictError('User is already a creator');
-      }
-
-      // Create creator profile
-      const creator = await prisma.creator.create({
-        data: {
-          userId: req.user.id,
-          displayName,
-          description,
-          subscriptionPrice: subscriptionPrice || 0,
-        },
-        include: {
-          user: {
-            select: {
-              username: true,
-              avatar: true,
-            },
-          },
-        },
-      });
-
-      // Update user role
-      await prisma.user.update({
-        where: { id: req.user.id },
-        data: { role: 'CREATOR' },
-      });
-
-      return ApiResponse.success(
-        res,
-        creator,
-        'Creator profile created successfully',
-        201
-      );
-    } catch (error) {
-      next(error);
-    }
-  }
-
-  /**
-   * Update creator profile
-   */
-  async updateCreator(req, res, next) {
-    try {
-      const { id } = req.params;
-      const { displayName, description, coverImage, subscriptionPrice, socialLinks } = req.body;
-
-      // Verify ownership
-      await this.#verifyCreatorOwnership(id, req.user.id, req.user.role);
-
-      // Update creator
-      const updatedCreator = await prisma.creator.update({
-        where: { id },
-        data: {
-          displayName,
-          description,
-          coverImage,
-          subscriptionPrice,
-          socialLinks,
-        },
-        include: {
-          user: {
-            select: {
-              username: true,
-              avatar: true,
-            },
-          },
-        },
-      });
-
-      return ApiResponse.success(
-        res,
-        updatedCreator,
-        'Creator profile updated successfully'
-      );
-    } catch (error) {
-      next(error);
-    }
-  }
-
-  /**
-   * Get creator statistics
-   */
-  async getCreatorStats(req, res, next) {
-    try {
-      const { id } = req.params;
-
-      // Verify ownership
-      await this.#verifyCreatorOwnership(id, req.user.id, req.user.role);
-
-      const stats = await prisma.creator.findUnique({
-        where: { id },
-        select: {
-          earnings: true,
-          followersCount: true,
-          postsCount: true,
-          _count: {
-            select: {
-              posts: true,
-              products: true,
-              subscriptions: true,
-            },
-          },
-        },
-      });
-
-      return ApiResponse.success(res, stats, 'Statistics retrieved successfully');
-    } catch (error) {
-      next(error);
-    }
-  }
-
-  /**
-   * Get creator chat configuration
-   */
-  async getChatConfig(req, res, next) {
-    try {
-      const { id } = req.params;
-
-      const creator = await prisma.creator.findUnique({
-        where: { id },
-        select: {
-          id: true,
-          userId: true,
-        },
-      });
-
-      if (!creator) {
-        throw new NotFoundError('Creator not found');
-      }
-
-      // TODO: Store DM policy in database when implementing creator settings
-      // For now, return a default config matching Prisma schema default
-      const config = {
-        dmPolicy: 'EVERYONE', // matches DMPolicy enum default
-        creatorId: creator.userId,
+      return {
+        id: post.id,
+        type: post.mediaType.toLowerCase(),
+        thumbnail,
+        likes: post.likesCount,
+        comments: post.commentsCount,
+        views: post.viewsCount,
+        isLocked: ! post.isPublic && ! isSubscribed,
+        isPPV: post.isPPV,
+        price: post.ppvPrice,
+        createdAt: post.createdAt,
       };
+    });
 
-      return ApiResponse.success(res, config, 'Chat config retrieved successfully');
-    } catch (error) {
-      next(error);
-    }
+    res. json({
+      success: true,
+      data: formattedPosts,
+      isSubscribed,
+    });
+  } catch (error) {
+    logger.error('Get creator posts error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to get posts',
+    });
   }
-}
+};
 
-export default new CreatorController();
+/**
+ * Listar criadores (discovery/explore)
+ */
+export const listCreators = async (req, res) => {
+  try {
+    const { 
+      search, 
+      minPrice, 
+      maxPrice, 
+      verified,
+      limit = 20, 
+      offset = 0 
+    } = req.query;
+
+    const where = {
+      ...(verified === 'true' && { isVerified: true }),
+      ...(minPrice || maxPrice ? {
+        subscriptionPrice: {
+          ...(minPrice && { gte: parseFloat(minPrice) }),
+          ...(maxPrice && { lte: parseFloat(maxPrice) }),
+        },
+      } : {}),
+      ...(search && {
+        OR: [
+          { displayName: { contains: search, mode: 'insensitive' } },
+          { description: { contains: search, mode: 'insensitive' } },
+          { user: { username: { contains: search, mode: 'insensitive' } } },
+        ],
+      }),
+    };
+
+    const creators = await prisma.creator.findMany({
+      where,
+      include: {
+        user: {
+          select: {
+            username: true,
+            displayName: true,
+            avatar: true,
+            bio: true,
+            isVerified: true,
+          },
+        },
+        _count: {
+          select: {
+            subscriptions: true,
+            posts: true,
+          },
+        },
+      },
+      orderBy: { createdAt: 'desc' },
+      take: parseInt(limit),
+      skip: parseInt(offset),
+    });
+
+    const total = await prisma.creator.count({ where });
+
+    const formattedCreators = creators.map(creator => ({
+      id: creator.id,
+      username: creator.user.username,
+      displayName: creator.displayName || creator.user.displayName,
+      bio: creator.user.bio,
+      avatar: creator.user.avatar,
+      coverImage: creator.coverImage,
+      isVerified: creator.isVerified || creator.user.isVerified,
+      subscriptionPrice: creator.subscriptionPrice,
+      subscribers: creator._count.subscriptions,
+      posts: creator._count. posts,
+    }));
+
+    res.json({
+      success: true,
+      data: formattedCreators,
+      pagination: {
+        total,
+        limit: parseInt(limit),
+        offset: parseInt(offset),
+      },
+    });
+  } catch (error) {
+    logger.error('List creators error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to list creators',
+    });
+  }
+};
+
+/**
+ * Helper: Extrair tags da descrição
+ */
+function extractTags(description) {
+  if (!description) return [];
+  
+  const hashtagRegex = /#(\w+)/g;
+  const matches = description.match(hashtagRegex);
+  
+  if (!matches) return [];
+  
+  return matches.map(tag => tag.substring(1)).slice(0, 5);
+}

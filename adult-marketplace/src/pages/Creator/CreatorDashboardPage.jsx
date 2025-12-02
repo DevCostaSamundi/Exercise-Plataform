@@ -77,17 +77,17 @@ export default function CreatorDashboardPage() {
       if (statsData.data) {
         setStats({
           subscribers: statsData.data.subscribers || 0,
-          subscribersGrowth: statsData.data. subscribersGrowth || 0,
-          earnings: statsData. data.earnings || 0,
+          subscribersGrowth: statsData.data.subscribersGrowth || 0,
+          earnings: statsData.data.earnings || 0,
           earningsGrowth: statsData.data.earningsGrowth || 0,
           posts: statsData.data.posts || 0,
-          postsThisMonth: statsData.data. postsThisMonth || 0,
-          engagement: statsData. data.engagement || 0,
-          views: statsData.data. views || 0,
+          postsThisMonth: statsData.data.postsThisMonth || 0,
+          engagement: statsData.data.engagement || 0,
+          views: statsData.data.views || 0,
         });
         
         // Atualizar gráfico de ganhos
-        if (statsData. data.earningsChart) {
+        if (statsData.data.earningsChart) {
           setEarningsChart(statsData.data.earningsChart);
         }
       }
@@ -105,7 +105,7 @@ export default function CreatorDashboardPage() {
       );
 
       if (subscribersResponse.ok) {
-        const subscribersData = await subscribersResponse. json();
+        const subscribersData = await subscribersResponse.json();
         setRecentSubscribers(subscribersData.data || []);
       }
 
@@ -139,7 +139,7 @@ export default function CreatorDashboardPage() {
       );
 
       if (notificationsResponse.ok) {
-        const notifData = await notificationsResponse. json();
+        const notifData = await notificationsResponse.json();
         setNotifications(notifData.data || []);
       }
 
@@ -246,7 +246,7 @@ export default function CreatorDashboardPage() {
                   className="p-2 text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg disabled:opacity-50"
                   title="Atualizar dados"
                 >
-                  <svg xmlns="http://www.w3. org/2000/svg" className={`h-5 w-5 ${loading ? 'animate-spin' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <svg xmlns="http://www.w3.org/2000/svg" className={`h-5 w-5 ${loading ? 'animate-spin' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h. 582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
                   </svg>
                 </button>
@@ -309,7 +309,7 @@ export default function CreatorDashboardPage() {
               to="/creator/messages"
               className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-4 hover:shadow-lg transition-all group"
             >
-              <svg xmlns="http://www.w3. org/2000/svg" className="h-8 w-8 mb-2 text-pink-600 group-hover:scale-110 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8 mb-2 text-pink-600 group-hover:scale-110 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h. 01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-. 949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
               </svg>
               <p className="font-semibold text-slate-900 dark:text-white">Mensagens</p>
@@ -320,7 +320,7 @@ export default function CreatorDashboardPage() {
               to="/creator/earnings"
               className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-4 hover:shadow-lg transition-all group"
             >
-              <svg xmlns="http://www.w3. org/2000/svg" className="h-8 w-8 mb-2 text-green-600 group-hover:scale-110 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8 mb-2 text-green-600 group-hover:scale-110 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 . 895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2. 599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2. 08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
               </svg>
               <p className="font-semibold text-slate-900 dark:text-white">Ganhos</p>
@@ -334,7 +334,7 @@ export default function CreatorDashboardPage() {
             <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 p-6">
               <div className="flex items-center justify-between mb-4">
                 <div className="w-12 h-12 bg-indigo-100 dark:bg-indigo-900/20 rounded-lg flex items-center justify-center">
-                  <svg xmlns="http://www. w3.org/2000/svg" className="h-6 w-6 text-indigo-600 dark:text-indigo-400" viewBox="0 0 20 20" fill="currentColor">
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-indigo-600 dark:text-indigo-400" viewBox="0 0 20 20" fill="currentColor">
                     <path d="M9 6a3 3 0 11-6 0 3 3 0 016 0zM17 6a3 3 0 11-6 0 3 3 0 016 0zM12.93 17c.046-.327.07-.66.07-1a6.97 6.97 0 00-1.5-4.33A5 5 0 0119 16v1h-6.07zM6 11a5 5 0 015 5v1H1v-1a5 5 0 015-5z" />
                   </svg>
                 </div>
@@ -480,7 +480,7 @@ export default function CreatorDashboardPage() {
                             {post.likes || 0}
                           </span>
                           <span className="flex items-center">
-                            <svg xmlns="http://www. w3.org/2000/svg" className="h-4 w-4 mr-1" viewBox="0 0 20 20" fill="currentColor">
+                            <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-1" viewBox="0 0 20 20" fill="currentColor">
                               <path fillRule="evenodd" d="M18 10c0 3.866-3.582 7-8 7a8.841 8.841 0 01-4.083-.98L2 17l1.338-3.123C2.493 12.767 2 11.434 2 10c0-3.866 3.582-7 8-7s8 3.134 8 7zM7 9H5v2h2V9zm8 0h-2v2h2V9zM9 9h2v2H9V9z" clipRule="evenodd" />
                             </svg>
                             {post.comments || 0}

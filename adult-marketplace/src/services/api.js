@@ -93,6 +93,7 @@ export const creatorsAPI = {
   create: (creatorData) => api.post('/creators', creatorData),
   update: (id, creatorData) => api.put(`/creators/${id}`, creatorData),
   getStats: (id) => api.get(`/creators/${id}/stats`),
+  
 };
 
 export const productsAPI = {

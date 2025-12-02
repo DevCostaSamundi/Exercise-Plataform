@@ -1,6 +1,5 @@
 import { useState, useEffect } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
-import Modal from '../../components/Modal.jsx';
 import PaymentModal from '../../components/PaymentModal.jsx';
 
 export default function CreatorProfilePage() {

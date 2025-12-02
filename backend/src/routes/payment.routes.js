@@ -11,7 +11,7 @@ import {
   nowpaymentsWebhook,
   btcpayWebhook,
   pixWebhook,
-} from '../controllers/webhook. controller.js';
+} from '../controllers/webhook.controller.js';
 
 const router = express.Router();
 

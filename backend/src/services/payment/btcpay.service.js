@@ -5,9 +5,9 @@ import logger from '../../utils/logger.js';
 export class BTCPayService {
   constructor() {
     this.serverUrl = process.env.BTCPAY_SERVER_URL; // https://btcpay.yourdomain.com
-    this. storeId = process.env. BTCPAY_STORE_ID;
+    this.storeId = process.env.BTCPAY_STORE_ID;
     this.apiKey = process.env.BTCPAY_API_KEY;
-    this.webhookSecret = process.env. BTCPAY_WEBHOOK_SECRET;
+    this.webhookSecret = process.env.BTCPAY_WEBHOOK_SECRET;
     
     this.client = axios.create({
       baseURL: `${this.serverUrl}/api/v1`,
@@ -35,7 +35,7 @@ export class BTCPayService {
           paymentMethods: ['BTC', 'BTC-LightningNetwork'],
           defaultPaymentMethod: 'BTC',
           expirationMinutes: 15,
-          redirectURL: `${process.env. FRONTEND_URL}/payment/success`,
+          redirectURL: `${process.env.FRONTEND_URL}/payment/success`,
         },
       });
 
@@ -43,7 +43,7 @@ export class BTCPayService {
       
       return {
         orderId: response.data.id,
-        depositAddress: response.data.addresses?. BTC,
+        depositAddress: response.data.addresses?.BTC,
         lightningInvoice: response.data.addresses?.['BTC-LightningNetwork'],
         checkoutLink: response.data.checkoutLink,
         expiresAt: new Date(Date.now() + 15 * 60 * 1000),
@@ -91,7 +91,7 @@ export class BTCPayService {
    */
   async createWebhook(callbackUrl) {
     try {
-      const response = await this. client.post(`/stores/${this.storeId}/webhooks`, {
+      const response = await this.client.post(`/stores/${this.storeId}/webhooks`, {
         url: callbackUrl,
         enabled: true,
         automaticRedelivery: true,
@@ -111,7 +111,7 @@ export class BTCPayService {
       logger.info('BTCPay webhook created:', response.data);
       return response.data;
     } catch (error) {
-      logger. error('BTCPay create webhook error:', error);
+      logger.error('BTCPay create webhook error:', error);
       throw error;
     }
   }
@@ -122,7 +122,7 @@ export class BTCPayService {
   async getExchangeRate() {
     try {
       const response = await this.client.get(`/stores/${this.storeId}/rates`);
-      return response.data. find(r => r.currencyPair === 'BTC_USD')?.rate;
+      return response.data.find(r => r.currencyPair === 'BTC_USD')?.rate;
     } catch (error) {
       logger.error('BTCPay get rate error:', error);
       return null;

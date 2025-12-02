@@ -4,11 +4,11 @@ import logger from '../../utils/logger.js';
 export class PIXService {
   constructor() {
     // Usando Mercado Pago como exemplo
-    this.accessToken = process.env. MERCADOPAGO_ACCESS_TOKEN;
+    this.accessToken = process.env.MERCADOPAGO_ACCESS_TOKEN;
     this.baseURL = 'https://api.mercadopago.com/v1';
     
     this.client = axios.create({
-      baseURL: this. baseURL,
+      baseURL: this.baseURL,
       headers: {
         'Authorization': `Bearer ${this.accessToken}`,
         'Content-Type': 'application/json',
@@ -21,12 +21,12 @@ export class PIXService {
    */
   async createPayment(data) {
     try {
-      const response = await this. client.post('/payments', {
+      const response = await this.client.post('/payments', {
         transaction_amount: data.amount,
         description: data.description || 'PrideConnect Payment',
         payment_method_id: 'pix',
         payer: {
-          email: data. email || 'user@prideconnect.com',
+          email: data.email || 'user@prideconnect.com',
         },
         notification_url: `${process.env.API_URL}/webhooks/payment/pix`,
         external_reference: data.orderId,
@@ -35,10 +35,10 @@ export class PIXService {
       logger.info('PIX payment created:', response.data);
 
       return {
-        orderId: response.data.id. toString(),
-        qrCode: response.data.point_of_interaction?. transaction_data?.qr_code,
-        qrCodeBase64: response.data.point_of_interaction?.transaction_data?. qr_code_base64,
-        pixCopyPaste: response.data.point_of_interaction?.transaction_data?. qr_code,
+        orderId: response.data.id.toString(),
+        qrCode: response.data.point_of_interaction?.transaction_data?.qr_code,
+        qrCodeBase64: response.data.point_of_interaction?.transaction_data?.qr_code_base64,
+        pixCopyPaste: response.data.point_of_interaction?.transaction_data?.qr_code,
         expiresAt: new Date(Date.now() + 30 * 60 * 1000), // 30 min
       };
     } catch (error) {

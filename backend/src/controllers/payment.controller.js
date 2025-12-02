@@ -33,7 +33,7 @@ export const createPayment = async (req, res) => {
       });
     }
 
-    if (!['SUBSCRIPTION', 'PPV_MESSAGE', 'PPV_POST', 'TIP', 'WALLET_DEPOSIT']. includes(type)) {
+    if (!['SUBSCRIPTION', 'PPV_MESSAGE', 'PPV_POST', 'TIP', 'WALLET_DEPOSIT'].includes(type)) {
       return res.status(400).json({
         success: false,
         message: 'Invalid payment type',
@@ -54,7 +54,7 @@ export const createPayment = async (req, res) => {
       userAgent: req.headers['user-agent'],
     });
 
-    res.status(201). json({
+    res.status(201).json({
       success: true,
       data: payment,
     });
@@ -102,8 +102,8 @@ export const getPaymentStatus = async (req, res) => {
       data: {
         id: updatedPayment.id,
         status: updatedPayment.status,
-        cryptoCurrency: updatedPayment. cryptoCurrency,
-        cryptoAmount: updatedPayment. expectedAmount,
+        cryptoCurrency: updatedPayment.cryptoCurrency,
+        cryptoAmount: updatedPayment.expectedAmount,
         address: updatedPayment.cryptoAddress,
         txHash: updatedPayment.txHash,
         confirmations: updatedPayment.confirmations,
@@ -112,7 +112,7 @@ export const getPaymentStatus = async (req, res) => {
       },
     });
   } catch (error) {
-    logger. error('Get payment status error:', error);
+    logger.error('Get payment status error:', error);
     res.status(500).json({
       success: false,
       message: 'Failed to get payment status',
@@ -125,8 +125,8 @@ export const getPaymentStatus = async (req, res) => {
  */
 export const getUserPayments = async (req, res) => {
   try {
-    const userId = req.user. id;
-    const { status, type, limit = 20, offset = 0 } = req. query;
+    const userId = req.user.id;
+    const { status, type, limit = 20, offset = 0 } = req.query;
 
     const where = { userId };
     if (status) where.status = status;
@@ -154,9 +154,9 @@ export const getUserPayments = async (req, res) => {
       skip: parseInt(offset),
     });
 
-    const total = await prisma.payment. count({ where });
+    const total = await prisma.payment.count({ where });
 
-    res. json({
+    res.json({
       success: true,
       data: payments,
       pagination: {
@@ -166,7 +166,7 @@ export const getUserPayments = async (req, res) => {
       },
     });
   } catch (error) {
-    logger. error('Get user payments error:', error);
+    logger.error('Get user payments error:', error);
     res.status(500).json({
       success: false,
       message: 'Failed to get payments',
@@ -281,7 +281,7 @@ export const getAvailableCurrencies = async (req, res) => {
     });
   } catch (error) {
     logger.error('Get currencies error:', error);
-    res. status(500).json({
+    res.status(500).json({
       success: false,
       message: 'Failed to get currencies',
     });
@@ -296,7 +296,7 @@ export const estimatePrice = async (req, res) => {
     const { amountUSD, currency } = req.query;
 
     if (!amountUSD || ! currency) {
-      return res. status(400).json({
+      return res.status(400).json({
         success: false,
         message: 'Amount and currency are required',
       });
@@ -318,7 +318,7 @@ export const estimatePrice = async (req, res) => {
     // Para cryptos, usar NOWPayments API
     const estimate = await paymentService.nowpayments.estimatePrice(
       parseFloat(amountUSD),
-      currency. toLowerCase(). replace('_', '')
+      currency.toLowerCase().replace('_', '')
     );
 
     res.json({
@@ -326,13 +326,13 @@ export const estimatePrice = async (req, res) => {
       data: {
         amountUSD: parseFloat(amountUSD),
         currency,
-        estimatedAmount: estimate. estimated_amount,
+        estimatedAmount: estimate.estimated_amount,
         minAmount: estimate.min_amount,
         maxAmount: estimate.max_amount,
       },
     });
   } catch (error) {
-    logger. error('Estimate price error:', error);
+    logger.error('Estimate price error:', error);
     res.status(500).json({
       success: false,
       message: 'Failed to estimate price',

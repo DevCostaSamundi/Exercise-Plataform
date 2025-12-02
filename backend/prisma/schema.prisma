@@ -15,7 +15,7 @@ model User {
   email         String    @unique
   username      String    @unique
   password      String
-  firstName     String?
+  firstName     String? 
   lastName      String?
   displayName   String?
   birthDate     DateTime?
@@ -28,19 +28,18 @@ model User {
   role          UserRole  @default(USER)
   
   payments      Payment[] @relation("UserPayments")
-  wallet        UserWallet?
-
+  wallet        UserWallet? 
 
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
   
   // Relations originais
-  creator       Creator? 
+  creator       Creator?  
   subscriptions Subscription[]
   orders        Order[]
   reviews       Review[]
   
-  // 👇 ADICIONE ESTAS LINHAS - Relações de mensagens
+  // Relações de mensagens
   creatorConversations     Conversation[] @relation("CreatorConversations")
   subscriberConversations  Conversation[] @relation("SubscriberConversations")
   sentMessages             Message[]      @relation("SentMessages")
@@ -66,18 +65,63 @@ model Creator {
   // Verification & KYC
   isVerified      Boolean   @default(false)
   kycStatus       KYCStatus @default(PENDING)
-  kycDocuments    Json?
+  kycDocuments    Json? 
   
   // Monetization
   subscriptionPrice Decimal @default(0) @db.Decimal(10, 2)
   earnings          Decimal @default(0) @db.Decimal(10, 2)
   
-  // Social links
-  socialLinks     Json?
+  // Settings fields
+  location              String?
+  website               String?
+  category              String?
+  socialLinks           Json?
   
-  // Statistics
-  followersCount  Int       @default(0)
-  postsCount      Int       @default(0)
+  // Subscription settings
+  discounts             Json?           @default("{\"threeMonths\": 10, \"sixMonths\": 15, \"twelveMonths\": 20}")
+  promoActive           Boolean         @default(false)
+  promoDiscount         Int?
+  promoDuration         Int?
+  promoExpiry           String?
+  trialEnabled          Boolean         @default(false)
+  trialDays             Int?
+  
+  // Payment settings
+  withdrawMethod        String          @default("pix")
+  pixType               String?
+  pixKey                String?
+  cryptoWallets         Json?
+  autoWithdraw          Boolean         @default(false)
+  autoWithdrawMin       Int             @default(100)
+  
+  // Notification settings
+  emailNotifications    Json?
+  pushNotifications     Json?
+  marketingEmails       Boolean         @default(true)
+  newsletter            Boolean         @default(true)
+  
+  // Privacy settings
+  publicProfile         Boolean         @default(true)
+  showActivity          Boolean         @default(true)
+  showSubscriberCount   Boolean         @default(true)
+  messagePermission     String          @default("subscribers")
+  allowTips             Boolean         @default(true)
+  watermark             Boolean         @default(true)
+  disableScreenshots    Boolean         @default(false)
+  hideFromSearch        Boolean         @default(false)
+  blockedCountries      String[]        @default([])
+  
+  // Content settings
+  defaultPPV            Boolean         @default(false)
+  autoPublish           Boolean         @default(true)
+  commentsEnabled       Boolean         @default(true)
+  defaultPPVPrice       Float           @default(9.99)
+  imageQuality          String          @default("high")
+  videoQuality          String          @default("1080p")
+  
+  // Blocking
+  blockedUsers          String[]        @default([])
+  blockedWords          String[]        @default([])
   
   createdAt       DateTime  @default(now())
   updatedAt       DateTime  @updatedAt
@@ -89,7 +133,7 @@ model Creator {
   subscriptions   Subscription[]
 
   receivedPayments  Payment[]   @relation("CreatorPayments")
-  balance           CreatorBalance?
+  balance           CreatorBalance? 
   withdrawals       Withdrawal[]
   
   @@map("creators")
@@ -106,13 +150,13 @@ enum KYCStatus {
 model Post {
   id          String      @id @default(uuid())
   creatorId   String
-  title       String?
+  title       String? 
   content     String?
   mediaUrls   Json?       // Array of media URLs
   mediaType   MediaType   @default(IMAGE)
   isPublic    Boolean     @default(false) // false = subscribers only
   isPPV       Boolean     @default(false) // Pay-per-view
-  ppvPrice    Decimal?    @db.Decimal(10, 2)
+  ppvPrice    Decimal?     @db.Decimal(10, 2)
   
   // Engagement
   likesCount  Int         @default(0)
@@ -184,7 +228,7 @@ model Product {
   images          Json?     // Array of image URLs
   
   // Inventory (for physical products)
-  stock           Int?
+  stock           Int? 
   isUnlimited     Boolean   @default(false)
   
   // Digital product
@@ -238,8 +282,8 @@ model Order {
   tax             Decimal     @default(0) @db.Decimal(10, 2)
   total           Decimal     @db.Decimal(10, 2)
   
-  // Payment
-  paymentStatus   PaymentStatus @default(PENDING)
+  // Payment - ⚠️ RENOMEADO para OrderPaymentStatus
+  paymentStatus   OrderPaymentStatus @default(ORDER_PENDING)
   paymentMethod   String?
   transactionId   String?
   
@@ -267,11 +311,12 @@ enum OrderStatus {
   REFUNDED
 }
 
-enum PaymentStatus {
-  PENDING
-  COMPLETED
-  FAILED
-  REFUNDED
+// ⚠️ ENUM RENOMEADO para evitar conflito com PaymentStatus
+enum OrderPaymentStatus {
+  ORDER_PENDING
+  ORDER_COMPLETED
+  ORDER_FAILED
+  ORDER_REFUNDED
 }
 
 // OrderItem model - Items in an order
@@ -388,7 +433,7 @@ model Message {
   metadataIpAddress       String?
   metadataUserAgent       String?
   metadataFlagged         Boolean @default(false)
-  metadataModerationAction String? 
+  metadataModerationAction String?  
 
   deletedAt DateTime?
 
@@ -409,7 +454,7 @@ model Payment {
   userId          String
   user            User          @relation("UserPayments", fields: [userId], references: [id], onDelete: Cascade)
   
-  creatorId       String? 
+  creatorId       String?  
   creator         Creator?      @relation("CreatorPayments", fields: [creatorId], references: [id])
   
   // Tipo de pagamento
@@ -422,11 +467,11 @@ model Payment {
   
   // Valores em FIAT
   amountUSD       Decimal       @db.Decimal(10, 2)
-  amountBRL       Decimal?       @db.Decimal(10, 2)
+  amountBRL       Decimal?        @db.Decimal(10, 2)
   currency        String        @default("USD")
   
   // Valores em Cripto
-  cryptoCurrency  String?        // BTC, ETH, USDT_TRC20, etc
+  cryptoCurrency  String?         // BTC, ETH, USDT_TRC20, etc
   cryptoAmount    String?       // Quantidade exata em cripto
   cryptoAddress   String?       // Endereço de recebimento gerado
   expectedAmount  String?       // Quantidade esperada
@@ -448,10 +493,10 @@ model Payment {
   // Taxas da plataforma
   platformFee     Decimal       @db.Decimal(10, 2) @default(0) // 10%
   gatewayFee      Decimal       @db.Decimal(10, 2) @default(0) // Taxa do gateway
-  netAmount       Decimal       @db. Decimal(10, 2) // Valor líquido para o criador
+  netAmount       Decimal       @db.Decimal(10, 2) // Valor líquido para o criador
   
   // Timestamps
-  paidAt          DateTime? 
+  paidAt          DateTime?  
   confirmedAt     DateTime?
   expiresAt       DateTime?
   
@@ -479,10 +524,10 @@ model CreatorBalance {
   creator         Creator       @relation(fields: [creatorId], references: [id], onDelete: Cascade)
   
   // Saldo disponível
-  availableUSD    Decimal       @db. Decimal(10, 2) @default(0)
+  availableUSD    Decimal       @db.Decimal(10, 2) @default(0)
   
   // Saldo pendente (aguardando confirmação)
-  pendingUSD      Decimal       @db. Decimal(10, 2) @default(0)
+  pendingUSD      Decimal       @db.Decimal(10, 2) @default(0)
   
   // Total de ganhos
   lifetimeEarnings Decimal      @db.Decimal(10, 2) @default(0)
@@ -514,27 +559,27 @@ model Withdrawal {
   
   // Blockchain
   txHash          String?
-  networkFee      Decimal?          @db.Decimal(10, 2)
+  networkFee      Decimal?           @db.Decimal(10, 2)
   
   // Status
   status          WithdrawalStatus @default(PENDING)
   
   // Taxas
   platformFee     Decimal          @db.Decimal(10, 2) @default(2) // Taxa fixa $2
-  netAmount       Decimal          @db. Decimal(10, 2) // Valor líquido enviado
+  netAmount       Decimal          @db.Decimal(10, 2) // Valor líquido enviado
   
   // Gateway
-  gateway         PaymentGateway?
-  gatewayTxId     String?
+  gateway         PaymentGateway? 
+  gatewayTxId     String? 
   
   // Aprovação (se necessário)
   approvedBy      String?
   approvedAt      DateTime?
-  rejectedReason  String?
+  rejectedReason  String? 
   
   // Timestamps
-  processedAt     DateTime?
-  completedAt     DateTime?
+  processedAt     DateTime? 
+  completedAt     DateTime? 
   
   createdAt       DateTime         @default(now())
   updatedAt       DateTime         @updatedAt
@@ -546,15 +591,15 @@ model Withdrawal {
 
 model UserWallet {
   id              String        @id @default(uuid())
-  userId          String
+  userId          String        @unique
   user            User          @relation(fields: [userId], references: [id], onDelete: Cascade)
   
   // Saldo depositado (sistema de carteira interna)
   balanceUSD      Decimal       @db.Decimal(10, 2) @default(0)
   
   // Histórico
-  totalDeposited  Decimal       @db. Decimal(10, 2) @default(0)
-  totalSpent      Decimal       @db. Decimal(10, 2) @default(0)
+  totalDeposited  Decimal       @db.Decimal(10, 2) @default(0)
+  totalSpent      Decimal       @db.Decimal(10, 2) @default(0)
   
   // Auto-renovação
   autoRenewEnabled Boolean      @default(false)
@@ -564,7 +609,6 @@ model UserWallet {
   createdAt       DateTime      @default(now())
   updatedAt       DateTime      @updatedAt
   
-  @@unique([userId])
   @@map("user_wallets")
 }
 

@@ -17,7 +17,7 @@ const initSocket = (server) => {
     logger.info(`Socket connected: ${socket.id}`);
 
     socket.on('disconnect', () => {
-      logger. info(`Socket disconnected: ${socket.id}`);
+      logger.info(`Socket disconnected: ${socket.id}`);
     });
   });
 

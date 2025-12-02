@@ -65,7 +65,7 @@ class WithdrawalService {
       credentials: 'include',
     });
 
-    if (! response.ok) {
+    if (!response.ok) {
       const error = await response.json();
       throw new Error(error.message || 'Erro ao cancelar saque');
     }

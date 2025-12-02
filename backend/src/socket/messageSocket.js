@@ -8,7 +8,7 @@ export const setupMessageSocket = (io) => {
   const messageNamespace = io.of('/messages');
 
   messageNamespace.on('connection', (socket) => {
-    logger. info(`Client connected to messages: ${socket.id}`);
+    logger.info(`Client connected to messages: ${socket.id}`);
 
     // Usuário se junta à sua sala pessoal
     socket.on('join', (userId) => {
@@ -22,7 +22,7 @@ export const setupMessageSocket = (io) => {
         const { conversationId, senderId, recipientId, content, type = 'text' } = data;
 
         // Validações
-        if (!content?. text && !content?.mediaUrl) {
+        if (!content?.text && !content?.mediaUrl) {
           socket.emit('error', { message: 'Conteúdo vazio' });
           return;
         }
@@ -81,13 +81,13 @@ export const setupMessageSocket = (io) => {
           _id: message.id,
           sender: {
             _id: message.sender.id,
-            username: message.sender. username,
+            username: message.sender.username,
             displayName: message.sender.displayName,
             avatar: message.sender.avatar,
           },
           content: {
             text: message.contentText,
-            mediaUrl: message. contentMediaUrl,
+            mediaUrl: message.contentMediaUrl,
             price: message.contentPrice,
             isPaid: message.contentIsPaid,
           },
@@ -150,7 +150,7 @@ export const setupMessageSocket = (io) => {
     });
 
     socket.on('disconnect', () => {
-      logger. info(`Client disconnected from messages: ${socket.id}`);
+      logger.info(`Client disconnected from messages: ${socket.id}`);
     });
   });
 

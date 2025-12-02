@@ -13,6 +13,7 @@ import postRoutes from './routes/post.routes.js';
 import chatRoutes from './routes/chat.routes.js';
 import liveRoutes from './routes/live.routes.js';
 import creatorDashboardRoutes from './routes/creatorDashboard.routes.js';
+import creatorSettingsRoutes from './routes/creatorSettings.routes.js';
 
 // Import message routes
 import messageRoutes from './routes/message.routes.js';
@@ -20,6 +21,8 @@ import messageRoutes from './routes/message.routes.js';
 // Import payment routes
 import paymentRoutes from './routes/payment.routes.js';
 import withdrawalRoutes from './routes/withdrawal.routes.js';
+
+import subscriptionRoutes from './routes/subscription.routes.js';
 
 // Import middleware
 import errorMiddleware from './middleware/error.middleware.js';
@@ -111,8 +114,14 @@ app.use(`/api/${API_VERSION}/users`, userRoutes);
 // Creator routes
 app.use(`/api/${API_VERSION}/creators`, creatorRoutes);
 
+// Subscription routes
+app.use(`/api/${API_VERSION}/subscriptions`, subscriptionRoutes);
+
 // creator dashboard routes
 app.use(`/api/${API_VERSION}/creator-dashboard`, creatorDashboardRoutes);
+
+// Creator settings routes
+app.use(`/api/${API_VERSION}/creator`, creatorSettingsRoutes);
 
 //
 app.use(`/api/${API_VERSION}/creator/:id`, creatorRoutes);

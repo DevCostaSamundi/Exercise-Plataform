@@ -11,7 +11,7 @@ import {
 const router = express.Router();
 
 // Todas as rotas requerem autenticação
-router. use(authenticate);
+router.use(authenticate);
 
 // GET /api/v1/withdrawals/balance - Obter saldo do criador
 router.get('/balance', getCreatorBalance);
@@ -20,7 +20,7 @@ router.get('/balance', getCreatorBalance);
 router.get('/', getCreatorWithdrawals);
 
 // POST /api/v1/withdrawals - Solicitar saque
-router. post('/', requestWithdrawal);
+router.post('/', requestWithdrawal);
 
 // POST /api/v1/withdrawals/:withdrawalId/process - Processar saque (ADMIN)
 router.post('/:withdrawalId/process', processWithdrawal);

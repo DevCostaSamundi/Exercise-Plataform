@@ -27,6 +27,8 @@ import CreatorEarningsPage from './pages/Creator/CreatorEarningsPage';
 import CreatorSubscribersPage from './pages/Creator/CreatorSubscribersPage';
 import CreatorNotificationsPage from './pages/Creator/CreatorNotificationsPage';
 import CreatorPostEditPage from './pages/Creator/CreatorPostEditPage';
+import CreatorSettingsPage from './pages/Creator/creatorSettingsPage.jsx';
+
 
 function App() {
   const [isVerified, setIsVerified] = useState(false);
@@ -130,7 +132,15 @@ function App() {
               </ProtectedRoute>
             } 
           />
-
+          <Route 
+            path="/creator/settings" 
+            element={
+              <ProtectedRoute requireCreator>
+                <CreatorSettingsPage />
+              </ProtectedRoute>
+            } 
+          />
+  
           {/* Estático / institucional */}
           <Route path="/terms" element={<TermsPage />} />
           <Route path="/privacy" element={<PrivacyPage />} />
