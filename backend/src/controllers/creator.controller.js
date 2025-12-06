@@ -30,7 +30,9 @@ export const listCreators = async (req, res) => {
     const creators = await prisma.creator.findMany({
       where,
       take: parseInt(limit),
-      orderBy: featured ? { subscribers: 'desc' } : { createdAt: 'desc' },
+      orderBy: featured === 'true' 
+        ? [{ featured: 'desc' }, { createdAt: 'desc' }]
+        : { createdAt: 'desc' },
       include: {
         user: {
           select: {
