@@ -81,11 +81,6 @@ export default function CreatorSubscribersPage() {
     return () => clearTimeout(timer);
   }, [searchQuery]);
 
-  // Fetch subscribers from API
-  useEffect(() => {
-    fetchSubscribers();
-  }, [fetchSubscribers]);
-
   const fetchSubscribers = useCallback(async () => {
     try {
       setLoading(true);
@@ -114,6 +109,11 @@ export default function CreatorSubscribersPage() {
       setLoading(false);
     }
   }, [page, debouncedSearch, statusFilter, planFilter, sortBy]);
+
+  // Fetch subscribers from API
+  useEffect(() => {
+    fetchSubscribers();
+  }, [fetchSubscribers]);
 
   const totalPages = pagination.pages;
   const currentPage = page;
