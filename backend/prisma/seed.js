@@ -63,6 +63,7 @@ async function main() {
       displayName: 'Demo Creator',
       description: 'This is a demo creator account for PrideConnect platform',
       isVerified: true,
+      featured: true,
       kycStatus: 'APPROVED',
       subscriptionPrice: 9.99,
       socialLinks: {

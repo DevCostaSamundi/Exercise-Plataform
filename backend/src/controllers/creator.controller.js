@@ -16,6 +16,10 @@ export const listCreators = async (req, res) => {
       where.category = category;
     }
 
+    if (featured === 'true') {
+      where.featured = true;
+    }
+
     if (search) {
       where.OR = [
         { displayName: { contains: search, mode: 'insensitive' } },
