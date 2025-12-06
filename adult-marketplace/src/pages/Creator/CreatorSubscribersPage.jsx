@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Link } from 'react-router-dom';
 import api from '../../services/api';
 import CreatorSidebar from '../../components/CreatorSidebar';
@@ -84,10 +84,9 @@ export default function CreatorSubscribersPage() {
   // Fetch subscribers from API
   useEffect(() => {
     fetchSubscribers();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [page, debouncedSearch, statusFilter, planFilter, sortBy]);
+  }, [fetchSubscribers]);
 
-  const fetchSubscribers = async () => {
+  const fetchSubscribers = useCallback(async () => {
     try {
       setLoading(true);
       setError(null);
@@ -98,7 +97,7 @@ export default function CreatorSubscribersPage() {
         ...(debouncedSearch && { search: debouncedSearch }),
         ...(statusFilter !== 'all' && { status: statusFilter }),
         ...(planFilter !== 'all' && { plan: translatePlanToAPI(planFilter) }),
-        sortBy
+        ...(sortBy && { sortBy })
       };
 
       const response = await api.get('/creator/subscribers', { params });
@@ -114,7 +113,7 @@ export default function CreatorSubscribersPage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [page, debouncedSearch, statusFilter, planFilter, sortBy]);
 
   const totalPages = pagination.pages;
   const currentPage = page;
