@@ -98,7 +98,7 @@ export default function LoginPage() {
 
       // Redirecionar baseado no tipo de usuário
       if (user.role === 'creator' || user.isCreator) {
-        navigate('/creator-dashboard');
+        navigate('/creator/dashboard');
       } else {
         navigate('/');
       }
