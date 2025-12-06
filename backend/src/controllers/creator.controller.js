@@ -16,6 +16,10 @@ export const listCreators = async (req, res) => {
       where.category = category;
     }
 
+    if (featured === 'true') {
+      where.featured = true;
+    }
+
     if (search) {
       where.OR = [
         { displayName: { contains: search, mode: 'insensitive' } },
@@ -26,7 +30,7 @@ export const listCreators = async (req, res) => {
     const creators = await prisma.creator.findMany({
       where,
       take: parseInt(limit),
-      orderBy: featured ? { subscribers: 'desc' } : { createdAt: 'desc' },
+      orderBy: { createdAt: 'desc' },
       include: {
         user: {
           select: {

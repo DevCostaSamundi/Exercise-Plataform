@@ -64,6 +64,7 @@ model Creator {
   
   // Verification & KYC
   isVerified      Boolean   @default(false)
+  featured        Boolean   @default(false)
   kycStatus       KYCStatus @default(PENDING)
   kycDocuments    Json? 
   
