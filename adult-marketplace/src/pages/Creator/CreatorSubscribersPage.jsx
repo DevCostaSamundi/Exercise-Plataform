@@ -1,69 +1,9 @@
-import { useState, useMemo } from 'react';
+import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
+import api from '../../services/api';
 import CreatorSidebar from '../../components/CreatorSidebar';
-
-const mockSubscribers = [
-  {
-    id: 1,
-    name: 'Maria Silva',
-    avatar: 'https://placehold.co/48x48/8B7FE8/white?text=M',
-    username: 'maria.silva',
-    plan: 'Mensal',
-    since: '2025-09-12',
-    lastPayment: '2025-11-10',
-    status: 'active', // active, canceled, overdue
-    lifetimeValue: 249.9,
-    country: 'BR',
-  },
-  {
-    id: 2,
-    name: 'João Pedro',
-    avatar: 'https://placehold.co/48x48/6366F1/white?text=J',
-    username: 'joaopedro',
-    plan: 'Trimestral',
-    since: '2025-08-01',
-    lastPayment: '2025-11-01',
-    status: 'active',
-    lifetimeValue: 349.7,
-    country: 'BR',
-  },
-  {
-    id: 3,
-    name: 'Ana Costa',
-    avatar: 'https://placehold.co/48x48/A78BFA/white?text=A',
-    username: 'anacosta',
-    plan: 'Mensal',
-    since: '2025-10-05',
-    lastPayment: '2025-10-05',
-    status: 'overdue',
-    lifetimeValue: 24.9,
-    country: 'PT',
-  },
-  {
-    id: 4,
-    name: 'Carlos Lima',
-    avatar: 'https://placehold.co/48x48/EC4899/white?text=C',
-    username: 'carlos.l',
-    plan: 'Anual',
-    since: '2025-01-15',
-    lastPayment: '2025-09-15',
-    status: 'canceled',
-    lifetimeValue: 199.9,
-    country: 'BR',
-  },
-  {
-    id: 5,
-    name: 'Beatriz Santos',
-    avatar: 'https://placehold.co/48x48/8B5CF6/white?text=B',
-    username: 'bia.santos',
-    plan: 'Mensal',
-    since: '2025-11-01',
-    lastPayment: '2025-11-01',
-    status: 'active',
-    lifetimeValue: 24.9,
-    country: 'BR',
-  },
-];
+import LoadingSpinner from '../../components/LoadingSpinner';
+import ErrorMessage from '../../components/ErrorMessage';
 
 const formatCurrency = (value) =>
   new Intl.NumberFormat('pt-BR', {
@@ -78,65 +18,130 @@ const formatDate = (dateStr) =>
     year: 'numeric',
   });
 
+// Translate plan from API format to UI format
+const translatePlan = (plan) => {
+  const map = {
+    monthly: 'Mensal',
+    quarterly: 'Trimestral',
+    yearly: 'Anual',
+    annual: 'Anual'
+  };
+  return map[plan?.toLowerCase()] || plan;
+};
+
+// Translate plan from UI format to API format
+const translatePlanToAPI = (plan) => {
+  const map = {
+    'Mensal': 'monthly',
+    'Trimestral': 'quarterly',
+    'Anual': 'yearly'
+  };
+  return map[plan] || plan?.toLowerCase();
+};
+
+// Normalize subscriber data from API to UI format
+const normalizeSubscriber = (apiData) => ({
+  id: apiData.id,
+  name: apiData.user?.name || apiData.user?.displayName || 'Usuário',
+  avatar: apiData.user?.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(apiData.user?.name || 'U')}&background=8B7FE8&color=fff`,
+  username: apiData.user?.username || 'unknown',
+  plan: translatePlan(apiData.plan),
+  since: apiData.startedAt,
+  lastPayment: apiData.lastPayment,
+  status: apiData.status,
+  lifetimeValue: parseFloat(apiData.lifetimeValue || 0),
+  country: apiData.country || 'BR'
+});
+
 export default function CreatorSubscribersPage() {
-  const [search, setSearch] = useState('');
-  // comentários indicam os tipos esperados, mas agora é JS puro
-  const [statusFilter, setStatusFilter] = useState('all'); // 'all' | 'active' | 'canceled' | 'overdue'
-  const [planFilter, setPlanFilter] = useState('all');     // 'all' | 'Mensal' | 'Trimestral' | 'Anual'
-  const [sortBy, setSortBy] = useState('recent');          // 'recent' | 'lifetime' | 'name'
+  // Data states
+  const [subscribers, setSubscribers] = useState([]);
+  const [stats, setStats] = useState({ total: 0, active: 0, canceled: 0, overdue: 0, mrr: 0 });
+  const [pagination, setPagination] = useState({ total: 0, pages: 1 });
+  
+  // UI states
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  
+  // Filter states
+  const [searchQuery, setSearchQuery] = useState('');
+  const [debouncedSearch, setDebouncedSearch] = useState('');
+  const [statusFilter, setStatusFilter] = useState('all');
+  const [planFilter, setPlanFilter] = useState('all');
+  const [sortBy, setSortBy] = useState('recent');
   const [page, setPage] = useState(1);
   const pageSize = 10;
 
-  const filteredSubscribers = useMemo(() => {
-    let result = [...mockSubscribers];
+  // Debounce search
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedSearch(searchQuery);
+      setPage(1); // Reset to page 1 on new search
+    }, 500);
+    return () => clearTimeout(timer);
+  }, [searchQuery]);
 
-    if (search.trim()) {
-      const s = search.toLowerCase();
-      result = result.filter(
-        (sub) =>
-          sub.name.toLowerCase().includes(s) ||
-          sub.username.toLowerCase().includes(s),
-      );
-    }
+  // Fetch subscribers from API
+  useEffect(() => {
+    fetchSubscribers();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [page, debouncedSearch, statusFilter, planFilter, sortBy]);
 
-    if (statusFilter !== 'all') {
-      result = result.filter((sub) => sub.status === statusFilter);
-    }
+  const fetchSubscribers = async () => {
+    try {
+      setLoading(true);
+      setError(null);
 
-    if (planFilter !== 'all') {
-      result = result.filter((sub) => sub.plan === planFilter);
-    }
+      const params = {
+        page,
+        limit: pageSize,
+        ...(debouncedSearch && { search: debouncedSearch }),
+        ...(statusFilter !== 'all' && { status: statusFilter }),
+        ...(planFilter !== 'all' && { plan: translatePlanToAPI(planFilter) }),
+        sortBy
+      };
 
-    result.sort((a, b) => {
-      if (sortBy === 'name') {
-        return a.name.localeCompare(b.name);
+      const response = await api.get('/creator/subscribers', { params });
+      
+      if (response.data.success) {
+        setSubscribers(response.data.data.map(normalizeSubscriber));
+        setPagination(response.data.pagination);
+        setStats(response.data.stats);
       }
-      if (sortBy === 'lifetime') {
-        return b.lifetimeValue - a.lifetimeValue;
-      }
-      // recent: ordenar por since (mais recente primeiro)
-      return new Date(b.since).getTime() - new Date(a.since).getTime();
-    });
-
-    return result;
-  }, [search, statusFilter, planFilter, sortBy]);
-
-  const total = filteredSubscribers.length;
-  const totalPages = Math.max(1, Math.ceil(total / pageSize));
-  const currentPage = Math.min(page, totalPages);
-
-  const paginated = filteredSubscribers.slice(
-    (currentPage - 1) * pageSize,
-    currentPage * pageSize,
-  );
-
-  const stats = {
-    total: mockSubscribers.length,
-    active: mockSubscribers.filter((s) => s.status === 'active').length,
-    canceled: mockSubscribers.filter((s) => s.status === 'canceled').length,
-    overdue: mockSubscribers.filter((s) => s.status === 'overdue').length,
-    mrr: 24.9 * mockSubscribers.filter((s) => s.status === 'active').length,
+    } catch (err) {
+      console.error('Erro ao carregar assinantes:', err);
+      setError(err.response?.data?.message || 'Erro ao carregar assinantes');
+    } finally {
+      setLoading(false);
+    }
   };
+
+  const totalPages = pagination.pages;
+  const currentPage = page;
+
+  // Loading state
+  if (loading && subscribers.length === 0) {
+    return (
+      <div className="min-h-screen bg-slate-50 dark:bg-slate-950 flex">
+        <CreatorSidebar />
+        <div className="flex-1 flex items-center justify-center">
+          <LoadingSpinner size="lg" message="Carregando assinantes..." />
+        </div>
+      </div>
+    );
+  }
+
+  // Error state
+  if (error && subscribers.length === 0) {
+    return (
+      <div className="min-h-screen bg-slate-50 dark:bg-slate-950 flex">
+        <CreatorSidebar />
+        <div className="flex-1 flex items-center justify-center">
+          <ErrorMessage message={error} onRetry={fetchSubscribers} />
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-slate-50 dark:bg-slate-950 flex">
@@ -242,8 +247,8 @@ export default function CreatorSubscribersPage() {
                   <input
                     type="text"
                     placeholder="Buscar por nome ou username..."
-                    value={search}
-                    onChange={(e) => setSearch(e.target.value)}
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
                     className="w-full pl-10 pr-4 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-purple-500"
                   />
                 </div>
@@ -313,19 +318,36 @@ export default function CreatorSubscribersPage() {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-200 dark:divide-slate-800">
-                  {paginated.length === 0 ? (
+                  {loading ? (
                     <tr>
                       <td colSpan={6} className="px-6 py-12 text-center">
-                        <div className="flex flex-col items-center space-y-2">
-                          <svg className="w-12 h-12 text-slate-300 dark:text-slate-700" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4" />
+                        <LoadingSpinner size="md" message="Carregando..." />
+                      </td>
+                    </tr>
+                  ) : subscribers.length === 0 ? (
+                    <tr>
+                      <td colSpan={6} className="px-6 py-12 text-center">
+                        <div className="flex flex-col items-center space-y-3">
+                          <svg className="w-16 h-16 text-slate-300 dark:text-slate-700" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
                           </svg>
-                          <p className="text-slate-500 dark:text-slate-400">Nenhum assinante encontrado</p>
+                          <div>
+                            <h3 className="text-lg font-medium text-slate-900 dark:text-white">
+                              {debouncedSearch || statusFilter !== 'all' || planFilter !== 'all' 
+                                ? 'Nenhum assinante encontrado' 
+                                : 'Você ainda não tem assinantes'}
+                            </h3>
+                            <p className="mt-2 text-slate-500 dark:text-slate-400">
+                              {debouncedSearch || statusFilter !== 'all' || planFilter !== 'all'
+                                ? 'Tente ajustar os filtros de busca'
+                                : 'Compartilhe seu perfil para começar a receber assinantes!'}
+                            </p>
+                          </div>
                         </div>
                       </td>
                     </tr>
                   ) : (
-                    paginated.map((subscriber) => (
+                    subscribers.map((subscriber) => (
                       <tr key={subscriber.id} className="hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors">
                         <td className="px-6 py-4">
                           <div className="flex items-center space-x-3">
@@ -379,12 +401,12 @@ export default function CreatorSubscribersPage() {
               <div className="px-6 py-4 border-t border-slate-200 dark:border-slate-800 flex items-center justify-between">
                 <p className="text-sm text-slate-600 dark:text-slate-400">
                   Mostrando {(currentPage - 1) * pageSize + 1} a{' '}
-                  {Math.min(currentPage * pageSize, total)} de {total} resultados
+                  {Math.min(currentPage * pageSize, pagination.total)} de {pagination.total} resultados
                 </p>
                 <div className="flex items-center space-x-2">
                   <button
                     onClick={() => setPage(Math.max(1, page - 1))}
-                    disabled={currentPage === 1}
+                    disabled={currentPage === 1 || loading}
                     className="px-3 py-1 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 disabled:opacity-50 disabled:cursor-not-allowed hover:bg-slate-200 dark:hover:bg-slate-700"
                   >
                     Anterior
@@ -394,7 +416,7 @@ export default function CreatorSubscribersPage() {
                   </span>
                   <button
                     onClick={() => setPage(Math.min(totalPages, page + 1))}
-                    disabled={currentPage === totalPages}
+                    disabled={currentPage === totalPages || loading}
                     className="px-3 py-1 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 disabled:opacity-50 disabled:cursor-not-allowed hover:bg-slate-200 dark:hover:bg-slate-700"
                   >
                     Próxima
