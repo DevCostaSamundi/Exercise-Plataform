@@ -385,7 +385,7 @@ export default function CreatorMessagesPage() {
           <div className="max-w-7xl mx-auto h-16 px-4 sm:px-6 lg:px-8 flex items-center justify-between">
             <div className="flex items-center space-x-3">
               <Link
-                to="/creator-dashboard"
+                to="/creator/dashboard"
                 className="p-2 rounded-lg text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800"
               >
                 <svg

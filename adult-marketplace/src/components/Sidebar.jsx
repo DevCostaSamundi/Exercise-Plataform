@@ -65,7 +65,7 @@ export default function Sidebar() {
         <div className="flex flex-col h-full py-4 px-3">
           {/* Logo / Header */}
           <div className="flex items-center justify-between px-2 mb-6">
-            <Link to={isCreator ? "/creator-dashboard" : "/"} className="flex items-center space-x-3">
+            <Link to={isCreator ? "/creator/dashboard" : "/"} className="flex items-center space-x-3">
               <div className="w-10 h-10 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-xl flex items-center justify-center flex-shrink-0">
                 <span className="text-white font-black text-xl">P</span>
               </div>
@@ -93,7 +93,7 @@ export default function Sidebar() {
           <nav className="flex-1 space-y-1 overflow-y-auto">
             {/* Home / Dashboard */}
             <NavLink
-              to={isCreator ? "/creator-dashboard" : "/"}
+              to={isCreator ? "/creator/dashboard" : "/"}
               className={({ isActive }) => `${linkBase} ${isActive ? linkActive : linkInactive}`}
               title={isCreator ? "Dashboard" : "Início"}
             >

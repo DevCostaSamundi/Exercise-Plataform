@@ -456,7 +456,7 @@ export default function CreatorRegisterPage() {
         }
       }
 
-      navigate('/creator-dashboard', { state: { newCreator: true } });
+      navigate('/creator/dashboard', { state: { newCreator: true } });
     } catch (error) {
       console.log("Erro no registro de criador", error);
       setErrors({ submit: 'Erro ao criar conta.  Tente novamente.' });

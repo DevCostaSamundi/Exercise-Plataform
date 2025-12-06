@@ -1,6 +1,9 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import CreatorSidebar from '../../components/CreatorSidebar';
+import api from '../../services/api';
+import LoadingSpinner from '../../components/LoadingSpinner';
+import ErrorMessage from '../../components/ErrorMessage';
 
 export default function CreatorDashboardPage() {
   const [timeRange, setTimeRange] = useState('7days');
@@ -50,102 +53,63 @@ export default function CreatorDashboardPage() {
     setError(null);
 
     try {
-      const token = localStorage.getItem('authToken');
-      if (!token) {
-        throw new Error('Token não encontrado');
-      }
-
       // Buscar estatísticas do criador
-      const statsResponse = await fetch(
-        `http://localhost:5000/api/v1/creator-dashboard/stats? timeRange=${timeRange}`,
-        {
-          headers: {
-            'Authorization': `Bearer ${token}`,
-            'Content-Type': 'application/json',
-          },
-          credentials: 'include',
-        }
+      const statsResponse = await api.get(
+        `/creator-dashboard/stats?timeRange=${timeRange}`
       );
 
-      if (! statsResponse.ok) {
-        throw new Error('Erro ao carregar estatísticas');
-      }
-
-      const statsData = await statsResponse.json();
-      
       // Atualizar stats
-      if (statsData.data) {
+      if (statsResponse.data?.data) {
         setStats({
-          subscribers: statsData.data.subscribers || 0,
-          subscribersGrowth: statsData.data.subscribersGrowth || 0,
-          earnings: statsData.data.earnings || 0,
-          earningsGrowth: statsData.data.earningsGrowth || 0,
-          posts: statsData.data.posts || 0,
-          postsThisMonth: statsData.data.postsThisMonth || 0,
-          engagement: statsData.data.engagement || 0,
-          views: statsData.data.views || 0,
+          subscribers: statsResponse.data.data.subscribers || 0,
+          subscribersGrowth: statsResponse.data.data.subscribersGrowth || 0,
+          earnings: statsResponse.data.data.earnings || 0,
+          earningsGrowth: statsResponse.data.data.earningsGrowth || 0,
+          posts: statsResponse.data.data.posts || 0,
+          postsThisMonth: statsResponse.data.data.postsThisMonth || 0,
+          engagement: statsResponse.data.data.engagement || 0,
+          views: statsResponse.data.data.views || 0,
         });
         
         // Atualizar gráfico de ganhos
-        if (statsData.data.earningsChart) {
-          setEarningsChart(statsData.data.earningsChart);
+        if (statsResponse.data.data.earningsChart) {
+          setEarningsChart(statsResponse.data.data.earningsChart);
         }
       }
 
       // Buscar assinantes recentes
-      const subscribersResponse = await fetch(
-        'http://localhost:5000/api/v1/creator-dashboard/recent-subscribers? limit=5',
-        {
-          headers: {
-            'Authorization': `Bearer ${token}`,
-            'Content-Type': 'application/json',
-          },
-          credentials: 'include',
-        }
-      );
-
-      if (subscribersResponse.ok) {
-        const subscribersData = await subscribersResponse.json();
-        setRecentSubscribers(subscribersData.data || []);
+      try {
+        const subscribersResponse = await api.get(
+          '/creator-dashboard/recent-subscribers?limit=5'
+        );
+        setRecentSubscribers(subscribersResponse.data?.data || []);
+      } catch (err) {
+        console.error('Erro ao carregar assinantes:', err);
       }
 
       // Buscar top posts
-      const postsResponse = await fetch(
-        'http://localhost:5000/api/v1/creator-dashboard/top-posts?limit=3',
-        {
-          headers: {
-            'Authorization': `Bearer ${token}`,
-            'Content-Type': 'application/json',
-          },
-          credentials: 'include',
-        }
-      );
-
-      if (postsResponse.ok) {
-        const postsData = await postsResponse.json();
-        setTopPosts(postsData.data || []);
+      try {
+        const postsResponse = await api.get(
+          '/creator-dashboard/top-posts?limit=3'
+        );
+        setTopPosts(postsResponse.data?.data || []);
+      } catch (err) {
+        console.error('Erro ao carregar posts:', err);
       }
 
       // Buscar notificações
-      const notificationsResponse = await fetch(
-        'http://localhost:5000/api/v1/creator-dashboard/notifications? limit=4',
-        {
-          headers: {
-            'Authorization': `Bearer ${token}`,
-            'Content-Type': 'application/json',
-          },
-          credentials: 'include',
-        }
-      );
-
-      if (notificationsResponse.ok) {
-        const notifData = await notificationsResponse.json();
-        setNotifications(notifData.data || []);
+      try {
+        const notificationsResponse = await api.get(
+          '/creator-dashboard/notifications?limit=4'
+        );
+        setNotifications(notificationsResponse.data?.data || []);
+      } catch (err) {
+        console.error('Erro ao carregar notificações:', err);
       }
 
     } catch (err) {
       console.error('Erro ao carregar dashboard:', err);
-      setError(err.message || 'Erro ao carregar dados');
+      setError(err.response?.data?.message || err.message || 'Erro ao carregar dados');
     } finally {
       setLoading(false);
     }
@@ -186,11 +150,8 @@ export default function CreatorDashboardPage() {
     return (
       <div className="flex min-h-screen bg-slate-50 dark:bg-slate-950">
         <CreatorSidebar />
-        <div className="flex-1 flex items-center justify-center">
-          <div className="text-center">
-            <div className="inline-block animate-spin rounded-full h-12 w-12 border-4 border-indigo-600 border-t-transparent"></div>
-            <p className="mt-4 text-slate-600 dark:text-slate-400">Carregando dashboard...</p>
-          </div>
+        <div className="flex-1">
+          <LoadingSpinner size="lg" message="Carregando dashboard..." fullScreen={false} />
         </div>
       </div>
     );
@@ -201,22 +162,12 @@ export default function CreatorDashboardPage() {
     return (
       <div className="flex min-h-screen bg-slate-50 dark:bg-slate-950">
         <CreatorSidebar />
-        <div className="flex-1 flex items-center justify-center p-4">
-          <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-xl p-8 max-w-md">
-            <svg xmlns="http://www.w3. org/2000/svg" className="h-12 w-12 text-red-500 mx-auto mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-            </svg>
-            <h3 className="text-lg font-semibold text-red-900 dark:text-red-100 text-center mb-2">
-              Erro ao Carregar
-            </h3>
-            <p className="text-red-700 dark:text-red-300 text-center mb-4">{error}</p>
-            <button
-              onClick={fetchDashboardData}
-              className="w-full bg-red-600 hover:bg-red-700 text-white py-2 px-4 rounded-lg font-medium transition-colors"
-            >
-              Tentar Novamente
-            </button>
-          </div>
+        <div className="flex-1">
+          <ErrorMessage 
+            message={error} 
+            onRetry={fetchDashboardData}
+            title="Erro ao Carregar Dashboard"
+          />
         </div>
       </div>
     );
@@ -231,7 +182,7 @@ export default function CreatorDashboardPage() {
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="flex items-center justify-between h-16">
               <div className="flex items-center space-x-4">
-                <Link to="/creator-dashboard" className="flex items-center space-x-3">
+                <Link to="/creator/dashboard" className="flex items-center space-x-3">
                   <div className="w-10 h-10 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-xl flex items-center justify-center">
                     <span className="text-white font-black text-xl">P</span>
                   </div>
