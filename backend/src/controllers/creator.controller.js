@@ -37,33 +37,38 @@ export const listCreators = async (req, res) => {
       ];
     }
 
-    const [creators, total] = await Promise.all([
-      prisma.creator.findMany({
-        where,
-        include: {
-          user: {
-            select: {
-              username: true,
-              displayName: true,
-              avatar: true,
-              bio: true,
-            },
-          },
-          _count: {
-            select: {
-              subscriptions: true,
-              posts: true,
-            },
+    const creators = await prisma.creator.findMany({
+      where,
+      take: parseInt(limit),
+      orderBy: featured ? { subscribers: 'desc' } : { createdAt: 'desc' },
+      include: {
+        user: {
+          select: {
+            username: true,
+            displayName: true,
+            avatar: true,
+            isVerified: true,
           },
         },
-        skip,
-        take: parseInt(limit),
-        orderBy: {
-          createdAt: 'desc',
-        },
-      }),
-      prisma.creator.count({ where }),
-    ]);
+      },
+    });
+
+    const formattedCreators = creators.map((creator) => ({
+      id: creator.id,
+      userId: creator.userId,
+      username: creator.user.username,
+      displayName: creator.displayName || creator.user.displayName,
+      avatar: creator.user.avatar,
+      cover: creator.coverImage,
+      bio: creator.bio,
+      category: creator.category,
+      subscriptionPrice: creator.subscriptionPrice,
+      subscribers: creator.subscribers,
+      isVerified: creator.user.isVerified,
+      posts: creator.totalPosts || 0,
+      photos: creator.totalPhotos || 0,
+      videos: creator.totalVideos || 0,
+    }));
 
     res.json({
       success: true,

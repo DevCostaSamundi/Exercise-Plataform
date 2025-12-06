@@ -141,6 +141,9 @@ The database schema is defined in `prisma/schema.prisma`. Main entities include:
 
 ### Creators
 - `GET /api/v1/creators` - List all creators
+  - Query params: `?featured=true` - Filter featured creators
+  - Query params: `?category=<category>` - Filter by category
+  - Query params: `?search=<term>` - Search creators
 - `GET /api/v1/creators/:id` - Get creator by ID
 - `POST /api/v1/creators` - Become a creator
 - `PUT /api/v1/creators/:id` - Update creator profile
