@@ -133,24 +133,24 @@ export default function CreatorRegisterPage() {
     if (!formData.username) newErrors.username = 'Nome de usuário é obrigatório';
     else if (formData.username.length < 3) newErrors.username = 'Mínimo 3 caracteres';
 
-    if (!formData. password) newErrors. password = 'Senha é obrigatória';
-    else if (formData. password.length < 8) newErrors. password = 'Mínimo 8 caracteres';
+    if (!formData.password) newErrors.password = 'Senha é obrigatória';
+    else if (formData.password.length < 8) newErrors.password = 'Mínimo 8 caracteres';
 
     if (formData.password !== formData.confirmPassword) {
-      newErrors. confirmPassword = 'As senhas não coincidem';
+      newErrors.confirmPassword = 'As senhas não coincidem';
     }
     return newErrors;
   };
 
   const validateStep2 = () => {
     const newErrors = {};
-    if (!formData.displayName) newErrors. displayName = 'Nome de exibição é obrigatório';
-    if (!formData.birthDate) newErrors. birthDate = 'Data de nascimento é obrigatória';
+    if (!formData.displayName) newErrors.displayName = 'Nome de exibição é obrigatório';
+    if (!formData.birthDate) newErrors.birthDate = 'Data de nascimento é obrigatória';
     else {
       const today = new Date();
       const birth = new Date(formData.birthDate);
       let age = today.getFullYear() - birth.getFullYear();
-      const m = today.getMonth() - birth. getMonth();
+      const m = today.getMonth() - birth.getMonth();
       if (m < 0 || (m === 0 && today.getDate() < birth.getDate())) {
         age--;
       }
@@ -158,14 +158,14 @@ export default function CreatorRegisterPage() {
     }
     if (!formData.genderIdentity) newErrors.genderIdentity = 'Selecione sua identidade';
     if (!formData.bio) newErrors.bio = 'Escreva uma bio para seu perfil';
-    else if (formData. bio.length < 50) newErrors.bio = 'Bio deve ter no mínimo 50 caracteres';
+    else if (formData.bio.length < 50) newErrors.bio = 'Bio deve ter no mínimo 50 caracteres';
     return newErrors;
   };
 
   const validateStep3 = () => {
     const newErrors = {};
     if (formData.contentTypes.length === 0) {
-      newErrors. contentTypes = 'Selecione pelo menos um tipo de conteúdo';
+      newErrors.contentTypes = 'Selecione pelo menos um tipo de conteúdo';
     }
     if (formData.aesthetic.length === 0) {
       newErrors.aesthetic = 'Selecione pelo menos uma estética';
@@ -181,27 +181,27 @@ export default function CreatorRegisterPage() {
 
   const validateStep4 = () => {
     const newErrors = {};
-    if (!formData.fullName) newErrors. fullName = 'Nome completo é obrigatório';
+    if (!formData.fullName) newErrors.fullName = 'Nome completo é obrigatório';
 
     // CPF apenas obrigatório para PIX
     if (formData.paymentMethod === 'pix') {
       if (!formData.cpf) {
-        newErrors. cpf = 'CPF é obrigatório para pagamentos PIX';
-      } else if (!/^\d{11}$/.test(formData.cpf. replace(/\D/g, ''))) {
-        newErrors. cpf = 'CPF inválido';
+        newErrors.cpf = 'CPF é obrigatório para pagamentos PIX';
+      } else if (!/^\d{11}$/.test(formData.cpf.replace(/\D/g, ''))) {
+        newErrors.cpf = 'CPF inválido';
       }
     }
 
     // Validações por método de pagamento
-    if (formData. paymentMethod === 'crypto') {
+    if (formData.paymentMethod === 'crypto') {
       if (!formData.cryptoWallet) newErrors.cryptoWallet = 'Forneça o endereço da sua carteira crypto';
       else if (formData.cryptoWallet.length < 10) newErrors.cryptoWallet = 'Endereço de carteira inválido';
     } else if (formData.paymentMethod === 'card') {
       if (!formData.cardOnFile) {
-        newErrors. cardOnFile = 'Adicione um cartão para receber pagamentos';
+        newErrors.cardOnFile = 'Adicione um cartão para receber pagamentos';
       }
     } else if (formData.paymentMethod === 'pix') {
-      if (! formData.pixKey) newErrors.pixKey = 'Chave PIX é obrigatória';
+      if (!formData.pixKey) newErrors.pixKey = 'Chave PIX é obrigatória';
     }
 
     return newErrors;
@@ -209,10 +209,10 @@ export default function CreatorRegisterPage() {
 
   const validateStep5 = () => {
     const newErrors = {};
-    if (!formData.idDocument) newErrors. idDocument = 'Documento de identidade é obrigatório';
-    if (! formData.selfieWithId) newErrors.selfieWithId = 'Selfie com documento é obrigatória';
-    if (! formData. ageConfirm) newErrors.ageConfirm = 'Você deve confirmar que tem 18+';
-    if (! formData.agreeTerms) newErrors.agreeTerms = 'Você deve aceitar os termos';
+    if (!formData.idDocument) newErrors.idDocument = 'Documento de identidade é obrigatório';
+    if (!formData.selfieWithId) newErrors.selfieWithId = 'Selfie com documento é obrigatória';
+    if (!formData.ageConfirm) newErrors.ageConfirm = 'Você deve confirmar que tem 18+';
+    if (!formData.agreeTerms) newErrors.agreeTerms = 'Você deve aceitar os termos';
     if (!formData.contentOwnership) newErrors.contentOwnership = 'Você deve confirmar a autoria do conteúdo';
     return newErrors;
   };
@@ -225,7 +225,7 @@ export default function CreatorRegisterPage() {
     else if (step === 3) newErrors = validateStep3();
     else if (step === 4) newErrors = validateStep4();
 
-    if (Object. keys(newErrors). length > 0) {
+    if (Object.keys(newErrors).length > 0) {
       setErrors(newErrors);
       return;
     }
@@ -247,13 +247,13 @@ export default function CreatorRegisterPage() {
         credentials: 'include',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ 
-          returnUrl: window.location.origin + '/creator-register? cardAdded=1' 
+          returnUrl: window.location.origin + '/creator-register?cardAdded=1' 
         })
       });
       const json = await res.json();
       
-      if (json?. url) {
-        window.location.href = json. url;
+      if (json?.url) {
+        window.location.href = json.url;
       } else if (json?.setupCompleted) {
         setFormData(prev => ({ 
           ...prev, 
@@ -263,7 +263,7 @@ export default function CreatorRegisterPage() {
       } else {
         setErrors(prev => ({ 
           ...prev, 
-          submit: json. message || 'Não foi possível iniciar fluxo de cartão' 
+          submit: json.message || 'Não foi possível iniciar fluxo de cartão' 
         }));
       }
     } catch (err) {
@@ -291,9 +291,9 @@ export default function CreatorRegisterPage() {
       fe.idDocument = 'ID muito grande (máx 5MB)';
     }
     if (formData.selfieWithId instanceof File && formData.selfieWithId.size > maxFileSize) {
-      fe. selfieWithId = 'Selfie muito grande (máx 5MB)';
+      fe.selfieWithId = 'Selfie muito grande (máx 5MB)';
     }
-    if (Object.keys(fe). length) {
+    if (Object.keys(fe).length) {
       setFileErrors(fe);
       return;
     }
@@ -309,9 +309,9 @@ export default function CreatorRegisterPage() {
       payload.append('email', formData.email);
       payload.append('username', formData.username);
       payload.append('password', formData.password);
-      payload. append('confirmPassword', formData. confirmPassword);
-      payload.append('displayName', formData. displayName);
-      payload.append('birthDate', formData. birthDate || '');
+      payload.append('confirmPassword', formData.confirmPassword);
+      payload.append('displayName', formData.displayName);
+      payload.append('birthDate', formData.birthDate || '');
       payload.append('genderIdentity', formData.genderIdentity || '');
       payload.append('orientation', formData.orientation || '');
       payload.append('location', formData.location || '');
@@ -320,16 +320,16 @@ export default function CreatorRegisterPage() {
       payload.append('subscriptionPrice', formData.subscriptionPrice ?  String(formData.subscriptionPrice) : '');
       
       // Dados de pagamento
-      payload.append('fullName', formData. fullName || '');
-      payload.append('cpf', formData. cpf || '');
-      payload.append('pixKey', formData. pixKey || '');
+      payload.append('fullName', formData.fullName || '');
+      payload.append('cpf', formData.cpf || '');
+      payload.append('pixKey', formData.pixKey || '');
       payload.append('pixKeyType', formData.pixKeyType || '');
       payload.append('paymentMethod', formData.paymentMethod || 'crypto');
-      payload. append('cryptoCurrency', formData. cryptoCurrency || '');
-      payload. append('cryptoWallet', formData. cryptoWallet || '');
-      payload.append('cardOnFile', formData. cardOnFile ? 'true' : 'false');
+      payload.append('cryptoCurrency', formData.cryptoCurrency || '');
+      payload.append('cryptoWallet', formData.cryptoWallet || '');
+      payload.append('cardOnFile', formData.cardOnFile ? 'true' : 'false');
       payload.append('cardLast4', formData.cardLast4 || '');
-      payload.append('stripeCustomerId', formData. stripeCustomerId || '');
+      payload.append('stripeCustomerId', formData.stripeCustomerId || '');
       
       // Termos e verificações
       payload.append('agreeTerms', formData.agreeTerms ? 'true' : 'false');
@@ -342,20 +342,20 @@ export default function CreatorRegisterPage() {
 
       // Arquivos
       if (formData.idDocument) {
-        payload. append('idDocument', formData.idDocument);
+        payload.append('idDocument', formData.idDocument);
       }
-      if (formData. selfieWithId) {
-        payload. append('selfieWithId', formData. selfieWithId);
+      if (formData.selfieWithId) {
+        payload.append('selfieWithId', formData.selfieWithId);
       }
 
       await new Promise((resolve, reject) => {
         const xhr = new XMLHttpRequest();
-        xhr. open('POST', 'http://localhost:5000/api/v1/auth/creator-register', true);
+        xhr.open('POST', 'http://localhost:5000/api/v1/auth/creator-register', true);
         xhr.withCredentials = true;
 
         xhr.upload.onprogress = (event) => {
           if (event.lengthComputable) {
-            const percent = Math.round((event. loaded / event.total) * 100);
+            const percent = Math.round((event.loaded / event.total) * 100);
             setProgress(percent);
           }
         };
@@ -386,7 +386,7 @@ export default function CreatorRegisterPage() {
             if (status >= 200 && status < 300) {
               if (result?.data?.accessToken) {
                 localStorage.setItem('authToken', result.data.accessToken);
-                localStorage.setItem('user', JSON.stringify(result.data. user));
+                localStorage.setItem('user', JSON.stringify(result.data.user));
               }
               resolve(result);
             } else {
@@ -419,7 +419,7 @@ export default function CreatorRegisterPage() {
       });
 
       // Login automático se não houver token
-      const existingToken = localStorage. getItem('authToken');
+      const existingToken = localStorage.getItem('authToken');
       if (! existingToken) {
         try {
           const loginRes = await fetch('http://localhost:5000/api/v1/auth/login', {
@@ -431,10 +431,10 @@ export default function CreatorRegisterPage() {
               password: formData.password 
             }),
           });
-          const loginJson = await loginRes. json();
+          const loginJson = await loginRes.json();
           
           if (loginRes.ok && loginJson?.data?.accessToken) {
-            localStorage.setItem('authToken', loginJson.data. accessToken);
+            localStorage.setItem('authToken', loginJson.data.accessToken);
             localStorage.setItem('user', JSON.stringify(loginJson.data.user));
           } else {
             console.warn('Auto-login falhou após registro:', loginJson);
@@ -459,7 +459,7 @@ export default function CreatorRegisterPage() {
       navigate('/creator/dashboard', { state: { newCreator: true } });
     } catch (error) {
       console.log("Erro no registro de criador", error);
-      setErrors({ submit: 'Erro ao criar conta.  Tente novamente.' });
+      setErrors({ submit: 'Erro ao criar conta. Tente novamente.' });
     } finally {
       setIsLoading(false);
     }
@@ -544,7 +544,7 @@ export default function CreatorRegisterPage() {
                     value={formData.email}
                     onChange={handleChange}
                     className={`w-full px-4 py-3 bg-slate-50 dark:bg-slate-800 border ${
-                      errors. email ?  'border-red-300' : 'border-slate-200 dark:border-slate-700'
+                      errors.email ?  'border-red-300' : 'border-slate-200 dark:border-slate-700'
                     } rounded-lg text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500`}
                     placeholder="seu@email.com"
                   />
@@ -604,10 +604,10 @@ export default function CreatorRegisterPage() {
                   <input
                     type="password"
                     name="confirmPassword"
-                    value={formData. confirmPassword}
+                    value={formData.confirmPassword}
                     onChange={handleChange}
                     className={`w-full px-4 py-3 bg-slate-50 dark:bg-slate-800 border ${
-                      errors. confirmPassword ? 'border-red-300' : 'border-slate-200 dark:border-slate-700'
+                      errors.confirmPassword ? 'border-red-300' : 'border-slate-200 dark:border-slate-700'
                     } rounded-lg text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500`}
                     placeholder="••••••••"
                   />
@@ -632,14 +632,14 @@ export default function CreatorRegisterPage() {
                   <input
                     type="text"
                     name="displayName"
-                    value={formData. displayName}
+                    value={formData.displayName}
                     onChange={handleChange}
                     className={`w-full px-4 py-3 bg-slate-50 dark:bg-slate-800 border ${
                       errors.displayName ? 'border-red-300' : 'border-slate-200 dark:border-slate-700'
                     } rounded-lg text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500`}
                     placeholder="Como você quer ser chamado"
                   />
-                  {errors.displayName && <p className="mt-1 text-sm text-red-600">{errors. displayName}</p>}
+                  {errors.displayName && <p className="mt-1 text-sm text-red-600">{errors.displayName}</p>}
                 </div>
 
                 <div className="grid grid-cols-2 gap-4">
@@ -654,10 +654,10 @@ export default function CreatorRegisterPage() {
                       onChange={handleChange}
                       max={new Date(new Date().setFullYear(new Date().getFullYear() - 18)).toISOString().split('T')[0]}
                       className={`w-full px-4 py-3 bg-slate-50 dark:bg-slate-800 border ${
-                        errors. birthDate ? 'border-red-300' : 'border-slate-200 dark:border-slate-700'
+                        errors.birthDate ? 'border-red-300' : 'border-slate-200 dark:border-slate-700'
                       } rounded-lg text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500`}
                     />
-                    {errors.birthDate && <p className="mt-1 text-sm text-red-600">{errors. birthDate}</p>}
+                    {errors.birthDate && <p className="mt-1 text-sm text-red-600">{errors.birthDate}</p>}
                   </div>
 
                   <div>
@@ -702,7 +702,7 @@ export default function CreatorRegisterPage() {
                       value={formData.genderIdentity}
                       onChange={handleChange}
                       className={`w-full px-4 py-3 bg-slate-50 dark:bg-slate-800 border ${
-                        errors. genderIdentity ?  'border-red-300' : 'border-slate-200 dark:border-slate-700'
+                        errors.genderIdentity ?  'border-red-300' : 'border-slate-200 dark:border-slate-700'
                       } rounded-lg text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500`}
                     >
                       <option value="">Selecione... </option>
@@ -724,7 +724,7 @@ export default function CreatorRegisterPage() {
                       className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500"
                     >
                       <option value="">Selecione... </option>
-                      {orientationOptions. map(opt => (
+                      {orientationOptions.map(opt => (
                         <option key={opt} value={opt}>{opt}</option>
                       ))}
                     </select>
@@ -737,12 +737,12 @@ export default function CreatorRegisterPage() {
                   </label>
                   <textarea
                     name="bio"
-                    value={formData. bio}
+                    value={formData.bio}
                     onChange={handleChange}
                     rows={5}
                     maxLength={500}
                     className={`w-full px-4 py-3 bg-slate-50 dark:bg-slate-800 border ${
-                      errors. bio ? 'border-red-300' : 'border-slate-200 dark:border-slate-700'
+                      errors.bio ? 'border-red-300' : 'border-slate-200 dark:border-slate-700'
                     } rounded-lg text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500 resize-none`}
                     placeholder="Conte sobre você, seu conteúdo e o que torna você único..."
                   ></textarea>
@@ -821,7 +821,7 @@ export default function CreatorRegisterPage() {
                       step="0.10"
                       min="5"
                       className={`w-full pl-12 pr-4 py-3 bg-slate-50 dark:bg-slate-800 border ${
-                        errors. subscriptionPrice ? 'border-red-300' : 'border-slate-200 dark:border-slate-700'
+                        errors.subscriptionPrice ? 'border-red-300' : 'border-slate-200 dark:border-slate-700'
                       } rounded-lg text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500`}
                       placeholder="9.99"
                     />
@@ -850,7 +850,7 @@ export default function CreatorRegisterPage() {
                       <div className="flex justify-between">
                         <span>100 assinantes:</span>
                         <span className="font-bold text-indigo-600 dark:text-indigo-400">
-                          ${(priceNumber(formData.subscriptionPrice) * 100 * 0.8). toFixed(2)}/mês
+                          ${(priceNumber(formData.subscriptionPrice) * 100 * 0.8).toFixed(2)}/mês
                         </span>
                       </div>
                     </div>
@@ -897,7 +897,7 @@ export default function CreatorRegisterPage() {
                     </label>
 
                     <label className={`px-4 py-4 rounded-lg cursor-pointer border-2 transition-all ${
-                      formData. paymentMethod === 'card' 
+                      formData.paymentMethod === 'card' 
                         ? 'bg-indigo-600 text-white border-indigo-600' 
                         : 'bg-slate-50 dark:bg-slate-800 border-slate-200 dark:border-slate-700 hover:border-indigo-300'
                     }`}>
@@ -905,7 +905,7 @@ export default function CreatorRegisterPage() {
                         type="radio" 
                         name="paymentMethod" 
                         value="card" 
-                        checked={formData. paymentMethod === 'card'} 
+                        checked={formData.paymentMethod === 'card'} 
                         onChange={handleChange} 
                         className="hidden" 
                       />
@@ -948,7 +948,7 @@ export default function CreatorRegisterPage() {
                     value={formData.fullName}
                     onChange={handleChange}
                     className={`w-full px-4 py-3 bg-slate-50 dark:bg-slate-800 border ${
-                      errors. fullName ? 'border-red-300' : 'border-slate-200 dark:border-slate-700'
+                      errors.fullName ? 'border-red-300' : 'border-slate-200 dark:border-slate-700'
                     } rounded-lg text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500`}
                     placeholder="Seu Nome Completo"
                   />
@@ -986,7 +986,7 @@ export default function CreatorRegisterPage() {
                         value={formData.cryptoWallet}
                         onChange={handleChange}
                         className={`w-full px-4 py-3 bg-slate-50 dark:bg-slate-800 border ${
-                          errors. cryptoWallet ?  'border-red-300' : 'border-slate-200 dark:border-slate-700'
+                          errors.cryptoWallet ?  'border-red-300' : 'border-slate-200 dark:border-slate-700'
                         } rounded-lg text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500`}
                         placeholder="Ex: 0x...  (ETH) ou bc1...  (BTC)"
                       />
@@ -1035,7 +1035,7 @@ export default function CreatorRegisterPage() {
                       </label>
                       <select
                         name="pixKeyType"
-                        value={formData. pixKeyType}
+                        value={formData.pixKeyType}
                         onChange={handleChange}
                         className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500"
                       >
@@ -1059,13 +1059,13 @@ export default function CreatorRegisterPage() {
                           errors.pixKey ? 'border-red-300' : 'border-slate-200 dark:border-slate-700'
                         } rounded-lg text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500`}
                         placeholder={
-                          formData. pixKeyType === 'email' ?  'seu@email.com' :
+                          formData.pixKeyType === 'email' ?  'seu@email.com' :
                           formData.pixKeyType === 'cpf' ? '000.000.000-00' :
                           formData.pixKeyType === 'phone' ? '(11) 99999-9999' :
                           'Chave aleatória do banco'
                         }
                       />
-                      {errors. pixKey && <p className="mt-1 text-sm text-red-600">{errors.pixKey}</p>}
+                      {errors.pixKey && <p className="mt-1 text-sm text-red-600">{errors.pixKey}</p>}
                     </div>
 
                     <div>
@@ -1075,12 +1075,12 @@ export default function CreatorRegisterPage() {
                       <input
                         type="text"
                         name="cpf"
-                        value={formData. cpf}
+                        value={formData.cpf}
                         onChange={handleChange}
                         className={`w-full px-4 py-3 bg-slate-50 dark:bg-slate-800 border ${
                           errors.cpf ? 'border-red-300' : 'border-slate-200 dark:border-slate-700'
                         } rounded-lg text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500`}
-                        placeholder="000.000. 000-00"
+                        placeholder="000.000.000-00"
                         maxLength="14"
                       />
                       {errors.cpf && <p className="mt-1 text-sm text-red-600">{errors.cpf}</p>}
@@ -1108,21 +1108,21 @@ export default function CreatorRegisterPage() {
                       type="file"
                       name="idDocument"
                       onChange={handleChange}
-                      accept="image/*,. pdf"
+                      accept="image/*,.pdf"
                       className="hidden"
                       id="idDocument"
                     />
                     <label htmlFor="idDocument" className="cursor-pointer">
-                      <svg xmlns="http://www. w3.org/2000/svg" className="mx-auto h-12 w-12 text-slate-400 mb-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7. 903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+                      <svg xmlns="http://www.w3.org/2000/svg" className="mx-auto h-12 w-12 text-slate-400 mb-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
                       </svg>
                       <p className="text-sm text-slate-600 dark:text-slate-400">
-                        {formData.idDocument ? formData.idDocument. name : 'Clique para fazer upload'}
+                        {formData.idDocument ? formData.idDocument.name : 'Clique para fazer upload'}
                       </p>
                       <p className="text-xs text-slate-500 mt-1">PNG, JPG ou PDF (máx. 5MB)</p>
                     </label>
                   </div>
-                  {errors. idDocument && <p className="mt-1 text-sm text-red-600">{errors.idDocument}</p>}
+                  {errors.idDocument && <p className="mt-1 text-sm text-red-600">{errors.idDocument}</p>}
                 </div>
 
                 <div>
@@ -1140,7 +1140,7 @@ export default function CreatorRegisterPage() {
                     />
                     <label htmlFor="selfieWithId" className="cursor-pointer">
                       <svg xmlns="http://www.w3.org/2000/svg" className="mx-auto h-12 w-12 text-slate-400 mb-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 9a2 2 0 012-2h. 93a2 2 0 001.664-. 89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1. 22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
                       </svg>
                       <p className="text-sm text-slate-600 dark:text-slate-400">

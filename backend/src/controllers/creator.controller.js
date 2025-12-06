@@ -6,14 +6,28 @@ import logger from '../utils/logger.js';
  */
 export const listCreators = async (req, res) => {
   try {
-    const { limit = 20, featured, category, search } = req.query;
+    const {
+      page = 1,
+      limit = 20,
+      category,
+      featured,
+      search,
+    } = req.query;
+
+    const skip = (parseInt(page) - 1) * parseInt(limit);
 
     const where = {
-      publicProfile: true,
+      user: {
+        isActive: true,
+      },
     };
 
     if (category) {
       where.category = category;
+    }
+
+    if (featured === 'true') {
+      where.featured = true;
     }
 
     if (search) {
@@ -23,48 +37,50 @@ export const listCreators = async (req, res) => {
       ];
     }
 
-    const creators = await prisma.creator.findMany({
-      where,
-      take: parseInt(limit),
-      orderBy: featured ? { subscribers: 'desc' } : { createdAt: 'desc' },
-      include: {
-        user: {
-          select: {
-            username: true,
-            displayName: true,
-            avatar: true,
-            isVerified: true,
+    const [creators, total] = await Promise.all([
+      prisma.creator.findMany({
+        where,
+        include: {
+          user: {
+            select: {
+              username: true,
+              displayName: true,
+              avatar: true,
+              bio: true,
+            },
+          },
+          _count: {
+            select: {
+              subscriptions: true,
+              posts: true,
+            },
           },
         },
-      },
-    });
-
-    const formattedCreators = creators.map((creator) => ({
-      id: creator.id,
-      userId: creator.userId,
-      username: creator.user.username,
-      displayName: creator.displayName || creator.user.displayName,
-      avatar: creator.user.avatar,
-      cover: creator.coverImage,
-      bio: creator.bio,
-      category: creator.category,
-      subscriptionPrice: creator.subscriptionPrice,
-      subscribers: creator.subscribers,
-      isVerified: creator.user.isVerified,
-      posts: creator.totalPosts || 0,
-      photos: creator.totalPhotos || 0,
-      videos: creator.totalVideos || 0,
-    }));
+        skip,
+        take: parseInt(limit),
+        orderBy: {
+          createdAt: 'desc',
+        },
+      }),
+      prisma.creator.count({ where }),
+    ]);
 
     res.json({
       success: true,
-      data: formattedCreators,
+      data: creators,
+      pagination: {
+        page: parseInt(page),
+        limit: parseInt(limit),
+        total,
+        pages: Math.ceil(total / parseInt(limit)),
+      },
     });
   } catch (error) {
     logger.error('List creators error:', error);
     res.status(500).json({
       success: false,
       message: 'Failed to list creators',
+      error: process.env.NODE_ENV === 'development' ? error.message : undefined,
     });
   }
 };

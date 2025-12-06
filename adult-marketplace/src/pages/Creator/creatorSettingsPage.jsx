@@ -554,7 +554,7 @@ function AccountSection({ account, setAccount, onSave, saving, toast }) {
   const handlePasswordChange = async () => {
     setPasswordError('');
 
-    if (! passwordData.currentPassword) {
+    if (!passwordData.currentPassword) {
       setPasswordError('Digite sua senha atual');
       return;
     }
@@ -595,7 +595,7 @@ function AccountSection({ account, setAccount, onSave, saving, toast }) {
           <Input
             id="email"
             type="email"
-            value={account. email}
+            value={account.email}
             onChange={(e) => setAccount({ ...account, email: e.target.value })}
             placeholder="seu@email.com"
           />
@@ -694,7 +694,7 @@ function AccountSection({ account, setAccount, onSave, saving, toast }) {
           description="Use um app autenticador como Google Authenticator ou Authy"
         />
 
-        {! account.twoFactorEnabled && (
+        {!account.twoFactorEnabled && (
           <Button variant="outline" className="mt-4">🔒 Configurar 2FA</Button>
         )}
       </SettingsCard>
@@ -1335,7 +1335,7 @@ function BlockingSection({ blocking, setBlocking }) {
       >
         {blocking.blockedUsers?.length > 0 ? (
           <div className="space-y-2">
-            {blocking.blockedUsers. map((username) => (
+            {blocking.blockedUsers.map((username) => (
               <div
                 key={username}
                 className="flex items-center justify-between p-3 bg-slate-50 dark:bg-slate-800 rounded-lg"

@@ -67,7 +67,7 @@ function TitleSection() {
       {/* Logo */}
       <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-2xl mb-4 shadow-lg">
         <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8 text-white" viewBox="0 0 20 20" fill="currentColor">
-          <path fillRule="evenodd" d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7. 414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4zm2 6a1 1 0 011-1h6a1 1 0 110 2H7a1 1 0 01-1-1zm1 3a1 1 0 100 2h6a1 1 0 100-2H7z" clipRule="evenodd" />
+          <path fillRule="evenodd" d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4zm2 6a1 1 0 011-1h6a1 1 0 110 2H7a1 1 0 01-1-1zm1 3a1 1 0 100 2h6a1 1 0 100-2H7z" clipRule="evenodd" />
         </svg>
       </div>
 
@@ -132,7 +132,7 @@ function TableOfContents() {
           >
             <span className="text-base">{item.icon}</span>
             <span className="group-hover:underline">
-              {index + 1}. {item. label}
+              {index + 1}.{item.label}
             </span>
           </a>
         ))}
@@ -171,7 +171,7 @@ function BulletList({ items }) {
     <ul className="space-y-2 ml-1">
       {items.map((item, index) => (
         <li key={index} className="flex items-start space-x-3">
-          <span className="text-indigo-500 mt-1. 5">•</span>
+          <span className="text-indigo-500 mt-1.5">•</span>
           <span>{item}</span>
         </li>
       ))}
@@ -245,7 +245,7 @@ function DefinitionList({ items }) {
           <span className="text-2xl">{item.icon}</span>
           <div>
             <dt className="font-semibold text-slate-900 dark:text-white">
-              {item. term}
+              {item.term}
             </dt>
             <dd className="text-sm text-slate-600 dark:text-slate-400 mt-1">
               {item.definition}
@@ -281,7 +281,7 @@ function FeeTable({ fees }) {
                 {fee.type}
               </td>
               <td className="px-4 py-3 text-indigo-600 dark:text-indigo-400 font-semibold">
-                {fee. rate}
+                {fee.rate}
               </td>
               <td className="px-4 py-3 text-slate-600 dark:text-slate-400">
                 {fee.description}

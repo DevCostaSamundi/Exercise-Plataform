@@ -103,7 +103,7 @@ const API_VERSION = process.env.API_VERSION || 'v1';
 app.use(`/api/${API_VERSION}/auth`, authRoutes);
 
 // User routes
-app.use(`/api/${API_VERSION}/users`, userRoutes);
+app.use(`/api/${API_VERSION}/user`, userRoutes);
 
 // Subscription routes
 app.use(`/api/${API_VERSION}/subscriptions`, subscriptionRoutes);

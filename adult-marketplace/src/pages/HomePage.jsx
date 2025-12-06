@@ -73,14 +73,14 @@ export default function HomePage() {
   const [creators, setCreators] = useState([]);
   const [activeTab, setActiveTab] = useState('creators');
   const [sortBy, setSortBy] = useState('popular');
-  
+
   // API state
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [page, setPage] = useState(1);
   const [hasMore, setHasMore] = useState(true);
   const [totalCreators, setTotalCreators] = useState(0);
-  
+
   // Ref for debounce timer
   const searchTimerRef = useRef(null);
 
@@ -95,25 +95,77 @@ export default function HomePage() {
   }, [discreetMode]);
 
   // Function to fetch creators from API
-  const fetchCreators = async () => {
+  // ✅ CORRETO - Atualizar função fetchCreators
+  const fetchCreators = async (pageNum = 1, appendResults = false) => {
     setLoading(true);
+    setError(null);
+
     try {
-      // ✅ CORREÇÃO: Usar creatorService em vez de creatorsAPI
+      // Construir filtros da API
+      const filters = {};
+
+      // Adicionar filtros apenas se tiverem valores
+      if (selectedFilters.genderIdentity.length > 0) {
+        filters.genderIdentity = selectedFilters.genderIdentity;
+      }
+      if (selectedFilters.orientation.length > 0) {
+        filters.orientation = selectedFilters.orientation;
+      }
+      if (search.trim()) {
+        filters.search = search.trim();
+      }
+
       const response = await creatorService.listCreators({
+        page: pageNum,
         limit: 20,
         featured: true,
+        ...filters
       });
-      
+
       if (response.success) {
-        setCreators(response.data);
+        if (appendResults) {
+          setCreators(prev => [...prev, ...response.data]);
+        } else {
+          setCreators(response.data);
+        }
+
+        setHasMore(response.data.length === 20);
+        setTotalCreators(response.total || response.data.length);
       }
     } catch (error) {
       console.error('Erro ao carregar criadores:', error);
-      setError(error.message);
+      setError(error.response?.data?.message || error.message || 'Erro ao carregar criadores');
     } finally {
       setLoading(false);
     }
   };
+
+  // ✅ CORRETO - useEffect inicial
+  useEffect(() => {
+    fetchCreators(1, false);
+  }, []); // Sem dependências - apenas no mount
+
+  // ✅ CORRETO - useEffect de busca com debounce
+  useEffect(() => {
+    if (searchTimerRef.current) {
+      clearTimeout(searchTimerRef.current);
+    }
+
+    searchTimerRef.current = setTimeout(() => {
+      fetchCreators(1, false);
+    }, 500);
+
+    return () => {
+      if (searchTimerRef.current) {
+        clearTimeout(searchTimerRef.current);
+      }
+    };
+  }, [search]);
+
+  // ✅ CORRETO - useEffect de filtros
+  useEffect(() => {
+    fetchCreators(1, false);
+  }, [selectedFilters]);
 
   // Initial fetch
   useEffect(() => {
@@ -125,12 +177,12 @@ export default function HomePage() {
     if (searchTimerRef.current) {
       clearTimeout(searchTimerRef.current);
     }
-    
+
     searchTimerRef.current = setTimeout(() => {
       setPage(1);
       fetchCreators(1, false);
     }, 500);
-    
+
     return () => {
       if (searchTimerRef.current) {
         clearTimeout(searchTimerRef.current);
@@ -281,7 +333,7 @@ export default function HomePage() {
                 {/* Notifications */}
                 <button className="relative p-2 text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-colors">
                   <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0.538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
                   </svg>
                   <span className="absolute top-1 right-1 w-2 h-2 bg-indigo-600 rounded-full"></span>
                 </button>
@@ -306,7 +358,7 @@ export default function HomePage() {
                   ) : (
                     <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
                       <path fillRule="evenodd" d="M3.707 2.293a1 1 0 00-1.414 1.414l14 14a1 1 0 001.414-1.414l-1.473-1.473A10.014 10.014 0 0019.542 10C18.268 5.943 14.478 3 10 3a9.958 9.958 0 00-4.512 1.074l-1.78-1.781zm4.261 4.26l1.514 1.515a2.003 2.003 0 012.45 2.45l1.514 1.514a4 4 0 00-5.478-5.478z" clipRule="evenodd" />
-                      <path d="M12.454 16.697L9.75 13.992a4 4 0 01-3.742-3.741L2.335 6.578A9.98 9.98 0 00.458 10c1.274 4.057 5.065 7 9.542 7 .847 0 1.669-.105 2.454-.303z" />
+                      <path d="M12.454 16.697L9.75 13.992a4 4 0 01-3.742-3.741L2.335 6.578A9.98 9.98 0 00.458 10c1.274 4.057 5.065 7 9.542 7.847 0 1.669-.105 2.454-.303z" />
                     </svg>
                   )}
                 </button>
@@ -349,7 +401,7 @@ export default function HomePage() {
                     }`}
                 >
                   <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
-                    <path fillRule="evenodd" d="M3 3a1 1 0 011-1h12a1 1 0 011 1v3a1 1 0 01-.293.707L12 11.414V15a1 1 0 01-.293.707l-2 2A1 1 0 018 17v-5.586L3.293 6.707A1 1 0 013 6V3z" clipRule="evenodd" />
+                    <path fillRule="evenodd" d="M3 3a1 1 0 011-1h12a1 1 0 011 1v3a1 1 0 01-.293.707L12 11.414V15a1 1 0 01-.293.707l-2 2A1 1 0 008 17v-5.586L3.293 6.707A1 1 0 013 6V3z" clipRule="evenodd" />
                   </svg>
                   <span>Filtros</span>
                   {activeFiltersCount > 0 && (
@@ -678,7 +730,8 @@ export default function HomePage() {
                       </div>
                       <button className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200">
                         <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                          <path d="M10 6a2 2 0 110-4 2 2 0 010 4zM10 12a2 2 0 110-4 2 2 0 010 4zM10 18a2 2 0 110-4 2 2 0 010 4z" />
+                          <path d="M2.003 5.884L10 9.882l7.997-3.998A2 2 0 0016 4H4a2 2 0 00-1.997 1.884z" />
+                          <path d="M18 8.118l-8 4-8-4V14a2 2 0 002 2h12a2 2 0 002-2V8.118z" />
                         </svg>
                       </button>
                     </div>
@@ -712,7 +765,7 @@ export default function HomePage() {
                         </div>
                         <button className="text-slate-600 dark:text-slate-400 hover:text-indigo-500 dark:hover:text-indigo-400">
                           <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z" />
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 5a2 2 0 002-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z" />
                           </svg>
                         </button>
                       </div>
@@ -807,14 +860,16 @@ export default function HomePage() {
       <RightSidebar />
 
       {/* Styles */}
-      <style jsx>{`
+      <style>{`
+        .hide-scrollbar::-webkit-scrollbar {
+          display: none;
+        }
         .hide-scrollbar {
           -ms-overflow-style: none;
           scrollbar-width: none;
         }
-        .hide-scrollbar::-webkit-scrollbar {
-          display: none;
-        }
+      `}</style>
+      <style>{`
         @keyframes slideDown {
           from {
             opacity: 0;

@@ -36,7 +36,7 @@ function PageHeader() {
         className="inline-flex items-center space-x-2 text-indigo-600 dark:text-indigo-400 hover:text-indigo-700 dark:hover:text-indigo-300 font-medium transition-colors"
       >
         <svg xmlns="http://www.w3. org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-          <path fillRule="evenodd" d="M9. 707 16.707a1 1 0 01-1.414 0l-6-6a1 1 0 010-1.414l6-6a1 1 0 011.414 1.414L5.414 9H17a1 1 0 110 2H5.414l4.293 4.293a1 1 0 010 1.414z" clipRule="evenodd" />
+          <path fillRule="evenodd" d="M9.707 16.707a1 1 0 01-1.414 0l-6-6a1 1 0 010-1.414l6-6a1 1 0 011.414 1.414L5.414 9H17a1 1 0 110 2H5.414l4.293 4.293a1 1 0 010 1.414z" clipRule="evenodd" />
         </svg>
         <span>Voltar para Home</span>
       </Link>
@@ -60,7 +60,7 @@ function TitleSection() {
       {/* Logo */}
       <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-2xl mb-4 shadow-lg">
         <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8 text-white" viewBox="0 0 20 20" fill="currentColor">
-          <path fillRule="evenodd" d="M2. 166 4.999A11.954 11.954 0 0010 1. 944 11.954 11.954 0 0017.834 5c.11.65.166 1.32.166 2.001 0 5.225-3.34 9.67-8 11.317C5.34 16.67 2 12.225 2 7c0-.682.057-1.35.166-2.001zm11.541 3.708a1 1 0 00-1.414-1.414L9 10. 586 7.707 9. 293a1 1 0 00-1.414 1. 414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+          <path fillRule="evenodd" d="M2.166 4.999A11.954 11.954 0 0010 1.944 11.954 11.954 0 0017.834 5c.11.65.166 1.32.166 2.001 0 5.225-3.34 9.67-8 11.317C5.34 16.67 2 12.225 2 7c0-.682.057-1.35.166-2.001zm11.541 3.708a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
         </svg>
       </div>
 
@@ -119,7 +119,7 @@ function TableOfContents() {
           >
             <span className="text-base">{item.icon}</span>
             <span className="group-hover:underline">
-              {index + 1}. {item. label}
+              {index + 1}.{item.label}
             </span>
           </a>
         ))}
@@ -158,7 +158,7 @@ function BulletList({ items }) {
     <ul className="space-y-2 ml-1">
       {items.map((item, index) => (
         <li key={index} className="flex items-start space-x-3">
-          <span className="text-indigo-500 mt-1. 5">•</span>
+          <span className="text-indigo-500 mt-1.5">•</span>
           <span>{item}</span>
         </li>
       ))}
