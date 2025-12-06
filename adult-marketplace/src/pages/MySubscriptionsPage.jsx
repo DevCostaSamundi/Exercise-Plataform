@@ -4,6 +4,7 @@ import Sidebar from '../components/Sidebar';
 import api from '../services/api';
 import LoadingSpinner from '../components/LoadingSpinner';
 import ErrorMessage from '../components/ErrorMessage';
+import { formatCurrency } from '../constants';
 
 export default function MySubscriptionsPage() {
   const [loading, setLoading] = useState(true);
@@ -146,7 +147,7 @@ export default function MySubscriptionsPage() {
                       <div className="flex flex-col md:items-end gap-3">
                         <div className="text-right">
                           <p className="text-2xl font-bold text-slate-900 dark:text-white">
-                            R$ {(subscription.price * 5.5).toFixed(2)}
+                            {formatCurrency(subscription.price)}
                             <span className="text-sm font-normal text-slate-500 dark:text-slate-400">/mês</span>
                           </p>
                           <p className="text-sm text-slate-500 dark:text-slate-400">
@@ -182,7 +183,7 @@ export default function MySubscriptionsPage() {
                       Total mensal:
                     </span>
                     <span className="text-2xl font-bold text-indigo-600 dark:text-indigo-400">
-                      R$ {(subscriptions.reduce((sum, sub) => sum + sub.price, 0) * 5.5).toFixed(2)}
+                      {formatCurrency(subscriptions.reduce((sum, sub) => sum + sub.price, 0))}
                     </span>
                   </div>
                 </div>

@@ -1,5 +1,6 @@
 import { Link } from 'react-router-dom';
 import Sidebar from '../components/Sidebar';
+import { APP_INFO } from '../constants';
 
 export default function SafetyPage() {
   const safetyGuidelines = [
@@ -221,7 +222,11 @@ export default function SafetyPage() {
 
             {/* Last Updated */}
             <p className="text-center text-sm text-slate-500 dark:text-slate-400 mt-8">
-              Última atualização: 06 de Dezembro de 2024
+              Última atualização: {new Date(APP_INFO.LAST_UPDATED).toLocaleDateString('pt-BR', { 
+                day: '2-digit', 
+                month: 'long', 
+                year: 'numeric' 
+              })}
             </p>
           </div>
         </div>

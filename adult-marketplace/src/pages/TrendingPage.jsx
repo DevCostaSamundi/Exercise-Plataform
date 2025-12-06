@@ -4,6 +4,7 @@ import Sidebar from '../components/Sidebar';
 import api from '../services/api';
 import LoadingSpinner from '../components/LoadingSpinner';
 import ErrorMessage from '../components/ErrorMessage';
+import { formatCurrency } from '../constants';
 
 export default function TrendingPage() {
   const [loading, setLoading] = useState(true);
@@ -337,7 +338,7 @@ function CreatorCard({ creator }) {
         {/* Subscribe Button */}
         <div className="flex items-center justify-between pt-4 border-t border-slate-200 dark:border-slate-800">
           <span className="text-lg font-bold text-indigo-600 dark:text-indigo-400">
-            R$ {(creator.subscriptionPrice * 5.5).toFixed(2)}/mês
+            {formatCurrency(creator.subscriptionPrice)}/mês
           </span>
           <button className="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors">
             Assinar

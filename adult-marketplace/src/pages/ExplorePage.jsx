@@ -4,6 +4,7 @@ import Sidebar from '../components/Sidebar';
 import api from '../services/api';
 import LoadingSpinner from '../components/LoadingSpinner';
 import ErrorMessage from '../components/ErrorMessage';
+import { formatCurrency } from '../constants';
 
 export default function ExplorePage() {
   const [loading, setLoading] = useState(true);
@@ -196,10 +197,10 @@ function CreatorCard({ creator }) {
           <p className="text-sm text-slate-500 dark:text-slate-400">Assinantes</p>
           <p className="font-bold text-slate-900 dark:text-white">{creator.subscribers}</p>
         </div>
-        <div className="text-right">
+        <div>
           <p className="text-sm text-slate-500 dark:text-slate-400">Assinatura</p>
           <p className="font-bold text-indigo-600 dark:text-indigo-400">
-            R$ {(creator.price * 5.5).toFixed(2)}
+            {formatCurrency(creator.price)}
           </p>
         </div>
       </div>

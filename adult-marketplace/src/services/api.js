@@ -1,14 +1,15 @@
 import axios from 'axios';
+import { API, ERROR_MESSAGES } from '../constants';
 
 // API Configuration with environment variables
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
-const API_VERSION = import.meta.env.VITE_API_VERSION || 'v1';
+const API_VERSION = import.meta.env.VITE_API_VERSION || API.VERSION;
 const ENABLE_LOGGING = import.meta.env.VITE_ENABLE_LOGGING === 'true';
 
 // Create axios instance with robust configuration
 const api = axios.create({
   baseURL: `${API_URL}/api/${API_VERSION}`,
-  timeout: 15000, // 15 seconds timeout
+  timeout: API.TIMEOUT,
   headers: {
     'Content-Type': 'application/json',
   },
@@ -106,7 +107,7 @@ api.interceptors.response.use(
     } else if (error.request) {
       // Network error - no response received
       console.error('Network error: No response from server');
-      error.message = 'Não foi possível conectar ao servidor. Verifique sua conexão.';
+      error.message = ERROR_MESSAGES.NETWORK_ERROR;
     } else {
       // Request setup error
       console.error('Request error:', error.message);
