@@ -1,7 +1,8 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 
 import CreatorSidebar from '../../components/CreatorSidebar';
+import creatorPostService from '../../services/creatorPostService';
 
 export default function CreatorPostsPage() {
   const location = useLocation();
@@ -11,114 +12,39 @@ export default function CreatorPostsPage() {
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [postToDelete, setPostToDelete] = useState(null);
   const [showSuccessMessage, setShowSuccessMessage] = useState(false);
+  const [successMessage, setSuccessMessage] = useState('');
+  
+  // Estados da API
+  const [posts, setPosts] = useState([]);
+  const [stats, setStats] = useState({ all: 0, published: 0, scheduled: 0, draft: 0 });
+  const [loading, setLoading] = useState(true);
+  const [deleting, setDeleting] = useState(false);
 
-  // Mostrar mensagem de sucesso se veio do upload
-  useState(() => {
+  useEffect(() => {
     if (location.state?.message) {
+      setSuccessMessage(location.state.message);
       setShowSuccessMessage(true);
       setTimeout(() => setShowSuccessMessage(false), 5000);
     }
-  }, []);
+    fetchPosts();
+  }, [activeFilter]);
 
-  // Mock data (em produção viria da API)
-  const mockPosts = [
-    {
-      id: 1,
-      title: 'Ensaio fotográfico sensual 🔥',
-      description: 'Novos clicks exclusivos do último ensaio...',
-      thumbnail: 'https://placehold.co/300x300/8B7FE8/white?text=Post1',
-      type: 'photo',
-      status: 'published',
-      visibility: 'subscribers',
-      likes: 342,
-      comments: 45,
-      views: 1250,
-      earnings: 0,
-      publishedAt: '2025-11-20T10:30:00',
-      createdAt: '2025-11-20T09:15:00',
-      mediaCount: 8,
-      tags: ['Sensual', 'Artístico'],
-    },
-    {
-      id: 2,
-      title: 'Vídeo exclusivo - Behind the scenes',
-      description: 'Bastidores da última sessão de fotos',
-      thumbnail: 'https://placehold.co/300x300/6366F1/white?text=Post2',
-      type: 'video',
-      status: 'published',
-      visibility: 'premium',
-      price: 15.90,
-      likes: 298,
-      comments: 38,
-      views: 890,
-      earnings: 238.50,
-      publishedAt: '2025-11-19T15:00:00',
-      createdAt: '2025-11-19T14:00:00',
-      mediaCount: 1,
-      tags: ['Behind the scenes', 'Exclusivo'],
-    },
-    {
-      id: 3,
-      title: 'Fotos do treino de hoje 💪',
-      description: 'Compartilhando minha rotina fitness com vocês',
-      thumbnail: 'https://placehold.co/300x300/EC4899/white?text=Post3',
-      type: 'photo',
-      status: 'scheduled',
-      visibility: 'subscribers',
-      likes: 0,
-      comments: 0,
-      views: 0,
-      earnings: 0,
-      scheduledFor: '2025-11-22T18:00:00',
-      createdAt: '2025-11-21T10:00:00',
-      mediaCount: 5,
-      tags: ['Fitness', 'Lifestyle'],
-    },
-    {
-      id: 4,
-      title: 'Teaser gratuito - Preview do próximo conteúdo',
-      description: 'Uma prévia do que está por vir...',
-      thumbnail: 'https://placehold.co/300x300/A78BFA/white?text=Post4',
-      type: 'photo',
-      status: 'published',
-      visibility: 'free',
-      likes: 567,
-      comments: 89,
-      views: 3420,
-      earnings: 0,
-      publishedAt: '2025-11-18T12:00:00',
-      createdAt: '2025-11-18T11:30:00',
-      mediaCount: 3,
-      tags: ['Teaser', 'Gratuito'],
-    },
-    {
-      id: 5,
-      title: 'Áudio sensual personalizado 🎙️',
-      description: 'Mensagem especial para meus assinantes',
-      thumbnail: 'https://placehold.co/300x300/8B5CF6/white?text=Audio',
-      type: 'audio',
-      status: 'draft',
-      visibility: 'subscribers',
-      likes: 0,
-      comments: 0,
-      views: 0,
-      earnings: 0,
-      createdAt: '2025-11-21T08:00:00',
-      mediaCount: 1,
-      tags: ['Áudio', 'Personalizado'],
-    },
-  ];
+  const fetchPosts = async () => {
+    setLoading(true);
+    try {
+      const response = await creatorPostService.getMyPosts({
+        status: activeFilter,
+        limit: 50,
+      });
 
-  const filteredPosts = mockPosts.filter(post => {
-    if (activeFilter === 'all') return true;
-    return post.status === activeFilter;
-  });
-
-  const stats = {
-    all: mockPosts.length,
-    published: mockPosts.filter(p => p.status === 'published').length,
-    scheduled: mockPosts.filter(p => p.status === 'scheduled').length,
-    draft: mockPosts.filter(p => p.status === 'draft').length,
+      setPosts(response.data);
+      setStats(response.stats);
+    } catch (error) {
+      console.error('Erro ao carregar posts:', error);
+      alert('Erro ao carregar posts');
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleSelectPost = (id) => {
@@ -128,10 +54,10 @@ export default function CreatorPostsPage() {
   };
 
   const handleSelectAll = () => {
-    if (selectedPosts.length === filteredPosts.length) {
+    if (selectedPosts.length === posts.length) {
       setSelectedPosts([]);
     } else {
-      setSelectedPosts(filteredPosts.map(p => p.id));
+      setSelectedPosts(posts.map(p => p.id));
     }
   };
 
@@ -141,24 +67,42 @@ export default function CreatorPostsPage() {
   };
 
   const handleDeleteConfirm = async () => {
-    // TODO: Integrar com API
-    await new Promise(resolve => setTimeout(resolve, 500));
-    setShowDeleteModal(false);
-    setPostToDelete(null);
-    // Mostrar mensagem de sucesso
-    alert(`Post "${postToDelete.title}" deletado com sucesso!`);
+    setDeleting(true);
+    try {
+      await creatorPostService.deletePost(postToDelete.id);
+      setShowDeleteModal(false);
+      setPostToDelete(null);
+      setSuccessMessage(`Post "${postToDelete.title}" deletado com sucesso!`);
+      setShowSuccessMessage(true);
+      setTimeout(() => setShowSuccessMessage(false), 5000);
+      fetchPosts();
+    } catch (error) {
+      alert(error.message || 'Erro ao deletar post');
+    } finally {
+      setDeleting(false);
+    }
   };
 
   const handleBulkDelete = async () => {
-    if (confirm(`Deletar ${selectedPosts.length} post(s) selecionado(s)?`)) {
-      // TODO: Integrar com API
-      await new Promise(resolve => setTimeout(resolve, 500));
+    if (!confirm(`Deletar ${selectedPosts.length} post(s) selecionado(s)?`)) return;
+
+    setDeleting(true);
+    try {
+      await creatorPostService.bulkDeletePosts(selectedPosts);
       setSelectedPosts([]);
-      alert('Posts deletados com sucesso!');
+      setSuccessMessage('Posts deletados com sucesso!');
+      setShowSuccessMessage(true);
+      setTimeout(() => setShowSuccessMessage(false), 5000);
+      fetchPosts();
+    } catch (error) {
+      alert(error.message || 'Erro ao deletar posts');
+    } finally {
+      setDeleting(false);
     }
   };
 
   const formatDate = (dateString) => {
+    if (!dateString) return '';
     const date = new Date(dateString);
     const now = new Date();
     const diffInHours = (now - date) / (1000 * 60 * 60);
@@ -176,7 +120,7 @@ export default function CreatorPostsPage() {
     return new Intl.NumberFormat('pt-BR', {
       style: 'currency',
       currency: 'BRL',
-    }).format(value);
+    }).format(value * 5.5); // USD to BRL
   };
 
   const formatNumber = (num) => {
@@ -224,7 +168,7 @@ export default function CreatorPostsPage() {
                 </Link>
                 <div className="min-w-0">
                   <h1 className="text-lg sm:text-xl font-bold text-slate-900 dark:text-white truncate">Meus Posts</h1>
-                  <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400">{filteredPosts.length} post(s)</p>
+                  <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400">{posts.length} post(s)</p>
                 </div>
               </div>
 
@@ -243,14 +187,14 @@ export default function CreatorPostsPage() {
         </header>
 
         {/* Success Message */}
-        {showSuccessMessage && location.state?.message && (
-          <div className="flex flex-1 w-full px-4 sm:px-6 lg:px-8 pt-4">
+        {showSuccessMessage && successMessage && (
+          <div className="w-full px-4 sm:px-6 lg:px-8 pt-4">
             <div className="bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 text-green-700 dark:text-green-400 px-4 py-3 rounded-lg flex items-center justify-between">
               <div className="flex items-center space-x-2">
                 <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
                   <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
                 </svg>
-                <span>{location.state.message}</span>
+                <span>{successMessage}</span>
               </div>
               <button onClick={() => setShowSuccessMessage(false)} className="text-green-700 dark:text-green-400 hover:text-green-900 dark:hover:text-green-200">
                 ✕
@@ -265,52 +209,36 @@ export default function CreatorPostsPage() {
             <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-4">
               {/* Filter Tabs */}
               <div className="flex items-center space-x-2 overflow-x-auto hide-scrollbar w-full sm:w-auto pb-1">
-                <button
-                  onClick={() => setActiveFilter('all')}
-                  className={`px-4 py-2 rounded-lg font-medium text-sm whitespace-nowrap transition-colors ${activeFilter === 'all'
-                      ? 'bg-indigo-600 text-white'
-                      : 'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700'
+                {[
+                  { id: 'all', label: 'Todos' },
+                  { id: 'published', label: 'Publicados' },
+                  { id: 'scheduled', label: 'Agendados' },
+                  { id: 'draft', label: 'Rascunhos' },
+                ].map((filter) => (
+                  <button
+                    key={filter.id}
+                    onClick={() => setActiveFilter(filter.id)}
+                    disabled={loading}
+                    className={`px-4 py-2 rounded-lg font-medium text-sm whitespace-nowrap transition-colors ${
+                      activeFilter === filter.id
+                        ? 'bg-indigo-600 text-white'
+                        : 'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700'
                     }`}
-                >
-                  Todos ({stats.all})
-                </button>
-                <button
-                  onClick={() => setActiveFilter('published')}
-                  className={`px-4 py-2 rounded-lg font-medium text-sm whitespace-nowrap transition-colors ${activeFilter === 'published'
-                      ? 'bg-green-600 text-white'
-                      : 'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700'
-                    }`}
-                >
-                  Publicados ({stats.published})
-                </button>
-                <button
-                  onClick={() => setActiveFilter('scheduled')}
-                  className={`px-4 py-2 rounded-lg font-medium text-sm whitespace-nowrap transition-colors ${activeFilter === 'scheduled'
-                      ? 'bg-blue-600 text-white'
-                      : 'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700'
-                    }`}
-                >
-                  Agendados ({stats.scheduled})
-                </button>
-                <button
-                  onClick={() => setActiveFilter('draft')}
-                  className={`px-4 py-2 rounded-lg font-medium text-sm whitespace-nowrap transition-colors ${activeFilter === 'draft'
-                      ? 'bg-slate-600 text-white'
-                      : 'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700'
-                    }`}
-                >
-                  Rascunhos ({stats.draft})
-                </button>
+                  >
+                    {filter.label} ({stats[filter.id] || 0})
+                  </button>
+                ))}
               </div>
 
               {/* View Mode Toggle */}
               <div className="flex items-center space-x-2">
                 <button
                   onClick={() => setViewMode('grid')}
-                  className={`p-2 rounded-lg transition-colors ${viewMode === 'grid'
+                  className={`p-2 rounded-lg transition-colors ${
+                    viewMode === 'grid'
                       ? 'bg-indigo-100 dark:bg-indigo-900/20 text-indigo-600 dark:text-indigo-400'
                       : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800'
-                    }`}
+                  }`}
                 >
                   <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
                     <path d="M5 3a2 2 0 00-2 2v2a2 2 0 002 2h2a2 2 0 002-2V5a2 2 0 00-2-2H5zM5 11a2 2 0 00-2 2v2a2 2 0 002 2h2a2 2 0 002-2v-2a2 2 0 00-2-2H5zM11 5a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V5zM11 13a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" />
@@ -318,10 +246,11 @@ export default function CreatorPostsPage() {
                 </button>
                 <button
                   onClick={() => setViewMode('list')}
-                  className={`p-2 rounded-lg transition-colors ${viewMode === 'list'
+                  className={`p-2 rounded-lg transition-colors ${
+                    viewMode === 'list'
                       ? 'bg-indigo-100 dark:bg-indigo-900/20 text-indigo-600 dark:text-indigo-400'
                       : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800'
-                    }`}
+                  }`}
                 >
                   <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
                     <path fillRule="evenodd" d="M3 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1z" clipRule="evenodd" />
@@ -339,9 +268,10 @@ export default function CreatorPostsPage() {
                   </span>
                   <button
                     onClick={handleBulkDelete}
-                    className="text-sm text-red-600 dark:text-red-400 hover:text-red-700 dark:hover:text-red-300 font-medium"
+                    disabled={deleting}
+                    className="text-sm text-red-600 dark:text-red-400 hover:text-red-700 dark:hover:text-red-300 font-medium disabled:opacity-50"
                   >
-                    Deletar selecionados
+                    {deleting ? 'Deletando...' : 'Deletar selecionados'}
                   </button>
                 </div>
                 <button
@@ -354,8 +284,15 @@ export default function CreatorPostsPage() {
             )}
           </div>
 
-          {/* Posts Grid/List */}
-          {filteredPosts.length === 0 ? (
+          {/* Loading State */}
+          {loading ? (
+            <div className="flex items-center justify-center py-20">
+              <div className="text-center">
+                <div className="inline-block animate-spin rounded-full h-12 w-12 border-4 border-indigo-600 border-t-transparent mb-4"></div>
+                <p className="text-slate-600 dark:text-slate-400">Carregando posts...</p>
+              </div>
+            </div>
+          ) : posts.length === 0 ? (
             <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 p-12 text-center">
               <svg xmlns="http://www.w3.org/2000/svg" className="mx-auto h-16 w-16 text-slate-400 mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4" />
@@ -379,7 +316,7 @@ export default function CreatorPostsPage() {
           ) : viewMode === 'grid' ? (
             /* Grid View */
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6">
-              {filteredPosts.map((post) => (
+              {posts.map((post) => (
                 <div key={post.id} className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 overflow-hidden hover:shadow-lg transition-shadow group">
                   {/* Thumbnail */}
                   <div className="relative aspect-square bg-slate-100 dark:bg-slate-800">
@@ -523,7 +460,7 @@ export default function CreatorPostsPage() {
                       <th className="px-6 py-3 text-left">
                         <input
                           type="checkbox"
-                          checked={selectedPosts.length === filteredPosts.length && filteredPosts.length > 0}
+                          checked={selectedPosts.length === posts.length && posts.length > 0}
                           onChange={handleSelectAll}
                           className="w-5 h-5 text-indigo-600 bg-slate-100 dark:bg-slate-700 border-slate-300 dark:border-slate-600 rounded focus:ring-2 focus:ring-indigo-500"
                         />
@@ -549,7 +486,7 @@ export default function CreatorPostsPage() {
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-slate-200 dark:divide-slate-800">
-                    {filteredPosts.map((post) => (
+                    {posts.map((post) => (
                       <tr key={post.id} className="hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors">
                         <td className="px-6 py-4">
                           <input
@@ -675,15 +612,24 @@ export default function CreatorPostsPage() {
               <div className="flex items-center space-x-3">
                 <button
                   onClick={() => setShowDeleteModal(false)}
-                  className="flex-1 px-4 py-3 bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700 font-medium rounded-lg transition-colors"
+                  disabled={deleting}
+                  className="flex-1 px-4 py-3 bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700 font-medium rounded-lg transition-colors disabled:opacity-50"
                 >
                   Cancelar
                 </button>
                 <button
                   onClick={handleDeleteConfirm}
-                  className="flex-1 px-4 py-3 bg-red-600 hover:bg-red-700 text-white font-bold rounded-lg transition-colors"
+                  disabled={deleting}
+                  className="flex-1 px-4 py-3 bg-red-600 hover:bg-red-700 text-white font-bold rounded-lg transition-colors disabled:opacity-50 flex items-center justify-center space-x-2"
                 >
-                  Deletar
+                  {deleting ? (
+                    <>
+                      <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                      <span>Deletando...</span>
+                    </>
+                  ) : (
+                    <span>Deletar</span>
+                  )}
                 </button>
               </div>
             </div>

@@ -1,159 +1,112 @@
 import { createContext, useContext, useState, useEffect } from 'react';
-import { authAPI } from '../services/api';
+import authAPI from '../services/authAPI';
 
-const AuthContext = createContext(null);
+const AuthContext = createContext();
 
-// eslint-disable-next-line react-refresh/only-export-components
-export const useAuth = () => {
+export function AuthProvider({ children }) {
+  const [user, setUser] = useState(null);
+  const [userType, setUserType] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+
+  useEffect(() => {
+    checkAuth();
+  }, []);
+
+  const checkAuth = async () => {
+    const token = localStorage.getItem('authToken');
+    const storedUserType = localStorage.getItem('userType');
+    const storedUser = localStorage.getItem('user');
+
+    if (token && storedUser) {
+      try {
+        const userData = JSON.parse(storedUser);
+        setUser(userData);
+        setUserType(storedUserType);
+        setIsAuthenticated(true);
+      } catch (error) {
+        console.error('Error parsing user data:', error);
+        logout();
+      }
+    }
+    setLoading(false);
+  };
+
+  const login = async (email, password) => {
+    const response = await authAPI.login(email, password);
+    
+    localStorage.setItem('authToken', response.data.accessToken);
+    localStorage.setItem('userType', response.data.user.userType);
+    localStorage.setItem('user', JSON.stringify(response.data.user));
+
+    setUser(response.data.user);
+    setUserType(response.data.user.userType);
+    setIsAuthenticated(true);
+
+    return response;
+  };
+
+  const register = async (data) => {
+    const response = await authAPI.register(data);
+    
+    localStorage.setItem('authToken', response.data.accessToken);
+    localStorage.setItem('userType', 'SUBSCRIBER');
+    localStorage.setItem('user', JSON.stringify(response.data.user));
+
+    setUser(response.data.user);
+    setUserType('SUBSCRIBER');
+    setIsAuthenticated(true);
+
+    return response;
+  };
+
+  const creatorRegister = async (data) => {
+    const response = await authAPI.creatorRegister(data);
+    
+    localStorage.setItem('authToken', response.data.accessToken);
+    localStorage.setItem('userType', 'CREATOR');
+    localStorage.setItem('user', JSON.stringify(response.data.user));
+
+    setUser(response.data.user);
+    setUserType('CREATOR');
+    setIsAuthenticated(true);
+
+    return response;
+  };
+
+  const logout = () => {
+    localStorage.removeItem('authToken');
+    localStorage.removeItem('userType');
+    localStorage.removeItem('user');
+    setUser(null);
+    setUserType(null);
+    setIsAuthenticated(false);
+  };
+
+  const updateUser = (userData) => {
+    setUser(userData);
+    localStorage.setItem('user', JSON.stringify(userData));
+  };
+
+  const value = {
+    user,
+    userType,
+    loading,
+    isAuthenticated,
+    login,
+    register,
+    creatorRegister,
+    logout,
+    updateUser,
+  };
+
+  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
+}
+
+export function useAuth() {
   const context = useContext(AuthContext);
   if (!context) {
     throw new Error('useAuth must be used within an AuthProvider');
   }
   return context;
-};
-
-export const AuthProvider = ({ children }) => {
-  const [user, setUser] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
-
-  // Load user from localStorage on mount
-  useEffect(() => {
-    const loadUser = async () => {
-      try {
-        const storedUser = localStorage.getItem('user');
-        const accessToken = localStorage.getItem('accessToken');
-
-        if (storedUser && accessToken) {
-          setUser(JSON.parse(storedUser));
-          
-          // Verify token is still valid by fetching user
-          try {
-            const response = await authAPI.getMe();
-            setUser(response.data.data);
-            localStorage.setItem('user', JSON.stringify(response.data.data));
-          } catch {
-            // Token is invalid, clear it
-            localStorage.removeItem('user');
-            localStorage.removeItem('accessToken');
-            localStorage.removeItem('refreshToken');
-            setUser(null);
-          }
-        }
-      } catch (err) {
-        console.error('Error loading user:', err);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    // Handle logout event from API interceptor
-    const handleLogoutEvent = () => {
-      setUser(null);
-      setError('Your session has expired. Please login again.');
-    };
-
-    window.addEventListener('auth:logout', handleLogoutEvent);
-    loadUser();
-
-    return () => {
-      window.removeEventListener('auth:logout', handleLogoutEvent);
-    };
-  }, []);
-
-  const login = async (credentials) => {
-    try {
-      setError(null);
-      setLoading(true);
-
-      const response = await authAPI.login(credentials);
-      const { user: userData, accessToken, refreshToken } = response.data.data;
-
-      // Store tokens and user data
-      localStorage.setItem('accessToken', accessToken);
-      localStorage.setItem('refreshToken', refreshToken);
-      localStorage.setItem('user', JSON.stringify(userData));
-
-      setUser(userData);
-      return { success: true, user: userData };
-    } catch (err) {
-      const errorMessage = err.response?.data?.message || 'Login failed';
-      setError(errorMessage);
-      return { success: false, error: errorMessage };
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const register = async (userData) => {
-    try {
-      setError(null);
-      setLoading(true);
-
-      const response = await authAPI.register(userData);
-      const { user: newUser, accessToken, refreshToken } = response.data.data;
-
-      // Store tokens and user data
-      localStorage.setItem('accessToken', accessToken);
-      localStorage.setItem('refreshToken', refreshToken);
-      localStorage.setItem('user', JSON.stringify(newUser));
-
-      setUser(newUser);
-      return { success: true, user: newUser };
-    } catch (err) {
-      const errorMessage = err.response?.data?.message || 'Registration failed';
-      setError(errorMessage);
-      return { success: false, error: errorMessage };
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const logout = async () => {
-    try {
-      await authAPI.logout();
-    } catch (err) {
-      console.error('Logout error:', err);
-    } finally {
-      // Clear local storage and state
-      localStorage.removeItem('accessToken');
-      localStorage.removeItem('refreshToken');
-      localStorage.removeItem('user');
-      setUser(null);
-    }
-  };
-
-  const updateUser = (updatedUser) => {
-    setUser(updatedUser);
-    localStorage.setItem('user', JSON.stringify(updatedUser));
-  };
-
-  const refreshUser = async () => {
-    try {
-      const response = await authAPI.getMe();
-      const userData = response.data.data;
-      setUser(userData);
-      localStorage.setItem('user', JSON.stringify(userData));
-      return userData;
-    } catch (err) {
-      console.error('Error refreshing user:', err);
-      throw err;
-    }
-  };
-
-  const value = {
-    user,
-    loading,
-    error,
-    login,
-    register,
-    logout,
-    updateUser,
-    refreshUser,
-    isAuthenticated: !!user,
-  };
-
-  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
-};
-
-export default AuthContext;
+}

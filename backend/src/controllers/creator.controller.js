@@ -2,17 +2,87 @@ import prisma from '../config/database.js';
 import logger from '../utils/logger.js';
 
 /**
+ * Listar criadores (público)
+ */
+export const listCreators = async (req, res) => {
+  try {
+    const { limit = 20, featured, category, search } = req.query;
+
+    const where = {
+      publicProfile: true,
+    };
+
+    if (category) {
+      where.category = category;
+    }
+
+    if (search) {
+      where.OR = [
+        { displayName: { contains: search, mode: 'insensitive' } },
+        { user: { username: { contains: search, mode: 'insensitive' } } },
+      ];
+    }
+
+    const creators = await prisma.creator.findMany({
+      where,
+      take: parseInt(limit),
+      orderBy: featured ? { subscribers: 'desc' } : { createdAt: 'desc' },
+      include: {
+        user: {
+          select: {
+            username: true,
+            displayName: true,
+            avatar: true,
+            isVerified: true,
+          },
+        },
+      },
+    });
+
+    const formattedCreators = creators.map((creator) => ({
+      id: creator.id,
+      userId: creator.userId,
+      username: creator.user.username,
+      displayName: creator.displayName || creator.user.displayName,
+      avatar: creator.user.avatar,
+      cover: creator.coverImage,
+      bio: creator.bio,
+      category: creator.category,
+      subscriptionPrice: creator.subscriptionPrice,
+      subscribers: creator.subscribers,
+      isVerified: creator.user.isVerified,
+      posts: creator.totalPosts || 0,
+      photos: creator.totalPhotos || 0,
+      videos: creator.totalVideos || 0,
+    }));
+
+    res.json({
+      success: true,
+      data: formattedCreators,
+    });
+  } catch (error) {
+    logger.error('List creators error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to list creators',
+    });
+  }
+};
+
+/**
  * Obter perfil público do criador
  */
 export const getCreatorProfile = async (req, res) => {
   try {
-    const { id } = req.params;
+    const { creatorId } = req.params;
 
+    // Buscar criador
     const creator = await prisma.creator.findUnique({
-      where: { id },
+      where: { id: creatorId },
       include: {
         user: {
           select: {
+            id: true,
             username: true,
             displayName: true,
             avatar: true,
@@ -26,7 +96,11 @@ export const getCreatorProfile = async (req, res) => {
         _count: {
           select: {
             posts: true,
-            subscriptions: true,
+            subscriptions: {
+              where: {
+                status: 'ACTIVE',
+              },
+            },
           },
         },
       },
@@ -39,18 +113,26 @@ export const getCreatorProfile = async (req, res) => {
       });
     }
 
-    // Contar mídias
-    const mediaCounts = await prisma.post.groupBy({
-      by: ['mediaType'],
-      where: { creatorId: id },
-      _count: true,
-    });
-
-    const photos = mediaCounts.find(m => m.mediaType === 'IMAGE')?._count || 0;
-    const videos = mediaCounts.find(m => m.mediaType === 'VIDEO')?._count || 0;
+    // Contar fotos e vídeos
+    const [photoCount, videoCount] = await Promise.all([
+      prisma.post.count({
+        where: {
+          creatorId: creator.id,
+          type: 'PHOTO',
+          status: 'PUBLISHED',
+        },
+      }),
+      prisma.post.count({
+        where: {
+          creatorId: creator.id,
+          type: 'VIDEO',
+          status: 'PUBLISHED',
+        },
+      }),
+    ]);
 
     // Formatar resposta
-    const response = {
+    const profile = {
       id: creator.id,
       userId: creator.userId,
       username: creator.user.username,
@@ -59,23 +141,32 @@ export const getCreatorProfile = async (req, res) => {
       description: creator.description,
       avatar: creator.user.avatar,
       coverImage: creator.coverImage,
-      isVerified: creator.isVerified || creator.user.isVerified,
-      subscriptionPrice: creator.subscriptionPrice,
-      genderIdentity: creator.user.genderIdentity,
-      orientation: creator.user.orientation,
-      location: 'Brasil',
-      joinDate: creator.user.createdAt,
-      socialLinks: creator.socialLinks,
+      isVerified: creator.user.isVerified,
+      
+      // Stats
       subscribers: creator._count.subscriptions,
       posts: creator._count.posts,
-      photos,
-      videos,
-      tags: extractTags(creator.description),
+      photos: photoCount,
+      videos: videoCount,
+      
+      // Subscription
+      subscriptionPrice: creator.subscriptionPrice,
+      currency: 'USD',
+      
+      // Info
+      category: creator.category,
+      tags: creator.tags || [],
+      genderIdentity: creator.user.genderIdentity,
+      orientation: creator.user.orientation,
+      location: creator.location,
+      website: creator.website,
+      socialLinks: creator.socialLinks || {},
+      joinDate: creator.user.createdAt,
     };
 
     res.json({
       success: true,
-      data: response,
+      data: profile,
     });
   } catch (error) {
     logger.error('Get creator profile error:', error);
@@ -87,182 +178,119 @@ export const getCreatorProfile = async (req, res) => {
 };
 
 /**
- * Obter posts do criador
+ * Obter posts do criador (público com limitação)
  */
 export const getCreatorPosts = async (req, res) => {
   try {
-    const { id } = req.params;
-    const userId = req.user?.id;
-    const { limit = 20, offset = 0 } = req.query;
+    const { creatorId } = req.params;
+    const {
+      page = 1,
+      limit = 20,
+      type, // PHOTO, VIDEO, AUDIO
+    } = req.query;
 
-    // Verificar se usuário está inscrito
+    const userId = req.user?.id;
+    const skip = (parseInt(page) - 1) * parseInt(limit);
+
+    // Verificar se o criador existe
+    const creator = await prisma.creator.findUnique({
+      where: { id: creatorId },
+    });
+
+    if (!creator) {
+      return res.status(404).json({
+        success: false,
+        message: 'Creator not found',
+      });
+    }
+
+    // Verificar se o usuário está inscrito
     let isSubscribed = false;
     if (userId) {
       const subscription = await prisma.subscription.findFirst({
         where: {
           userId,
-          creatorId: id,
+          creatorId,
           status: 'ACTIVE',
         },
       });
       isSubscribed = !!subscription;
     }
 
+    // Construir filtros
+    const where = {
+      creatorId,
+      status: 'PUBLISHED',
+    };
+
+    if (type) {
+      where.type = type;
+    }
+
     // Buscar posts
-    const posts = await prisma.post.findMany({
-      where: {
-        creatorId: id,
-        ...(!isSubscribed && { isPublic: true }),
-      },
-      select: {
-        id: true,
-        title: true,
-        mediaUrls: true,
-        mediaType: true,
-        isPublic: true,
-        isPPV: true,
-        ppvPrice: true,
-        likesCount: true,
-        commentsCount: true,
-        viewsCount: true,
-        createdAt: true,
-      },
-      orderBy: { createdAt: 'desc' },
-      take: parseInt(limit),
-      skip: parseInt(offset),
-    });
+    const [posts, total] = await Promise.all([
+      prisma.post.findMany({
+        where,
+        skip,
+        take: parseInt(limit),
+        orderBy: { publishedAt: 'desc' },
+        select: {
+          id: true,
+          type: true,
+          title: true,
+          description: true,
+          thumbnail: true,
+          visibility: true,
+          price: true,
+          mediaCount: true,
+          likes: true,
+          comments: true,
+          views: true,
+          publishedAt: true,
+          tags: true,
+        },
+      }),
+      prisma.post.count({ where }),
+    ]);
 
-    // Formatar posts
-    const formattedPosts = posts.map(post => {
-      const mediaUrls = Array.isArray(post.mediaUrls) ? post.mediaUrls : [];
-      const thumbnail = mediaUrls[0] || 'https://placehold.co/300x300/6366F1/white?text=Post';
-
+    // Formatar posts (bloquear conteúdo se não inscrito)
+    const formattedPosts = posts.map((post) => {
+      const isLocked = post.visibility === 'SUBSCRIBERS' && !isSubscribed;
+      
       return {
         id: post.id,
-        type: post.mediaType.toLowerCase(),
-        thumbnail,
-        likes: post.likesCount,
-        comments: post.commentsCount,
-        views: post.viewsCount,
-        isLocked: ! post.isPublic && ! isSubscribed,
-        isPPV: post.isPPV,
-        price: post.ppvPrice,
-        createdAt: post.createdAt,
+        type: post.type.toLowerCase(),
+        title: isLocked ? 'Conteúdo Exclusivo' : post.title,
+        description: isLocked ? 'Assine para visualizar' : post.description,
+        thumbnail: post.thumbnail,
+        isLocked,
+        price: post.visibility === 'PPV' ? post.price : null,
+        mediaCount: post.mediaCount,
+        likes: post.likes,
+        comments: post.comments,
+        views: post.views,
+        publishedAt: post.publishedAt,
+        tags: post.tags,
+        visibility: post.visibility.toLowerCase(),
       };
     });
 
-    res. json({
+    res.json({
       success: true,
       data: formattedPosts,
       isSubscribed,
+      pagination: {
+        page: parseInt(page),
+        limit: parseInt(limit),
+        total,
+        totalPages: Math.ceil(total / parseInt(limit)),
+      },
     });
   } catch (error) {
     logger.error('Get creator posts error:', error);
     res.status(500).json({
       success: false,
-      message: 'Failed to get posts',
+      message: 'Failed to get creator posts',
     });
   }
 };
-
-/**
- * Listar criadores (discovery/explore)
- */
-export const listCreators = async (req, res) => {
-  try {
-    const { 
-      search, 
-      minPrice, 
-      maxPrice, 
-      verified,
-      limit = 20, 
-      offset = 0 
-    } = req.query;
-
-    const where = {
-      ...(verified === 'true' && { isVerified: true }),
-      ...(minPrice || maxPrice ? {
-        subscriptionPrice: {
-          ...(minPrice && { gte: parseFloat(minPrice) }),
-          ...(maxPrice && { lte: parseFloat(maxPrice) }),
-        },
-      } : {}),
-      ...(search && {
-        OR: [
-          { displayName: { contains: search, mode: 'insensitive' } },
-          { description: { contains: search, mode: 'insensitive' } },
-          { user: { username: { contains: search, mode: 'insensitive' } } },
-        ],
-      }),
-    };
-
-    const creators = await prisma.creator.findMany({
-      where,
-      include: {
-        user: {
-          select: {
-            username: true,
-            displayName: true,
-            avatar: true,
-            bio: true,
-            isVerified: true,
-          },
-        },
-        _count: {
-          select: {
-            subscriptions: true,
-            posts: true,
-          },
-        },
-      },
-      orderBy: { createdAt: 'desc' },
-      take: parseInt(limit),
-      skip: parseInt(offset),
-    });
-
-    const total = await prisma.creator.count({ where });
-
-    const formattedCreators = creators.map(creator => ({
-      id: creator.id,
-      username: creator.user.username,
-      displayName: creator.displayName || creator.user.displayName,
-      bio: creator.user.bio,
-      avatar: creator.user.avatar,
-      coverImage: creator.coverImage,
-      isVerified: creator.isVerified || creator.user.isVerified,
-      subscriptionPrice: creator.subscriptionPrice,
-      subscribers: creator._count.subscriptions,
-      posts: creator._count. posts,
-    }));
-
-    res.json({
-      success: true,
-      data: formattedCreators,
-      pagination: {
-        total,
-        limit: parseInt(limit),
-        offset: parseInt(offset),
-      },
-    });
-  } catch (error) {
-    logger.error('List creators error:', error);
-    res.status(500).json({
-      success: false,
-      message: 'Failed to list creators',
-    });
-  }
-};
-
-/**
- * Helper: Extrair tags da descrição
- */
-function extractTags(description) {
-  if (!description) return [];
-  
-  const hashtagRegex = /#(\w+)/g;
-  const matches = description.match(hashtagRegex);
-  
-  if (!matches) return [];
-  
-  return matches.map(tag => tag.substring(1)).slice(0, 5);
-}

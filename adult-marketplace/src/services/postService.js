@@ -1,141 +1,52 @@
-const API_URL = 'http://localhost:5000/api/v1';
+import api from './api';
 
 class PostService {
-  getAuthHeaders() {
-    const token = localStorage.getItem('authToken');
-    return {
-      'Content-Type': 'application/json',
-      ...(token && { Authorization: `Bearer ${token}` }),
-    };
+  // Listar posts públicos
+  async listPosts(params = {}) {
+    const response = await api.get('/posts', { params });
+    return response.data;
   }
 
-  // Buscar posts do criador
-  async getCreatorPosts(filters = {}) {
-    const queryParams = new URLSearchParams();
-    
-    if (filters.status) queryParams.append('status', filters. status);
-    if (filters. limit) queryParams.append('limit', filters.limit);
-    if (filters.offset) queryParams.append('offset', filters.offset);
-
-    const response = await fetch(
-      `${API_URL}/posts/my-posts?${queryParams.toString()}`,
-      {
-        headers: this.getAuthHeaders(),
-        credentials: 'include',
-      }
-    );
-
-    if (!response.ok) {
-      const error = await response.json();
-      throw new Error(error.message || 'Erro ao buscar posts');
-    }
-
-    return response.json();
-  }
-
-  // Buscar post específico
+  // Obter post específico
   async getPost(postId) {
-    const response = await fetch(`${API_URL}/posts/${postId}`, {
-      headers: this.getAuthHeaders(),
-      credentials: 'include',
-    });
-
-    if (! response.ok) {
-      throw new Error('Erro ao buscar post');
-    }
-
-    return response.json();
+    const response = await api.get(`/posts/${postId}`);
+    return response.data;
   }
 
-  // Criar novo post
-  async createPost(postData) {
-    const response = await fetch(`${API_URL}/posts`, {
-      method: 'POST',
-      headers: this.getAuthHeaders(),
-      credentials: 'include',
-      body: JSON.stringify(postData),
-    });
-
-    if (!response.ok) {
-      const error = await response.json();
-      throw new Error(error.message || 'Erro ao criar post');
-    }
-
-    return response.json();
+  // Curtir post
+  async likePost(postId) {
+    const response = await api.post(`/posts/${postId}/like`);
+    return response.data;
   }
 
-  // Atualizar post
-  async updatePost(postId, postData) {
-    const response = await fetch(`${API_URL}/posts/${postId}`, {
-      method: 'PUT',
-      headers: this.getAuthHeaders(),
-      credentials: 'include',
-      body: JSON.stringify(postData),
-    });
-
-    if (!response.ok) {
-      const error = await response. json();
-      throw new Error(error.message || 'Erro ao atualizar post');
-    }
-
-    return response.json();
+  // Descurtir post
+  async unlikePost(postId) {
+    const response = await api.delete(`/posts/${postId}/like`);
+    return response.data;
   }
 
-  // Deletar post
-  async deletePost(postId) {
-    const response = await fetch(`${API_URL}/posts/${postId}`, {
-      method: 'DELETE',
-      headers: this.getAuthHeaders(),
-      credentials: 'include',
-    });
-
-    if (!response.ok) {
-      const error = await response.json();
-      throw new Error(error.message || 'Erro ao deletar post');
-    }
-
-    return response.json();
+  // Adicionar comentário
+  async addComment(postId, content) {
+    const response = await api.post(`/posts/${postId}/comments`, { content });
+    return response.data;
   }
 
-  // Deletar múltiplos posts
-  async deletePosts(postIds) {
-    const response = await fetch(`${API_URL}/posts/bulk-delete`, {
-      method: 'POST',
-      headers: this.getAuthHeaders(),
-      credentials: 'include',
-      body: JSON.stringify({ postIds }),
-    });
-
-    if (!response.ok) {
-      const error = await response.json();
-      throw new Error(error. message || 'Erro ao deletar posts');
-    }
-
-    return response.json();
+  // Listar comentários
+  async getComments(postId, params = {}) {
+    const response = await api.get(`/posts/${postId}/comments`, { params });
+    return response.data;
   }
 
-  // Toggle like
-  async toggleLike(postId) {
-    const response = await fetch(`${API_URL}/posts/${postId}/like`, {
-      method: 'POST',
-      headers: this.getAuthHeaders(),
-      credentials: 'include',
-    });
-
-    if (!response.ok) {
-      throw new Error('Erro ao curtir post');
-    }
-
-    return response.json();
+  // Deletar comentário
+  async deleteComment(postId, commentId) {
+    const response = await api.delete(`/posts/${postId}/comments/${commentId}`);
+    return response.data;
   }
 
-  // Incrementar view
-  async incrementView(postId) {
-    await fetch(`${API_URL}/posts/${postId}/view`, {
-      method: 'POST',
-      headers: this.getAuthHeaders(),
-      credentials: 'include',
-    });
+  // Denunciar post
+  async reportPost(postId, reason) {
+    const response = await api.post(`/posts/${postId}/report`, { reason });
+    return response.data;
   }
 }
 

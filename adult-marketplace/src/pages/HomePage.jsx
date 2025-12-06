@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { Link } from 'react-router-dom';
-import creatorsAPI from '../services/creatorsAPI';
+import creatorService from '../services/creatorService';
 import Sidebar from '../components/Sidebar';
 import RightSidebar from '../components/RightSidebar';
 
@@ -95,69 +95,25 @@ export default function HomePage() {
   }, [discreetMode]);
 
   // Function to fetch creators from API
-  const fetchCreators = useCallback(async (pageNum = 1, append = false) => {
+  const fetchCreators = async () => {
+    setLoading(true);
     try {
-      setLoading(true);
-      setError(null);
-
-      const params = {
-        page: pageNum,
-        limit: 12,
-      };
-
-      // Add search if exists
-      if (search.trim()) {
-        params.search = search.trim();
-      }
-
-      const response = await creatorsAPI.getAll(params);
-      const data = response.data;
+      // ✅ CORREÇÃO: Usar creatorService em vez de creatorsAPI
+      const response = await creatorService.listCreators({
+        limit: 20,
+        featured: true,
+      });
       
-      // Map API response to expected format
-      const mappedCreators = (data.items || data.data || []).map(creator => ({
-        id: creator.id,
-        _id: creator.id,
-        username: creator.user?.username || creator.username || 'unknown',
-        displayName: creator.displayName || creator.user?.username || 'Criador',
-        category: 'Conteúdo',
-        price: creator.subscriptionPrice || 0,
-        subscriptionPrice: creator.subscriptionPrice || 0,
-        currency: 'BRL',
-        avatar: creator.user?.avatar || creator.avatar || `https://placehold.co/100x100/8B7FE8/white?text=${(creator.displayName || 'C').charAt(0)}`,
-        isVerified: creator.isVerified || false,
-        hasStory: false,
-        tags: [],
-        genderIdentity: '',
-        orientation: '',
-        contentType: [],
-        aesthetic: [],
-        isLive: false,
-        lastPost: '',
-        subscribers: creator.followersCount || 0,
-        description: creator.description || '',
-      }));
-
-      if (append) {
-        setCreators(prev => [...prev, ...mappedCreators]);
-      } else {
-        setCreators(mappedCreators);
+      if (response.success) {
+        setCreators(response.data);
       }
-      
-      // Handle pagination info
-      const pagination = data.pagination || {};
-      setTotalCreators(pagination.total || mappedCreators.length);
-      setHasMore(pagination.hasNext || (mappedCreators.length >= 12 && pageNum * 12 < (pagination.total || 100)));
-      
-    } catch (err) {
-      console.error('Erro ao carregar criadores:', err);
-      setError('Erro ao carregar criadores. Tente novamente.');
-      if (!append) {
-        setCreators([]);
-      }
+    } catch (error) {
+      console.error('Erro ao carregar criadores:', error);
+      setError(error.message);
     } finally {
       setLoading(false);
     }
-  }, [search, selectedFilters]);
+  };
 
   // Initial fetch
   useEffect(() => {
@@ -475,7 +431,7 @@ export default function HomePage() {
                       >
                         <span>{value}</span>
                         <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
-                          <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" />
+                          <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 1.414L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" />
                         </svg>
                       </button>
                     ))

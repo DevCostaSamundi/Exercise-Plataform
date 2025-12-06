@@ -1,26 +1,60 @@
 // src/services/authAPI.js
 import api from './api';
 
-const authAPI = {
-  login: async (credentials) => {
-    return api.post('/auth/v1/login', credentials);
-  },
+class AuthAPI {
+  // Login
+  async login(email, password) {
+    const response = await api.post('/auth/login', { email, password });
+    return response.data;
+  }
 
-  register: async (userData) => {
-    return api.post('/auth/v1/register', userData);
-  },
+  // Register
+  async register(data) {
+    const response = await api.post('/auth/register', data);
+    return response.data;
+  }
 
-  creatorRegister: async (formData) => {
-    return api.post('/auth/v1/creator-register', formData);
-  },
+  // Creator Register
+  async creatorRegister(data) {
+    const response = await api.post('/auth/creator-register', data);
+    return response.data;
+  }
 
-  logout: async () => {
-    return api.post('/auth/v1/logout');
-  },
+  // Logout
+  async logout() {
+    const response = await api.post('/auth/logout');
+    return response.data;
+  }
 
-  getMe: async () => {
-    return api.get('/auth/v1/me');
-  },
-};
+  // Get current user
+  async getCurrentUser() {
+    const response = await api.get('/auth/me');
+    return response.data;
+  }
 
-export default authAPI;
+  // Verify email
+  async verifyEmail(token) {
+    const response = await api.post('/auth/verify-email', { token });
+    return response.data;
+  }
+
+  // Request password reset
+  async requestPasswordReset(email) {
+    const response = await api.post('/auth/forgot-password', { email });
+    return response.data;
+  }
+
+  // Reset password
+  async resetPassword(token, newPassword) {
+    const response = await api.post('/auth/reset-password', { token, newPassword });
+    return response.data;
+  }
+
+  // Refresh token
+  async refreshToken() {
+    const response = await api.post('/auth/refresh-token');
+    return response.data;
+  }
+}
+
+export default new AuthAPI();

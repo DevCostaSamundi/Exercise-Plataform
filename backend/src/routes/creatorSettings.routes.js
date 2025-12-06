@@ -25,4 +25,18 @@ router.put(
   updateCreatorSettings
 );
 
+// GET /api/v1/creator/dashboard - Dashboard data
+router.get('/dashboard', async (req, res) => {
+  // TODO: Implementar controller
+  res.json({
+    success: true,
+    data: {
+      earnings: 1234.56,
+      subscribers: 42,
+      posts: 17,
+      lastPayment: '2024-06-01',
+    }
+  });
+});
+
 export default router;

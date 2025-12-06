@@ -1,64 +1,44 @@
-const API_URL = 'http://localhost:5000/api/v1';
+import api from './api';
 
 class CreatorService {
-  getAuthHeaders() {
-    const token = localStorage.getItem('authToken');
-    return {
-      'Content-Type': 'application/json',
-      ...(token && { Authorization: `Bearer ${token}` }),
-    };
-  }
-
-  // Obter perfil do criador
+  // Obter perfil do criador (público)
   async getCreatorProfile(creatorId) {
-    const response = await fetch(`${API_URL}/creators/${creatorId}`, {
-      headers: this.getAuthHeaders(),
-      credentials: 'include',
-    });
-
-    if (!response.ok) {
-      throw new Error('Failed to fetch creator profile');
-    }
-
-    return response.json();
+    const response = await api.get(`/creators/${creatorId}`);
+    return response.data;
   }
 
-  // Obter posts do criador
+  // Obter posts do criador (público)
   async getCreatorPosts(creatorId, params = {}) {
-    const queryParams = new URLSearchParams(params);
-    
-    const response = await fetch(
-      `${API_URL}/creators/${creatorId}/posts?${queryParams.toString()}`,
-      {
-        headers: this.getAuthHeaders(),
-        credentials: 'include',
-      }
-    );
-
-    if (!response.ok) {
-      throw new Error('Failed to fetch posts');
-    }
-
-    return response.json();
+    const response = await api.get(`/creators/${creatorId}/posts`, { params });
+    return response.data;
   }
 
   // Listar criadores
   async listCreators(filters = {}) {
-    const queryParams = new URLSearchParams(filters);
-    
-    const response = await fetch(
-      `${API_URL}/creators?${queryParams.toString()}`,
-      {
-        headers: this.getAuthHeaders(),
-        credentials: 'include',
-      }
-    );
+    const response = await api.get('/creators', { params: filters });
+    return response.data;
+  }
 
-    if (!response.ok) {
-      throw new Error('Failed to fetch creators');
-    }
+  // Obter configurações (autenticado)
+  async getSettings() {
+    const response = await api.get('/creator/settings');
+    return response.data;
+  }
 
-    return response.json();
+  // Atualizar configurações (autenticado)
+  async updateSettings(formData) {
+    const response = await api.put('/creator/settings', formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data',
+      },
+    });
+    return response.data;
+  }
+
+  // Obter dados do dashboard
+  async getDashboard() {
+    const response = await api.get('/creator/dashboard');
+    return response.data;
   }
 }
 

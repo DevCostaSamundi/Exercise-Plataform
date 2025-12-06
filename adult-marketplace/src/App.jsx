@@ -146,6 +146,14 @@ function App() {
           <Route path="/privacy" element={<PrivacyPage />} />
           <Route path="/support" element={<SupportPage />} />
 
+          {/* Subscriber Routes */}
+          <Route path="/profile" element={<div>Profile Page (TODO)</div>} />
+          <Route path="/explore" element={<div>Explore Page (TODO)</div>} />
+          <Route path="/my-subscriptions" element={<div>My Subscriptions (TODO)</div>} />
+          <Route path="/messages" element={<div>Messages Page (TODO)</div>} />
+          <Route path="/favorites" element={<div>Favorites Page (TODO)</div>} />
+          <Route path="/settings" element={<div>Settings Page (TODO)</div>} />
+          <Route path="/notifications" element={<div>Notifications Page (TODO)</div>} />
         </Routes>
       </div>
     </Router>

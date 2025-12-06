@@ -1,5 +1,6 @@
 import { NavLink, useNavigate, Link } from 'react-router-dom';
 import { useState, useEffect } from 'react';
+import creatorService from '../services/creatorService';
 import withdrawalService from '../services/withdrawalService';
 
 export default function CreatorSidebar() {
@@ -33,12 +34,8 @@ export default function CreatorSidebar() {
       });
 
       // TODO: Buscar mensagens não lidas
-      // const messagesResponse = await messageService.getUnreadCount();
-      // setUnreadMessages(messagesResponse.count);
-
-      // Simular dados (remover depois)
-      setUnreadMessages(12);
-      setNotifications(5);
+      setUnreadMessages(0);
+      setNotifications(0);
     } catch (error) {
       console.error('Error fetching creator data:', error);
     }
@@ -150,7 +147,7 @@ export default function CreatorSidebar() {
           {/* Navegação principal */}
           <nav className="flex-1 space-y-1 overflow-y-auto scrollbar-thin scrollbar-thumb-slate-700 scrollbar-track-transparent">
             <NavLink
-              to="/creator-dashboard"
+              to="/creator/dashboard"
               className={({ isActive }) => `${linkBase} ${isActive ?  linkActive : linkInactive}`}
               title="Dashboard"
             >

@@ -12,17 +12,13 @@ import creatorRoutes from './routes/creator.routes.js';
 import postRoutes from './routes/post.routes.js';
 import chatRoutes from './routes/chat.routes.js';
 import liveRoutes from './routes/live.routes.js';
-import creatorDashboardRoutes from './routes/creatorDashboard.routes.js';
 import creatorSettingsRoutes from './routes/creatorSettings.routes.js';
-
-// Import message routes
+import creatorPostRoutes from './routes/creatorPost.routes.js';
 import messageRoutes from './routes/message.routes.js';
-
-// Import payment routes
 import paymentRoutes from './routes/payment.routes.js';
 import withdrawalRoutes from './routes/withdrawal.routes.js';
-
 import subscriptionRoutes from './routes/subscription.routes.js';
+import creatorDashboardRoutes from './routes/creatorDashboard.routes.js';
 
 // Import middleware
 import errorMiddleware from './middleware/error.middleware.js';
@@ -33,8 +29,6 @@ const app = express();
 // Security middleware
 app.use(helmet());
 
-// ------------------- CORS -------------------
-// Allowed origins
 // ------------------- CORS -------------------
 // Allowed origins
 const allowedOrigins = [
@@ -111,39 +105,36 @@ app.use(`/api/${API_VERSION}/auth`, authRoutes);
 // User routes
 app.use(`/api/${API_VERSION}/users`, userRoutes);
 
-// Creator routes
-app.use(`/api/${API_VERSION}/creators`, creatorRoutes);
-
 // Subscription routes
 app.use(`/api/${API_VERSION}/subscriptions`, subscriptionRoutes);
 
-// creator dashboard routes
+// ✅ IMPORTANTE: Creator management ANTES de rotas públicas
+app.use(`/api/${API_VERSION}/creator`, creatorSettingsRoutes);
+app.use(`/api/${API_VERSION}/creator/posts`, creatorPostRoutes);
 app.use(`/api/${API_VERSION}/creator-dashboard`, creatorDashboardRoutes);
 
-// Creator settings routes
-app.use(`/api/${API_VERSION}/creator`, creatorSettingsRoutes);
+// Creator routes públicas (perfil, listar) - DEPOIS
+app.use(`/api/${API_VERSION}/creators`, creatorRoutes);
 
-//
-app.use(`/api/${API_VERSION}/creator/:id`, creatorRoutes);
-// Post routes
+// Post routes (públicos)
 app.use(`/api/${API_VERSION}/posts`, postRoutes);
 
 // Live routes
 app.use(`/api/${API_VERSION}/lives`, liveRoutes);
 
-
 // Message routes
 app.use(`/api/${API_VERSION}/messages`, messageRoutes);
 
 // Chat routes
-app.use(`/api/${API_VERSION}`, chatRoutes);
+app.use(`/api/${API_VERSION}/chat`, chatRoutes);
 
+// Payment routes
 app.use(`/api/${API_VERSION}/payments`, paymentRoutes);
 
 // Withdrawal routes
 app.use(`/api/${API_VERSION}/withdrawals`, withdrawalRoutes);
 
-// 404 handler for undefined routes
+// ------------------- 404 handler -------------------
 app.use('/api', (req, res) => {
   res.status(404).json({
     status: 'error',

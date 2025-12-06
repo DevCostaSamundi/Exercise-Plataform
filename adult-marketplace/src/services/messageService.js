@@ -1,163 +1,62 @@
-const API_URL = 'http://localhost:5000/api/v1';
+import api from './api';
 
 class MessageService {
-  // Obter token de autenticação
-  getAuthHeaders() {
-    const token = localStorage.getItem('authToken');
-    return {
-      'Content-Type': 'application/json',
-      'Authorization': `Bearer ${token}`,
-    };
+  // Listar conversas
+  async getConversations(params = {}) {
+    const response = await api.get('/messages/conversations', { params });
+    return response.data;
   }
 
-  // Buscar todas as conversas
-  async getConversations(status = 'active') {
-    const response = await fetch(
-      `${API_URL}/messages/conversations?status=${status}`,
-      {
-        headers: this.getAuthHeaders(),
-        credentials: 'include',
-      }
-    );
-
-    if (!response.ok) {
-      throw new Error('Erro ao buscar conversas');
-    }
-
-    return response.json();
+  // Obter conversa específica
+  async getConversation(conversationId) {
+    const response = await api.get(`/messages/conversations/${conversationId}`);
+    return response.data;
   }
 
-  // Buscar mensagens de uma conversa
-  async getMessages(conversationId, limit = 50, before = null) {
-    let url = `${API_URL}/messages/${conversationId}?limit=${limit}`;
-    if (before) {
-      url += `&before=${before}`;
-    }
+  // Criar conversa
+  async createConversation(recipientId) {
+    const response = await api.post('/messages/conversations', { recipientId });
+    return response.data;
+  }
 
-    const response = await fetch(url, {
-      headers: this.getAuthHeaders(),
-      credentials: 'include',
-    });
-
-    if (!response.ok) {
-      throw new Error('Erro ao buscar mensagens');
-    }
-
-    return response.json();
+  // Listar mensagens de uma conversa
+  async getMessages(conversationId, params = {}) {
+    const response = await api.get(`/messages/conversations/${conversationId}/messages`, { params });
+    return response.data;
   }
 
   // Enviar mensagem
-  async sendMessage(conversationId, recipientId, content, type = 'text') {
-    const response = await fetch(`${API_URL}/messages`, {
-      method: 'POST',
-      headers: this.getAuthHeaders(),
-      credentials: 'include',
-      body: JSON.stringify({
-        conversationId,
-        recipientId,
-        type,
-        content,
-      }),
-    });
-
-    if (!response.ok) {
-      const error = await response.json();
-      throw new Error(error.message || 'Erro ao enviar mensagem');
-    }
-
-    return response.json();
+  async sendMessage(data) {
+    const response = await api.post('/messages', data);
+    return response.data;
   }
 
-  // Criar ou buscar conversa
-  async getOrCreateConversation(recipientId) {
-    const response = await fetch(`${API_URL}/messages/conversations`, {
-      method: 'POST',
-      headers: this.getAuthHeaders(),
-      credentials: 'include',
-      body: JSON.stringify({ recipientId }),
-    });
-
-    if (!response.ok) {
-      const error = await response.json();
-      throw new Error(error.message || 'Erro ao criar conversa');
-    }
-
-    return response.json();
-  }
-
-  // Marcar mensagem como lida
-  async markAsRead(messageId) {
-    const response = await fetch(`${API_URL}/messages/${messageId}/read`, {
-      method: 'PUT',
-      headers: this.getAuthHeaders(),
-      credentials: 'include',
-    });
-
-    if (!response.ok) {
-      throw new Error('Erro ao marcar mensagem como lida');
-    }
-
-    return response.json();
-  }
-
-  // Upload de mídia
-  async uploadMedia(file) {
-    const formData = new FormData();
-    formData.append('file', file);
-
-    const response = await fetch(`${API_URL}/messages/upload`, {
-      method: 'POST',
+  // Enviar mensagem com arquivo
+  async sendMessageWithFile(formData) {
+    const response = await api.post('/messages', formData, {
       headers: {
-        'Authorization': `Bearer ${localStorage.getItem('authToken')}`,
+        'Content-Type': 'multipart/form-data',
       },
-      credentials: 'include',
-      body: formData,
     });
-
-    if (!response.ok) {
-      throw new Error('Erro ao fazer upload');
-    }
-
-    return response.json();
+    return response.data;
   }
 
-  // Enviar mensagem paga
-  async sendPaidMessage(conversationId, recipientId, content, price) {
-    const response = await fetch(`${API_URL}/messages/paid`, {
-      method: 'POST',
-      headers: this.getAuthHeaders(),
-      credentials: 'include',
-      body: JSON.stringify({
-        conversationId,
-        recipientId,
-        content,
-        price,
-      }),
-    });
-
-    if (!response.ok) {
-      const error = await response.json();
-      throw new Error(error.message || 'Erro ao enviar mensagem paga');
-    }
-
-    return response.json();
+  // Marcar mensagens como lidas
+  async markAsRead(conversationId) {
+    const response = await api.post(`/messages/conversations/${conversationId}/read`);
+    return response.data;
   }
 
-  // Desbloquear mensagem paga
-  async unlockPaidMessage(messageId, paymentMethod = 'crypto') {
-    const response = await fetch(`${API_URL}/messages/${messageId}/unlock`, {
-      method: 'POST',
-      headers: this.getAuthHeaders(),
-      credentials: 'include',
-      body: JSON.stringify({ paymentMethod }),
-    });
+  // Deletar mensagem
+  async deleteMessage(messageId) {
+    const response = await api.delete(`/messages/${messageId}`);
+    return response.data;
+  }
 
-    if (!response.ok) {
-      const error = await response.json();
-      throw new Error(error.message || 'Erro ao desbloquear mensagem');
-    }
-
-    return response.json();
+  // Obter contagem de não lidas
+  async getUnreadCount() {
+    const response = await api.get('/messages/unread-count');
+    return response.data;
   }
 }
 

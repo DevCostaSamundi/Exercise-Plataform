@@ -1,126 +1,63 @@
 import { useParams, useNavigate } from 'react-router-dom';
 import { useState, useEffect } from 'react';
 import PaymentModal from '../../components/PaymentModal';
+import TipModal from '../../components/TipModal';
 import creatorService from '../../services/creatorService';
 import subscriptionService from '../../services/subscriptionService';
 
 export default function CreatorPage() {
   const { id } = useParams();
   const navigate = useNavigate();
-  const [activeTab, setActiveTab] = useState('posts'); // posts, about, media
+  const [activeTab, setActiveTab] = useState('posts');
   const [creator, setCreator] = useState(null);
   const [posts, setPosts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showPaymentModal, setShowPaymentModal] = useState(false);
+  const [showTipModal, setShowTipModal] = useState(false);
   const [paymentData, setPaymentData] = useState(null);
   const [isSubscribed, setIsSubscribed] = useState(false);
   const [currentUser, setCurrentUser] = useState(null);
+  const [filterType, setFilterType] = useState('all');
+  const [selectedPost, setSelectedPost] = useState(null);
 
   useEffect(() => {
+    const user = JSON.parse(localStorage.getItem('user') || '{}');
+    setCurrentUser(user);
     fetchCreatorData();
-    checkSubscriptionStatus();
   }, [id]);
 
-const fetchCreatorData = async () => {
-  setLoading(true);
-  try {
-    // Buscar perfil do criador
-    const profileResponse = await creatorService.getCreatorProfile(id);
-    
-    if (profileResponse.success) {
-      setCreator(profileResponse.data);
+  const fetchCreatorData = async () => {
+    setLoading(true);
+    try {
+      // Buscar perfil do criador
+      const profileResponse = await creatorService.getCreatorProfile(id);
       
-      // Buscar posts
-      const postsResponse = await creatorService.getCreatorPosts(id, { limit: 20 });
-      
-      if (postsResponse.success) {
-        setPosts(postsResponse.data);
-        setIsSubscribed(postsResponse.isSubscribed || false);
+      if (profileResponse.success) {
+        setCreator(profileResponse.data);
+        
+        // Buscar posts
+        const postsResponse = await creatorService.getCreatorPosts(id, { limit: 20 });
+        
+        if (postsResponse.success) {
+          setPosts(postsResponse.data);
+          setIsSubscribed(postsResponse.isSubscribed || false);
+        }
       }
-    } else {
-      throw new Error('Creator not found');
-    }
-  } catch (error) {
-    console.error('Error fetching creator:', error);
-    
-    // Fallback para dados mock (desenvolvimento)
-    if (process.env.NODE_ENV === 'development') {
-      loadMockData();
-    } else {
+    } catch (error) {
+      console.error('Error fetching creator:', error);
       setCreator(null);
+    } finally {
+      setLoading(false);
     }
-  } finally {
-    setLoading(false);
-  }
-};
-
-  const loadMockData = () => {
-    // Dados mock enquanto API não está pronta
-    setCreator({
-      id,
-      username: 'luna. oficial',
-      displayName: 'Luna',
-      bio: 'Artista multidisciplinar, criando conteúdo autêntico e sensual com foco em empoderamento.  🏳️‍⚧️✨',
-      description: 'Bem-vindo ao meu espaço exclusivo!  Aqui você encontra conteúdo autêntico, arte sensual e muito mais.  Sou apaixonada por fotografia, performance e expressão corporal.  Vamos criar uma conexão especial juntos! 💜',
-      subscriptionPrice: 30,
-      currency: 'USD',
-      avatar: 'https://placehold.co/200x200/8B7FE8/white?text=Luna',
-      cover: 'https://placehold.co/1200x400/6366F1/white?text=Cover',
-      isVerified: true,
-      subscribers: 1240,
-      posts: 156,
-      photos: 89,
-      videos: 67,
-      tags: ['trans', 'sensual', 'artístico', 'empoderamento'],
-      genderIdentity: 'Trans mulher',
-      orientation: 'Lésbica',
-      location: 'São Paulo, Brasil',
-      joinDate: 'Março 2024',
-      socialLinks: {
-        instagram: '@luna.oficial',
-        twitter: '@luna_art',
-      }
-    });
-
-    setPosts([
-      { id: 1, type: 'photo', thumbnail: 'https://placehold.co/300x300/8B7FE8/white?text=Post1', likes: 145, comments: 12, isLocked: false },
-      { id: 2, type: 'video', thumbnail: 'https://placehold.co/300x300/6366F1/white?text=Post2', likes: 203, comments: 28, isLocked: true },
-      { id: 3, type: 'photo', thumbnail: 'https://placehold.co/300x300/A78BFA/white?text=Post3', likes: 167, comments: 15, isLocked: false },
-      { id: 4, type: 'video', thumbnail: 'https://placehold.co/300x300/EC4899/white?text=Post4', likes: 312, comments: 45, isLocked: true },
-      { id: 5, type: 'photo', thumbnail: 'https://placehold.co/300x300/8B5CF6/white?text=Post5', likes: 189, comments: 19, isLocked: true },
-      { id: 6, type: 'photo', thumbnail: 'https://placehold.co/300x300/F97316/white?text=Post6', likes: 221, comments: 31, isLocked: false },
-    ]);
   };
 
-const checkSubscriptionStatus = async () => {
-  const user = JSON.parse(localStorage.getItem('user') || '{}');
-  setCurrentUser(user);
-  
-  if (!user || !user.id) {
-    setIsSubscribed(false);
-    return;
-  }
-
-  try {
-    const response = await subscriptionService.checkSubscription(id);
-    
-    if (response.success) {
-      setIsSubscribed(response.data.isSubscribed);
-    }
-  } catch (error) {
-    console.error('Error checking subscription:', error);
-    setIsSubscribed(false);
-  }
-};
-
   const handleSubscribe = () => {
-    if (! currentUser || !currentUser.id) {
+    if (!currentUser || !currentUser.id) {
       alert('Você precisa estar logado para assinar!');
       navigate('/login');
       return;
     }
 
-    // Preparar dados do pagamento
     setPaymentData({
       creatorId: creator.id,
       type: 'SUBSCRIPTION',
@@ -130,36 +67,42 @@ const checkSubscriptionStatus = async () => {
   };
 
   const handleSendMessage = () => {
-    if (!  currentUser || ! currentUser.id) {
+    if (!currentUser || !currentUser.id) {
       alert('Você precisa estar logado para enviar mensagens!');
       navigate('/login');
       return;
     }
 
-    // Redirecionar para mensagens
-    navigate('/creator/messages', {
-      state: { recipientId: creator.id, recipientName: creator.displayName }
+    navigate('/messages', {
+      state: { recipientId: creator.userId, recipientName: creator.displayName }
     });
   };
 
-  const handleShareProfile = async () => {
-    const url = window.location.href;
-    
-    if (navigator.share) {
-      try {
-        await navigator.share({
-          title: `${creator.displayName} - PrideConnect`,
-          text: creator.bio,
-          url,
-        });
-      } catch (error) {
-        console.log('Share cancelled');
-      }
-    } else {
-      // Copiar para clipboard
-      navigator.clipboard.writeText(url);
-      alert('Link copiado para a área de transferência!');
+  const handleSendTip = () => {
+    if (!currentUser || !currentUser.id) {
+      alert('Você precisa estar logado para enviar gorjetas!');
+      navigate('/login');
+      return;
     }
+
+    setShowTipModal(true);
+  };
+
+  const handleUnlockPost = (post) => {
+    if (!currentUser || !currentUser.id) {
+      alert('Você precisa estar logado para desbloquear conteúdo!');
+      navigate('/login');
+      return;
+    }
+
+    setSelectedPost(post);
+    setPaymentData({
+      creatorId: creator.id,
+      postId: post.id,
+      type: 'PPV',
+      amountUSD: post.price || 5,
+    });
+    setShowPaymentModal(true);
   };
 
   const formatPrice = (price, currency = 'USD') => {
@@ -175,6 +118,13 @@ const checkSubscriptionStatus = async () => {
     }
     return num.toString();
   };
+
+  const filteredPosts = posts.filter(post => {
+    if (filterType === 'all') return true;
+    if (filterType === 'photos') return post.type === 'photo';
+    if (filterType === 'videos') return post.type === 'video';
+    return true;
+  });
 
   const benefits = [
     { icon: '📸', title: 'Fotos Exclusivas', description: 'Conteúdo semanal em alta qualidade' },
@@ -378,18 +328,137 @@ const checkSubscriptionStatus = async () => {
                 >
                   Mídia ({creator.photos + creator.videos})
                 </button>
+                <button
+                  onClick={() => setActiveTab('about')}
+                  className={`pb-3 border-b-2 font-medium text-sm transition-colors ${
+                    activeTab === 'about'
+                      ? 'border-indigo-600 text-indigo-600'
+                      : 'border-transparent text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-300'
+                  }`}
+                >
+                  Sobre
+                </button>
               </div>
             </div>
 
-            {/* Posts Grid */}
-            {posts.length === 0 ? (
-              <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 p-12 text-center">
-                <div className="text-6xl mb-4">📭</div>
-                <p className="text-slate-600 dark:text-slate-400">Nenhum post ainda</p>
+            {/* Filter Buttons (apenas na aba media) */}
+            {activeTab === 'media' && (
+              <div className="flex space-x-2">
+                <button
+                  onClick={() => setFilterType('all')}
+                  className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+                    filterType === 'all'
+                      ? 'bg-indigo-600 text-white'
+                      : 'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300'
+                  }`}
+                >
+                  Tudo
+                </button>
+                <button
+                  onClick={() => setFilterType('photos')}
+                  className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+                    filterType === 'photos'
+                      ? 'bg-indigo-600 text-white'
+                      : 'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300'
+                  }`}
+                >
+                  📸 Fotos ({creator.photos})
+                </button>
+                <button
+                  onClick={() => setFilterType('videos')}
+                  className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+                    filterType === 'videos'
+                      ? 'bg-indigo-600 text-white'
+                      : 'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300'
+                  }`}
+                >
+                  🎥 Vídeos ({creator.videos})
+                </button>
               </div>
-            ) : (
+            )}
+
+            {/* Posts Grid */}
+            {activeTab === 'posts' && (
+              <>
+                {filteredPosts.length === 0 ? (
+                  <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 p-12 text-center">
+                    <div className="text-6xl mb-4">📭</div>
+                    <p className="text-slate-600 dark:text-slate-400">Nenhum post ainda</p>
+                  </div>
+                ) : (
+                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                    {filteredPosts.map(post => (
+                      <div 
+                        key={post.id} 
+                        className="relative aspect-square group cursor-pointer"
+                        onClick={() => post.isLocked && !isSubscribed && post.price ? handleUnlockPost(post) : null}
+                      >
+                        <div className="w-full h-full rounded-xl overflow-hidden bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700">
+                          <img
+                            src={post.thumbnail}
+                            alt={`Post ${post.id}`}
+                            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                          />
+                          
+                          {/* Overlay */}
+                          <div className="absolute inset-0 bg-black/0 group-hover:bg-black/40 transition-colors flex items-center justify-center">
+                            <div className="opacity-0 group-hover:opacity-100 transition-opacity flex items-center space-x-4 text-white">
+                              <div className="flex items-center space-x-1">
+                                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                                  <path fillRule="evenodd" d="M3. 172 5.172a4 4 0 015.656 0L10 6.343l1.172-1.171a4 4 0 115.656 5.656L10 17.657l-6.828-6.829a4 4 0 010-5.656z" clipRule="evenodd" />
+                                </svg>
+                                <span className="text-sm font-medium">{post.likes}</span>
+                              </div>
+                              <div className="flex items-center space-x-1">
+                                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                                  <path fillRule="evenodd" d="M18 10c0 3.866-3.582 7-8 7a8.841 8.841 0 01-4.083-.98L2 17l1.338-3.123C2.493 12.767 2 11.434 2 10c0-3.866 3.582-7 8-7s8 3.134 8 7zM7 9H5v2h2V9zm8 0h-2v2h2V9zM9 9h2v2H9V9z" clipRule="evenodd" />
+                                </svg>
+                                <span className="text-sm font-medium">{post.comments}</span>
+                              </div>
+                            </div>
+                          </div>
+
+                          {/* Lock overlay for locked content */}
+                          {post.isLocked && !isSubscribed && (
+                            <div className="absolute inset-0 bg-black/60 backdrop-blur-sm flex flex-col items-center justify-center">
+                              <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8 text-white mb-2" viewBox="0 0 20 20" fill="currentColor">
+                                <path fillRule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clipRule="evenodd" />
+                              </svg>
+                              <p className="text-white text-xs font-medium mb-2">Conteúdo bloqueado</p>
+                              {post.price && (
+                                <button
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    handleUnlockPost(post);
+                                  }}
+                                  className="bg-indigo-600 hover:bg-indigo-700 text-white text-xs px-3 py-1 rounded-full font-medium"
+                                >
+                                  Desbloquear por ${post.price}
+                                </button>
+                              )}
+                            </div>
+                          )}
+
+                          {/* Video indicator */}
+                          {post.type === 'video' && (!post.isLocked || isSubscribed) && (
+                            <div className="absolute top-2 right-2 bg-black/70 rounded-lg px-2 py-1">
+                              <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 text-white" viewBox="0 0 20 20" fill="currentColor">
+                                <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" clipRule="evenodd" />
+                              </svg>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </>
+            )}
+
+            {/* Media Tab */}
+            {activeTab === 'media' && (
               <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-                {posts.map(post => (
+                {filteredPosts.map(post => (
                   <div key={post.id} className="relative aspect-square group cursor-pointer">
                     <div className="w-full h-full rounded-xl overflow-hidden bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700">
                       <img
@@ -403,26 +472,31 @@ const checkSubscriptionStatus = async () => {
                         <div className="opacity-0 group-hover:opacity-100 transition-opacity flex items-center space-x-4 text-white">
                           <div className="flex items-center space-x-1">
                             <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                              <path fillRule="evenodd" d="M3. 172 5.172a4 4 0 015.656 0L10 6.343l1.172-1.171a4 4 0 115.656 5.656L10 17.657l-6.828-6.829a4 4 0 010-5.656z" clipRule="evenodd" />
+                              <path fillRule="evenodd" d="M3.172 5.172a4 4 0 015.656 0L10 6.343l1.172-1.171a4 4 0 115.656 5.656L10 17.657l-6.828-6.829a4 4 0 010-5.656z" clipRule="evenodd" />
                             </svg>
                             <span className="text-sm font-medium">{post.likes}</span>
                           </div>
                           <div className="flex items-center space-x-1">
                             <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                              <path fillRule="evenodd" d="M18 10c0 3.866-3. 582 7-8 7a8.841 8.841 0 01-4.083-.98L2 17l1.338-3.123C2.493 12.767 2 11.434 2 10c0-3.866 3.582-7 8-7s8 3.134 8 7zM7 9H5v2h2V9zm8 0h-2v2h2V9zM9 9h2v2H9V9z" clipRule="evenodd" />
+                              <path fillRule="evenodd" d="M18 10c0 3.866-3.582 7-8 7a8.841 8.841 0 01-4.083-.98L2 17l1.338-3.123C2.493 12.767 2 11.434 2 10c0-3.866 3.582-7 8-7s8 3.134 8 7zM7 9H5v2h2V9zm8 0h-2v2h2V9zM9 9h2v2H9V9z" clipRule="evenodd" />
                             </svg>
                             <span className="text-sm font-medium">{post.comments}</span>
                           </div>
                         </div>
                       </div>
 
-                      {/* Lock overlay for locked content */}
+                      {/* Lock overlay */}
                       {post.isLocked && !isSubscribed && (
                         <div className="absolute inset-0 bg-black/60 backdrop-blur-sm flex flex-col items-center justify-center">
                           <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8 text-white mb-2" viewBox="0 0 20 20" fill="currentColor">
                             <path fillRule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clipRule="evenodd" />
                           </svg>
-                          <p className="text-white text-xs font-medium">Assine para ver</p>
+                          <p className="text-white text-xs font-medium mb-2">Conteúdo bloqueado</p>
+                          {post.price && (
+                            <button className="bg-indigo-600 hover:bg-indigo-700 text-white text-xs px-3 py-1 rounded-full font-medium">
+                              Desbloquear por ${post.price}
+                            </button>
+                          )}
                         </div>
                       )}
 
@@ -439,133 +513,171 @@ const checkSubscriptionStatus = async () => {
                 ))}
               </div>
             )}
+
+            {/* About Tab */}
+            {activeTab === 'about' && (
+              <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 p-6">
+                <h2 className="text-xl font-bold text-slate-900 dark:text-white mb-4">Sobre {creator.displayName}</h2>
+                <p className="text-slate-600 dark:text-slate-400 leading-relaxed mb-6 whitespace-pre-line">{creator.description}</p>
+                
+                <div className="space-y-4">
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <p className="text-sm text-slate-500 dark:text-slate-400 mb-1">Identidade de Gênero</p>
+                      <p className="font-medium text-slate-900 dark:text-white">{creator.genderIdentity}</p>
+                    </div>
+                    <div>
+                      <p className="text-sm text-slate-500 dark:text-slate-400 mb-1">Orientação Sexual</p>
+                      <p className="font-medium text-slate-900 dark:text-white">{creator.orientation}</p>
+                    </div>
+                    <div>
+                      <p className="text-sm text-slate-500 dark:text-slate-400 mb-1">Localização</p>
+                      <p className="font-medium text-slate-900 dark:text-white">{creator.location}</p>
+                    </div>
+                    <div>
+                      <p className="text-sm text-slate-500 dark:text-slate-400 mb-1">Membro desde</p>
+                      <p className="font-medium text-slate-900 dark:text-white">{creator.joinDate}</p>
+                    </div>
+                  </div>
+
+                  <div className="pt-4 border-t border-slate-200 dark:border-slate-800">
+                    <p className="text-sm text-slate-500 dark:text-slate-400 mb-2">Categorias</p>
+                    <div className="flex flex-wrap gap-2">
+                      {creator.tags.map(tag => (
+                        <span key={tag} className="bg-indigo-100 dark:bg-indigo-900/20 text-indigo-700 dark:text-indigo-400 text-sm px-3 py-1 rounded-full font-medium">
+                          #{tag}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
           </div>
 
           {/* Sidebar */}
-          <div className="lg:col-span-1 space-y-6">
-            {/* Subscribe Card */}
-            <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 p-6 sticky top-20 shadow-lg">
-              {isSubscribed ? (
-                <div className="text-center mb-6">
-                  <div className="w-16 h-16 bg-green-100 dark:bg-green-900/20 rounded-full flex items-center justify-center mx-auto mb-4">
-                    <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8 text-green-600" viewBox="0 0 20 20" fill="currentColor">
-                      <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-                    </svg>
-                  </div>
-                  <p className="text-lg font-bold text-slate-900 dark:text-white mb-2">Você é assinante!</p>
-                  <p className="text-sm text-slate-500 dark:text-slate-400">Aproveite todo o conteúdo exclusivo</p>
+          <div className="space-y-4">
+            {/* Subscription Card */}
+            {!isSubscribed ? (
+              <div className="bg-gradient-to-br from-indigo-600 to-purple-600 rounded-xl p-6 text-white shadow-xl">
+                <div className="text-center mb-4">
+                  <p className="text-sm font-medium opacity-90 mb-1">Assine por apenas</p>
+                  <p className="text-4xl font-bold">{formatPrice(creator.subscriptionPrice || 30)}</p>
+                  <p className="text-sm opacity-75">por mês</p>
                 </div>
-              ) : (
-                <div className="text-center mb-6">
-                  <p className="text-sm text-slate-500 dark:text-slate-400 mb-2">Assinatura mensal</p>
-                  <p className="text-4xl font-bold text-indigo-600 dark:text-indigo-400">
-                    {formatPrice(creator.subscriptionPrice, creator.currency)}
-                  </p>
-                  <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">por mês</p>
-                </div>
-              )}
-
-              {isSubscribed ?  (
+                
                 <button
-                  onClick={() => navigate('/creator/messages')}
-                  className="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 px-4 rounded-lg transition-colors mb-3 flex items-center justify-center space-x-2"
+                  onClick={handleSubscribe}
+                  className="w-full bg-white text-indigo-600 hover:bg-slate-50 py-3 px-6 rounded-lg font-semibold shadow-lg transition-all hover:shadow-xl mb-3"
                 >
-                  <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4. 03 8-9 8a9. 863 9.863 0 01-4.255-. 949L3 20l1. 395-3.72C3. 512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
-                  </svg>
-                  <span>Enviar Mensagem</span>
+                  Assinar Agora
                 </button>
-              ) : (
-                <>
-                  <button
-                    onClick={handleSubscribe}
-                    className="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 px-4 rounded-lg transition-colors mb-3 flex items-center justify-center space-x-2 shadow-lg hover:shadow-xl"
-                  >
-                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                      <path fillRule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clipRule="evenodd" />
-                    </svg>
-                    <span>Assinar Agora</span>
-                  </button>
 
-                  <button 
-                    onClick={handleSendMessage}
-                    className="w-full bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 font-medium py-3 px-4 rounded-lg hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors flex items-center justify-center space-x-2"
-                  >
-                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4. 03 8-9 8a9.863 9.863 0 01-4.255-. 949L3 20l1. 395-3.72C3. 512 15.042 3 13.574 3 12c0-4.418 4. 03-8 9-8s9 3.582 9 8z" />
-                    </svg>
-                    <span>Enviar Mensagem</span>
-                  </button>
-                </>
-              )}
-
-              <div className="mt-6 pt-6 border-t border-slate-200 dark:border-slate-800">
-                <h3 className="font-semibold text-slate-900 dark:text-white mb-4 text-sm">O que está incluso:</h3>
-                <div className="space-y-3">
-                  {benefits.map((benefit, index) => (
-                    <div key={index} className="flex items-start space-x-3">
-                      <span className="text-2xl flex-shrink-0">{benefit.icon}</span>
+                <div className="space-y-2 text-sm">
+                  {benefits.map((benefit, idx) => (
+                    <div key={idx} className="flex items-start space-x-2">
+                      <span className="text-lg">{benefit.icon}</span>
                       <div>
-                        <p className="font-medium text-sm text-slate-900 dark:text-white">{benefit.title}</p>
-                        <p className="text-xs text-slate-500 dark:text-slate-400">{benefit.description}</p>
+                        <p className="font-semibold">{benefit.title}</p>
+                        <p className="text-xs opacity-75">{benefit.description}</p>
                       </div>
                     </div>
                   ))}
                 </div>
               </div>
-
-              <div className="mt-6 pt-6 border-t border-slate-200 dark:border-slate-800">
-                <p className="text-xs text-slate-500 dark:text-slate-400 text-center flex items-center justify-center space-x-2">
-                  <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
-                    <path fillRule="evenodd" d="M2. 166 4.999A11.954 11.954 0 0010 1.944 11.954 11.954 0 0017.834 5c.11. 65.166 1.32.166 2.001 0 5.225-3.34 9.67-8 11.317C5.34 16.67 2 12.225 2 7c0-.682.057-1.35.166-2.001zm11.541 3.708a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
-                  </svg>
-                  <span>Pagamento seguro com criptomoedas</span>
-                </p>
-              </div>
-            </div>
-
-            {/* Social Links */}
-            {creator.socialLinks && Object.keys(creator.socialLinks).length > 0 && (
+            ) : (
               <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 p-6">
-                <h3 className="font-semibold text-slate-900 dark:text-white mb-4 text-sm">Redes Sociais</h3>
-                <div className="space-y-2">
-                  {creator.socialLinks.instagram && (
-                    <a href={`https://instagram.com/${creator.socialLinks.instagram. replace('@', '')}`} target="_blank" rel="noopener noreferrer" className="flex items-center space-x-3 text-slate-600 dark:text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors group">
-                      <div className="w-8 h-8 bg-gradient-to-br from-purple-500 to-pink-500 rounded-lg flex items-center justify-center group-hover:scale-110 transition-transform">
-                        <svg className="h-4 w-4 text-white" fill="currentColor" viewBox="0 0 24 24">
-                          <path d="M12 2. 163c3.204 0 3.584.012 4. 85.07 3.252. 148 4.771 1. 691 4.919 4. 919.058 1.265. 069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2. 209 0-4-1. 79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1. 44 1.441 1. 44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/>
-                        </svg>
-                      </div>
-                      <span className="text-sm font-medium">{creator.socialLinks.instagram}</span>
-                    </a>
-                  )}
-                  {creator.socialLinks.twitter && (
-                    <a href={`https://twitter.com/${creator.socialLinks.twitter.replace('@', '')}`} target="_blank" rel="noopener noreferrer" className="flex items-center space-x-3 text-slate-600 dark:text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors group">
-                      <div className="w-8 h-8 bg-blue-500 rounded-lg flex items-center justify-center group-hover:scale-110 transition-transform">
-                        <svg className="h-4 w-4 text-white" fill="currentColor" viewBox="0 0 24 24">
-                          <path d="M23.953 4.57a10 10 0 01-2.825.775 4.958 4.958 0 002.163-2.723c-. 951.555-2.005. 959-3.127 1. 184a4.92 4. 92 0 00-8. 384 4.482C7. 69 8.095 4.067 6.13 1.64 3.162a4.822 4.822 0 00-.666 2.475c0 1.71.87 3.213 2.188 4.096a4.904 4.904 0 01-2.228-.616v.06a4.923 4.923 0 003.946 4. 827 4.996 4. 996 0 01-2. 212.085 4.936 4.936 0 004.604 3.417 9.867 9.867 0 01-6.102 2.105c-.39 0-.779-.023-1.17-.067a13.995 13.995 0 007.557 2.209c9.053 0 13.998-7.496 13.998-13.985 0-.21 0-.42-.015-.63A9.935 9.935 0 0024 4.59z"/>
-                        </svg>
-                      </div>
-                      <span className="text-sm font-medium">{creator.socialLinks.twitter}</span>
-                    </a>
-                  )}
+                <div className="text-center mb-4">
+                  <div className="w-16 h-16 bg-green-100 dark:bg-green-900/20 rounded-full flex items-center justify-center mx-auto mb-3">
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8 text-green-600 dark:text-green-400" viewBox="0 0 20 20" fill="currentColor">
+                      <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                    </svg>
+                  </div>
+                  <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-1">Você é assinante!</h3>
+                  <p className="text-sm text-slate-600 dark:text-slate-400">Aproveite todo o conteúdo exclusivo</p>
                 </div>
               </div>
             )}
+
+            {/* Action Buttons */}
+            <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 p-4 space-y-3">
+              <button
+                onClick={handleSendMessage}
+                className="w-full bg-indigo-600 hover:bg-indigo-700 text-white py-3 px-4 rounded-lg font-semibold transition-colors flex items-center justify-center space-x-2"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                  <path fillRule="evenodd" d="M18 10c0 3.866-3.582 7-8 7a8.841 8.841 0 01-4.083-.98L2 17l1.338-3.123C2.493 12.767 2 11.434 2 10c0-3.866 3.582-7 8-7s8 3.134 8 7zM7 9H5v2h2V9zm8 0h-2v2h2V9zM9 9h2v2H9V9z" clipRule="evenodd" />
+                </svg>
+                <span>Enviar Mensagem</span>
+              </button>
+
+              <button
+                onClick={handleSendTip}
+                className="w-full bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-900 dark:text-white py-3 px-4 rounded-lg font-semibold transition-colors flex items-center justify-center space-x-2"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                  <path d="M8.433 7.418c.155-.103.346-.196.567-.267v1.698a2.305 2.305 0 01-.567-.267C8.07 8.34 8 8.114 8 8c0-.114.07-.34.433-.582zM11 12.849v-1.698c.22.071.412.164.567.267.364.243.433.468.433.582 0 .114-.07.34-.433.582a2.305 2.305 0 01-.567.267z" />
+                  <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-13a1 1 0 10-2 0v.092a4.535 4.535 0 00-1.676.662C6.602 6.234 6 7.009 6 8c0 .99.602 1.765 1.324 2.246.48.32 1.054.545 1.676.662v1.941c-.391-.127-.68-.317-.843-.504a1 1 0 10-1.51 1.31c.562.649 1.413 1.076 2.353 1.253V15a1 1 0 102 0v-.092a4.535 4.535 0 001.676-.662C13.398 13.766 14 12.991 14 12c0-.99-.602-1.765-1.324-2.246A4.535 4.535 0 0011 9.092V7.151c.391.127.68.317.843.504a1 1 0 101.511-1.31c-.563-.649-1.413-1.076-2.354-1.253V5z" clipRule="evenodd" />
+                </svg>
+                <span>Enviar Gorjeta</span>
+              </button>
+            </div>
+
+            {/* Stats Card */}
+            <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 p-4">
+              <h3 className="font-bold text-slate-900 dark:text-white mb-3">Estatísticas</h3>
+              <div className="space-y-3 text-sm">
+                <div className="flex justify-between">
+                  <span className="text-slate-600 dark:text-slate-400">Total de Posts</span>
+                  <span className="font-semibold text-slate-900 dark:text-white">{creator.posts}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-slate-600 dark:text-slate-400">Fotos</span>
+                  <span className="font-semibold text-slate-900 dark:text-white">{creator.photos}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-slate-600 dark:text-slate-400">Vídeos</span>
+                  <span className="font-semibold text-slate-900 dark:text-white">{creator.videos}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-slate-600 dark:text-slate-400">Assinantes</span>
+                  <span className="font-semibold text-slate-900 dark:text-white">{formatNumber(creator.subscribers)}</span>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       </div>
 
-      {/* Payment Modal */}
+      {/* Modals */}
       {showPaymentModal && paymentData && (
         <PaymentModal
-          isOpen={showPaymentModal}
-          onClose={() => setShowPaymentModal(false)}
-          paymentData={paymentData}
-          onSuccess={(payment) => {
+          creatorId={paymentData.creatorId}
+          postId={paymentData.postId}
+          type={paymentData.type}
+          amountUSD={paymentData.amountUSD}
+          onClose={() => {
             setShowPaymentModal(false);
-            setIsSubscribed(true);
-            alert('✅ Assinatura ativada com sucesso!');
+            setPaymentData(null);
+            setSelectedPost(null);
+          }}
+          onSuccess={() => {
+            setShowPaymentModal(false);
+            setPaymentData(null);
+            setSelectedPost(null);
+            fetchCreatorData();
+          }}
+        />
+      )}
+
+      {showTipModal && (
+        <TipModal
+          creatorId={creator.id}
+          creatorName={creator.displayName}
+          onClose={() => setShowTipModal(false)}
+          onSuccess={() => {
+            setShowTipModal(false);
+            alert('Gorjeta enviada com sucesso! 🎉');
           }}
         />
       )}
@@ -573,28 +685,46 @@ const checkSubscriptionStatus = async () => {
   );
 }
 
-// Loading Skeleton Component
 function LoadingSkeleton() {
   return (
     <div className="min-h-screen bg-white dark:bg-slate-950 animate-pulse">
       <div className="h-16 bg-slate-200 dark:bg-slate-800"></div>
-      <div className="h-64 bg-slate-300 dark:bg-slate-700"></div>
+      <div className="h-64 bg-slate-200 dark:bg-slate-800"></div>
       <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="-mt-20 mb-6">
-          <div className="w-40 h-40 bg-slate-300 dark:bg-slate-700 rounded-2xl"></div>
+        <div className="relative -mt-20 mb-6">
+          <div className="flex items-end gap-4">
+            <div className="w-40 h-40 bg-slate-300 dark:bg-slate-700 rounded-2xl"></div>
+            <div className="flex-1 h-24 bg-slate-200 dark:bg-slate-800 rounded-xl"></div>
+          </div>
         </div>
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           <div className="lg:col-span-2 space-y-6">
-            <div className="h-64 bg-slate-200 dark:bg-slate-800 rounded-xl"></div>
+            <div className="h-48 bg-slate-200 dark:bg-slate-800 rounded-xl"></div>
             <div className="grid grid-cols-3 gap-3">
-              {[1, 2, 3, 4, 5, 6].map(i => (
+              {[...Array(6)].map((_, i) => (
                 <div key={i} className="aspect-square bg-slate-200 dark:bg-slate-800 rounded-xl"></div>
               ))}
             </div>
           </div>
-          <div className="h-96 bg-slate-200 dark:bg-slate-800 rounded-xl"></div>
+          <div className="space-y-4">
+            <div className="h-64 bg-slate-200 dark:bg-slate-800 rounded-xl"></div>
+            <div className="h-32 bg-slate-200 dark:bg-slate-800 rounded-xl"></div>
+          </div>
         </div>
       </div>
     </div>
   );
 }
+
+const handleShareProfile = () => {
+  const url = window.location.href;
+  if (navigator.share) {
+    navigator.share({
+      title: `Confira o perfil de ${creator.displayName}`,
+      url: url
+    }).catch(() => {});
+  } else {
+    navigator.clipboard.writeText(url);
+    alert('Link copiado para a área de transferência!');
+  }
+};

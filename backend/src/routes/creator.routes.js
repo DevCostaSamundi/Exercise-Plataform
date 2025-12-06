@@ -1,5 +1,5 @@
 import express from 'express';
-import { authenticate, optionalAuth } from '../middleware/auth.middleware.js';
+import { authenticate } from '../middleware/auth.middleware.js';
 import {
   getCreatorProfile,
   getCreatorPosts,
@@ -8,17 +8,17 @@ import {
 
 const router = express.Router();
 
-// ============================================
-// ROTAS PÚBLICAS
-// ============================================
-
-// GET /api/v1/creators - Listar criadores
+// GET /api/v1/creators - Listar criadores (público)
 router.get('/', listCreators);
 
-// GET /api/v1/creators/:id - Perfil público do criador (optional auth)
-router.get('/:id', optionalAuth, getCreatorProfile);
+// GET /api/v1/creators/:creatorId - Obter perfil público do criador
+router.get('/:creatorId', getCreatorProfile);
 
-// GET /api/v1/creators/:id/posts - Posts do criador (optional auth)
-router.get('/:id/posts', optionalAuth, getCreatorPosts);
+// GET /api/v1/creators/:creatorId/posts - Obter posts do criador
+router.get('/:creatorId/posts', getCreatorPosts);
+
+// PUT /api/v1/creators/:creatorId - Atualizar perfil (autenticado)
+// TODO: Implement updateCreatorProfile in creator.controller.js
+// router.put('/:creatorId', authenticate, updateCreatorProfile);
 
 export default router;
