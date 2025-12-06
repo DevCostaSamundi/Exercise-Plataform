@@ -1,39 +1,117 @@
 import axios from 'axios';
 
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api/v1';
+// API Configuration with environment variables
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+const API_VERSION = import.meta.env.VITE_API_VERSION || 'v1';
+const ENABLE_LOGGING = import.meta.env.VITE_ENABLE_LOGGING === 'true';
 
+// Create axios instance with robust configuration
 const api = axios.create({
-  baseURL: API_URL,
+  baseURL: `${API_URL}/api/${API_VERSION}`,
+  timeout: 15000, // 15 seconds timeout
   headers: {
     'Content-Type': 'application/json',
   },
   withCredentials: true,
 });
 
-// Interceptor para adicionar token
+// Request interceptor - Add authentication token
 api.interceptors.request.use(
   (config) => {
     const token = localStorage.getItem('authToken');
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }
+    
+    // Log request in development mode
+    if (ENABLE_LOGGING) {
+      console.log('🚀 API Request:', {
+        method: config.method?.toUpperCase(),
+        url: config.url,
+        params: config.params,
+      });
+    }
+    
     return config;
   },
   (error) => {
+    if (ENABLE_LOGGING) {
+      console.error('❌ Request Error:', error);
+    }
     return Promise.reject(error);
   }
 );
 
-// Interceptor para tratar erros
+// Response interceptor - Handle errors globally
 api.interceptors.response.use(
-  (response) => response,
-  (error) => {
-    if (error.response?.status === 401) {
-      localStorage.removeItem('authToken');
-      localStorage.removeItem('userType');
-      localStorage.removeItem('user');
-      window.location.href = '/login';
+  (response) => {
+    // Log successful response in development mode
+    if (ENABLE_LOGGING) {
+      console.log('✅ API Response:', {
+        status: response.status,
+        url: response.config.url,
+        data: response.data,
+      });
     }
+    return response;
+  },
+  async (error) => {
+    // Log error in development mode
+    if (ENABLE_LOGGING) {
+      console.error('❌ API Error:', {
+        status: error.response?.status,
+        url: error.config?.url,
+        message: error.response?.data?.message || error.message,
+      });
+    }
+
+    // Handle specific HTTP status codes
+    if (error.response) {
+      const { status, data } = error.response;
+      
+      switch (status) {
+        case 401:
+          // Unauthorized - Clear auth data and redirect to login
+          localStorage.removeItem('authToken');
+          localStorage.removeItem('refreshToken');
+          localStorage.removeItem('userType');
+          localStorage.removeItem('user');
+          
+          // Only redirect if not already on login page
+          if (window.location.pathname !== '/login') {
+            window.location.href = '/login';
+          }
+          break;
+          
+        case 403:
+          // Forbidden - User doesn't have permission
+          console.error('Access forbidden:', data?.message);
+          break;
+          
+        case 404:
+          // Not found
+          console.error('Resource not found:', error.config?.url);
+          break;
+          
+        case 500:
+        case 502:
+        case 503:
+          // Server errors
+          console.error('Server error:', data?.message || 'Internal server error');
+          break;
+          
+        default:
+          console.error('API Error:', data?.message || error.message);
+      }
+    } else if (error.request) {
+      // Network error - no response received
+      console.error('Network error: No response from server');
+      error.message = 'Não foi possível conectar ao servidor. Verifique sua conexão.';
+    } else {
+      // Request setup error
+      console.error('Request error:', error.message);
+    }
+    
     return Promise.reject(error);
   }
 );
