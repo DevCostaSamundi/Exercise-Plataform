@@ -20,6 +20,14 @@ import ProtectedRoute from './components/ProtectedRoute';
 import TermsPage from './pages/Static/TermsPage';
 import PrivacyPage from './pages/Static/PrivacyPage';
 import SupportPage from './pages/Static/SupportPage';
+import HelpPage from './pages/HelpPage';
+import SafetyPage from './pages/SafetyPage';
+
+// Public Pages
+import TrendingPage from './pages/TrendingPage';
+import ExplorePage from './pages/ExplorePage';
+import FavoritesPage from './pages/FavoritesPage';
+import MySubscriptionsPage from './pages/MySubscriptionsPage';
 
 // Creator Pages
 import CreatorProfilePage from './pages/Creator/CreatorProfilePage';
@@ -29,6 +37,7 @@ import CreatorSubscribersPage from './pages/Creator/CreatorSubscribersPage';
 import CreatorNotificationsPage from './pages/Creator/CreatorNotificationsPage';
 import CreatorPostEditPage from './pages/Creator/CreatorPostEditPage';
 import CreatorSettingsPage from './pages/Creator/creatorSettingsPage.jsx';
+import CreatorAnalyticsPage from './pages/Creator/CreatorAnalyticsPage';
 
 
 function App() {
@@ -128,6 +137,14 @@ function App() {
             } 
           />
           <Route 
+            path="/creator/analytics" 
+            element={
+              <ProtectedRoute requireCreator>
+                <CreatorAnalyticsPage />
+              </ProtectedRoute>
+            } 
+          />
+          <Route 
             path="/creator/notifications" 
             element={
               <ProtectedRoute requireCreator>
@@ -166,15 +183,22 @@ function App() {
           <Route path="/terms" element={<TermsPage />} />
           <Route path="/privacy" element={<PrivacyPage />} />
           <Route path="/support" element={<SupportPage />} />
+          <Route path="/help" element={<HelpPage />} />
+          <Route path="/safety" element={<SafetyPage />} />
 
           {/* ========================================
-              SUBSCRIBER ROUTES - TODO: Create pages
+              PUBLIC PAGES
+              ======================================== */}
+          <Route path="/trending" element={<TrendingPage />} />
+          <Route path="/explore" element={<ExplorePage />} />
+          <Route path="/favorites" element={<FavoritesPage />} />
+          <Route path="/my-subscriptions" element={<MySubscriptionsPage />} />
+
+          {/* ========================================
+              SUBSCRIBER ROUTES - TODO: Create remaining pages
               ======================================== */}
           <Route path="/profile" element={<div>Profile Page (TODO)</div>} />
-          <Route path="/explore" element={<div>Explore Page (TODO)</div>} />
-          <Route path="/my-subscriptions" element={<div>My Subscriptions (TODO)</div>} />
           <Route path="/messages" element={<div>Messages Page (TODO)</div>} />
-          <Route path="/favorites" element={<div>Favorites Page (TODO)</div>} />
           <Route path="/settings" element={<div>Settings Page (TODO)</div>} />
           <Route path="/notifications" element={<div>Notifications Page (TODO)</div>} />
         </Routes>
