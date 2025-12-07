@@ -37,22 +37,41 @@ export const listCreators = async (req, res) => {
       ];
     }
 
+    // ✅ CORREÇÃO: Buscar total ANTES de buscar criadores
+    const total = await prisma.creator.count({ where });
+
     const creators = await prisma.creator.findMany({
       where,
+      skip,
       take: parseInt(limit),
-      orderBy: featured ? { subscribers: 'desc' } : { createdAt: 'desc' },
+      // ✅ CORREÇÃO: Ordenar pela contagem de subscriptions ou createdAt
+      orderBy: featured === 'true' 
+        ? { subscriptions: { _count: 'desc' } }  // Ordena por número de assinantes
+        : { createdAt: 'desc' },  // Ordena por mais recentes
       include: {
         user: {
           select: {
             username: true,
             displayName: true,
             avatar: true,
+            bio: true,
             isVerified: true,
+          },
+        },
+        _count: {
+          select: {
+            subscriptions: {
+              where: {
+                status: 'ACTIVE',  // Contar apenas assinantes ativos
+              },
+            },
+            posts: true,
           },
         },
       },
     });
 
+    // ✅ CORREÇÃO: Formatar criadores usando _count
     const formattedCreators = creators.map((creator) => ({
       id: creator.id,
       userId: creator.userId,
@@ -60,19 +79,19 @@ export const listCreators = async (req, res) => {
       displayName: creator.displayName || creator.user.displayName,
       avatar: creator.user.avatar,
       cover: creator.coverImage,
-      bio: creator.bio,
+      bio: creator.user.bio || creator.description,
       category: creator.category,
-      subscriptionPrice: creator.subscriptionPrice,
-      subscribers: creator.subscribers,
+      subscriptionPrice: parseFloat(creator.subscriptionPrice),
+      subscribers: creator._count.subscriptions,  // ✅ Usar _count
       isVerified: creator.user.isVerified,
-      posts: creator.totalPosts || 0,
-      photos: creator.totalPhotos || 0,
-      videos: creator.totalVideos || 0,
+      posts: creator._count.posts,
+      photos: 0,  // Calcular depois se necessário
+      videos: 0,  // Calcular depois se necessário
     }));
 
     res.json({
       success: true,
-      data: creators,
+      data: formattedCreators,  // ✅ CORREÇÃO: Usar formattedCreators
       pagination: {
         page: parseInt(page),
         limit: parseInt(limit),
@@ -134,20 +153,18 @@ export const getCreatorProfile = async (req, res) => {
       });
     }
 
-    // Contar fotos e vídeos
+    // Contar fotos e vídeos (usando mediaType do schema)
     const [photoCount, videoCount] = await Promise.all([
       prisma.post.count({
         where: {
           creatorId: creator.id,
-          type: 'PHOTO',
-          status: 'PUBLISHED',
+          mediaType: 'IMAGE',  // ✅ Usar mediaType do schema
         },
       }),
-      prisma.post.count({
+      prisma. post.count({
         where: {
           creatorId: creator.id,
-          type: 'VIDEO',
-          status: 'PUBLISHED',
+          mediaType: 'VIDEO',  // ✅ Usar mediaType do schema
         },
       }),
     ]);
@@ -166,17 +183,17 @@ export const getCreatorProfile = async (req, res) => {
       
       // Stats
       subscribers: creator._count.subscriptions,
-      posts: creator._count.posts,
+      posts: creator._count. posts,
       photos: photoCount,
       videos: videoCount,
       
       // Subscription
-      subscriptionPrice: creator.subscriptionPrice,
+      subscriptionPrice: parseFloat(creator.subscriptionPrice),
       currency: 'USD',
       
       // Info
       category: creator.category,
-      tags: creator.tags || [],
+      tags: [], // Schema não tem tags
       genderIdentity: creator.user.genderIdentity,
       orientation: creator.user.orientation,
       location: creator.location,
@@ -207,7 +224,7 @@ export const getCreatorPosts = async (req, res) => {
     const {
       page = 1,
       limit = 20,
-      type, // PHOTO, VIDEO, AUDIO
+      type, // IMAGE, VIDEO, AUDIO
     } = req.query;
 
     const userId = req.user?.id;
@@ -241,11 +258,11 @@ export const getCreatorPosts = async (req, res) => {
     // Construir filtros
     const where = {
       creatorId,
-      status: 'PUBLISHED',
     };
 
+    // ✅ CORREÇÃO: Usar mediaType do schema (IMAGE, VIDEO, AUDIO, DOCUMENT)
     if (type) {
-      where.type = type;
+      where.mediaType = type.toUpperCase();
     }
 
     // Buscar posts
@@ -254,21 +271,20 @@ export const getCreatorPosts = async (req, res) => {
         where,
         skip,
         take: parseInt(limit),
-        orderBy: { publishedAt: 'desc' },
+        orderBy: { createdAt: 'desc' },  // ✅ Usar createdAt
         select: {
           id: true,
-          type: true,
+          mediaType: true,
           title: true,
-          description: true,
-          thumbnail: true,
-          visibility: true,
-          price: true,
-          mediaCount: true,
-          likes: true,
-          comments: true,
-          views: true,
-          publishedAt: true,
-          tags: true,
+          content: true,
+          mediaUrls: true,
+          isPublic: true,
+          isPPV: true,
+          ppvPrice: true,
+          likesCount: true,
+          commentsCount: true,
+          viewsCount: true,
+          createdAt: true,
         },
       }),
       prisma.post.count({ where }),
@@ -276,23 +292,23 @@ export const getCreatorPosts = async (req, res) => {
 
     // Formatar posts (bloquear conteúdo se não inscrito)
     const formattedPosts = posts.map((post) => {
-      const isLocked = post.visibility === 'SUBSCRIBERS' && !isSubscribed;
+      const isLocked = !post.isPublic && !isSubscribed;
       
       return {
         id: post.id,
-        type: post.type.toLowerCase(),
-        title: isLocked ? 'Conteúdo Exclusivo' : post.title,
-        description: isLocked ? 'Assine para visualizar' : post.description,
-        thumbnail: post.thumbnail,
+        type: post.mediaType.toLowerCase(),
+        title: isLocked ?  'Conteúdo Exclusivo' : (post.title || 'Sem título'),
+        description: isLocked ? 'Assine para visualizar' : post.content,
+        thumbnail: Array.isArray(post.mediaUrls) ? post.mediaUrls[0] : null,
         isLocked,
-        price: post.visibility === 'PPV' ? post.price : null,
-        mediaCount: post.mediaCount,
-        likes: post.likes,
-        comments: post.comments,
-        views: post.views,
-        publishedAt: post.publishedAt,
-        tags: post.tags,
-        visibility: post.visibility.toLowerCase(),
+        price: post.isPPV ? parseFloat(post.ppvPrice) : null,
+        mediaCount: Array.isArray(post.mediaUrls) ? post.mediaUrls.length : 0,
+        likes: post.likesCount,
+        comments: post.commentsCount,
+        views: post.viewsCount,
+        publishedAt: post.createdAt,
+        tags: [],
+        visibility: post.isPPV ? 'ppv' : (post.isPublic ? 'public' : 'subscribers'),
       };
     });
 

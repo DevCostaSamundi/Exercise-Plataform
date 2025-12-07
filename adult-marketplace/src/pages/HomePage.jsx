@@ -118,7 +118,7 @@ export default function HomePage() {
       const response = await creatorService.listCreators({
         page: pageNum,
         limit: 20,
-        featured: true,
+        featured: false,
         ...filters
       });
 
@@ -143,29 +143,7 @@ export default function HomePage() {
   // ✅ CORRETO - useEffect inicial
   useEffect(() => {
     fetchCreators(1, false);
-  }, []); // Sem dependências - apenas no mount
-
-  // ✅ CORRETO - useEffect de busca com debounce
-  useEffect(() => {
-    if (searchTimerRef.current) {
-      clearTimeout(searchTimerRef.current);
-    }
-
-    searchTimerRef.current = setTimeout(() => {
-      fetchCreators(1, false);
-    }, 500);
-
-    return () => {
-      if (searchTimerRef.current) {
-        clearTimeout(searchTimerRef.current);
-      }
-    };
-  }, [search]);
-
-  // ✅ CORRETO - useEffect de filtros
-  useEffect(() => {
-    fetchCreators(1, false);
-  }, [selectedFilters]);
+  }, []); 
 
   // Initial fetch
   useEffect(() => {

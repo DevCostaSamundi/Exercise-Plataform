@@ -636,7 +636,7 @@ export default function CreatorPostsPage() {
           </div>
         )}
 
-        <style jsx>{`
+        <style>{`
         .hide-scrollbar {
           -ms-overflow-style: none;
           scrollbar-width: none;

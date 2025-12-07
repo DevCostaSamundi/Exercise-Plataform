@@ -16,6 +16,8 @@ class AuthController {
    */
   async register(req, res, next) {
     try {
+      logger.info('📥 Registration attempt:', { email: req.body.email, username: req.body.username });
+
       const {
         email,
         username,
@@ -29,17 +31,22 @@ class AuthController {
       } = req.body;
 
       // Normalize
-      const normalizedEmail = email?.trim().toLowerCase();
-      const normalizedUsername = username?.trim();
+      const normalizedEmail = email?. trim().toLowerCase();
+      const normalizedUsername = username?.trim().toLowerCase();
 
       // Check if user already exists
       const existingUser = await prisma.user.findFirst({
         where: {
-          OR: [{ email: normalizedEmail }, { username: normalizedUsername }],
+          OR: [
+            { email: normalizedEmail },
+            { username: normalizedUsername }
+          ],
         },
       });
 
       if (existingUser) {
+        logger.warn('❌ User already exists:', { email: existingUser.email, username: existingUser.username });
+        
         if (existingUser.email === normalizedEmail) {
           throw new ConflictError('Email already registered');
         }
@@ -56,7 +63,7 @@ class AuthController {
           username: normalizedUsername,
           password: hashedPassword,
           displayName,
-          birthDate: birthDate ? new Date(birthDate) : null,
+          birthDate: birthDate ?  new Date(birthDate) : null,
           genderIdentity,
           orientation,
           firstName,
@@ -73,15 +80,18 @@ class AuthController {
           firstName: true,
           lastName: true,
           role: true,
+          isVerified: true,
           createdAt: true,
         },
       });
+
+      logger.info('✅ User created successfully:', { id: user.id, email: user.email });
 
       // Generate tokens
       const tokens = JwtService.generateTokens(user.id, user.role);
 
       // Send welcome email (don't wait for it)
-      emailService.sendWelcomeEmail(user.email, user.displayName || user.username).catch((err) => {
+      emailService.sendWelcomeEmail(user.email, user.displayName || user.username). catch((err) => {
         logger.error('Failed to send welcome email:', err);
       });
 
@@ -92,6 +102,7 @@ class AuthController {
         201
       );
     } catch (error) {
+      logger.error('❌ Registration error:', error);
       next(error);
     }
   }
@@ -100,11 +111,9 @@ class AuthController {
    * Register a new creator (handles multipart/form-data with files)
    */
   async creatorRegister(req, res, next) {
-    // We'll perform operations in a transaction and cleanup files on error
-    const uploadedFiles = []; // track saved file paths for cleanup if needed
+    const uploadedFiles = [];
 
     try {
-      // req.body values are strings (because multipart/form-data)
       const {
         email,
         username,
@@ -127,26 +136,22 @@ class AuthController {
         contentOwnership
       } = req.body;
 
-      // Normalize email/username
       const normalizedEmail = email?.trim().toLowerCase();
-      const normalizedUsername = username?.trim();
+      const normalizedUsername = username?.trim().toLowerCase();
 
-      // Parse arrays (sent as JSON strings)
       let contentTypes = [];
       let aesthetic = [];
       try {
         if (req.body.contentTypes) contentTypes = JSON.parse(req.body.contentTypes);
         if (req.body.aesthetic) aesthetic = JSON.parse(req.body.aesthetic);
       } catch (err) {
-        logger.warn('creatorRegister: could not parse array fields (contentTypes/aesthetic)', err);
+        logger.warn('creatorRegister: could not parse array fields', err);
       }
 
-      // Parse booleans
       const agree = String(agreeTerms) === 'true';
       const age = String(ageConfirm) === 'true';
       const contentOwn = String(contentOwnership) === 'true';
 
-      // Basic validation
       if (!normalizedEmail || !normalizedUsername || !password || !confirmPassword) {
         return ApiResponse.error(res, 'Missing required fields', 400);
       }
@@ -156,26 +161,23 @@ class AuthController {
       if (!agree || !age || !contentOwn) {
         return ApiResponse.error(res, 'You must confirm terms, age and ownership', 400);
       }
-      if (!bio || bio.length < 50) {
+      if (! bio || bio.length < 50) {
         return ApiResponse.error(res, 'Bio must have at least 50 characters', 400);
       }
 
-      // Check duplicates (normalize before checking)
       const existingUser = await prisma.user.findFirst({
         where: { OR: [{ email: normalizedEmail }, { username: normalizedUsername }] }
       });
+      
       if (existingUser) {
-        return ApiResponse.error(res, 'Email or username already registered', 409);
+        return ApiResponse. error(res, 'Email or username already registered', 409);
       }
 
-
-
-      // Files metadata (if multer was used, req.files contains them)
       const kycDocs = {};
       if (req.files) {
         if (req.files.idDocument && req.files.idDocument[0]) {
           const file = req.files.idDocument[0];
-          const result = await cloudinaryService.uploadBufferToCloudinary(file.buffer, { folder: 'kyc/id_documents', resource_type: 'image' });
+          const result = await cloudinaryService.uploadBufferToCloudinary(file. buffer, { folder: 'kyc/id_documents', resource_type: 'image' });
           kycDocs.idDocument = { url: result.secure_url, public_id: result.public_id };
         }
         if (req.files.selfieWithId && req.files.selfieWithId[0]) {
@@ -185,11 +187,7 @@ class AuthController {
         }
       }
 
-
-      // Hash password
       const hashedPassword = await bcrypt.hash(password, 10);
-
-      // Use a transaction: create user (with role CREATOR) and creator profile
       const subscriptionValue = subscriptionPrice ? parseFloat(subscriptionPrice) : 0;
 
       const [user, creator] = await prisma.$transaction(async (tx) => {
@@ -202,7 +200,6 @@ class AuthController {
             birthDate: birthDate ? new Date(birthDate) : null,
             genderIdentity,
             orientation,
-            // set role to CREATOR
             role: 'CREATOR'
           }
         });
@@ -213,20 +210,17 @@ class AuthController {
             displayName: displayName || u.displayName || u.username,
             description: bio || null,
             subscriptionPrice: subscriptionValue,
-            kycDocuments: Object.keys(kycDocs).length ? kycDocs : null,
+            kycDocuments: Object.keys(kycDocs).length ?  kycDocs : null,
             socialLinks: null,
             isVerified: false,
             kycStatus: 'PENDING',
-            followersCount: 0,
-            postsCount: 0
           }
         });
 
         return [u, c];
       });
 
-      // Generate tokens
-      const tokens = JwtService.generateTokens(user.id, user.role);
+      const tokens = JwtService.generateTokens(user.id, user. role);
 
       res.cookie('refreshToken', tokens.refreshToken, {
         httpOnly: true,
@@ -243,6 +237,7 @@ class AuthController {
             email: user.email,
             username: user.username,
             displayName: user.displayName,
+            isCreator: true,
           },
           accessToken: tokens.accessToken
         },
@@ -252,13 +247,11 @@ class AuthController {
     } catch (error) {
       logger.error('creatorRegister error', error);
 
-      // cleanup uploaded files if there were any
       try {
         if (Array.isArray(uploadedFiles) && uploadedFiles.length) {
           uploadedFiles.forEach((p) => {
             fs.unlink(p, (err) => {
-              if (err) logger.warn('Failed to remove uploaded file during error cleanup', p, err);
-              else logger.info('Removed uploaded file during error cleanup', p);
+              if (err) logger.warn('Failed to remove uploaded file', p, err);
             });
           });
         }
@@ -271,30 +264,44 @@ class AuthController {
   }
 
   /**
-   * Login user
+   * Login user - ✅ CORRIGIDO
    */
   async login(req, res, next) {
     try {
       const { email, password } = req.body;
 
-      // Find user
-      const user = await prisma.user.findUnique({
-        where: { email },
+      logger.info('🔐 Login attempt:', { email });
+
+      // ✅ Buscar por email OU username
+      const user = await prisma.user.findFirst({
+        where: {
+          OR: [
+            { email: email.toLowerCase() },
+            { username: email.toLowerCase() },
+          ],
+        },
       });
 
       if (!user) {
+        logger.warn('❌ User not found:', email);
         throw new UnauthorizedError('Invalid credentials');
       }
+
+      logger.info('✅ User found:', { id: user.id, email: user.email });
 
       // Check password
       const isPasswordValid = await bcrypt.compare(password, user.password);
 
-      if (!isPasswordValid) {
+      if (! isPasswordValid) {
+        logger.warn('❌ Invalid password for:', email);
         throw new UnauthorizedError('Invalid credentials');
       }
 
+      logger.info('✅ Password valid');
+
       // Check if user is active
       if (!user.isActive) {
+        logger.warn('❌ Inactive account:', email);
         throw new UnauthorizedError('Account is inactive');
       }
 
@@ -304,12 +311,15 @@ class AuthController {
       // Remove password from response
       const { password: _, ...userWithoutPassword } = user;
 
+      logger.info('✅ Login successful:', { id: user.id });
+
       return ApiResponse.success(
         res,
         { user: userWithoutPassword, ...tokens },
         'Login successful'
       );
     } catch (error) {
+      logger.error('Login error:', error);
       next(error);
     }
   }
@@ -321,10 +331,9 @@ class AuthController {
     try {
       const refreshToken = req.body.refreshToken || req.cookies?.refreshToken;
       if (!refreshToken) throw new UnauthorizedError('Refresh token required');
-      // Verify refresh token
+      
       const decoded = JwtService.verifyRefreshToken(refreshToken);
 
-      // Get user
       const user = await prisma.user.findUnique({
         where: { id: decoded.userId },
         select: { id: true, role: true, isActive: true },
@@ -334,8 +343,7 @@ class AuthController {
         throw new UnauthorizedError('Invalid refresh token');
       }
 
-      // Generate new access token
-      const accessToken = JwtService.generateAccessToken(user.id, user.role);
+      const accessToken = JwtService.generateAccessToken(user.id, user. role);
 
       return ApiResponse.success(res, { accessToken }, 'Token refreshed');
     } catch (error) {
@@ -343,104 +351,8 @@ class AuthController {
     }
   }
 
-  async register(req, res, next) {
-    try {
-      console.log('📥 Dados recebidos:', req.body);
-
-      const {
-        email,
-        username,
-        password,
-        displayName,
-        birthDate,
-        genderIdentity,
-        orientation,
-        firstName,
-        lastName
-      } = req.body;
-
-      // Normalize
-      const normalizedEmail = email?.trim().toLowerCase();
-      const normalizedUsername = username?.trim();
-
-      console.log('🔍 Verificando duplicatas para:', { normalizedEmail, normalizedUsername });
-
-      // Check if user already exists
-      const existingUser = await prisma.user.findFirst({
-        where: {
-          OR: [{ email: normalizedEmail }, { username: normalizedUsername }],
-        },
-      });
-
-      if (existingUser) {
-        console.log('❌ Usuário já existe:', existingUser);
-        if (existingUser.email === normalizedEmail) {
-          throw new ConflictError('Email already registered');
-        }
-        throw new ConflictError('Username already taken');
-      }
-
-      console.log('✅ Usuário não existe, criando...');
-
-      // Hash password
-      const hashedPassword = await bcrypt.hash(password, 10);
-
-      // Create user
-      const user = await prisma.user.create({
-        data: {
-          email: normalizedEmail,
-          username: normalizedUsername,
-          password: hashedPassword,
-          displayName,
-          birthDate: birthDate ? new Date(birthDate) : null,
-          genderIdentity,
-          orientation,
-          firstName,
-          lastName,
-        },
-        select: {
-          id: true,
-          email: true,
-          username: true,
-          displayName: true,
-          birthDate: true,
-          genderIdentity: true,
-          orientation: true,
-          firstName: true,
-          lastName: true,
-          role: true,
-          createdAt: true,
-        },
-      });
-
-      console.log('✅ Usuário criado:', user);
-
-      // Generate tokens
-      const tokens = JwtService.generateTokens(user.id, user.role);
-
-      console.log('✅ Tokens gerados');
-
-      // Send welcome email (don't wait for it)
-      emailService.sendWelcomeEmail(user.email, user.displayName || user.username).catch((err) => {
-        logger.error('Failed to send welcome email:', err);
-      });
-
-      console.log('✅ Enviando resposta de sucesso');
-
-      return ApiResponse.success(
-        res,
-        { user, ...tokens },
-        'Registration successful',
-        201
-      );
-    } catch (error) {
-      console.error('❌ Erro no registro:', error);
-      next(error);
-    }
-  }
-
   /**
-   * Logout user (client-side should remove tokens)
+   * Logout user
    */
   async logout(req, res, next) {
     try {
@@ -462,7 +374,6 @@ class AuthController {
       });
 
       if (!user) {
-        // Don't reveal if email exists
         return ApiResponse.success(
           res,
           null,
@@ -470,10 +381,8 @@ class AuthController {
         );
       }
 
-      // Generate reset token (valid for 1 hour)
       const resetToken = JwtService.generateAccessToken(user.id, user.role);
 
-      // Send password reset email
       await emailService.sendPasswordResetEmail(user.email, resetToken);
 
       return ApiResponse.success(
@@ -491,15 +400,12 @@ class AuthController {
    */
   async resetPassword(req, res, next) {
     try {
-      const { token, password } = req.body;
+      const { token, password } = req. body;
 
-      // Verify token
       const decoded = JwtService.verifyAccessToken(token);
 
-      // Hash new password
       const hashedPassword = await bcrypt.hash(password, 10);
 
-      // Update password
       await prisma.user.update({
         where: { id: decoded.userId },
         data: { password: hashedPassword },

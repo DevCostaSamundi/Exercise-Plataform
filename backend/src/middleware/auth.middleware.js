@@ -1,5 +1,6 @@
 import jwt from 'jsonwebtoken';
 import prisma from '../config/database.js';
+import logger from '../utils/logger.js';
 
 /**
  * Middleware de autenticação obrigatória
@@ -138,7 +139,31 @@ export const requireCreator = async (req, res, next) => {
     });
   }
 };
+export const authorizeCreator = async (req, res, next) => {
+  try {
+    // Buscar perfil de criador
+    const creator = await prisma.creator.findUnique({
+      where: { userId: req.user.id },
+    });
 
+    if (!creator) {
+      return res.status(403).json({
+        success: false,
+        message: 'Acesso negado.  Apenas criadores.',
+      });
+    }
+
+    // ✅ Adicionar creatorId ao req.user
+    req.user.creatorId = creator.id;
+    next();
+  } catch (error) {
+    logger.error('Authorize creator error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Erro ao verificar permissões',
+    });
+  }
+};
 /**
  * Verificar se é admin
  */

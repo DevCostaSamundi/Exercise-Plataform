@@ -212,7 +212,7 @@ export default function WithdrawalModal({ isOpen, onClose, availableBalance, onS
 
               <button
                 onClick={handleContinueAmount}
-                disabled={! amount || parseFloat(amount) < minWithdrawal}
+                disabled={!amount || parseFloat(amount) < minWithdrawal}
                 className="w-full px-6 py-4 bg-indigo-600 hover:bg-indigo-700 disabled:bg-slate-400 text-white rounded-lg font-bold transition-colors"
               >
                 Continuar
@@ -286,7 +286,7 @@ export default function WithdrawalModal({ isOpen, onClose, availableBalance, onS
                 <input
                   type="text"
                   value={address}
-                  onChange={(e) => setAddress(e. target.value)}
+                  onChange={(e) => setAddress(e.target.value)}
                   placeholder={`Digite seu endereço ${selectedCrypto.code.split('_')[0]}`}
                   className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-slate-900 dark:text-white font-mono text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
                 />

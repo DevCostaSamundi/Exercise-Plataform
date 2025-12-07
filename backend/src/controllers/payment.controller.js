@@ -132,7 +132,7 @@ export const getUserPayments = async (req, res) => {
     if (status) where.status = status;
     if (type) where.type = type;
 
-    const payments = await prisma.payment. findMany({
+    const payments = await prisma.payment.findMany({
       where,
       include: {
         creator: {
@@ -273,6 +273,56 @@ export const getAvailableCurrencies = async (req, res) => {
         avgConfirmTime: 'Instant',
         fiat: true,
       },
+      {
+        code: 'SOL',
+        name: 'Solana',
+        network: 'Solana',
+        icon: 'SOL',
+        minAmount: 5,
+        avgConfirmTime: '1-3 sec',
+      },
+      {
+        code: 'ADA',
+        name: 'Cardano',
+        network: 'Cardano',
+        icon: 'ADA',
+        minAmount: 5,
+        avgConfirmTime: '10-20 min',
+      },
+      {
+        code: 'DOT',
+        name: 'Polkadot',
+        network: 'Polkadot',
+        icon: 'DOT',
+        minAmount: 5,
+        avgConfirmTime: '5-15 min',
+      },
+      {
+        code: 'AVAX',
+        name: 'Avalanche',
+        network: 'Avalanche',
+        icon: 'AVAX',
+        minAmount: 5,
+        avgConfirmTime: '2-5 sec',
+      },
+      {
+        code: 'ZEC',
+        name: 'Zcash',
+        network: 'Zcash',
+        icon: 'ZEC',
+        minAmount: 5,
+        avgConfirmTime: '10-20 min',
+        privacy: true,
+      },
+      {
+        code: 'DASH',
+        name: 'Dash',
+        network: 'Dash',
+        icon: 'DASH',
+        minAmount: 5,
+        avgConfirmTime: '1-3 min',
+        privacy: true,
+      },
     ];
 
     res.json({
@@ -295,7 +345,7 @@ export const estimatePrice = async (req, res) => {
   try {
     const { amountUSD, currency } = req.query;
 
-    if (!amountUSD || ! currency) {
+    if (!amountUSD || !currency) {
       return res.status(400).json({
         success: false,
         message: 'Amount and currency are required',
