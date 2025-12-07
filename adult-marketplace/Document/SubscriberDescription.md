@@ -1237,9 +1237,7 @@ Antes de prosseguir para Layout e Páginas, verifique:
 
 Digite **"continuar"** quando estiver pronto!   🚀
 
----
-
-**Documentação criada por:** GitHub Copilot  
+---  
 **Data:** 07/12/2025  
 **Versão:** 1.0  
 **Projeto:** PrideConnect - Adult Marketplace LGBT+
