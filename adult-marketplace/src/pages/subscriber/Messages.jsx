@@ -5,11 +5,10 @@
 
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import axios from 'axios';
-import { API_BASE_URL } from '../../utils/constants';
-import { useSocket } from '../../hooks/useSocket';
+import { useSocket } from '../../contexts/SocketContext';
 import { formatRelativeTime } from '../../utils/formatters';
 import { FiMessageCircle, FiSearch, FiLock } from 'react-icons/fi';
+import api from '../../services/api';
 
 const Messages = () => {
   const [conversations, setConversations] = useState([]);
@@ -40,7 +39,7 @@ const Messages = () => {
             lastMessage: message,
             unreadCount: updated[existingIndex].unreadCount + 1,
           };
-          return [updated[existingIndex], ...updated. slice(0, existingIndex), ...updated.slice(existingIndex + 1)];
+          return [updated[existingIndex], ...updated.slice(0, existingIndex), ...updated.slice(existingIndex + 1)];
         }
 
         return prev;
@@ -57,10 +56,7 @@ const Messages = () => {
   const fetchConversations = async () => {
     try {
       setLoading(true);
-      const token = localStorage.getItem('pride_connect_token');
-      const response = await axios.get(`${API_BASE_URL}/messages`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      const response = await api.get('/messages');
 
       setConversations(response.data.conversations);
     } catch (err) {

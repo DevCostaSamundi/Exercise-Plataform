@@ -1,21 +1,46 @@
 import { io } from 'socket.io-client';
-import api from './api'; // para saber baseURL se precisar
+import { getAuthToken } from './api';
 
 let socket = null;
 
+/**
+ * Connect to socket server with authentication
+ * @param {string} token - Optional authentication token. If not provided, uses getAuthToken()
+ * @returns {Socket} Socket.io client instance
+ */
 export function connectSocket(token) {
   if (socket && socket.connected) return socket;
-  const url = process.env.REACT_APP_SOCKET_URL || process.env.REACT_APP_API_URL || 'http://localhost:5000';
+  
+  // Use provided token or get from storage
+  const authToken = token || getAuthToken();
+  
+  // Get socket URL from environment variables with fallback
+  const url = import.meta.env.VITE_SOCKET_URL || 
+              import.meta.env.VITE_API_URL || 
+              window.location.origin;
+  
   socket = io(url, {
     transports: ['websocket'],
     auth: {
-      token, // server side must validate token on connection
+      token: authToken,
     },
     autoConnect: true,
+    reconnection: true,
+    reconnectionAttempts: 5,
+    reconnectionDelay: 1000,
+    reconnectionDelayMax: 5000,
+  });
+
+  socket.on('connect', () => {
+    console.log('✅ Socket connected:', socket.id);
   });
 
   socket.on('connect_error', (err) => {
-    console.error('Socket connect_error', err);
+    console.error('❌ Socket connect_error:', err.message);
+  });
+
+  socket.on('disconnect', (reason) => {
+    console.log('⚠️ Socket disconnected:', reason);
   });
 
   return socket;

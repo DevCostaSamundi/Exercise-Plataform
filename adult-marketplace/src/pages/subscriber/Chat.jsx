@@ -5,9 +5,7 @@
 
 import { useState, useEffect, useRef } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import axios from 'axios';
-import { API_BASE_URL } from '../../utils/constants';
-import { useSocket } from '../../hooks/useSocket';
+import { useSocket } from '../../contexts/SocketContext';
 import { formatTimeOnly } from '../../utils/formatters';
 import {
   FiSend,
@@ -17,6 +15,7 @@ import {
   FiMoreVertical,
 } from 'react-icons/fi';
 import PPVModal from '../../components/subscriber/PPVModal';
+import api from '../../services/api';
 
 const Chat = () => {
   const { userId } = useParams();
@@ -58,7 +57,7 @@ const Chat = () => {
   }, [messages]);
 
   useEffect(() => {
-    if (! socket || !isConnected) return;
+    if (!socket || !isConnected) return;
 
     const handleNewMessage = (message) => {
       if (message.senderId === userId || message.recipientId === userId) {
@@ -94,10 +93,7 @@ const Chat = () => {
   const fetchChat = async () => {
     try {
       setLoading(true);
-      const token = localStorage.getItem('pride_connect_token');
-      const response = await axios.get(`${API_BASE_URL}/messages/${userId}`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      const response = await api.get(`/messages/${userId}`);
 
       setCreator(response.data.user);
       setMessages(response.data.messages);
@@ -131,7 +127,6 @@ const Chat = () => {
 
     try {
       setSending(true);
-      const token = localStorage.getItem('pride_connect_token');
 
       const formData = new FormData();
       formData.append('recipientId', userId);
@@ -142,9 +137,8 @@ const Chat = () => {
         formData.append('media', selectedImage);
       }
 
-      const response = await axios.post(`${API_BASE_URL}/messages`, formData, {
+      const response = await api.post('/messages', formData, {
         headers: {
-          Authorization: `Bearer ${token}`,
           'Content-Type': 'multipart/form-data',
         },
       });
@@ -166,17 +160,12 @@ const Chat = () => {
 
   const handleUnlockPPV = async (messageId, paymentData) => {
     try {
-      const token = localStorage.getItem('pride_connect_token');
-      await axios.post(
-        `${API_BASE_URL}/payments/ppv/message/${messageId}`,
-        paymentData,
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
+      await api.post(`/payments/ppv/message/${messageId}`, paymentData);
 
       // Update message
       setMessages((prev) =>
         prev.map((msg) =>
-          msg._id === messageId ?  { ...msg, isUnlocked: true } : msg
+          msg._id === messageId ? { ...msg, isUnlocked: true } : msg
         )
       );
 
@@ -268,7 +257,7 @@ const Chat = () => {
                       : 'bg-white dark:bg-gray-800 text-gray-900 dark:text-white'
                   } rounded-lg p-3 shadow-sm`}
                 >
-                  {isPPV ?  (
+                  {isPPV ? (
                     <div className="flex flex-col items-center gap-2 p-4">
                       <FiLock className="text-3xl text-yellow-600" />
                       <p className="font-semibold">Mensagem Bloqueada</p>
@@ -299,7 +288,7 @@ const Chat = () => {
                       )}
                       <p
                         className={`text-xs mt-1 ${
-                          isMine ?  'text-purple-200' : 'text-gray-500 dark:text-gray-400'
+                          isMine ? 'text-purple-200' : 'text-gray-500 dark:text-gray-400'
                         }`}
                       >
                         {formatTimeOnly(message.createdAt)}
