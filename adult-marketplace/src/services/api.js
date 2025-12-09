@@ -90,7 +90,7 @@ api.interceptors.response.use(
       const { status, data } = error.response;
       
       switch (status) {
-        case 401:
+        case 401: {
           // Unauthorized - Clear auth data and redirect to login
           const tokenKeys = ['authToken', 'accessToken', 'pride_connect_token'];
           tokenKeys.forEach(key => localStorage.removeItem(key));
@@ -105,6 +105,7 @@ api.interceptors.response.use(
             window.location.href = `/login?next=${encodeURIComponent(currentPath)}`;
           }
           break;
+        }
           
         case 403:
           // Forbidden - User doesn't have permission
