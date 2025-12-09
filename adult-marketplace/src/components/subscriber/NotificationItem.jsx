@@ -16,7 +16,7 @@ import {
   FiVideo,
 } from 'react-icons/fi';
 import { formatRelativeTime } from '../../utils/formatters';
-import { NOTIFICATION_TYPES } from '../../utils/constants';
+import { NOTIFICATION_TYPES } from '../../config/constants';
 
 const NotificationItem = ({ notification, onClick }) => {
   const getIcon = (type) => {

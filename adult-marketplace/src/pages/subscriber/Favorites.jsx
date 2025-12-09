@@ -5,7 +5,7 @@
 
 import { useState, useEffect } from 'react';
 import axios from 'axios';
-import { API_BASE_URL, SORT_OPTIONS } from '../../utils/constants';
+import { API_BASE_URL, SORT_OPTIONS } from '../../config/constants';
 import CreatorCard from '../../components/subscriber/CreatorCard';
 import { FiHeart, FiInbox } from 'react-icons/fi';
 
