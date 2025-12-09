@@ -5,8 +5,7 @@
 
 import { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import { useSocket } from './SocketContext';
-import axios from 'axios';
-import { API_BASE_URL } from '../utils/constants';
+import notificationService from '../services/notificationService';
 
 const NotificationContext = createContext(null);
 
@@ -32,16 +31,15 @@ export const NotificationProvider = ({ children }) => {
     try {
       setLoading(true);
       
-      const token = localStorage.getItem('pride_connect_token');
-      const response = await axios.get(`${API_BASE_URL}/notifications`, {
-        headers: { Authorization: `Bearer ${token}` },
-        params: { page: pageNum, limit: 20 },
+      const response = await notificationService.getNotifications({
+        page: pageNum,
+        limit: 20,
       });
 
-      const { notifications: newNotifications, hasMore: more, unreadCount: count } = response.data;
+      const { notifications: newNotifications, hasMore: more, unreadCount: count } = response;
 
       if (append) {
-        setNotifications(prev => [...prev, ... newNotifications]);
+        setNotifications(prev => [...prev, ...newNotifications]);
       } else {
         setNotifications(newNotifications);
       }
@@ -63,7 +61,7 @@ export const NotificationProvider = ({ children }) => {
 
   // Escutar novas notificações via Socket
   useEffect(() => {
-    if (! socket || !isConnected) return;
+    if (!socket || !isConnected) return;
 
     const handleNewNotification = (notification) => {
       // Adicionar notificação no topo
@@ -77,9 +75,12 @@ export const NotificationProvider = ({ children }) => {
       showBrowserNotification(notification);
     };
 
+    // Listen to both event names for compatibility
+    socket.on('notification', handleNewNotification);
     socket.on('new_notification', handleNewNotification);
 
     return () => {
+      socket.off('notification', handleNewNotification);
       socket.off('new_notification', handleNewNotification);
     };
   }, [socket, isConnected]);
@@ -87,17 +88,12 @@ export const NotificationProvider = ({ children }) => {
   // Marcar como lida
   const markAsRead = useCallback(async (notificationId) => {
     try {
-      const token = localStorage.getItem('pride_connect_token');
-      await axios.put(
-        `${API_BASE_URL}/notifications/${notificationId}/read`,
-        {},
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
+      await notificationService.markAsRead(notificationId);
 
       // Atualizar estado local
       setNotifications(prev =>
         prev.map(notif =>
-          notif._id === notificationId ?  { ...notif, read: true } : notif
+          notif._id === notificationId ? { ...notif, read: true } : notif
         )
       );
 
@@ -110,12 +106,7 @@ export const NotificationProvider = ({ children }) => {
   // Marcar todas como lidas
   const markAllAsRead = useCallback(async () => {
     try {
-      const token = localStorage.getItem('pride_connect_token');
-      await axios.put(
-        `${API_BASE_URL}/notifications/read-all`,
-        {},
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
+      await notificationService.markAllAsRead();
 
       // Atualizar estado local
       setNotifications(prev =>
@@ -131,10 +122,7 @@ export const NotificationProvider = ({ children }) => {
   // Deletar notificação
   const deleteNotification = useCallback(async (notificationId) => {
     try {
-      const token = localStorage.getItem('pride_connect_token');
-      await axios.delete(`${API_BASE_URL}/notifications/${notificationId}`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      await notificationService.deleteNotification(notificationId);
 
       // Remover do estado
       setNotifications(prev => prev.filter(notif => notif._id !== notificationId));
@@ -145,7 +133,7 @@ export const NotificationProvider = ({ children }) => {
 
   // Carregar mais notificações
   const loadMore = useCallback(() => {
-    if (! loading && hasMore) {
+    if (!loading && hasMore) {
       fetchNotifications(page + 1, true);
     }
   }, [loading, hasMore, page, fetchNotifications]);

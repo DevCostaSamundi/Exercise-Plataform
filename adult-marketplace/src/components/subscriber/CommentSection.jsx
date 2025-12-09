@@ -4,10 +4,9 @@
  */
 
 import { useState, useEffect } from 'react';
-import { FiHeart, FiMessageCircle, FiMoreVertical, FiSend } from 'react-icons/fi';
+import { FiHeart, FiMessageCircle, FiSend } from 'react-icons/fi';
 import { formatRelativeTime } from '../../utils/formatters';
-import axios from 'axios';
-import { API_BASE_URL } from '../../utils/constants';
+import feedService from '../../services/feedService';
 
 const CommentSection = ({ postId }) => {
   const [comments, setComments] = useState([]);
@@ -23,15 +22,8 @@ const CommentSection = ({ postId }) => {
   const fetchComments = async () => {
     try {
       setLoading(true);
-      const token = localStorage.getItem('pride_connect_token');
-      const response = await axios.get(
-        `${API_BASE_URL}/posts/${postId}/comments`,
-        {
-          headers: { Authorization: `Bearer ${token}` },
-          params: { sort: sortBy },
-        }
-      );
-      setComments(response.data.comments);
+      const response = await feedService.getComments(postId, { sort: sortBy });
+      setComments(response.comments);
     } catch (error) {
       console.error('Erro ao buscar comentários:', error);
     } finally {
@@ -44,15 +36,10 @@ const CommentSection = ({ postId }) => {
     if (!newComment.trim()) return;
 
     try {
-      const token = localStorage.getItem('pride_connect_token');
-      const response = await axios.post(
-        `${API_BASE_URL}/posts/${postId}/comment`,
-        {
-          text: newComment,
-          parentId: replyTo?._id,
-        },
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
+      const response = await feedService.commentPost(postId, {
+        text: newComment,
+        parentId: replyTo?._id,
+      });
 
       // Add new comment to list
       if (replyTo) {
@@ -60,13 +47,13 @@ const CommentSection = ({ postId }) => {
         setComments(prev =>
           prev.map(comment =>
             comment._id === replyTo._id
-              ? { ...comment, replies: [...(comment.replies || []), response.data.comment] }
+              ? { ...comment, replies: [...(comment.replies || []), response.comment] }
               : comment
           )
         );
       } else {
         // Add as top-level comment
-        setComments(prev => [response.data.comment, ...prev]);
+        setComments(prev => [response.comment, ...prev]);
       }
 
       setNewComment('');
@@ -78,12 +65,7 @@ const CommentSection = ({ postId }) => {
 
   const handleLikeComment = async (commentId) => {
     try {
-      const token = localStorage.getItem('pride_connect_token');
-      await axios.post(
-        `${API_BASE_URL}/comments/${commentId}/like`,
-        {},
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
+      await feedService.likeComment(commentId);
 
       // Update local state
       setComments(prev =>
@@ -113,7 +95,7 @@ const CommentSection = ({ postId }) => {
               {comment.author.name}
             </span>
             <span className="text-xs text-gray-500 dark:text-gray-400">
-              {formatRelativeTime(comment. createdAt)}
+              {formatRelativeTime(comment.createdAt)}
             </span>
           </div>
           <p className="text-gray-800 dark:text-gray-200 text-sm whitespace-pre-wrap">
@@ -134,7 +116,7 @@ const CommentSection = ({ postId }) => {
             <span>{comment.likes || 0}</span>
           </button>
 
-          {! isReply && (
+          {!isReply && (
             <button
               onClick={() => setReplyTo(comment)}
               className="flex items-center gap-1 text-gray-500 dark:text-gray-400 hover:text-blue-500"
@@ -214,7 +196,7 @@ const CommentSection = ({ postId }) => {
             />
             <button
               type="submit"
-              disabled={! newComment.trim()}
+              disabled={!newComment.trim()}
               className="px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-full disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
             >
               <FiSend />

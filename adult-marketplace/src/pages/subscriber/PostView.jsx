@@ -5,13 +5,13 @@
 
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
-import axios from 'axios';
-import { API_BASE_URL } from '../../utils/constants';
 import { FiHeart, FiShare2, FiLock, FiArrowLeft } from 'react-icons/fi';
 import { formatRelativeTime, formatNumber } from '../../utils/formatters';
 import MediaViewer from '../../components/subscriber/MediaViewer';
 import CommentSection from '../../components/subscriber/CommentSection';
 import PPVModal from '../../components/subscriber/PPVModal';
+import feedService from '../../services/feedService';
+import api from '../../services/api';
 
 const PostView = () => {
   const { postId } = useParams();
@@ -30,14 +30,11 @@ const PostView = () => {
   const fetchPost = async () => {
     try {
       setLoading(true);
-      const token = localStorage.getItem('pride_connect_token');
-      const response = await axios.get(`${API_BASE_URL}/posts/${postId}`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      const response = await feedService.getPost(postId);
 
-      setPost(response.data.post);
-      setIsLiked(response.data.post.isLiked);
-      setLikeCount(response.data.post.likes);
+      setPost(response.post);
+      setIsLiked(response.post.isLiked);
+      setLikeCount(response.post.likes);
     } catch (err) {
       console.error('Erro ao buscar post:', err);
       if (err.response?.status === 404) {
@@ -53,12 +50,7 @@ const PostView = () => {
       setIsLiked(!isLiked);
       setLikeCount((prev) => (isLiked ? prev - 1 : prev + 1));
 
-      const token = localStorage.getItem('pride_connect_token');
-      await axios.post(
-        `${API_BASE_URL}/posts/${postId}/like`,
-        { liked: !isLiked },
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
+      await feedService.likePost(postId, !isLiked);
     } catch (err) {
       // Revert on error
       setIsLiked(isLiked);
@@ -76,18 +68,13 @@ const PostView = () => {
       });
     } else {
       navigator.clipboard.writeText(window.location.href);
-      alert('Link copiado! ');
+      alert('Link copiado!');
     }
   };
 
   const handleUnlockPPV = async (paymentData) => {
     try {
-      const token = localStorage.getItem('pride_connect_token');
-      await axios.post(
-        `${API_BASE_URL}/payments/ppv/post/${postId}`,
-        paymentData,
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
+      await api.post(`/payments/ppv/post/${postId}`, paymentData);
 
       // Refresh post
       await fetchPost();

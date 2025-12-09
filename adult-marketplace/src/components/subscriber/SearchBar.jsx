@@ -7,8 +7,7 @@ import { useState, useEffect, useRef } from 'react';
 import { FiSearch, FiX } from 'react-icons/fi';
 import { useNavigate } from 'react-router-dom';
 import { useDebounce } from '../../hooks/useDebounce';
-import axios from 'axios';
-import { API_BASE_URL } from '../../utils/constants';
+import api from '../../services/api';
 
 const SearchBar = ({ placeholder = 'Buscar criadores...', autoFocus = false }) => {
   const [query, setQuery] = useState('');
@@ -44,13 +43,11 @@ const SearchBar = ({ placeholder = 'Buscar criadores...', autoFocus = false }) =
   const searchCreators = async (searchQuery) => {
     try {
       setLoading(true);
-      const token = localStorage.getItem('pride_connect_token');
-      const response = await axios.get(`${API_BASE_URL}/creators/search`, {
-        headers: { Authorization: `Bearer ${token}` },
+      const response = await api.get('/creators/search', {
         params: { q: searchQuery, limit: 5 },
       });
 
-      setResults(response.data. creators || []);
+      setResults(response.data.creators || []);
       setShowResults(true);
     } catch (error) {
       console.error('Erro na busca:', error);

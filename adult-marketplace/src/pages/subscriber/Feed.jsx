@@ -4,12 +4,13 @@
  */
 
 import { useState, useEffect } from 'react';
-import axios from 'axios';
-import { API_BASE_URL, CONTENT_TYPES } from '../../utils/constants';
+import { CONTENT_TYPES } from '../../utils/constansts';
 import PostCard from '../../components/subscriber/PostCard';
 import FilterBar from '../../components/subscriber/FilterBar';
 import useInfiniteScroll from '../../hooks/useInfiniteScroll';
 import { FiRefreshCw } from 'react-icons/fi';
+import feedService from '../../services/feedService';
+import api from '../../services/api';
 
 const Feed = () => {
   const [posts, setPosts] = useState([]);
@@ -31,17 +32,13 @@ const Feed = () => {
       setLoading(true);
       setError('');
 
-      const token = localStorage.getItem('pride_connect_token');
-      const response = await axios.get(`${API_BASE_URL}/posts/feed`, {
-        headers: { Authorization: `Bearer ${token}` },
-        params: {
-          page: pageNum,
-          limit: 20,
-          type: filter !== CONTENT_TYPES.ALL ?  filter : undefined,
-        },
+      const response = await feedService.getFeed({
+        page: pageNum,
+        limit: 20,
+        type: filter !== CONTENT_TYPES.ALL ? filter : undefined,
       });
 
-      const { posts: newPosts, hasMore: more } = response.data;
+      const { posts: newPosts, hasMore: more } = response;
 
       if (append) {
         setPosts((prev) => [...prev, ...newPosts]);
@@ -73,12 +70,7 @@ const Feed = () => {
 
   const handleLike = async (postId, isLiked) => {
     try {
-      const token = localStorage.getItem('pride_connect_token');
-      await axios.post(
-        `${API_BASE_URL}/posts/${postId}/like`,
-        { liked: isLiked },
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
+      await feedService.likePost(postId, isLiked);
     } catch (err) {
       console.error('Erro ao curtir post:', err);
     }
@@ -86,17 +78,12 @@ const Feed = () => {
 
   const handleUnlockPPV = async (postId, paymentData) => {
     try {
-      const token = localStorage.getItem('pride_connect_token');
-      await axios.post(
-        `${API_BASE_URL}/payments/ppv/post/${postId}`,
-        paymentData,
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
+      await api.post(`/payments/ppv/post/${postId}`, paymentData);
 
       // Update post to unlocked
       setPosts((prev) =>
         prev.map((post) =>
-          post._id === postId ?  { ...post, isUnlocked: true } : post
+          post._id === postId ? { ...post, isUnlocked: true } : post
         )
       );
     } catch (err) {
@@ -139,7 +126,7 @@ const Feed = () => {
 
       {/* Posts */}
       <div className="space-y-6">
-        {posts.length === 0 && !loading ?  (
+        {posts.length === 0 && !loading ? (
           <div className="text-center py-12">
             <div className="w-24 h-24 mx-auto mb-4 bg-gray-100 dark:bg-gray-800 rounded-full flex items-center justify-center">
               <FiRefreshCw className="text-4xl text-gray-400" />
@@ -177,7 +164,7 @@ const Feed = () => {
               <div className="text-center py-8">
                 <div className="inline-block w-8 h-8 border-4 border-purple-600 border-t-transparent rounded-full animate-spin" />
                 <p className="mt-2 text-gray-600 dark:text-gray-400">
-                  Carregando... 
+                  Carregando...
                 </p>
               </div>
             )}

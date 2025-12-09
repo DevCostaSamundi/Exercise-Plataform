@@ -6,6 +6,25 @@ const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
 const API_VERSION = import.meta.env.VITE_API_VERSION || API.VERSION;
 const ENABLE_LOGGING = import.meta.env.VITE_ENABLE_LOGGING === 'true';
 
+/**
+ * Get authentication token from localStorage with fallback support
+ * Tries multiple storage keys for backward compatibility
+ * @returns {string|null} The authentication token or null if not found
+ */
+export const getAuthToken = () => {
+  // Try multiple token keys in order of preference
+  const tokenKeys = ['authToken', 'accessToken', 'pride_connect_token'];
+  
+  for (const key of tokenKeys) {
+    const token = localStorage.getItem(key);
+    if (token) {
+      return token;
+    }
+  }
+  
+  return null;
+};
+
 // Create axios instance with robust configuration
 const api = axios.create({
   baseURL: `${API_URL}/api/${API_VERSION}`,
@@ -19,7 +38,7 @@ const api = axios.create({
 // Request interceptor - Add authentication token
 api.interceptors.request.use(
   (config) => {
-    const token = localStorage.getItem('authToken');
+    const token = getAuthToken();
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }
@@ -71,18 +90,22 @@ api.interceptors.response.use(
       const { status, data } = error.response;
       
       switch (status) {
-        case 401:
+        case 401: {
           // Unauthorized - Clear auth data and redirect to login
-          localStorage.removeItem('authToken');
+          const tokenKeys = ['authToken', 'accessToken', 'pride_connect_token'];
+          tokenKeys.forEach(key => localStorage.removeItem(key));
           localStorage.removeItem('refreshToken');
           localStorage.removeItem('userType');
           localStorage.removeItem('user');
           
           // Only redirect if not already on login page
           if (window.location.pathname !== '/login') {
-            window.location.href = '/login';
+            // Preserve current location as redirect parameter
+            const currentPath = window.location.pathname + window.location.search;
+            window.location.href = `/login?next=${encodeURIComponent(currentPath)}`;
           }
           break;
+        }
           
         case 403:
           // Forbidden - User doesn't have permission

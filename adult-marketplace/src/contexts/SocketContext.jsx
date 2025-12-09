@@ -4,8 +4,8 @@
  */
 
 import { createContext, useContext, useEffect, useState, useCallback } from 'react';
-import { io } from 'socket.io-client';
-import { SOCKET_URL } from '../utils/constants';
+import { connectSocket, disconnectSocket, getSocket } from '../services/SocketService';
+import { getAuthToken } from '../services/api';
 
 const SocketContext = createContext(null);
 
@@ -17,42 +17,33 @@ export const useSocket = () => {
   return context;
 };
 
+// Alias for backward compatibility
+export const useSocketContext = useSocket;
+
 export const SocketProvider = ({ children, user }) => {
   const [socket, setSocket] = useState(null);
   const [isConnected, setIsConnected] = useState(false);
   const [onlineUsers, setOnlineUsers] = useState([]);
 
-  // Inicializar socket quando usuário estiver autenticado
-  useEffect(() => {
-    if (!user?._id) {
-      // Se não há usuário, desconectar
-      if (socket) {
-        socket.disconnect();
-        setSocket(null);
-        setIsConnected(false);
-      }
+  // Function to initialize socket connection
+  const connect = useCallback(() => {
+    const token = getAuthToken();
+    if (!token) {
+      console.warn('No auth token found, cannot connect socket');
       return;
     }
 
-    // Criar nova conexão
-    const newSocket = io(SOCKET_URL, {
-      auth: {
-        token: localStorage.getItem('pride_connect_token'),
-        userId: user._id,
-      },
-      reconnection: true,
-      reconnectionAttempts: 5,
-      reconnectionDelay: 1000,
-    });
+    const newSocket = connectSocket(token);
+    setSocket(newSocket);
 
-    // Event listeners
+    // Setup event listeners
     newSocket.on('connect', () => {
       console.log('✅ Socket conectado:', newSocket.id);
       setIsConnected(true);
     });
 
     newSocket.on('disconnect', (reason) => {
-      console. log('❌ Socket desconectado:', reason);
+      console.log('❌ Socket desconectado:', reason);
       setIsConnected(false);
     });
 
@@ -66,48 +57,90 @@ export const SocketProvider = ({ children, user }) => {
       setOnlineUsers(users);
     });
 
-    setSocket(newSocket);
+    return newSocket;
+  }, []);
+
+  // Function to disconnect socket
+  const disconnect = useCallback(() => {
+    disconnectSocket();
+    setSocket(null);
+    setIsConnected(false);
+  }, []);
+
+  // Inicializar socket quando usuário estiver autenticado
+  useEffect(() => {
+    if (!user?._id) {
+      // Se não há usuário, desconectar
+      disconnect();
+      return;
+    }
+
+    // Create connection
+    const newSocket = connect();
 
     // Cleanup ao desmontar
     return () => {
-      newSocket.disconnect();
+      if (newSocket) {
+        newSocket.off('connect');
+        newSocket.off('disconnect');
+        newSocket.off('connect_error');
+        newSocket.off('online_users');
+      }
     };
-  }, [user?._id]);
+  }, [user?._id, connect, disconnect]);
+
+  // Listen for auth token changes and reconnect
+  useEffect(() => {
+    const handleStorageChange = (e) => {
+      // Check if any auth token changed
+      const authKeys = ['authToken', 'accessToken', 'pride_connect_token'];
+      if (authKeys.includes(e.key)) {
+        console.log('Auth token changed, reconnecting socket...');
+        disconnect();
+        if (e.newValue && user?._id) {
+          // Token was added or changed, reconnect
+          setTimeout(() => connect(), 100);
+        }
+      }
+    };
+
+    window.addEventListener('storage', handleStorageChange);
+    return () => window.removeEventListener('storage', handleStorageChange);
+  }, [user?._id, connect, disconnect]);
+
+  // Generic emit helper
+  const emit = useCallback((event, data) => {
+    if (socket && isConnected) {
+      socket.emit(event, data);
+    } else {
+      console.warn('Cannot emit, socket not connected');
+    }
+  }, [socket, isConnected]);
 
   // Emitir evento de "digitando"
   const emitTyping = useCallback((recipientId) => {
-    if (socket && isConnected) {
-      socket.emit('typing', { recipientId });
-    }
-  }, [socket, isConnected]);
+    emit('typing', { recipientId });
+  }, [emit]);
 
   // Parar de "digitando"
   const emitStopTyping = useCallback((recipientId) => {
-    if (socket && isConnected) {
-      socket.emit('stop_typing', { recipientId });
-    }
-  }, [socket, isConnected]);
+    emit('stop_typing', { recipientId });
+  }, [emit]);
 
   // Marcar mensagem como lida
   const emitMessageRead = useCallback((messageId, senderId) => {
-    if (socket && isConnected) {
-      socket.emit('message_read', { messageId, senderId });
-    }
-  }, [socket, isConnected]);
+    emit('message_read', { messageId, senderId });
+  }, [emit]);
 
   // Entrar em sala de chat
   const joinChatRoom = useCallback((userId) => {
-    if (socket && isConnected) {
-      socket.emit('join_chat', { userId });
-    }
-  }, [socket, isConnected]);
+    emit('join_chat', { userId });
+  }, [emit]);
 
   // Sair de sala de chat
   const leaveChatRoom = useCallback((userId) => {
-    if (socket && isConnected) {
-      socket.emit('leave_chat', { userId });
-    }
-  }, [socket, isConnected]);
+    emit('leave_chat', { userId });
+  }, [emit]);
 
   // Verificar se usuário está online
   const isUserOnline = useCallback((userId) => {
@@ -119,6 +152,9 @@ export const SocketProvider = ({ children, user }) => {
     isConnected,
     onlineUsers,
     isUserOnline,
+    connect,
+    disconnect,
+    emit,
     emitTyping,
     emitStopTyping,
     emitMessageRead,
