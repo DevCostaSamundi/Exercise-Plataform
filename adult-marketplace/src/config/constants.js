@@ -10,7 +10,7 @@ export const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:50
 export const SOCKET_URL = import.meta.env.VITE_SOCKET_URL || 'http://localhost:5000';
 
 export const API = {
-  BASE_URL: import.meta.env.VITE_API_URL || 'http://localhost:5000/api',
+  BASE_URL: API_BASE_URL, // Reuse the same value to avoid duplication
   TIMEOUT: 15000, // 15 seconds
   VERSION: 'v1',
 };
@@ -182,13 +182,13 @@ export const ERROR_MESSAGES = {
 
 // Mensagens de sucesso padrão
 export const SUCCESS_MESSAGES = {
-  POST_LIKED: 'Post curtido! ',
+  POST_LIKED: 'Post curtido!',
   POST_UNLIKED: 'Curtida removida.',
-  COMMENT_POSTED: 'Comentário publicado! ',
+  COMMENT_POSTED: 'Comentário publicado!',
   SUBSCRIBED: 'Assinatura realizada com sucesso!',
   UNSUBSCRIBED: 'Assinatura cancelada.',
-  MESSAGE_SENT: 'Mensagem enviada! ',
-  PROFILE_UPDATED: 'Perfil atualizado! ',
+  MESSAGE_SENT: 'Mensagem enviada!',
+  PROFILE_UPDATED: 'Perfil atualizado!',
   SETTINGS_SAVED: 'Configurações salvas!',
   PPV_UNLOCKED: 'Conteúdo desbloqueado!',
 };

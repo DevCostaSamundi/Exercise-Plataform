@@ -11,7 +11,7 @@ import axios from 'axios';
 import { API_BASE_URL, PAYMENT_METHODS } from '../../config/constants';
 
 const PPVModal = ({ content, onClose, onUnlock }) => {
-  const [selectedMethod, setSelectedMethod] = useState(PAYMENT_METHODS. PIX);
+  const [selectedMethod, setSelectedMethod] = useState(PAYMENT_METHODS.PIX);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
