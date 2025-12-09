@@ -8,7 +8,7 @@ import { FiX, FiLock, FiCreditCard, FiDollarSign } from 'react-icons/fi';
 import { SiPix, SiBitcoin } from 'react-icons/si';
 import { formatCurrency } from '../../utils/formatters';
 import axios from 'axios';
-import { API_BASE_URL, PAYMENT_METHODS } from '../../utils/constants';
+import { API_BASE_URL, PAYMENT_METHODS } from '../../config/constants';
 
 const PPVModal = ({ content, onClose, onUnlock }) => {
   const [selectedMethod, setSelectedMethod] = useState(PAYMENT_METHODS. PIX);

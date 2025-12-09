@@ -8,7 +8,7 @@ import { FiDownload, FiChevronDown, FiChevronUp } from 'react-icons/fi';
 import { SiPix, SiBitcoin } from 'react-icons/si';
 import { FiCreditCard } from 'react-icons/fi';
 import { formatCurrency, formatDate } from '../../utils/formatters';
-import { PAYMENT_METHODS, PAYMENT_STATUS, TRANSACTION_TYPES } from '../../utils/constants';
+import { PAYMENT_METHODS, PAYMENT_STATUS, TRANSACTION_TYPES } from '../../config/constants';
 
 const TransactionRow = ({ transaction }) => {
   const [showDetails, setShowDetails] = useState(false);

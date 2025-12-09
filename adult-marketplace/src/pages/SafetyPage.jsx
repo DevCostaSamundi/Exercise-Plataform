@@ -1,6 +1,6 @@
 import { Link } from 'react-router-dom';
 import Sidebar from '../components/Sidebar';
-import { APP_INFO } from '../constants';
+import { APP_INFO } from '../config/constants';
 
 export default function SafetyPage() {
   const safetyGuidelines = [

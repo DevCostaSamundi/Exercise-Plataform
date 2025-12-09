@@ -6,7 +6,7 @@
 import { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import axios from 'axios';
-import { API_BASE_URL } from '../../utils/constants';
+import { API_BASE_URL } from '../../config/constants';
 import {
   FiHeart,
   FiMessageCircle,

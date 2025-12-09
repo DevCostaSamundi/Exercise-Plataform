@@ -1,17 +1,42 @@
 /**
- * Constantes da plataforma PrideConnect
+ * Application Constants
+ * Centralized configuration values used throughout the application
  */
 
-// API Base URL
+// API Configuration
 export const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
 
 // Socket URL
 export const SOCKET_URL = import.meta.env.VITE_SOCKET_URL || 'http://localhost:5000';
 
+export const API = {
+  BASE_URL: import.meta.env.VITE_API_URL || 'http://localhost:5000/api',
+  TIMEOUT: 15000, // 15 seconds
+  VERSION: 'v1',
+};
+
+// Currency Configuration
+export const CURRENCY = {
+  // Conversion rate from USD to BRL (Brazilian Real)
+  // This should ideally come from a currency API in production
+  USD_TO_BRL: 5.5,
+  
+  // Currency symbols
+  USD_SYMBOL: '$',
+  BRL_SYMBOL: 'R$',
+};
+
 // Upload limits
 export const MAX_IMAGE_SIZE_MB = 5;
 export const MAX_VIDEO_SIZE_MB = 100;
 export const MAX_IMAGES_PER_POST = 10;
+
+// File Upload
+export const UPLOAD = {
+  MAX_FILE_SIZE_MB: 50,
+  ALLOWED_IMAGE_TYPES: ['image/jpeg', 'image/png', 'image/gif', 'image/webp'],
+  ALLOWED_VIDEO_TYPES: ['video/mp4', 'video/webm', 'video/quicktime'],
+};
 
 // Tipos de conteúdo
 export const CONTENT_TYPES = {
@@ -89,6 +114,12 @@ export const BREAKPOINTS = {
   DESKTOP: 1280,
 };
 
+// Pagination
+export const PAGINATION = {
+  DEFAULT_PAGE_SIZE: 20,
+  MAX_PAGE_SIZE: 100,
+};
+
 // Paginação
 export const PAGE_SIZE = 20;
 export const INFINITE_SCROLL_THRESHOLD = 0.8;
@@ -132,11 +163,18 @@ export const NOTIFICATION_ICONS = {
   live_started: 'FiVideo',
 };
 
-// Mensagens de erro padrão
+// Minimum withdrawal amount in USD
+export const MIN_WITHDRAWAL_AMOUNT = 100;
+
+// Platform fee percentage
+export const PLATFORM_FEE_PERCENTAGE = 20;
+
+// Error Messages (can be externalized to i18n later)
 export const ERROR_MESSAGES = {
-  NETWORK_ERROR: 'Erro de conexão. Verifique sua internet.',
-  UNAUTHORIZED: 'Você precisa estar autenticado.',
-  FORBIDDEN: 'Você não tem permissão para esta ação.',
+  NETWORK_ERROR: 'Não foi possível conectar ao servidor. Verifique sua conexão.',
+  GENERIC_ERROR: 'Ocorreu um erro inesperado. Por favor, tente novamente.',
+  UNAUTHORIZED: 'Sua sessão expirou. Faça login novamente.',
+  FORBIDDEN: 'Você não tem permissão para acessar este recurso.',
   NOT_FOUND: 'Recurso não encontrado.',
   SERVER_ERROR: 'Erro no servidor. Tente novamente mais tarde.',
   VALIDATION_ERROR: 'Dados inválidos. Verifique os campos.',
@@ -153,6 +191,13 @@ export const SUCCESS_MESSAGES = {
   PROFILE_UPDATED: 'Perfil atualizado! ',
   SETTINGS_SAVED: 'Configurações salvas!',
   PPV_UNLOCKED: 'Conteúdo desbloqueado!',
+};
+
+// Date Formats
+export const DATE_FORMATS = {
+  SHORT: 'DD/MM/YYYY',
+  LONG: 'DD de MMMM de YYYY',
+  WITH_TIME: 'DD/MM/YYYY HH:mm',
 };
 
 // Tempos de cache (em milissegundos)
@@ -188,4 +233,72 @@ export const LANGUAGES = {
   PT_BR: 'pt-BR',
   EN_US: 'en-US',
   ES_ES: 'es-ES',
+};
+
+// App Metadata
+export const APP_INFO = {
+  NAME: import.meta.env.VITE_APP_NAME || 'PrideConnect',
+  VERSION: import.meta.env.VITE_APP_VERSION || '1.0.0',
+  LAST_UPDATED: new Date().toISOString().split('T')[0], // YYYY-MM-DD
+};
+
+/**
+ * Currency Formatter
+ * Converts USD to BRL and formats the currency
+ * @deprecated Use formatters.js formatCurrency instead
+ */
+export const formatCurrency = (usdAmount, currency = 'BRL') => {
+  const amount = currency === 'BRL' ? usdAmount * CURRENCY.USD_TO_BRL : usdAmount;
+  const symbol = currency === 'BRL' ? CURRENCY.BRL_SYMBOL : CURRENCY.USD_SYMBOL;
+  
+  return `${symbol} ${amount.toFixed(2).replace('.', ',')}`;
+};
+
+/**
+ * Date Formatter
+ * Formats date to Brazilian locale
+ * @deprecated Use formatters.js formatDate instead
+ */
+export const formatDate = (dateString) => {
+  return new Date(dateString).toLocaleDateString('pt-BR');
+};
+
+export default {
+  API_BASE_URL,
+  SOCKET_URL,
+  API,
+  CURRENCY,
+  MAX_IMAGE_SIZE_MB,
+  MAX_VIDEO_SIZE_MB,
+  MAX_IMAGES_PER_POST,
+  UPLOAD,
+  CONTENT_TYPES,
+  PAYMENT_STATUS,
+  PAYMENT_METHODS,
+  TRANSACTION_TYPES,
+  SUBSCRIPTION_STATUS,
+  NOTIFICATION_TYPES,
+  TRENDING_PERIODS,
+  SORT_OPTIONS,
+  BREAKPOINTS,
+  PAGINATION,
+  PAGE_SIZE,
+  INFINITE_SCROLL_THRESHOLD,
+  TEXT_LIMITS,
+  PATTERNS,
+  STATUS_COLORS,
+  NOTIFICATION_ICONS,
+  MIN_WITHDRAWAL_AMOUNT,
+  PLATFORM_FEE_PERCENTAGE,
+  ERROR_MESSAGES,
+  SUCCESS_MESSAGES,
+  DATE_FORMATS,
+  CACHE_TIMES,
+  DEBOUNCE_TIMES,
+  STORAGE_KEYS,
+  THEMES,
+  LANGUAGES,
+  APP_INFO,
+  formatCurrency,
+  formatDate,
 };

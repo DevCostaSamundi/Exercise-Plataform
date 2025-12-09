@@ -5,7 +5,7 @@
 
 import { useState, useEffect } from 'react';
 import axios from 'axios';
-import { API_BASE_URL, TRENDING_PERIODS } from '../../utils/constants';
+import { API_BASE_URL, TRENDING_PERIODS } from '../../config/constants';
 import PostCard from '../../components/subscriber/PostCard';
 import CreatorCard from '../../components/subscriber/CreatorCard';
 import { FiTrendingUp, FiHash } from 'react-icons/fi';

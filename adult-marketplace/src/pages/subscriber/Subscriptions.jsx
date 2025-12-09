@@ -5,7 +5,7 @@
 
 import { useState, useEffect } from 'react';
 import axios from 'axios';
-import { API_BASE_URL, SUBSCRIPTION_STATUS } from '../../utils/constants';
+import { API_BASE_URL, SUBSCRIPTION_STATUS } from '../../config/constants';
 import SubscriptionCard from '../../components/subscriber/SubscriptionCard';
 import { FiList, FiFilter } from 'react-icons/fi';
 

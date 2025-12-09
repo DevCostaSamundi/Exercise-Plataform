@@ -4,7 +4,7 @@ import Sidebar from '../components/Sidebar';
 import api from '../services/api';
 import LoadingSpinner from '../components/LoadingSpinner';
 import ErrorMessage from '../components/ErrorMessage';
-import { formatCurrency } from '../constants';
+import { formatCurrency } from '../config/constants';
 
 export default function ExplorePage() {
   const [loading, setLoading] = useState(true);

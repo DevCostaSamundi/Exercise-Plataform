@@ -5,7 +5,7 @@
 
 import { useState, useEffect } from 'react';
 import axios from 'axios';
-import { API_BASE_URL, TRANSACTION_TYPES, PAYMENT_STATUS } from '../../utils/constants';
+import { API_BASE_URL, TRANSACTION_TYPES, PAYMENT_STATUS } from '../../config/constants';
 import TransactionRow from '../../components/subscriber/TransactionRow';
 import useInfiniteScroll from '../../hooks/useInfiniteScroll';
 import { FiFilter, FiDownload, FiX } from 'react-icons/fi';

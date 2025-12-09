@@ -4,7 +4,7 @@
  */
 
 import { FiImage, FiVideo, FiRadio, FiGrid } from 'react-icons/fi';
-import { CONTENT_TYPES } from '../../utils/constants';
+import { CONTENT_TYPES } from '../../config/constants';
 
 const FilterBar = ({ activeFilter, onFilterChange, showAll = true }) => {
   const filters = [
