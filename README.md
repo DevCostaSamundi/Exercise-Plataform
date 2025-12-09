@@ -199,25 +199,82 @@ POST /api/v1/messages                 # Send message (fallback)
 │   │   └── migrations/
 │   ├── src/
 │   │   ├── config/
-│   │   ├── controllers/
-│   │   ├── middleware/
+│   │   │   ├── constants.js      # Backend constants
+│   │   │   ├── database.js
+│   │   │   ├── jwt.js
+│   │   │   ├── cloudinary.js
+│   │   │   └── email.js
+│   │   ├── controllers/          # Request handlers
+│   │   ├── middleware/           # Auth, validation, error handling
 │   │   ├── models/
-│   │   ├── routes/
-│   │   ├── services/
-│   │   ├── socket/
-│   │   ├── utils/
+│   │   ├── routes/               # API routes
+│   │   ├── services/             # Business logic
+│   │   ├── socket/               # WebSocket handlers
+│   │   ├── utils/                # Helpers, logger
+│   │   ├── validators/           # Joi schemas
 │   │   └── app.js
 │   ├── server.js
 │   └── package.json
 ├── adult-marketplace/
 │   ├── src/
+│   │   ├── config/
+│   │   │   └── constants.js      # Frontend constants (unified)
 │   │   ├── components/
-│   │   ├── contexts/
-│   │   ├── services/
+│   │   │   ├── common/           # Shared components
+│   │   │   │   └── index.js      # Barrel export
+│   │   │   ├── layout/           # Layout components
+│   │   │   │   └── index.js      # Barrel export
+│   │   │   └── subscriber/       # Subscriber components
+│   │   │       └── index.js      # Barrel export
+│   │   ├── pages/
+│   │   │   ├── Creator/          # Creator pages
+│   │   │   ├── subscriber/       # Subscriber pages
+│   │   │   └── Static/           # Static pages
+│   │   ├── services/             # API calls
+│   │   │   └── index.js          # Barrel export
+│   │   ├── contexts/             # React contexts
+│   │   ├── hooks/                # Custom hooks
+│   │   ├── utils/                # Formatters, validators
 │   │   └── App.jsx
+│   ├── vite.config.js            # Vite config with path aliases
 │   └── package.json
 ├── docker-compose.yml
+├── MIGRATION.md                  # Refactoring documentation
 └── README.md
+```
+
+### Path Aliases (Frontend)
+
+The frontend is configured with path aliases for cleaner imports:
+
+```javascript
+// Instead of relative paths
+import { formatCurrency } from '../../../config/constants';
+
+// You can use path aliases
+import { formatCurrency } from '@/config/constants';
+```
+
+Available aliases:
+- `@/` → `src/`
+- `@/components` → `src/components/`
+- `@/services` → `src/services/`
+- `@/utils` → `src/utils/`
+- `@/config` → `src/config/`
+- `@/pages` → `src/pages/`
+- `@/contexts` → `src/contexts/`
+- `@/hooks` → `src/hooks/`
+
+### Barrel Exports
+
+Components and services can be imported from barrel exports:
+
+```javascript
+// Components
+import { MediaViewer, PostCard, SearchBar } from '@/components/subscriber';
+
+// Services
+import { api, authAPI, creatorService } from '@/services';
 ```
 
 ## Testing
