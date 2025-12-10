@@ -74,6 +74,9 @@ const Transactions = () => {
       document.body.appendChild(link);
       link.click();
       link.remove();
+      
+      // Clean up: revoke the object URL to free memory
+      window.URL.revokeObjectURL(url);
     } catch (err) {
       console.error('Erro ao exportar:', err);
       alert('Erro ao exportar transações');

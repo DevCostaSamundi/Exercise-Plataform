@@ -104,10 +104,21 @@ export const exportTransactions = async (req, res) => {
       orderBy: { createdAt: 'desc' },
     });
 
-    // Generate CSV
+    // Helper to escape CSV values
+    const escapeCSV = (value) => {
+      if (value == null) return '';
+      const str = String(value);
+      // Escape quotes and wrap in quotes if contains special chars
+      if (str.includes(',') || str.includes('"') || str.includes('\n') || str.includes('\r')) {
+        return `"${str.replace(/"/g, '""')}"`;
+      }
+      return str;
+    };
+
+    // Generate CSV with proper escaping
     const csvHeader = 'Date,Type,Amount,Balance,Description\n';
     const csvRows = transactions.map(t => 
-      `${t.createdAt.toISOString()},${t.type},${t.amount},${t.balance},"${t.description || ''}"`
+      `${escapeCSV(t.createdAt.toISOString())},${escapeCSV(t.type)},${escapeCSV(t.amount)},${escapeCSV(t.balance)},${escapeCSV(t.description || '')}`
     ).join('\n');
     const csv = csvHeader + csvRows;
 

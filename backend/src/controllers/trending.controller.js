@@ -1,6 +1,15 @@
 import prisma from '../config/database.js';
 import logger from '../utils/logger.js';
 
+// Trending score weights
+const TRENDING_WEIGHTS = {
+  POST_LIKE: 2,
+  POST_COMMENT: 1,
+  POST_VIEW: 0.1,
+  CREATOR_POST: 5,
+  CREATOR_SUBSCRIPTION: 10,
+};
+
 /**
  * Get trending posts
  */
@@ -63,7 +72,10 @@ export const getTrendingPosts = async (req, res) => {
     // Calculate engagement score and sort
     const trending = posts.map(post => ({
       ...post,
-      engagementScore: (post._count.likes * 2) + post._count.comments + (post.viewCount || 0),
+      engagementScore: 
+        (post._count.likes * TRENDING_WEIGHTS.POST_LIKE) + 
+        (post._count.comments * TRENDING_WEIGHTS.POST_COMMENT) + 
+        ((post.viewCount || 0) * TRENDING_WEIGHTS.POST_VIEW),
     })).sort((a, b) => b.engagementScore - a.engagementScore);
 
     const total = await prisma.post.count({
@@ -162,7 +174,12 @@ export const getTrendingCreators = async (req, res) => {
       const totalViews = creator.posts.reduce((sum, post) => sum + (post.viewCount || 0), 0);
       const recentPosts = creator.posts.length;
 
-      const trendingScore = (totalLikes * 2) + totalComments + (totalViews * 0.1) + (recentPosts * 5) + (creator._count.subscriptions * 10);
+      const trendingScore = 
+        (totalLikes * TRENDING_WEIGHTS.POST_LIKE) + 
+        (totalComments * TRENDING_WEIGHTS.POST_COMMENT) + 
+        (totalViews * TRENDING_WEIGHTS.POST_VIEW) + 
+        (recentPosts * TRENDING_WEIGHTS.CREATOR_POST) + 
+        (creator._count.subscriptions * TRENDING_WEIGHTS.CREATOR_SUBSCRIPTION);
 
       return {
         id: creator.id,
