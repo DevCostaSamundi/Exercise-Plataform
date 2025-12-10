@@ -19,6 +19,8 @@ import paymentRoutes from './routes/payment.routes.js';
 import withdrawalRoutes from './routes/withdrawal.routes.js';
 import subscriptionRoutes from './routes/subscription.routes.js';
 import creatorDashboardRoutes from './routes/creatorDashboard.routes.js';
+import commentRoutes from './routes/comment.routes.js';
+import likeRoutes from './routes/like.routes.js';
 
 // Import middleware
 import errorMiddleware from './middleware/error.middleware.js';
@@ -118,6 +120,12 @@ app.use(`/api/${API_VERSION}/creators`, creatorRoutes);
 
 // Post routes (públicos)
 app.use(`/api/${API_VERSION}/posts`, postRoutes);
+
+// Comment routes
+app.use(`/api/${API_VERSION}`, commentRoutes);
+
+// Like routes
+app.use(`/api/${API_VERSION}`, likeRoutes);
 
 // Live routes
 app.use(`/api/${API_VERSION}/lives`, liveRoutes);

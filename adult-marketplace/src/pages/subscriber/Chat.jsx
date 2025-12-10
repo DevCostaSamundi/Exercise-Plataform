@@ -15,6 +15,7 @@ import {
   FiMoreVertical,
 } from 'react-icons/fi';
 import PPVModal from '../../components/subscriber/PPVModal';
+import PPVMessageModal from '../../components/subscriber/PPVMessageModal';
 import api from '../../services/api';
 
 const Chat = () => {
@@ -158,14 +159,14 @@ const Chat = () => {
     }
   };
 
-  const handleUnlockPPV = async (messageId, paymentData) => {
+  const handleUnlockPPV = async (paymentData) => {
     try {
-      await api.post(`/payments/ppv/message/${messageId}`, paymentData);
+      await api.post(`/messages/${selectedPPV._id}/unlock`, paymentData);
 
       // Update message
       setMessages((prev) =>
         prev.map((msg) =>
-          msg._id === messageId ? { ...msg, isUnlocked: true } : msg
+          msg._id === selectedPPV._id ? { ...msg, isUnlocked: true } : msg
         )
       );
 
@@ -384,21 +385,14 @@ const Chat = () => {
 
       {/* PPV Modal */}
       {showPPVModal && selectedPPV && (
-        <PPVModal
-          content={{
-            type: 'message',
-            id: selectedPPV._id,
-            creator: creator,
-            price: selectedPPV.price,
-            description: 'Mensagem exclusiva',
-          }}
+        <PPVMessageModal
+          message={selectedPPV}
+          creator={creator}
           onClose={() => {
             setShowPPVModal(false);
             setSelectedPPV(null);
           }}
-          onUnlock={(paymentData) =>
-            handleUnlockPPV(selectedPPV._id, paymentData)
-          }
+          onUnlock={handleUnlockPPV}
         />
       )}
     </div>
