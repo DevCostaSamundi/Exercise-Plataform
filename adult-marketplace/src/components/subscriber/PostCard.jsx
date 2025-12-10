@@ -27,7 +27,7 @@ const PostCard = ({ post, onLike, onUnlock }) => {
     setLikeCount(prev => newIsLiked ? prev + 1 : prev - 1);
 
     try {
-      await feedService.likePost(post._id);
+      await feedService.likePost(post.id || post._id);
     } catch (error) {
       // Revert on error
       setIsLiked(!newIsLiked);
@@ -37,25 +37,25 @@ const PostCard = ({ post, onLike, onUnlock }) => {
   };
 
   const handleShare = (e) => {
-    e. preventDefault();
+    e.preventDefault();
     e.stopPropagation();
 
     if (navigator.share) {
       navigator.share({
         title: `Post de ${post.creator.name}`,
         text: post.caption || '',
-        url: `${window.location.origin}/post/${post._id}`,
+        url: `${window.location.origin}/post/${post.id || post._id}`,
       });
     } else {
       // Fallback: copiar link
-      navigator.clipboard.writeText(`${window.location.origin}/post/${post._id}`);
-      alert('Link copiado! ');
+      navigator.clipboard.writeText(`${window.location.origin}/post/${post.id || post._id}`);
+      alert('Link copiado!');
     }
   };
 
   const handleUnlockPPV = async (paymentData) => {
     if (onUnlock) {
-      await onUnlock(post._id, paymentData);
+      await onUnlock(post.id || post._id, paymentData);
     }
     setShowPPVModal(false);
   };
@@ -63,7 +63,7 @@ const PostCard = ({ post, onLike, onUnlock }) => {
   return (
     <>
       <Link
-        to={`/post/${post._id}`}
+        to={`/post/${post.id || post._id}`}
         className="block bg-white dark:bg-gray-800 rounded-lg shadow-md hover:shadow-lg transition-shadow overflow-hidden"
       >
         {/* Header do Card */}
@@ -216,10 +216,10 @@ const PostCard = ({ post, onLike, onUnlock }) => {
         <PPVModal
           content={{
             type: 'post',
-            id: post._id,
+            id: post.id || post._id,
             creator: post.creator,
             price: post.price,
-            preview: post.media[0],
+            preview: post.media?.[0],
             description: post.caption,
           }}
           onClose={() => setShowPPVModal(false)}
