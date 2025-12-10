@@ -4,8 +4,8 @@
  */
 
 import { useState, useEffect } from 'react';
-import axios from 'axios';
-import { API_BASE_URL, SORT_OPTIONS } from '../../config/constants';
+import favoriteService from '../../services/favoriteService';
+import { SORT_OPTIONS } from '../../config/constants';
 import CreatorCard from '../../components/subscriber/CreatorCard';
 import { FiHeart, FiInbox } from 'react-icons/fi';
 
@@ -21,13 +21,8 @@ const Favorites = () => {
   const fetchFavorites = async () => {
     try {
       setLoading(true);
-      const token = localStorage.getItem('pride_connect_token');
-      const response = await axios.get(`${API_BASE_URL}/favorites`, {
-        headers: { Authorization: `Bearer ${token}` },
-        params: { sort: sortBy },
-      });
-
-      setFavorites(response.data.favorites);
+      const response = await favoriteService.getFavorites({ sort: sortBy });
+      setFavorites(response.data || []);
     } catch (err) {
       console.error('Erro ao buscar favoritos:', err);
     } finally {
@@ -37,13 +32,9 @@ const Favorites = () => {
 
   const handleUnfavorite = async (creatorId) => {
     try {
-      const token = localStorage.getItem('pride_connect_token');
-      await axios.delete(`${API_BASE_URL}/favorites/${creatorId}`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-
+      await favoriteService.removeFavorite(creatorId);
       // Remove from list
-      setFavorites((prev) => prev.filter((fav) => fav._id !== creatorId));
+      setFavorites((prev) => prev.filter((fav) => fav.creatorId !== creatorId));
     } catch (err) {
       console.error('Erro ao desfavoritar:', err);
     }

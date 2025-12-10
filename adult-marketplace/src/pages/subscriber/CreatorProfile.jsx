@@ -5,8 +5,9 @@
 
 import { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import axios from 'axios';
-import { API_BASE_URL } from '../../config/constants';
+import api from '../../services/api';
+import subscriptionService from '../../services/subscriptionService';
+import favoriteService from '../../services/favoriteService';
 import {
   FiHeart,
   FiMessageCircle,
@@ -51,11 +52,7 @@ const CreatorProfile = () => {
   const fetchCreator = async () => {
     try {
       setLoading(true);
-      const token = localStorage.getItem('pride_connect_token');
-      const response = await axios.get(`${API_BASE_URL}/creators/username/${username}`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-
+      const response = await api.get(`/creators/username/${username}`);
       setCreator(response.data.data);
       // Check subscription status - will be returned with posts
     } catch (err) {
@@ -68,14 +65,9 @@ const CreatorProfile = () => {
   const fetchPosts = async (pageNum, append = true) => {
     try {
       setPostsLoading(true);
-      const token = localStorage.getItem('pride_connect_token');
-      const response = await axios.get(
-        `${API_BASE_URL}/creators/username/${username}/posts`,
-        {
-          headers: { Authorization: `Bearer ${token}` },
-          params: { page: pageNum, limit: 20 },
-        }
-      );
+      const response = await api.get(`/creators/username/${username}/posts`, {
+        params: { page: pageNum, limit: 20 },
+      });
 
       const { data: newPosts, isSubscribed: subStatus, pagination } = response.data;
 
@@ -105,19 +97,17 @@ const CreatorProfile = () => {
   const handleSubscribe = async () => {
     try {
       setSubscribing(true);
-      const token = localStorage.getItem('pride_connect_token');
 
       if (isSubscribed) {
-        await axios.delete(`${API_BASE_URL}/subscriptions/${creator.id}`, {
-          headers: { Authorization: `Bearer ${token}` },
-        });
+        // Find subscription and cancel it
+        const subs = await subscriptionService.getUserSubscriptions();
+        const subscription = subs.data?.find(s => s.creator.id === creator.id);
+        if (subscription) {
+          await subscriptionService.cancelSubscription(subscription.id);
+        }
         setIsSubscribed(false);
       } else {
-        await axios.post(
-          `${API_BASE_URL}/creators/${creator.id}/subscribe`,
-          {},
-          { headers: { Authorization: `Bearer ${token}` } }
-        );
+        await subscriptionService.createSubscription(creator.id);
         setIsSubscribed(true);
       }
     } catch (err) {
@@ -130,19 +120,11 @@ const CreatorProfile = () => {
 
   const handleFavorite = async () => {
     try {
-      const token = localStorage.getItem('pride_connect_token');
-
       if (isFavorited) {
-        await axios.delete(`${API_BASE_URL}/favorites/${creator.id}`, {
-          headers: { Authorization: `Bearer ${token}` },
-        });
+        await favoriteService.removeFavorite(creator.id);
         setIsFavorited(false);
       } else {
-        await axios.post(
-          `${API_BASE_URL}/favorites/${creator.id}`,
-          {},
-          { headers: { Authorization: `Bearer ${token}` } }
-        );
+        await favoriteService.addFavorite(creator.id);
         setIsFavorited(true);
       }
     } catch (err) {
