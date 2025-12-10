@@ -4,6 +4,7 @@ import {
   checkSubscription,
   getUserSubscriptions,
   cancelSubscription,
+  createSubscription,
 } from '../controllers/subscription.controller.js';
 
 const router = express.Router();
@@ -16,6 +17,9 @@ router.get('/', getUserSubscriptions);
 
 // GET /api/v1/subscriptions/check/:creatorId - Verificar se está inscrito
 router.get('/check/:creatorId', checkSubscription);
+
+// POST /api/v1/subscriptions/:creatorId - Criar assinatura
+router.post('/:creatorId', createSubscription);
 
 // DELETE /api/v1/subscriptions/:subscriptionId - Cancelar assinatura
 router.delete('/:subscriptionId', cancelSubscription);

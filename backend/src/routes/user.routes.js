@@ -43,6 +43,20 @@ router.put('/password', validate(changePasswordSchema), userController.changePas
 router.put('/email', validate(updateEmailSchema), userController.updateEmail);
 
 /**
+ * @route   GET /api/v1/user/settings
+ * @desc    Get user settings
+ * @access  Private
+ */
+router.get('/settings', userController.getSettings);
+
+/**
+ * @route   PUT /api/v1/user/settings
+ * @desc    Update user settings
+ * @access  Private
+ */
+router.put('/settings', userController.updateSettings);
+
+/**
  * @route   DELETE /api/v1/user/account
  * @desc    Delete account
  * @access  Private

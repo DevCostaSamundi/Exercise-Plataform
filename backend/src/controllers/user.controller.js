@@ -224,6 +224,67 @@ class UserController {
       next(error);
     }
   }
+
+  /**
+   * Get user settings
+   */
+  async getSettings(req, res, next) {
+    try {
+      const user = await prisma.user.findUnique({
+        where: { id: req.user.id },
+        select: {
+          id: true,
+          email: true,
+          username: true,
+          notificationPreferences: true,
+          privacySettings: true,
+          language: true,
+          timezone: true,
+        },
+      });
+
+      if (!user) {
+        throw new NotFoundError('User not found');
+      }
+
+      return ApiResponse.success(res, user, 'Settings retrieved successfully');
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  /**
+   * Update user settings
+   */
+  async updateSettings(req, res, next) {
+    try {
+      const { notificationPreferences, privacySettings, language, timezone } = req.body;
+
+      const updateData = {};
+      if (notificationPreferences !== undefined) updateData.notificationPreferences = notificationPreferences;
+      if (privacySettings !== undefined) updateData.privacySettings = privacySettings;
+      if (language !== undefined) updateData.language = language;
+      if (timezone !== undefined) updateData.timezone = timezone;
+
+      const user = await prisma.user.update({
+        where: { id: req.user.id },
+        data: updateData,
+        select: {
+          id: true,
+          email: true,
+          username: true,
+          notificationPreferences: true,
+          privacySettings: true,
+          language: true,
+          timezone: true,
+        },
+      });
+
+      return ApiResponse.success(res, user, 'Settings updated successfully');
+    } catch (error) {
+      next(error);
+    }
+  }
 }
 
 export default new UserController();

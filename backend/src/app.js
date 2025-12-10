@@ -21,6 +21,9 @@ import subscriptionRoutes from './routes/subscription.routes.js';
 import creatorDashboardRoutes from './routes/creatorDashboard.routes.js';
 import commentRoutes from './routes/comment.routes.js';
 import likeRoutes from './routes/like.routes.js';
+import favoriteRoutes from './routes/favorite.routes.js';
+import trendingRoutes from './routes/trending.routes.js';
+import transactionRoutes from './routes/transaction.routes.js';
 
 // Import middleware
 import errorMiddleware from './middleware/error.middleware.js';
@@ -109,6 +112,15 @@ app.use(`/api/${API_VERSION}/user`, userRoutes);
 
 // Subscription routes
 app.use(`/api/${API_VERSION}/subscriptions`, subscriptionRoutes);
+
+// Favorites routes
+app.use(`/api/${API_VERSION}/favorites`, favoriteRoutes);
+
+// Trending routes
+app.use(`/api/${API_VERSION}/trending`, trendingRoutes);
+
+// Wallet and transaction routes
+app.use(`/api/${API_VERSION}`, transactionRoutes);
 
 // ✅ IMPORTANTE: Creator management ANTES de rotas públicas
 app.use(`/api/${API_VERSION}/creator`, creatorSettingsRoutes);
