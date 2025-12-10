@@ -29,6 +29,9 @@ import ExplorePage from './pages/ExplorePage';
 import FavoritesPage from './pages/FavoritesPage';
 import MySubscriptionsPage from './pages/MySubscriptionsPage';
 
+// Subscriber Pages
+import PostView from './pages/subscriber/PostView';
+
 // Creator Pages
 import CreatorProfilePage from './pages/Creator/CreatorProfilePage';
 import CreatorMessagesPage from './pages/Creator/CreatorMessagesPage';
@@ -60,6 +63,7 @@ function App() {
           <Route path="/" element={<HomePage />} />
           <Route path="/product/:id" element={<ProductPage />} />
           <Route path="/creator/:id" element={<CreatorPage />} />
+          <Route path="/post/:postId" element={<PostView />} />
 
           {/* Autenticação */}
           <Route path="/login" element={<LoginPage />} />
