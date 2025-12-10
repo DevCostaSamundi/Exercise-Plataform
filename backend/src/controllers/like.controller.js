@@ -35,50 +35,56 @@ export const toggleLike = async (req, res) => {
     });
 
     if (existingLike) {
-      // Unlike: delete the like
-      await prisma.like.delete({
-        where: {
-          id: existingLike.id,
-        },
-      });
-
-      // Decrement likes count
-      await prisma.post.update({
-        where: { id: postId },
-        data: {
-          likesCount: { decrement: 1 },
-        },
-      });
+      // Unlike: delete the like and decrement count atomically
+      const [, updatedPost] = await prisma.$transaction([
+        prisma.like.delete({
+          where: {
+            id: existingLike.id,
+          },
+        }),
+        prisma.post.update({
+          where: { id: postId },
+          data: {
+            likesCount: { decrement: 1 },
+          },
+          select: {
+            likesCount: true,
+          },
+        }),
+      ]);
 
       return res.json({
         success: true,
         data: {
           liked: false,
-          likesCount: Math.max(0, post.likesCount - 1),
+          likesCount: updatedPost.likesCount,
         },
       });
     } else {
-      // Like: create a new like
-      await prisma.like.create({
-        data: {
-          postId,
-          userId,
-        },
-      });
-
-      // Increment likes count
-      await prisma.post.update({
-        where: { id: postId },
-        data: {
-          likesCount: { increment: 1 },
-        },
-      });
+      // Like: create a new like and increment count atomically
+      const [, updatedPost] = await prisma.$transaction([
+        prisma.like.create({
+          data: {
+            postId,
+            userId,
+          },
+        }),
+        prisma.post.update({
+          where: { id: postId },
+          data: {
+            likesCount: { increment: 1 },
+          },
+          select: {
+            likesCount: true,
+          },
+        }),
+      ]);
 
       return res.json({
         success: true,
         data: {
           liked: true,
-          likesCount: post.likesCount + 1,
+          likesCount: updatedPost.likesCount,
         },
       });
     }

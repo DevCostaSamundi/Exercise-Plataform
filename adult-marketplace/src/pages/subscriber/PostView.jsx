@@ -47,10 +47,11 @@ const PostView = () => {
 
   const handleLike = async () => {
     try {
-      setIsLiked(!isLiked);
-      setLikeCount((prev) => (isLiked ? prev - 1 : prev + 1));
+      const newIsLiked = !isLiked;
+      setIsLiked(newIsLiked);
+      setLikeCount((prev) => (newIsLiked ? prev + 1 : prev - 1));
 
-      await feedService.likePost(postId, !isLiked);
+      await feedService.likePost(postId);
     } catch (err) {
       // Revert on error
       setIsLiked(isLiked);

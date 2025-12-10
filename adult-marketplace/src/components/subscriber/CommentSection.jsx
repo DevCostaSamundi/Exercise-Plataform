@@ -66,7 +66,8 @@ const CommentSection = ({ postId }) => {
   };
 
   const Comment = ({ comment }) => {
-    // Get current user from localStorage to check ownership
+    // NOTE: Client-side ownership check is for UI purposes only.
+    // Backend enforces proper authorization for delete operations.
     const currentUser = JSON.parse(localStorage.getItem('user') || '{}');
     const isOwner = currentUser.id === comment.author._id;
 

@@ -6,7 +6,16 @@ import { setupMessageSocket } from './messageSocket.js';
 // JWT authentication middleware for Socket.IO
 const authenticateSocket = (socket, next) => {
   try {
-    const token = socket.handshake.auth.token || socket.handshake.headers.authorization?.split(' ')[1];
+    let token = socket.handshake.auth.token;
+    
+    // Try to get token from authorization header if not in auth
+    if (!token && socket.handshake.headers.authorization) {
+      const authHeader = socket.handshake.headers.authorization;
+      const parts = authHeader.split(' ');
+      if (parts.length === 2 && parts[0] === 'Bearer') {
+        token = parts[1];
+      }
+    }
 
     if (!token) {
       return next(new Error('Authentication required'));

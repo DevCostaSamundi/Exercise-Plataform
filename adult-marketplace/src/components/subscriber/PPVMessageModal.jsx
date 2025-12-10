@@ -14,6 +14,12 @@ const PPVMessageModal = ({ message, creator, onClose, onUnlock }) => {
   const handleUnlock = async (e) => {
     e.preventDefault();
     
+    // Validate price exists
+    if (!message.price || message.price <= 0) {
+      setError('Preço inválido para esta mensagem.');
+      return;
+    }
+
     try {
       setLoading(true);
       setError(null);
@@ -33,7 +39,26 @@ const PPVMessageModal = ({ message, creator, onClose, onUnlock }) => {
     }
   };
 
+  // Validate price
   const price = message.price || 0;
+  if (price <= 0) {
+    return (
+      <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black bg-opacity-50">
+        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-xl max-w-md w-full p-6">
+          <h2 className="text-xl font-bold text-red-600 mb-4">Erro</h2>
+          <p className="text-gray-700 dark:text-gray-300 mb-4">
+            Esta mensagem não possui um preço válido.
+          </p>
+          <button
+            onClick={onClose}
+            className="w-full px-4 py-2 bg-gray-600 hover:bg-gray-700 text-white rounded-lg transition-colors"
+          >
+            Fechar
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black bg-opacity-50">

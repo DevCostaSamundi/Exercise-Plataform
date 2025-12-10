@@ -3,6 +3,11 @@ import logger from '../utils/logger.js';
 
 const prisma = new PrismaClient();
 
+// Configuration constants
+const MAX_COMMENT_LENGTH = 500;
+const MAX_COMMENTS_PER_PAGE = 100;
+const DEFAULT_COMMENTS_PER_PAGE = 20;
+
 /**
  * Add a comment to a post
  * POST /api/v1/posts/:postId/comments
@@ -21,10 +26,10 @@ export const addComment = async (req, res) => {
       });
     }
 
-    if (content.length > 500) {
+    if (content.length > MAX_COMMENT_LENGTH) {
       return res.status(400).json({
         success: false,
-        message: 'Comment must be less than 500 characters',
+        message: `Comment must be less than ${MAX_COMMENT_LENGTH} characters`,
       });
     }
 
@@ -40,33 +45,33 @@ export const addComment = async (req, res) => {
       });
     }
 
-    // Create comment
-    const comment = await prisma.comment.create({
-      data: {
-        postId,
-        userId,
-        content: content.trim(),
-      },
-      include: {
-        user: {
-          select: {
-            id: true,
-            username: true,
-            displayName: true,
-            avatar: true,
-            isVerified: true,
+    // Create comment and increment count atomically
+    const [comment] = await prisma.$transaction([
+      prisma.comment.create({
+        data: {
+          postId,
+          userId,
+          content: content.trim(),
+        },
+        include: {
+          user: {
+            select: {
+              id: true,
+              username: true,
+              displayName: true,
+              avatar: true,
+              isVerified: true,
+            },
           },
         },
-      },
-    });
-
-    // Increment post comments count
-    await prisma.post.update({
-      where: { id: postId },
-      data: {
-        commentsCount: { increment: 1 },
-      },
-    });
+      }),
+      prisma.post.update({
+        where: { id: postId },
+        data: {
+          commentsCount: { increment: 1 },
+        },
+      }),
+    ]);
 
     res.status(201).json({
       success: true,
@@ -100,8 +105,11 @@ export const addComment = async (req, res) => {
 export const getComments = async (req, res) => {
   try {
     const { postId } = req.params;
-    const page = parseInt(req.query.page, 10) || 1;
-    const limit = parseInt(req.query.limit, 10) || 20;
+    const page = Math.max(1, parseInt(req.query.page, 10) || 1);
+    const limit = Math.min(
+      MAX_COMMENTS_PER_PAGE,
+      Math.max(1, parseInt(req.query.limit, 10) || DEFAULT_COMMENTS_PER_PAGE)
+    );
     const skip = (page - 1) * limit;
 
     // Check if post exists
@@ -211,18 +219,18 @@ export const deleteComment = async (req, res) => {
       });
     }
 
-    // Delete comment
-    await prisma.comment.delete({
-      where: { id: commentId },
-    });
-
-    // Decrement post comments count
-    await prisma.post.update({
-      where: { id: comment.postId },
-      data: {
-        commentsCount: { decrement: 1 },
-      },
-    });
+    // Delete comment and decrement count atomically
+    await prisma.$transaction([
+      prisma.comment.delete({
+        where: { id: commentId },
+      }),
+      prisma.post.update({
+        where: { id: comment.postId },
+        data: {
+          commentsCount: { decrement: 1 },
+        },
+      }),
+    ]);
 
     res.json({
       success: true,
