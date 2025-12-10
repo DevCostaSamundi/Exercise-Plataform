@@ -4,8 +4,8 @@
  */
 
 import { useState, useEffect } from 'react';
-import axios from 'axios';
-import { API_BASE_URL, TRANSACTION_TYPES, PAYMENT_STATUS } from '../../config/constants';
+import transactionService from '../../services/transactionService';
+import { TRANSACTION_TYPES, PAYMENT_STATUS } from '../../config/constants';
 import TransactionRow from '../../components/subscriber/TransactionRow';
 import useInfiniteScroll from '../../hooks/useInfiniteScroll';
 import { FiFilter, FiDownload, FiX } from 'react-icons/fi';
@@ -32,17 +32,14 @@ const Transactions = () => {
   const fetchTransactions = async (pageNum, append = true) => {
     try {
       setLoading(true);
-      const token = localStorage.getItem('pride_connect_token');
-      const response = await axios.get(`${API_BASE_URL}/transactions`, {
-        headers: { Authorization: `Bearer ${token}` },
-        params: {
-          page: pageNum,
-          limit: 20,
-          ...filters,
-        },
+      const response = await transactionService.getTransactions({
+        page: pageNum,
+        limit: 20,
+        ...filters,
       });
 
-      const { transactions: newTransactions, hasMore: more } = response.data;
+      const newTransactions = response.data || [];
+      const more = response.pagination?.page < response.pagination?.pages;
 
       if (append) {
         setTransactions((prev) => [...prev, ...newTransactions]);
@@ -67,21 +64,19 @@ const Transactions = () => {
 
   const handleExportCSV = async () => {
     try {
-      const token = localStorage.getItem('pride_connect_token');
-      const response = await axios.get(`${API_BASE_URL}/transactions/export`, {
-        headers: { Authorization: `Bearer ${token}` },
-        params: filters,
-        responseType: 'blob',
-      });
+      const blob = await transactionService.exportTransactions(filters);
 
       // Download file
-      const url = window.URL.createObjectURL(new Blob([response.data]));
+      const url = window.URL.createObjectURL(new Blob([blob]));
       const link = document.createElement('a');
       link.href = url;
       link.setAttribute('download', `transacoes_${Date.now()}.csv`);
       document.body.appendChild(link);
       link.click();
       link.remove();
+      
+      // Clean up: revoke the object URL to free memory
+      window.URL.revokeObjectURL(url);
     } catch (err) {
       console.error('Erro ao exportar:', err);
       alert('Erro ao exportar transações');

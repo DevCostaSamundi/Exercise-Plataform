@@ -5,8 +5,7 @@
 
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import axios from 'axios';
-import { API_BASE_URL } from '../../config/constants';
+import api from '../../services/api';
 import {
   FiEdit2,
   FiCalendar,
@@ -37,16 +36,13 @@ const Profile = () => {
   const fetchProfile = async () => {
     try {
       setLoading(true);
-      const token = localStorage.getItem('pride_connect_token');
-      const response = await axios.get(`${API_BASE_URL}/users/me`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      const response = await api.get('/user/profile');
 
-      setUser(response.data.user);
+      setUser(response.data.data);
       setStats(response.data.stats);
       setFormData({
-        name: response.data.user.name,
-        bio: response.data.user.bio || '',
+        name: response.data.data.firstName + ' ' + (response.data.data.lastName || ''),
+        bio: response.data.data.bio || '',
       });
     } catch (err) {
       console.error('Erro ao buscar perfil:', err);
@@ -58,31 +54,21 @@ const Profile = () => {
   const handleSave = async () => {
     try {
       setSaving(true);
-      const token = localStorage.getItem('pride_connect_token');
 
       const formDataToSend = new FormData();
-      formDataToSend.append('name', formData.name);
       formDataToSend.append('bio', formData.bio);
       
       if (formData.avatar) {
         formDataToSend.append('avatar', formData.avatar);
       }
-      if (formData.coverImage) {
-        formDataToSend.append('coverImage', formData.coverImage);
-      }
 
-      const response = await axios.put(
-        `${API_BASE_URL}/users/me`,
-        formDataToSend,
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-            'Content-Type': 'multipart/form-data',
-          },
-        }
-      );
+      const response = await api.put('/user/profile', formDataToSend, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+      });
 
-      setUser(response.data.user);
+      setUser(response.data.data);
       setEditing(false);
       alert('Perfil atualizado com sucesso!');
     } catch (err) {

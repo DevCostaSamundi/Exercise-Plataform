@@ -4,8 +4,8 @@
  */
 
 import { useState, useEffect } from 'react';
-import axios from 'axios';
-import { API_BASE_URL, TRENDING_PERIODS } from '../../config/constants';
+import trendingService from '../../services/trendingService';
+import { TRENDING_PERIODS } from '../../config/constants';
 import PostCard from '../../components/subscriber/PostCard';
 import CreatorCard from '../../components/subscriber/CreatorCard';
 import { FiTrendingUp, FiHash } from 'react-icons/fi';
@@ -25,26 +25,16 @@ const Trending = () => {
   const fetchTrending = async () => {
     try {
       setLoading(true);
-      const token = localStorage.getItem('pride_connect_token');
 
       if (activeTab === 'posts') {
-        const response = await axios.get(`${API_BASE_URL}/posts/trending`, {
-          headers: { Authorization: `Bearer ${token}` },
-          params: { period },
-        });
-        setTrendingPosts(response.data.posts);
+        const response = await trendingService.getTrendingPosts({ period });
+        setTrendingPosts(response.data || []);
       } else if (activeTab === 'creators') {
-        const response = await axios.get(`${API_BASE_URL}/creators/trending`, {
-          headers: { Authorization: `Bearer ${token}` },
-          params: { period },
-        });
-        setTrendingCreators(response.data.creators);
+        const response = await trendingService.getTrendingCreators({ period });
+        setTrendingCreators(response.data || []);
       } else if (activeTab === 'tags') {
-        const response = await axios.get(`${API_BASE_URL}/tags/trending`, {
-          headers: { Authorization: `Bearer ${token}` },
-          params: { period },
-        });
-        setTrendingTags(response.data.tags);
+        const response = await trendingService.getTrendingTags({ period });
+        setTrendingTags(response.data || []);
       }
     } catch (err) {
       console.error('Erro ao buscar trending:', err);

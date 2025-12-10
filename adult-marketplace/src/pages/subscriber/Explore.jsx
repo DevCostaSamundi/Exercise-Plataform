@@ -4,8 +4,9 @@
  */
 
 import { useState, useEffect } from 'react';
-import axios from 'axios';
-import { API_BASE_URL, SORT_OPTIONS } from '../../config/constants';
+import api from '../../services/api';
+import subscriptionService from '../../services/subscriptionService';
+import { SORT_OPTIONS } from '../../config/constants';
 import CreatorCard from '../../components/subscriber/CreatorCard';
 import useInfiniteScroll from '../../hooks/useInfiniteScroll';
 import { FiSliders, FiX } from 'react-icons/fi';
@@ -34,9 +35,7 @@ const Explore = () => {
     try {
       setLoading(true);
 
-      const token = localStorage.getItem('pride_connect_token');
-      const response = await axios.get(`${API_BASE_URL}/creators`, {
-        headers: { Authorization: `Bearer ${token}` },
+      const response = await api.get('/creators', {
         params: {
           page: pageNum,
           limit: 20,
@@ -48,7 +47,8 @@ const Explore = () => {
         },
       });
 
-      const { creators: newCreators, hasMore: more } = response.data;
+      const newCreators = response.data.data || [];
+      const more = response.data.pagination?.page < response.data.pagination?.pages;
 
       if (append) {
         setCreators((prev) => [...prev, ...newCreators]);
@@ -73,18 +73,15 @@ const Explore = () => {
 
   const handleSubscribe = async (creatorId, isSubscribing) => {
     try {
-      const token = localStorage.getItem('pride_connect_token');
-      
       if (isSubscribing) {
-        await axios.post(
-          `${API_BASE_URL}/creators/${creatorId}/subscribe`,
-          {},
-          { headers: { Authorization: `Bearer ${token}` } }
-        );
+        await subscriptionService.createSubscription(creatorId);
       } else {
-        await axios.delete(`${API_BASE_URL}/subscriptions/${creatorId}`, {
-          headers: { Authorization: `Bearer ${token}` },
-        });
+        // Find subscription by creatorId first
+        const subs = await subscriptionService.getUserSubscriptions();
+        const subscription = subs.data?.find(s => s.creator.id === creatorId);
+        if (subscription) {
+          await subscriptionService.cancelSubscription(subscription.id);
+        }
       }
     } catch (err) {
       console.error('Erro ao gerenciar assinatura:', err);

@@ -1,6 +1,12 @@
 import api from './api';
 
 class SubscriptionService {
+  // Criar assinatura
+  async createSubscription(creatorId) {
+    const response = await api.post(`/subscriptions/${creatorId}`);
+    return response.data;
+  }
+
   // Verificar se está inscrito
   async checkSubscription(creatorId) {
     const response = await api.get(`/subscriptions/check/${creatorId}`);

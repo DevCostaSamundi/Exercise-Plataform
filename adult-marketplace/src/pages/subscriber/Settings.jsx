@@ -4,8 +4,7 @@
  */
 
 import { useState, useEffect } from 'react';
-import axios from 'axios';
-import { API_BASE_URL } from '../../config/constants';
+import api from '../../services/api';
 import {
   FiUser,
   FiLock,
@@ -61,14 +60,18 @@ const Settings = () => {
   const fetchSettings = async () => {
     try {
       setLoading(true);
-      const token = localStorage.getItem('pride_connect_token');
-      const response = await axios.get(`${API_BASE_URL}/users/settings`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      const response = await api.get('/user/settings');
 
-      setPersonalData(response.data.personal);
-      setNotificationSettings(response.data.notifications);
-      setPaymentMethods(response.data.paymentMethods || []);
+      setPersonalData(response.data.data || {});
+      setNotificationSettings(response.data.data?.notificationPreferences || {
+        emailNotifications: true,
+        pushNotifications: true,
+        newPosts: true,
+        newMessages: true,
+        subscriptionRenewals: true,
+        marketing: false,
+      });
+      setPaymentMethods(response.data.data?.paymentMethods || []);
     } catch (err) {
       console.error('Erro ao buscar configurações:', err);
     } finally {
@@ -79,12 +82,7 @@ const Settings = () => {
   const handleSavePersonal = async () => {
     try {
       setSaving(true);
-      const token = localStorage.getItem('pride_connect_token');
-      await axios.put(
-        `${API_BASE_URL}/users/me`,
-        personalData,
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
+      await api.put('/user/profile', personalData);
       alert('Informações atualizadas com sucesso!');
     } catch (err) {
       console.error('Erro ao salvar:', err);
@@ -109,15 +107,10 @@ const Settings = () => {
 
     try {
       setSaving(true);
-      const token = localStorage.getItem('pride_connect_token');
-      await axios.put(
-        `${API_BASE_URL}/users/change-password`,
-        {
-          currentPassword: securityData.currentPassword,
-          newPassword: securityData.newPassword,
-        },
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
+      await api.put('/user/password', {
+        currentPassword: securityData.currentPassword,
+        newPassword: securityData.newPassword,
+      });
 
       alert('Senha alterada com sucesso!');
       setSecurityData({
@@ -137,13 +130,10 @@ const Settings = () => {
   const handleSaveNotifications = async () => {
     try {
       setSaving(true);
-      const token = localStorage.getItem('pride_connect_token');
-      await axios.put(
-        `${API_BASE_URL}/users/notification-settings`,
-        notificationSettings,
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
-      alert('Preferências de notificação atualizadas! ');
+      await api.put('/user/settings', {
+        notificationPreferences: notificationSettings,
+      });
+      alert('Preferências de notificação atualizadas!');
     } catch (err) {
       console.error('Erro ao salvar:', err);
       alert('Erro ao salvar preferências');
@@ -156,10 +146,7 @@ const Settings = () => {
     if (!confirm('Deseja remover este método de pagamento?')) return;
 
     try {
-      const token = localStorage.getItem('pride_connect_token');
-      await axios.delete(`${API_BASE_URL}/payments/methods/${methodId}`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      await api.delete(`/payments/methods/${methodId}`);
 
       setPaymentMethods((prev) => prev.filter((m) => m._id !== methodId));
       alert('Método removido com sucesso!');

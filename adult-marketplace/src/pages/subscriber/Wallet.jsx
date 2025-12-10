@@ -5,8 +5,7 @@
 
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import axios from 'axios';
-import { API_BASE_URL } from '../../config/constants';
+import walletService from '../../services/walletService';
 import { formatCurrency } from '../../utils/formatters';
 import {
   FiDollarSign,
@@ -28,12 +27,7 @@ const Wallet = () => {
   const fetchWallet = async () => {
     try {
       setLoading(true);
-      const token = localStorage.getItem('pride_connect_token');
-      const response = await axios.get(`${API_BASE_URL}/wallet`, {
-        headers: { Authorization: `Bearer ${token}` },
-        params: { period },
-      });
-
+      const response = await walletService.getWallet({ period });
       setWalletData(response.data);
     } catch (err) {
       console.error('Erro ao buscar carteira:', err);

@@ -139,8 +139,90 @@ export const cancelSubscription = async (req, res) => {
   }
 };
 
+/**
+ * Create a new subscription
+ */
+export const createSubscription = async (req, res) => {
+  try {
+    const userId = req.user.id;
+    const { creatorId } = req.params;
+
+    // Check if creator exists
+    const creator = await prisma.creator.findUnique({
+      where: { id: creatorId },
+    });
+
+    if (!creator) {
+      return res.status(404).json({
+        success: false,
+        message: 'Creator not found',
+      });
+    }
+
+    // Check if already subscribed
+    const existingSubscription = await prisma.subscription.findFirst({
+      where: {
+        userId,
+        creatorId,
+        status: 'ACTIVE',
+      },
+    });
+
+    if (existingSubscription) {
+      return res.status(409).json({
+        success: false,
+        message: 'Already subscribed to this creator',
+      });
+    }
+
+    // Calculate subscription dates
+    const startDate = new Date();
+    const endDate = new Date();
+    endDate.setMonth(endDate.getMonth() + 1); // 1 month subscription
+
+    // Create subscription
+    const subscription = await prisma.subscription.create({
+      data: {
+        userId,
+        creatorId,
+        amount: creator.subscriptionPrice,
+        status: 'ACTIVE',
+        startDate,
+        endDate,
+        autoRenew: true,
+      },
+      include: {
+        creator: {
+          include: {
+            user: {
+              select: {
+                username: true,
+                displayName: true,
+                avatar: true,
+              },
+            },
+          },
+        },
+      },
+    });
+
+    res.status(201).json({
+      success: true,
+      data: subscription,
+      message: 'Subscription created successfully',
+    });
+  } catch (error) {
+    logger.error('Create subscription error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to create subscription',
+    });
+  }
+};
+
 export default {
   checkSubscription,
   getUserSubscriptions,
   cancelSubscription,
+  createSubscription,
 };
