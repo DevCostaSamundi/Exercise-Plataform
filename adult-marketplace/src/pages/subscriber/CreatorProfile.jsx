@@ -52,13 +52,12 @@ const CreatorProfile = () => {
     try {
       setLoading(true);
       const token = localStorage.getItem('pride_connect_token');
-      const response = await axios.get(`${API_BASE_URL}/creators/${username}`, {
+      const response = await axios.get(`${API_BASE_URL}/creators/username/${username}`, {
         headers: { Authorization: `Bearer ${token}` },
       });
 
-      setCreator(response.data.creator);
-      setIsSubscribed(response.data.isSubscribed);
-      setIsFavorited(response.data.isFavorited);
+      setCreator(response.data.data);
+      // Check subscription status - will be returned with posts
     } catch (err) {
       console.error('Erro ao buscar criador:', err);
     } finally {
@@ -71,14 +70,16 @@ const CreatorProfile = () => {
       setPostsLoading(true);
       const token = localStorage.getItem('pride_connect_token');
       const response = await axios.get(
-        `${API_BASE_URL}/creators/${username}/posts`,
+        `${API_BASE_URL}/creators/username/${username}/posts`,
         {
           headers: { Authorization: `Bearer ${token}` },
           params: { page: pageNum, limit: 20 },
         }
       );
 
-      const { posts: newPosts, hasMore: more } = response.data;
+      const { data: newPosts, isSubscribed: subStatus, pagination } = response.data;
+
+      setIsSubscribed(subStatus || false);
 
       if (append) {
         setPosts((prev) => [...prev, ...newPosts]);
@@ -86,7 +87,7 @@ const CreatorProfile = () => {
         setPosts(newPosts);
       }
 
-      setHasMore(more);
+      setHasMore(pagination.page < pagination.totalPages);
       setPage(pageNum);
     } catch (err) {
       console.error('Erro ao buscar posts:', err);
@@ -107,13 +108,13 @@ const CreatorProfile = () => {
       const token = localStorage.getItem('pride_connect_token');
 
       if (isSubscribed) {
-        await axios.delete(`${API_BASE_URL}/subscriptions/${creator._id}`, {
+        await axios.delete(`${API_BASE_URL}/subscriptions/${creator.id}`, {
           headers: { Authorization: `Bearer ${token}` },
         });
         setIsSubscribed(false);
       } else {
         await axios.post(
-          `${API_BASE_URL}/creators/${creator._id}/subscribe`,
+          `${API_BASE_URL}/creators/${creator.id}/subscribe`,
           {},
           { headers: { Authorization: `Bearer ${token}` } }
         );
@@ -132,13 +133,13 @@ const CreatorProfile = () => {
       const token = localStorage.getItem('pride_connect_token');
 
       if (isFavorited) {
-        await axios.delete(`${API_BASE_URL}/favorites/${creator._id}`, {
+        await axios.delete(`${API_BASE_URL}/favorites/${creator.id}`, {
           headers: { Authorization: `Bearer ${token}` },
         });
         setIsFavorited(false);
       } else {
         await axios.post(
-          `${API_BASE_URL}/favorites/${creator._id}`,
+          `${API_BASE_URL}/favorites/${creator.id}`,
           {},
           { headers: { Authorization: `Bearer ${token}` } }
         );
@@ -171,10 +172,10 @@ const CreatorProfile = () => {
     <div className="max-w-4xl mx-auto">
       {/* Cover Image */}
       <div className="relative h-48 md:h-64 bg-gradient-to-r from-purple-500 to-pink-500 rounded-t-lg overflow-hidden">
-        {creator.coverImage ?  (
+        {creator.coverImage ? (
           <img
             src={creator.coverImage}
-            alt={`${creator.name} cover`}
+            alt={`${creator.displayName} cover`}
             className="w-full h-full object-cover"
           />
         ) : null}
@@ -187,7 +188,7 @@ const CreatorProfile = () => {
           <div className="flex-shrink-0">
             <img
               src={creator.avatar || '/default-avatar.png'}
-              alt={creator.name}
+              alt={creator.displayName}
               className="w-32 h-32 rounded-full border-4 border-white dark:border-gray-800 object-cover shadow-lg"
             />
           </div>
@@ -197,7 +198,7 @@ const CreatorProfile = () => {
             <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-4 mb-4">
               <div>
                 <h1 className="text-2xl font-bold text-gray-900 dark:text-white flex items-center gap-2">
-                  {creator.name}
+                  {creator.displayName}
                   {creator.isVerified && (
                     <span className="text-blue-500 text-xl">
                       <FiCheck className="inline" />
@@ -224,7 +225,7 @@ const CreatorProfile = () => {
                 </button>
 
                 <Link
-                  to={`/messages/${creator._id}`}
+                  to={`/messages/${creator.userId}`}
                   className="p-3 rounded-lg border-2 border-gray-300 dark:border-gray-600 hover:border-blue-500 text-gray-600 dark:text-gray-400 hover:text-blue-500 transition-all"
                   title="Enviar mensagem"
                 >
@@ -253,7 +254,7 @@ const CreatorProfile = () => {
             <div className="flex gap-6 mb-4">
               <div>
                 <span className="font-bold text-gray-900 dark:text-white">
-                  {formatNumber(creator.postsCount || 0)}
+                  {formatNumber(creator.posts || 0)}
                 </span>
                 <span className="text-gray-600 dark:text-gray-400 ml-1">
                   posts
@@ -261,7 +262,7 @@ const CreatorProfile = () => {
               </div>
               <div>
                 <span className="font-bold text-gray-900 dark:text-white">
-                  {formatNumber(creator.subscribersCount || 0)}
+                  {formatNumber(creator.subscribers || 0)}
                 </span>
                 <span className="text-gray-600 dark:text-gray-400 ml-1">
                   assinantes
@@ -269,10 +270,10 @@ const CreatorProfile = () => {
               </div>
               <div>
                 <span className="font-bold text-gray-900 dark:text-white">
-                  {formatNumber(creator.likesCount || 0)}
+                  {formatNumber(creator.photos || 0)}
                 </span>
                 <span className="text-gray-600 dark:text-gray-400 ml-1">
-                  curtidas
+                  fotos
                 </span>
               </div>
             </div>
@@ -368,7 +369,7 @@ const CreatorProfile = () => {
                   Conteúdo Exclusivo
                 </h3>
                 <p className="text-gray-600 dark:text-gray-400 mb-6">
-                  Assine para ter acesso a todos os posts de {creator.name}
+                  Assine para ter acesso a todos os posts de {creator.displayName}
                 </p>
                 <button
                   onClick={handleSubscribe}
@@ -383,7 +384,7 @@ const CreatorProfile = () => {
                 {posts.map((post, index) => {
                   const isLast = index === posts.length - 1;
                   return (
-                    <div key={post._id} ref={isLast ? lastPostRef : null}>
+                    <div key={post.id} ref={isLast ? lastPostRef : null}>
                       <PostCard post={post} />
                     </div>
                   );
@@ -397,7 +398,7 @@ const CreatorProfile = () => {
 
                 {!hasMore && posts.length > 0 && (
                   <div className="text-center py-8 text-gray-500">
-                    Você viu todos os posts! 
+                    Você viu todos os posts!
                   </div>
                 )}
 
@@ -414,10 +415,10 @@ const CreatorProfile = () => {
         {activeTab === 'about' && (
           <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6">
             <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-4">
-              Sobre {creator.name}
+              Sobre {creator.displayName}
             </h3>
             <p className="text-gray-700 dark:text-gray-300 whitespace-pre-wrap">
-              {creator.bio || 'Sem informações adicionais. '}
+              {creator.bio || creator.description || 'Sem informações adicionais.'}
             </p>
           </div>
         )}

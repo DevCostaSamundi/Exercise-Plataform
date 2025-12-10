@@ -1,15 +1,27 @@
 import api from './api';
 
 class CreatorService {
-  // Obter perfil do criador (público)
+  // Obter perfil do criador por ID (público)
   async getCreatorProfile(creatorId) {
     const response = await api.get(`/creators/${creatorId}`);
     return response.data;
   }
 
-  // Obter posts do criador (público)
+  // Obter perfil do criador por username (público)
+  async getCreatorProfileByUsername(username) {
+    const response = await api.get(`/creators/username/${username}`);
+    return response.data;
+  }
+
+  // Obter posts do criador por ID (público)
   async getCreatorPosts(creatorId, params = {}) {
     const response = await api.get(`/creators/${creatorId}/posts`, { params });
+    return response.data;
+  }
+
+  // Obter posts do criador por username (público)
+  async getCreatorPostsByUsername(username, params = {}) {
+    const response = await api.get(`/creators/username/${username}/posts`, { params });
     return response.data;
   }
 
