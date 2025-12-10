@@ -45,6 +45,10 @@ model User {
   sentMessages             Message[]      @relation("SentMessages")
   receivedMessages         Message[]      @relation("ReceivedMessages")
   
+  // Relações de comentários e likes
+  comments                 Comment[]
+  likes                    Like[]
+  
   @@map("users")
 }
 
@@ -169,6 +173,8 @@ model Post {
   
   // Relations
   creator     Creator     @relation(fields: [creatorId], references: [id], onDelete: Cascade)
+  comments    Comment[]
+  likes       Like[]
   
   @@map("posts")
 }
@@ -653,4 +659,43 @@ enum WithdrawalStatus {
   FAILED           // Falhou
   CANCELLED        // Cancelado
   REJECTED         // Rejeitado (fraude)
+}
+
+// ============================================
+// SISTEMA DE COMENTÁRIOS E LIKES
+// ============================================
+
+model Comment {
+  id        String   @id @default(uuid())
+  postId    String
+  userId    String
+  content   String
+  
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  
+  // Relations
+  post      Post     @relation(fields: [postId], references: [id], onDelete: Cascade)
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  @@index([postId])
+  @@index([userId])
+  @@map("comments")
+}
+
+model Like {
+  id        String   @id @default(uuid())
+  postId    String
+  userId    String
+  
+  createdAt DateTime @default(now())
+  
+  // Relations
+  post      Post     @relation(fields: [postId], references: [id], onDelete: Cascade)
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  @@unique([postId, userId])
+  @@index([postId])
+  @@index([userId])
+  @@map("likes")
 }

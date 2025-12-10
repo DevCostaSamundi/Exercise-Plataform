@@ -14,14 +14,14 @@ class FeedService {
   }
 
   // Curtir/descurtir post
-  async likePost(postId, liked) {
-    const response = await api.post(`/posts/${postId}/like`, { liked });
+  async likePost(postId) {
+    const response = await api.post(`/posts/${postId}/like`);
     return response.data;
   }
 
   // Comentar em post
   async commentPost(postId, data) {
-    const response = await api.post(`/posts/${postId}/comment`, data);
+    const response = await api.post(`/posts/${postId}/comments`, data);
     return response.data;
   }
 
@@ -31,9 +31,9 @@ class FeedService {
     return response.data;
   }
 
-  // Curtir comentário
-  async likeComment(commentId) {
-    const response = await api.post(`/comments/${commentId}/like`);
+  // Deletar comentário
+  async deleteComment(commentId) {
+    const response = await api.delete(`/comments/${commentId}`);
     return response.data;
   }
 

@@ -8,6 +8,7 @@ import { Link } from 'react-router-dom';
 import { FiHeart, FiMessageCircle, FiShare2, FiLock, FiMoreVertical } from 'react-icons/fi';
 import { formatRelativeTime, formatNumber, truncateText } from '../../utils/formatters';
 import PPVModal from './PPVModal';
+import feedService from '../../services/feedService';
 
 const PostCard = ({ post, onLike, onUnlock }) => {
   const [showPPVModal, setShowPPVModal] = useState(false);
@@ -21,11 +22,17 @@ const PostCard = ({ post, onLike, onUnlock }) => {
     e.preventDefault();
     e.stopPropagation();
 
-    setIsLiked(!isLiked);
-    setLikeCount(prev => isLiked ? prev - 1 : prev + 1);
+    const newIsLiked = !isLiked;
+    setIsLiked(newIsLiked);
+    setLikeCount(prev => newIsLiked ? prev + 1 : prev - 1);
 
-    if (onLike) {
-      await onLike(post._id, ! isLiked);
+    try {
+      await feedService.likePost(post._id);
+    } catch (error) {
+      // Revert on error
+      setIsLiked(!newIsLiked);
+      setLikeCount(prev => newIsLiked ? prev - 1 : prev + 1);
+      console.error('Error liking post:', error);
     }
   };
 
