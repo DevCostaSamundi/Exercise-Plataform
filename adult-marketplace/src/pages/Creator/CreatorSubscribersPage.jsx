@@ -58,11 +58,11 @@ export default function CreatorSubscribersPage() {
   const [subscribers, setSubscribers] = useState([]);
   const [stats, setStats] = useState({ total: 0, active: 0, canceled: 0, overdue: 0, mrr: 0 });
   const [pagination, setPagination] = useState({ total: 0, pages: 1 });
-  
+
   // UI states
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  
+
   // Filter states
   const [searchQuery, setSearchQuery] = useState('');
   const [debouncedSearch, setDebouncedSearch] = useState('');
@@ -96,7 +96,7 @@ export default function CreatorSubscribersPage() {
       };
 
       const response = await api.get('/creator/subscribers', { params });
-      
+
       if (response.data.success) {
         setSubscribers(response.data.data.map(normalizeSubscriber));
         setPagination(response.data.pagination);
@@ -151,16 +151,16 @@ export default function CreatorSubscribersPage() {
         <header className="bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 sticky top-0 z-10">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
             <div className="flex items-center space-x-4">
-                <Link to="/" className="flex items-center space-x-3">
-                  <div className="w-10 h-10 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-xl flex items-center justify-center">
-                    <span className="text-white font-black text-xl">P</span>
-                  </div>
-                  <span className="font-bold text-slate-900 dark:text-white">Assinantes</span>
-                  <p className="text-sm text-slate-500 dark:text-slate-400">
-                    {stats.total} assinante(s) no total
-                  </p>
-                </Link>
-              </div>
+              <Link to="/" className="flex items-center space-x-3">
+                <div className="w-10 h-10 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-xl flex items-center justify-center">
+                  <span className="text-white font-black text-xl">P</span>
+                </div>
+                <span className="font-bold text-slate-900 dark:text-white">Assinantes</span>
+                <p className="text-sm text-slate-500 dark:text-slate-400">
+                  {stats.total} assinante(s) no total
+                </p>
+              </Link>
+            </div>
 
             <div className="hidden sm:flex items-center space-x-3 text-xs text-slate-500 dark:text-slate-400">
               <span className="flex items-center space-x-1">
@@ -332,8 +332,8 @@ export default function CreatorSubscribersPage() {
                           </svg>
                           <div>
                             <h3 className="text-lg font-medium text-slate-900 dark:text-white">
-                              {debouncedSearch || statusFilter !== 'all' || planFilter !== 'all' 
-                                ? 'Nenhum assinante encontrado' 
+                              {debouncedSearch || statusFilter !== 'all' || planFilter !== 'all'
+                                ? 'Nenhum assinante encontrado'
                                 : 'Você ainda não tem assinantes'}
                             </h3>
                             <p className="mt-2 text-slate-500 dark:text-slate-400">

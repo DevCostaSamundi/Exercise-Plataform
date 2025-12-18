@@ -66,7 +66,7 @@ export default function CreatorRegisterPage() {
 
   // Opções de criptomoedas expandidas para suporte global descentralizado
   const cryptoCurrencyOptions = [
-    'BTC', 'ETH', 'USDC', 'USDT', 'SOL', 'ADA', 'DOT', 'AVAX', 
+    'BTC', 'ETH', 'USDC', 'USDT', 'SOL', 'ADA', 'DOT', 'AVAX',
     'MATIC', 'LINK', 'UNI', 'LTC', 'BCH', 'XRP'
   ];
 
@@ -88,7 +88,7 @@ export default function CreatorRegisterPage() {
 
   const handleChange = (e) => {
     const { name, value, type, checked, files } = e.target;
-    
+
     if (type === 'file') {
       const file = files?.[0] || null;
       if (file) {
@@ -96,7 +96,7 @@ export default function CreatorRegisterPage() {
           setFileErrors(prev => ({ ...prev, [name]: 'Arquivo muito grande.  Máx 5MB' }));
           return;
         }
-        if (!allowedTypes. includes(file.type)) {
+        if (!allowedTypes.includes(file.type)) {
           setFileErrors(prev => ({ ...prev, [name]: 'Tipo de arquivo inválido.' }));
           return;
         }
@@ -108,7 +108,7 @@ export default function CreatorRegisterPage() {
     } else if (type === 'checkbox') {
       setFormData(prev => ({ ...prev, [name]: checked }));
     } else {
-      setFormData(prev => ({ ... prev, [name]: value }));
+      setFormData(prev => ({ ...prev, [name]: value }));
     }
 
     if (errors[name]) {
@@ -246,31 +246,31 @@ export default function CreatorRegisterPage() {
         method: 'POST',
         credentials: 'include',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ 
-          returnUrl: window.location.origin + '/creator-register?cardAdded=1' 
+        body: JSON.stringify({
+          returnUrl: window.location.origin + '/creator-register?cardAdded=1'
         })
       });
       const json = await res.json();
-      
+
       if (json?.url) {
         window.location.href = json.url;
       } else if (json?.setupCompleted) {
-        setFormData(prev => ({ 
-          ...prev, 
-          cardOnFile: true, 
-          cardLast4: json.last4 || '' 
+        setFormData(prev => ({
+          ...prev,
+          cardOnFile: true,
+          cardLast4: json.last4 || ''
         }));
       } else {
-        setErrors(prev => ({ 
-          ...prev, 
-          submit: json.message || 'Não foi possível iniciar fluxo de cartão' 
+        setErrors(prev => ({
+          ...prev,
+          submit: json.message || 'Não foi possível iniciar fluxo de cartão'
         }));
       }
     } catch (err) {
       console.error('Erro ao iniciar fluxo de cartão', err);
-      setErrors(prev => ({ 
-        ...prev, 
-        submit: 'Erro ao conectar com provedor de pagamentos' 
+      setErrors(prev => ({
+        ...prev,
+        submit: 'Erro ao conectar com provedor de pagamentos'
       }));
     } finally {
       setIsLoading(false);
@@ -317,8 +317,8 @@ export default function CreatorRegisterPage() {
       payload.append('location', formData.location || '');
       payload.append('country', formData.country || '');
       payload.append('bio', formData.bio || '');
-      payload.append('subscriptionPrice', formData.subscriptionPrice ?  String(formData.subscriptionPrice) : '');
-      
+      payload.append('subscriptionPrice', formData.subscriptionPrice ? String(formData.subscriptionPrice) : '');
+
       // Dados de pagamento
       payload.append('fullName', formData.fullName || '');
       payload.append('cpf', formData.cpf || '');
@@ -330,11 +330,11 @@ export default function CreatorRegisterPage() {
       payload.append('cardOnFile', formData.cardOnFile ? 'true' : 'false');
       payload.append('cardLast4', formData.cardLast4 || '');
       payload.append('stripeCustomerId', formData.stripeCustomerId || '');
-      
+
       // Termos e verificações
       payload.append('agreeTerms', formData.agreeTerms ? 'true' : 'false');
       payload.append('ageConfirm', formData.ageConfirm ? 'true' : 'false');
-      payload.append('contentOwnership', formData.contentOwnership ?  'true' : 'false');
+      payload.append('contentOwnership', formData.contentOwnership ? 'true' : 'false');
 
       // Arrays
       payload.append('contentTypes', JSON.stringify(formData.contentTypes));
@@ -374,9 +374,9 @@ export default function CreatorRegisterPage() {
                 resolve({ raw: responseText });
                 return;
               } else {
-                setErrors(prev => ({ 
-                  ...prev, 
-                  submit: `Erro do servidor: ${responseText || 'Resposta não-JSON'}` 
+                setErrors(prev => ({
+                  ...prev,
+                  submit: `Erro do servidor: ${responseText || 'Resposta não-JSON'}`
                 }));
                 reject(new Error('server non-json error'));
                 return;
@@ -391,21 +391,21 @@ export default function CreatorRegisterPage() {
               resolve(result);
             } else {
               if (status === 409) {
-                setErrors(prev => ({ 
-                  ... prev, 
-                  submit: result?.message || 'Email ou usuário já cadastrado' 
+                setErrors(prev => ({
+                  ...prev,
+                  submit: result?.message || 'Email ou usuário já cadastrado'
                 }));
               } else if (result?.errors) {
-                setErrors(prev => ({ ... prev, ... result.errors }));
+                setErrors(prev => ({ ...prev, ...result.errors }));
               } else {
                 const errMsg = result?.message || responseText || `Erro ao criar conta (status ${status})`;
-                setErrors(prev => ({ ... prev, submit: errMsg }));
+                setErrors(prev => ({ ...prev, submit: errMsg }));
               }
               reject(result || new Error('server error'));
             }
           } catch (err) {
             console.error('Erro ao processar resposta do servidor', err);
-            setErrors(prev => ({ ... prev, submit: 'Resposta inválida do servidor' }));
+            setErrors(prev => ({ ...prev, submit: 'Resposta inválida do servidor' }));
             reject(err);
           }
         };
@@ -420,37 +420,37 @@ export default function CreatorRegisterPage() {
 
       // Login automático se não houver token
       const existingToken = localStorage.getItem('authToken');
-      if (! existingToken) {
+      if (!existingToken) {
         try {
           const loginRes = await fetch('http://localhost:5000/api/v1/auth/login', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             credentials: 'include',
-            body: JSON.stringify({ 
-              email: formData.email, 
-              password: formData.password 
+            body: JSON.stringify({
+              email: formData.email,
+              password: formData.password
             }),
           });
           const loginJson = await loginRes.json();
-          
+
           if (loginRes.ok && loginJson?.data?.accessToken) {
             localStorage.setItem('authToken', loginJson.data.accessToken);
             localStorage.setItem('user', JSON.stringify(loginJson.data.user));
           } else {
             console.warn('Auto-login falhou após registro:', loginJson);
-            navigate('/login', { 
-              state: { 
-                message: 'Conta criada com sucesso!  Faça login para continuar.' 
-              } 
+            navigate('/login', {
+              state: {
+                message: 'Conta criada com sucesso!  Faça login para continuar.'
+              }
             });
             return;
           }
         } catch (err) {
           console.error('Auto-login falhou', err);
-          navigate('/login', { 
-            state: { 
-              message: 'Conta criada.  Faça login para continuar.' 
-            } 
+          navigate('/login', {
+            state: {
+              message: 'Conta criada.  Faça login para continuar.'
+            }
           });
           return;
         }
@@ -502,17 +502,15 @@ export default function CreatorRegisterPage() {
           <div className="flex items-center justify-between mb-3">
             {[1, 2, 3, 4, 5].map((s) => (
               <div key={s} className="flex items-center flex-1">
-                <div className={`w-10 h-10 rounded-full flex items-center justify-center font-bold text-sm transition-all ${
-                  s <= step
+                <div className={`w-10 h-10 rounded-full flex items-center justify-center font-bold text-sm transition-all ${s <= step
                     ? 'bg-indigo-600 text-white'
                     : 'bg-slate-200 dark:bg-slate-800 text-slate-400'
-                }`}>
+                  }`}>
                   {s < step ? '✓' : s}
                 </div>
                 {s < 5 && (
-                  <div className={`flex-1 h-1 mx-1 transition-all ${
-                    s < step ? 'bg-indigo-600' : 'bg-slate-200 dark:bg-slate-800'
-                  }`}></div>
+                  <div className={`flex-1 h-1 mx-1 transition-all ${s < step ? 'bg-indigo-600' : 'bg-slate-200 dark:bg-slate-800'
+                    }`}></div>
                 )}
               </div>
             ))}
@@ -543,9 +541,8 @@ export default function CreatorRegisterPage() {
                     name="email"
                     value={formData.email}
                     onChange={handleChange}
-                    className={`w-full px-4 py-3 bg-slate-50 dark:bg-slate-800 border ${
-                      errors.email ?  'border-red-300' : 'border-slate-200 dark:border-slate-700'
-                    } rounded-lg text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500`}
+                    className={`w-full px-4 py-3 bg-slate-50 dark:bg-slate-800 border ${errors.email ? 'border-red-300' : 'border-slate-200 dark:border-slate-700'
+                      } rounded-lg text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500`}
                     placeholder="seu@email.com"
                   />
                   {errors.email && <p className="mt-1 text-sm text-red-600">{errors.email}</p>}
@@ -562,9 +559,8 @@ export default function CreatorRegisterPage() {
                       name="username"
                       value={formData.username}
                       onChange={handleChange}
-                      className={`w-full pl-10 pr-4 py-3 bg-slate-50 dark:bg-slate-800 border ${
-                        errors.username ? 'border-red-300' : 'border-slate-200 dark:border-slate-700'
-                      } rounded-lg text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500`}
+                      className={`w-full pl-10 pr-4 py-3 bg-slate-50 dark:bg-slate-800 border ${errors.username ? 'border-red-300' : 'border-slate-200 dark:border-slate-700'
+                        } rounded-lg text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500`}
                       placeholder="seunome"
                     />
                   </div>
@@ -581,9 +577,8 @@ export default function CreatorRegisterPage() {
                       name="password"
                       value={formData.password}
                       onChange={handleChange}
-                      className={`w-full px-4 py-3 pr-12 bg-slate-50 dark:bg-slate-800 border ${
-                        errors.password ? 'border-red-300' : 'border-slate-200 dark:border-slate-700'
-                      } rounded-lg text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500`}
+                      className={`w-full px-4 py-3 pr-12 bg-slate-50 dark:bg-slate-800 border ${errors.password ? 'border-red-300' : 'border-slate-200 dark:border-slate-700'
+                        } rounded-lg text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500`}
                       placeholder="••••••••"
                     />
                     <button
@@ -606,9 +601,8 @@ export default function CreatorRegisterPage() {
                     name="confirmPassword"
                     value={formData.confirmPassword}
                     onChange={handleChange}
-                    className={`w-full px-4 py-3 bg-slate-50 dark:bg-slate-800 border ${
-                      errors.confirmPassword ? 'border-red-300' : 'border-slate-200 dark:border-slate-700'
-                    } rounded-lg text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500`}
+                    className={`w-full px-4 py-3 bg-slate-50 dark:bg-slate-800 border ${errors.confirmPassword ? 'border-red-300' : 'border-slate-200 dark:border-slate-700'
+                      } rounded-lg text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500`}
                     placeholder="••••••••"
                   />
                   {errors.confirmPassword && <p className="mt-1 text-sm text-red-600">{errors.confirmPassword}</p>}
@@ -634,9 +628,8 @@ export default function CreatorRegisterPage() {
                     name="displayName"
                     value={formData.displayName}
                     onChange={handleChange}
-                    className={`w-full px-4 py-3 bg-slate-50 dark:bg-slate-800 border ${
-                      errors.displayName ? 'border-red-300' : 'border-slate-200 dark:border-slate-700'
-                    } rounded-lg text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500`}
+                    className={`w-full px-4 py-3 bg-slate-50 dark:bg-slate-800 border ${errors.displayName ? 'border-red-300' : 'border-slate-200 dark:border-slate-700'
+                      } rounded-lg text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500`}
                     placeholder="Como você quer ser chamado"
                   />
                   {errors.displayName && <p className="mt-1 text-sm text-red-600">{errors.displayName}</p>}
@@ -653,9 +646,8 @@ export default function CreatorRegisterPage() {
                       value={formData.birthDate}
                       onChange={handleChange}
                       max={new Date(new Date().setFullYear(new Date().getFullYear() - 18)).toISOString().split('T')[0]}
-                      className={`w-full px-4 py-3 bg-slate-50 dark:bg-slate-800 border ${
-                        errors.birthDate ? 'border-red-300' : 'border-slate-200 dark:border-slate-700'
-                      } rounded-lg text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500`}
+                      className={`w-full px-4 py-3 bg-slate-50 dark:bg-slate-800 border ${errors.birthDate ? 'border-red-300' : 'border-slate-200 dark:border-slate-700'
+                        } rounded-lg text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500`}
                     />
                     {errors.birthDate && <p className="mt-1 text-sm text-red-600">{errors.birthDate}</p>}
                   </div>
@@ -701,9 +693,8 @@ export default function CreatorRegisterPage() {
                       name="genderIdentity"
                       value={formData.genderIdentity}
                       onChange={handleChange}
-                      className={`w-full px-4 py-3 bg-slate-50 dark:bg-slate-800 border ${
-                        errors.genderIdentity ?  'border-red-300' : 'border-slate-200 dark:border-slate-700'
-                      } rounded-lg text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500`}
+                      className={`w-full px-4 py-3 bg-slate-50 dark:bg-slate-800 border ${errors.genderIdentity ? 'border-red-300' : 'border-slate-200 dark:border-slate-700'
+                        } rounded-lg text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500`}
                     >
                       <option value="">Selecione... </option>
                       {genderOptions.map(opt => (
@@ -741,9 +732,8 @@ export default function CreatorRegisterPage() {
                     onChange={handleChange}
                     rows={5}
                     maxLength={500}
-                    className={`w-full px-4 py-3 bg-slate-50 dark:bg-slate-800 border ${
-                      errors.bio ? 'border-red-300' : 'border-slate-200 dark:border-slate-700'
-                    } rounded-lg text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500 resize-none`}
+                    className={`w-full px-4 py-3 bg-slate-50 dark:bg-slate-800 border ${errors.bio ? 'border-red-300' : 'border-slate-200 dark:border-slate-700'
+                      } rounded-lg text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500 resize-none`}
                     placeholder="Conte sobre você, seu conteúdo e o que torna você único..."
                   ></textarea>
                   <p className="mt-1 text-xs text-slate-500">{formData.bio.length}/500 caracteres</p>
@@ -757,7 +747,7 @@ export default function CreatorRegisterPage() {
               <div className="space-y-6">
                 <div className="bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg p-4 mb-6">
                   <p className="text-sm text-green-900 dark:text-green-200">
-                    💰 <strong>Monetização Global:</strong> Defina seu preço em USD (equivalente aceito em crypto/BRL).  Você pode alterar depois! 
+                    💰 <strong>Monetização Global:</strong> Defina seu preço em USD (equivalente aceito em crypto/BRL).  Você pode alterar depois!
                   </p>
                 </div>
 
@@ -771,11 +761,10 @@ export default function CreatorRegisterPage() {
                         key={type}
                         type="button"
                         onClick={() => handleMultiSelect('contentTypes', type)}
-                        className={`px-4 py-3 rounded-lg text-sm font-medium transition-all ${
-                          formData.contentTypes. includes(type)
+                        className={`px-4 py-3 rounded-lg text-sm font-medium transition-all ${formData.contentTypes.includes(type)
                             ? 'bg-indigo-600 text-white'
                             : 'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700 hover:border-indigo-300'
-                        }`}
+                          }`}
                       >
                         {type}
                       </button>
@@ -794,11 +783,10 @@ export default function CreatorRegisterPage() {
                         key={aes}
                         type="button"
                         onClick={() => handleMultiSelect('aesthetic', aes)}
-                        className={`px-4 py-3 rounded-lg text-sm font-medium transition-all ${
-                          formData.aesthetic.includes(aes)
+                        className={`px-4 py-3 rounded-lg text-sm font-medium transition-all ${formData.aesthetic.includes(aes)
                             ? 'bg-purple-600 text-white'
                             : 'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700 hover:border-purple-300'
-                        }`}
+                          }`}
                       >
                         {aes}
                       </button>
@@ -820,9 +808,8 @@ export default function CreatorRegisterPage() {
                       onChange={handleChange}
                       step="0.10"
                       min="5"
-                      className={`w-full pl-12 pr-4 py-3 bg-slate-50 dark:bg-slate-800 border ${
-                        errors.subscriptionPrice ? 'border-red-300' : 'border-slate-200 dark:border-slate-700'
-                      } rounded-lg text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500`}
+                      className={`w-full pl-12 pr-4 py-3 bg-slate-50 dark:bg-slate-800 border ${errors.subscriptionPrice ? 'border-red-300' : 'border-slate-200 dark:border-slate-700'
+                        } rounded-lg text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500`}
                       placeholder="9.99"
                     />
                   </div>
@@ -867,7 +854,7 @@ export default function CreatorRegisterPage() {
               <div className="space-y-5">
                 <div className="bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg p-4 mb-6">
                   <p className="text-sm text-yellow-900 dark:text-yellow-200">
-                    🔒 <strong>Pagamentos Descentralizados:</strong> Crypto é nossa opção principal para uma plataforma verdadeiramente global.  Cartões via Stripe são seguros, PIX disponível para Brasil. 
+                    🔒 <strong>Pagamentos Descentralizados:</strong> Crypto é nossa opção principal para uma plataforma verdadeiramente global.  Cartões via Stripe são seguros, PIX disponível para Brasil.
                   </p>
                 </div>
 
@@ -876,18 +863,17 @@ export default function CreatorRegisterPage() {
                     Método de Pagamento Preferido
                   </label>
                   <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                    <label className={`px-4 py-4 rounded-lg cursor-pointer border-2 transition-all ${
-                      formData.paymentMethod === 'crypto' 
-                        ? 'bg-indigo-600 text-white border-indigo-600' 
+                    <label className={`px-4 py-4 rounded-lg cursor-pointer border-2 transition-all ${formData.paymentMethod === 'crypto'
+                        ? 'bg-indigo-600 text-white border-indigo-600'
                         : 'bg-slate-50 dark:bg-slate-800 border-slate-200 dark:border-slate-700 hover:border-indigo-300'
-                    }`}>
-                      <input 
-                        type="radio" 
-                        name="paymentMethod" 
-                        value="crypto" 
-                        checked={formData.paymentMethod === 'crypto'} 
-                        onChange={handleChange} 
-                        className="hidden" 
+                      }`}>
+                      <input
+                        type="radio"
+                        name="paymentMethod"
+                        value="crypto"
+                        checked={formData.paymentMethod === 'crypto'}
+                        onChange={handleChange}
+                        className="hidden"
                       />
                       <div className="text-center">
                         <div className="text-2xl mb-2">₿</div>
@@ -896,18 +882,17 @@ export default function CreatorRegisterPage() {
                       </div>
                     </label>
 
-                    <label className={`px-4 py-4 rounded-lg cursor-pointer border-2 transition-all ${
-                      formData.paymentMethod === 'card' 
-                        ? 'bg-indigo-600 text-white border-indigo-600' 
+                    <label className={`px-4 py-4 rounded-lg cursor-pointer border-2 transition-all ${formData.paymentMethod === 'card'
+                        ? 'bg-indigo-600 text-white border-indigo-600'
                         : 'bg-slate-50 dark:bg-slate-800 border-slate-200 dark:border-slate-700 hover:border-indigo-300'
-                    }`}>
-                      <input 
-                        type="radio" 
-                        name="paymentMethod" 
-                        value="card" 
-                        checked={formData.paymentMethod === 'card'} 
-                        onChange={handleChange} 
-                        className="hidden" 
+                      }`}>
+                      <input
+                        type="radio"
+                        name="paymentMethod"
+                        value="card"
+                        checked={formData.paymentMethod === 'card'}
+                        onChange={handleChange}
+                        className="hidden"
                       />
                       <div className="text-center">
                         <div className="text-2xl mb-2">💳</div>
@@ -916,18 +901,17 @@ export default function CreatorRegisterPage() {
                       </div>
                     </label>
 
-                    <label className={`px-4 py-4 rounded-lg cursor-pointer border-2 transition-all ${
-                      formData.paymentMethod === 'pix' 
-                        ? 'bg-indigo-600 text-white border-indigo-600' 
+                    <label className={`px-4 py-4 rounded-lg cursor-pointer border-2 transition-all ${formData.paymentMethod === 'pix'
+                        ? 'bg-indigo-600 text-white border-indigo-600'
                         : 'bg-slate-50 dark:bg-slate-800 border-slate-200 dark:border-slate-700 hover:border-indigo-300'
-                    }`}>
-                      <input 
-                        type="radio" 
-                        name="paymentMethod" 
-                        value="pix" 
-                        checked={formData.paymentMethod === 'pix'} 
-                        onChange={handleChange} 
-                        className="hidden" 
+                      }`}>
+                      <input
+                        type="radio"
+                        name="paymentMethod"
+                        value="pix"
+                        checked={formData.paymentMethod === 'pix'}
+                        onChange={handleChange}
+                        className="hidden"
                       />
                       <div className="text-center">
                         <div className="text-2xl mb-2">🇧🇷</div>
@@ -947,9 +931,8 @@ export default function CreatorRegisterPage() {
                     name="fullName"
                     value={formData.fullName}
                     onChange={handleChange}
-                    className={`w-full px-4 py-3 bg-slate-50 dark:bg-slate-800 border ${
-                      errors.fullName ? 'border-red-300' : 'border-slate-200 dark:border-slate-700'
-                    } rounded-lg text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500`}
+                    className={`w-full px-4 py-3 bg-slate-50 dark:bg-slate-800 border ${errors.fullName ? 'border-red-300' : 'border-slate-200 dark:border-slate-700'
+                      } rounded-lg text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500`}
                     placeholder="Seu Nome Completo"
                   />
                   {errors.fullName && <p className="mt-1 text-sm text-red-600">{errors.fullName}</p>}
@@ -959,15 +942,15 @@ export default function CreatorRegisterPage() {
                 {formData.paymentMethod === 'crypto' && (
                   <div className="space-y-4 bg-indigo-50 dark:bg-indigo-900/20 rounded-lg p-4">
                     <h3 className="font-medium text-slate-900 dark:text-white">Configuração Cryptocurrency</h3>
-                    
+
                     <div>
                       <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
                         Moeda Digital
                       </label>
-                      <select 
-                        name="cryptoCurrency" 
-                        value={formData.cryptoCurrency} 
-                        onChange={handleChange} 
+                      <select
+                        name="cryptoCurrency"
+                        value={formData.cryptoCurrency}
+                        onChange={handleChange}
                         className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500"
                       >
                         {cryptoCurrencyOptions.map(c => (
@@ -985,9 +968,8 @@ export default function CreatorRegisterPage() {
                         name="cryptoWallet"
                         value={formData.cryptoWallet}
                         onChange={handleChange}
-                        className={`w-full px-4 py-3 bg-slate-50 dark:bg-slate-800 border ${
-                          errors.cryptoWallet ?  'border-red-300' : 'border-slate-200 dark:border-slate-700'
-                        } rounded-lg text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500`}
+                        className={`w-full px-4 py-3 bg-slate-50 dark:bg-slate-800 border ${errors.cryptoWallet ? 'border-red-300' : 'border-slate-200 dark:border-slate-700'
+                          } rounded-lg text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500`}
                         placeholder="Ex: 0x...  (ETH) ou bc1...  (BTC)"
                       />
                       {errors.cryptoWallet && <p className="mt-1 text-sm text-red-600">{errors.cryptoWallet}</p>}
@@ -1001,16 +983,16 @@ export default function CreatorRegisterPage() {
                 {formData.paymentMethod === 'card' && (
                   <div className="space-y-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg p-4">
                     <h3 className="font-medium text-slate-900 dark:text-white">Configuração Cartão</h3>
-                    
+
                     <p className="text-sm text-slate-600 dark:text-slate-400">
                       Pagamentos seguros processados pela Stripe. Seus dados nunca passam pelos nossos servidores.
                     </p>
 
                     <div className="flex items-center space-x-3">
-                      <button 
-                        type="button" 
-                        onClick={handleAddCard} 
-                        disabled={isLoading} 
+                      <button
+                        type="button"
+                        onClick={handleAddCard}
+                        disabled={isLoading}
                         className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50"
                       >
                         {formData.cardOnFile ? 'Gerenciar Cartão' : 'Adicionar Cartão'}
@@ -1028,7 +1010,7 @@ export default function CreatorRegisterPage() {
                 {formData.paymentMethod === 'pix' && (
                   <div className="space-y-4 bg-green-50 dark:bg-green-900/20 rounded-lg p-4">
                     <h3 className="font-medium text-slate-900 dark:text-white">Configuração PIX (Brasil)</h3>
-                    
+
                     <div>
                       <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
                         Tipo de Chave PIX
@@ -1055,14 +1037,13 @@ export default function CreatorRegisterPage() {
                         name="pixKey"
                         value={formData.pixKey}
                         onChange={handleChange}
-                        className={`w-full px-4 py-3 bg-slate-50 dark:bg-slate-800 border ${
-                          errors.pixKey ? 'border-red-300' : 'border-slate-200 dark:border-slate-700'
-                        } rounded-lg text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500`}
+                        className={`w-full px-4 py-3 bg-slate-50 dark:bg-slate-800 border ${errors.pixKey ? 'border-red-300' : 'border-slate-200 dark:border-slate-700'
+                          } rounded-lg text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500`}
                         placeholder={
-                          formData.pixKeyType === 'email' ?  'seu@email.com' :
-                          formData.pixKeyType === 'cpf' ? '000.000.000-00' :
-                          formData.pixKeyType === 'phone' ? '(11) 99999-9999' :
-                          'Chave aleatória do banco'
+                          formData.pixKeyType === 'email' ? 'seu@email.com' :
+                            formData.pixKeyType === 'cpf' ? '000.000.000-00' :
+                              formData.pixKeyType === 'phone' ? '(11) 99999-9999' :
+                                'Chave aleatória do banco'
                         }
                       />
                       {errors.pixKey && <p className="mt-1 text-sm text-red-600">{errors.pixKey}</p>}
@@ -1077,9 +1058,8 @@ export default function CreatorRegisterPage() {
                         name="cpf"
                         value={formData.cpf}
                         onChange={handleChange}
-                        className={`w-full px-4 py-3 bg-slate-50 dark:bg-slate-800 border ${
-                          errors.cpf ? 'border-red-300' : 'border-slate-200 dark:border-slate-700'
-                        } rounded-lg text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500`}
+                        className={`w-full px-4 py-3 bg-slate-50 dark:bg-slate-800 border ${errors.cpf ? 'border-red-300' : 'border-slate-200 dark:border-slate-700'
+                          } rounded-lg text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500`}
                         placeholder="000.000.000-00"
                         maxLength="14"
                       />

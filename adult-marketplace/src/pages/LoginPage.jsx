@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
+import authAPI from '../services/authAPI'; // ← ADICIONE ISSO
 
 export default function LoginPage() {
   const navigate = useNavigate();
@@ -19,7 +20,6 @@ export default function LoginPage() {
       ...prev,
       [name]: type === 'checkbox' ? checked : value
     }));
-    // Limpar erro do campo ao digitar
     if (errors[name]) {
       setErrors(prev => ({ ...prev, [name]: '' }));
     }
@@ -31,12 +31,12 @@ export default function LoginPage() {
     if (!formData.email) {
       newErrors.email = 'Email é obrigatório';
     } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
-      newErrors. email = 'Email inválido';
+      newErrors.email = 'Email inválido';
     }
 
-    if (! formData.password) {
+    if (!formData.password) {
       newErrors.password = 'Senha é obrigatória';
-    } else if (formData. password.length < 6) {
+    } else if (formData.password.length < 6) {
       newErrors.password = 'Senha deve ter no mínimo 6 caracteres';
     }
 
@@ -45,7 +45,7 @@ export default function LoginPage() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
+
     const newErrors = validate();
     if (Object.keys(newErrors).length > 0) {
       setErrors(newErrors);
@@ -53,63 +53,53 @@ export default function LoginPage() {
     }
 
     setIsLoading(true);
-    setErrors({}); // Limpar erros anteriores
-    
+    setErrors({});
+
     try {
-      const response = await fetch('http://localhost:5000/api/v1/auth/login', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        credentials: 'include', // Para enviar cookies se necessário
-        body: JSON. stringify({
-          email: formData.email,
-          password: formData. password,
-        }),
-      });
-
-      const result = await response.json();
-
-      if (! response.ok) {
-        // Tratar erros específicos do backend
-        if (response.status === 401) {
-          setErrors({ submit: 'Email ou senha incorretos' });
-        } else if (response.status === 404) {
-          setErrors({ submit: 'Usuário não encontrado' });
-        } else if (result.message) {
-          setErrors({ submit: result.message });
-        } else {
-          setErrors({ submit: 'Erro ao fazer login.  Tente novamente.' });
-        }
-        return;
-      }
+      // ✅ USAR O authAPI em vez de fetch
+      const result = await authAPI.login(formData.email, formData.password);
 
       // Login bem-sucedido
       const { accessToken, refreshToken, user } = result.data;
-      
+
       // Salvar tokens e dados do usuário
       localStorage.setItem('authToken', accessToken);
       if (refreshToken) {
         localStorage.setItem('refreshToken', refreshToken);
       }
-      localStorage.setItem('user', JSON. stringify(user));
-      
+      localStorage.setItem('user', JSON.stringify(user));
+
       console.log('Login successful:', { user });
 
       // Redirecionar baseado no tipo de usuário
-      if (user.role === 'creator' || user.isCreator) {
+      if (user.role === 'CREATOR' || user.isCreator) {
         navigate('/creator/dashboard');
       } else {
         navigate('/');
       }
     } catch (error) {
       console.error('Login error:', error);
-      setErrors({ submit: 'Erro de conexão. Verifique sua internet e tente novamente.' });
+
+      // Tratar erros específicos
+      if (error.response) {
+        if (error.response.status === 401) {
+          setErrors({ submit: 'Email ou senha incorretos' });
+        } else if (error.response.status === 404) {
+          setErrors({ submit: 'Usuário não encontrado' });
+        } else if (error.response.data?.message) {
+          setErrors({ submit: error.response.data.message });
+        } else {
+          setErrors({ submit: 'Erro ao fazer login. Tente novamente.' });
+        }
+      } else {
+        setErrors({ submit: 'Erro de conexão. Verifique sua internet e tente novamente.' });
+      }
     } finally {
       setIsLoading(false);
     }
   };
 
+  // ... resto do código continua igual
   const handleSocialLogin = (provider) => {
     // TODO: Implementar OAuth (Google, Facebook, etc)
     alert(`Login com ${provider} será implementado em breve!`);
@@ -164,11 +154,10 @@ export default function LoginPage() {
                 value={formData.email}
                 onChange={handleChange}
                 autoComplete="email"
-                className={`w-full px-4 py-3 bg-slate-50 dark:bg-slate-800 border ${
-                  errors.email 
-                    ? 'border-red-300 dark:border-red-700' 
+                className={`w-full px-4 py-3 bg-slate-50 dark:bg-slate-800 border ${errors.email
+                    ? 'border-red-300 dark:border-red-700'
                     : 'border-slate-200 dark:border-slate-700'
-                } rounded-lg text-slate-900 dark:text-white placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all`}
+                  } rounded-lg text-slate-900 dark:text-white placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all`}
                 placeholder="seu@email.com"
               />
               {errors.email && (
@@ -189,11 +178,10 @@ export default function LoginPage() {
                   value={formData.password}
                   onChange={handleChange}
                   autoComplete="current-password"
-                  className={`w-full px-4 py-3 pr-12 bg-slate-50 dark:bg-slate-800 border ${
-                    errors.password 
-                      ? 'border-red-300 dark:border-red-700' 
+                  className={`w-full px-4 py-3 pr-12 bg-slate-50 dark:bg-slate-800 border ${errors.password
+                      ? 'border-red-300 dark:border-red-700'
                       : 'border-slate-200 dark:border-slate-700'
-                  } rounded-lg text-slate-900 dark:text-white placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all`}
+                    } rounded-lg text-slate-900 dark:text-white placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all`}
                   placeholder="••••••••"
                 />
                 <button
@@ -273,10 +261,10 @@ export default function LoginPage() {
               className="flex items-center justify-center space-x-2 px-4 py-3 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors"
             >
               <svg className="w-5 h-5" viewBox="0 0 24 24">
-                <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
-                <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
-                <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
-                <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
+                <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" />
+                <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" />
+                <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" />
+                <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" />
               </svg>
               <span className="text-sm font-medium text-slate-700 dark:text-slate-300">Google</span>
             </button>
@@ -286,7 +274,7 @@ export default function LoginPage() {
               className="flex items-center justify-center space-x-2 px-4 py-3 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors"
             >
               <svg className="w-5 h-5" fill="#1877F2" viewBox="0 0 24 24">
-                <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/>
+                <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z" />
               </svg>
               <span className="text-sm font-medium text-slate-700 dark:text-slate-300">Facebook</span>
             </button>

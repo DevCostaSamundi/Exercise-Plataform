@@ -40,7 +40,7 @@ export default function UploadContentPage() {
     const { name, value, type, checked } = e.target;
     setFormData(prev => ({
       ...prev,
-      [name]: type === 'checkbox' ?  checked : value
+      [name]: type === 'checkbox' ? checked : value
     }));
     if (errors[name]) {
       setErrors(prev => ({ ...prev, [name]: '' }));
@@ -71,14 +71,14 @@ export default function UploadContentPage() {
     e.stopPropagation();
     setDragActive(false);
 
-    if (e.dataTransfer.files && e.dataTransfer.files. length > 0) {
+    if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
       handleFiles(Array.from(e.dataTransfer.files));
     }
   };
 
   const handleFileInput = (e) => {
     if (e.target.files && e.target.files.length > 0) {
-      handleFiles(Array.from(e.target. files));
+      handleFiles(Array.from(e.target.files));
     }
   };
 
@@ -92,7 +92,7 @@ export default function UploadContentPage() {
         return;
       }
 
-      const acceptedTypes = [... ACCEPTED_IMAGE_TYPES, ...ACCEPTED_VIDEO_TYPES, ...ACCEPTED_AUDIO_TYPES];
+      const acceptedTypes = [...ACCEPTED_IMAGE_TYPES, ...ACCEPTED_VIDEO_TYPES, ...ACCEPTED_AUDIO_TYPES];
       if (!acceptedTypes.includes(file.type)) {
         newErrors[`file-${index}`] = `${file.name} não é um tipo de arquivo suportado`;
         return;
@@ -102,7 +102,7 @@ export default function UploadContentPage() {
       validFiles.push({
         file,
         preview,
-        type: file.type. startsWith('image/') ? 'image' : file.type.startsWith('video/') ? 'video' : 'audio',
+        type: file.type.startsWith('image/') ? 'image' : file.type.startsWith('video/') ? 'video' : 'audio',
         name: file.name,
         size: file.size,
         id: Date.now() + index,
@@ -137,13 +137,13 @@ export default function UploadContentPage() {
   const validateStep2 = () => {
     const newErrors = {};
 
-    if (! formData.title. trim()) {
+    if (!formData.title.trim()) {
       newErrors.title = 'Título é obrigatório';
-    } else if (formData.title. length < 3) {
+    } else if (formData.title.length < 3) {
       newErrors.title = 'Título deve ter no mínimo 3 caracteres';
     }
 
-    if (! formData.description.trim()) {
+    if (!formData.description.trim()) {
       newErrors.description = 'Descrição é obrigatória';
     } else if (formData.description.length < 10) {
       newErrors.description = 'Descrição deve ter no mínimo 10 caracteres';
@@ -157,7 +157,7 @@ export default function UploadContentPage() {
       newErrors.scheduledDate = 'Selecione uma data';
     }
 
-    if (formData.scheduled && !formData. scheduledTime) {
+    if (formData.scheduled && !formData.scheduledTime) {
       newErrors.scheduledTime = 'Selecione um horário';
     }
 
@@ -205,14 +205,14 @@ export default function UploadContentPage() {
 
         try {
           const result = await creatorPostService.uploadMedia(
-            fileObj. file,
+            fileObj.file,
             formData.contentType
           );
-          uploadedUrls.push(result. url);
-          
+          uploadedUrls.push(result.url);
+
           const progress = ((i + 1) / totalFiles) * 70; // 0-70%
           setUploadProgress(Math.round(progress));
-          
+
           console.log(`✅ Uploaded: `, result.url);
         } catch (uploadError) {
           console.error(`❌ Error uploading ${fileObj.name}:`, uploadError);
@@ -224,19 +224,19 @@ export default function UploadContentPage() {
 
       // Step 2: Prepare post data
       let scheduledFor = null;
-      if (formData. scheduled && formData.scheduledDate && formData.scheduledTime) {
+      if (formData.scheduled && formData.scheduledDate && formData.scheduledTime) {
         scheduledFor = `${formData.scheduledDate}T${formData.scheduledTime}: 00`;
       }
 
       const postData = {
-        title:  formData.title,
+        title: formData.title,
         caption: formData.description,
         mediaUrl: uploadedUrls,
         mediaType: formData.contentType,
         isPPV: formData.visibility === 'premium',
         price: formData.visibility === 'premium' ? parseFloat(formData.price) : null,
         subscribersOnly: formData.visibility !== 'free',
-        tags: formData. tags,
+        tags: formData.tags,
         scheduledFor,
       };
 
@@ -274,7 +274,7 @@ export default function UploadContentPage() {
     if (bytes === 0) return '0 Bytes';
     const k = 1024;
     const sizes = ['Bytes', 'KB', 'MB', 'GB'];
-    const i = Math.floor(Math. log(bytes) / Math.log(k));
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
     return Math.round(bytes / Math.pow(k, i) * 100) / 100 + ' ' + sizes[i];
   };
 
@@ -301,7 +301,7 @@ export default function UploadContentPage() {
                   <span className="font-bold text-slate-900 dark:text-white">Novo Post</span>
                 </Link>
               </div>
-              
+
               {/* Progress Steps */}
               <div className="hidden sm:flex items-center space-x-2 text-sm">
                 <div className={`flex items-center ${step >= 1 ? 'text-indigo-600' : 'text-slate-400'}`}>
@@ -421,7 +421,7 @@ export default function UploadContentPage() {
                           {fileObj.type === 'audio' && (
                             <div className="w-full h-full flex items-center justify-center">
                               <svg xmlns="http://www.w3.org/2000/svg" className="h-12 w-12 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zM9 10l12-3" />
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3.895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3.895 3 2zM9 10l12-3" />
                               </svg>
                             </div>
                           )}

@@ -107,9 +107,9 @@ export default function CreatorNotificationsPage() {
       prev.map((n) =>
         n.id === id
           ? {
-              ...n,
-              unread: !n.unread,
-            }
+            ...n,
+            unread: !n.unread,
+          }
           : n,
       ),
     );
@@ -124,13 +124,13 @@ export default function CreatorNotificationsPage() {
         <header className="bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 sticky top-0 z-10">
           <div className="max-w-7xl mx-auto h-16 px-4 sm:px-6 lg:px-8 flex items-center justify-between">
             <div className="flex items-center space-x-4">
-                <Link to="/" className="flex items-center space-x-3">
-                  <div className="w-10 h-10 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-xl flex items-center justify-center">
-                    <span className="text-white font-black text-xl">P</span>
-                  </div>
-                  <span className="font-bold text-slate-900 dark:text-white">Notificações</span>
-                </Link>
-              </div>
+              <Link to="/" className="flex items-center space-x-3">
+                <div className="w-10 h-10 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-xl flex items-center justify-center">
+                  <span className="text-white font-black text-xl">P</span>
+                </div>
+                <span className="font-bold text-slate-900 dark:text-white">Notificações</span>
+              </Link>
+            </div>
 
             <div className="flex items-center space-x-3">
               <button
@@ -172,11 +172,10 @@ export default function CreatorNotificationsPage() {
                 <button
                   key={opt.value}
                   onClick={() => setTypeFilter(opt.value)}
-                  className={`px-3 py-1 rounded-full border ${
-                    typeFilter === opt.value
+                  className={`px-3 py-1 rounded-full border ${typeFilter === opt.value
                       ? 'bg-indigo-600 text-white border-indigo-600'
                       : 'bg-slate-50 dark:bg-slate-800 text-slate-600 dark:text-slate-300 border-slate-200 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-700'
-                  }`}
+                    }`}
                 >
                   {opt.label}
                 </button>
@@ -208,11 +207,10 @@ export default function CreatorNotificationsPage() {
               filtered.map((notif) => (
                 <div
                   key={notif.id}
-                  className={`px-4 py-3 flex items-start gap-3 ${
-                    notif.unread
+                  className={`px-4 py-3 flex items-start gap-3 ${notif.unread
                       ? 'bg-indigo-50 dark:bg-indigo-900/10'
                       : 'bg-transparent'
-                  }`}
+                    }`}
                 >
                   <div className="mt-1">
                     <NotificationIcon type={notif.type} />

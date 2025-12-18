@@ -41,14 +41,14 @@ export default function CreatorAnalyticsPage() {
 
     try {
       const response = await api.get(`/creator/analytics?timeRange=${timeRange}`);
-      
+
       if (response.data?.data) {
         setAnalytics(response.data.data);
       }
     } catch (err) {
       console.error('Erro ao carregar analytics:', err);
       setError(err.response?.data?.message || 'Erro ao carregar dados de analytics');
-      
+
       // Mock data for development/demo
       setAnalytics({
         overview: {
@@ -117,8 +117,8 @@ export default function CreatorAnalyticsPage() {
       <div className="flex min-h-screen bg-slate-50 dark:bg-slate-950">
         <CreatorSidebar />
         <div className="flex-1">
-          <ErrorMessage 
-            message={error} 
+          <ErrorMessage
+            message={error}
             onRetry={fetchAnalytics}
             title="Erro ao Carregar Analytics"
           />
@@ -308,11 +308,10 @@ function StatCard({ title, value, icon, trend, trendUp }) {
       <div className="flex items-center justify-between mb-2">
         <span className="text-2xl">{icon}</span>
         <span
-          className={`text-sm font-semibold ${
-            trendUp
+          className={`text-sm font-semibold ${trendUp
               ? 'text-green-600 dark:text-green-400'
               : 'text-red-600 dark:text-red-400'
-          }`}
+            }`}
         >
           {trend}
         </span>

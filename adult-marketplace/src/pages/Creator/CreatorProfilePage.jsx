@@ -132,7 +132,7 @@ export default function CreatorProfilePage() {
       navigate('/login', { state: { returnTo: `/creator/${id}` } });
       return;
     }
-    
+
     // Preparar dados do pagamento
     setPaymentData({
       creatorId: creator.id,
@@ -379,8 +379,8 @@ export default function CreatorProfilePage() {
               <button
                 onClick={() => setActiveTab('posts')}
                 className={`flex items-center space-x-2 px-6 py-4 font-medium text-sm border-b-2 transition-colors ${activeTab === 'posts'
-                    ? 'border-indigo-600 text-indigo-600'
-                    : 'border-transparent text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-300'
+                  ? 'border-indigo-600 text-indigo-600'
+                  : 'border-transparent text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-300'
                   }`}
               >
                 <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
@@ -391,8 +391,8 @@ export default function CreatorProfilePage() {
               <button
                 onClick={() => setActiveTab('about')}
                 className={`flex items-center space-x-2 px-6 py-4 font-medium text-sm border-b-2 transition-colors ${activeTab === 'about'
-                    ? 'border-indigo-600 text-indigo-600'
-                    : 'border-transparent text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-300'
+                  ? 'border-indigo-600 text-indigo-600'
+                  : 'border-transparent text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-300'
                   }`}
               >
                 <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">

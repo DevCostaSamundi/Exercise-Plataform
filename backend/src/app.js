@@ -5,6 +5,7 @@ import helmet from 'helmet';
 import rateLimit from 'express-rate-limit';
 import cookieParser from 'cookie-parser';
 
+
 // Import routes
 import authRoutes from './routes/auth.routes.js';
 import userRoutes from './routes/user.routes.js';
@@ -25,11 +26,14 @@ import favoriteRoutes from './routes/favorite.routes.js';
 import trendingRoutes from './routes/trending.routes.js';
 import transactionRoutes from './routes/transaction.routes.js';
 
+import uploadRoutes from './routes/upload.routes.js';
+
 // Import middleware
 import errorMiddleware from './middleware/error.middleware.js';
 import logger from './utils/logger.js';
 
 const app = express();
+// Load environment variables
 
 // Security middleware
 app.use(helmet());
@@ -153,6 +157,9 @@ app.use(`/api/${API_VERSION}/payments`, paymentRoutes);
 
 // Withdrawal routes
 app.use(`/api/${API_VERSION}/withdrawals`, withdrawalRoutes);
+
+
+app.use(`/api/${API_VERSION}/upload`, uploadRoutes);
 
 // ------------------- 404 handler -------------------
 app.use('/api', (req, res) => {

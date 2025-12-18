@@ -469,8 +469,8 @@ export default function CreatorMessagesPage() {
                       key={conv.id}
                       onClick={() => setSelectedConversationId(conv.id)}
                       className={`w-full text-left px-3 py-3 flex items-center space-x-3 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors ${isSelected
-                          ? 'bg-slate-100 dark:bg-slate-800/70'
-                          : ''
+                        ? 'bg-slate-100 dark:bg-slate-800/70'
+                        : ''
                         }`}
                     >
                       <div className="relative">
@@ -574,8 +574,8 @@ export default function CreatorMessagesPage() {
                         >
                           <div
                             className={`max-w-[75%] rounded-2xl px-3 py-2 text-sm ${isCurrentUser
-                                ? 'bg-indigo-600 text-white rounded-br-sm'
-                                : 'bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 rounded-bl-sm'
+                              ? 'bg-indigo-600 text-white rounded-br-sm'
+                              : 'bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 rounded-bl-sm'
                               } ${isPaid ? 'border-2 border-yellow-400' : ''}`}
                           >
                             {/* Mensagem paga */}
@@ -659,8 +659,8 @@ export default function CreatorMessagesPage() {
 
                             <p
                               className={`text-[10px] mt-1 ${isCurrentUser
-                                  ? 'text-indigo-100/80'
-                                  : 'text-slate-400'
+                                ? 'text-indigo-100/80'
+                                : 'text-slate-400'
                                 }`}
                             >
                               {formatFullTime(msg.createdAt)}
@@ -872,8 +872,8 @@ export default function CreatorMessagesPage() {
             setShowPaymentModal(false);
             setLockedMessageId(null);
             // Atualizar mensagem para desbloqueada
-            setMessages(prev => prev.map(m => 
-              m._id === lockedMessageId 
+            setMessages(prev => prev.map(m =>
+              m._id === lockedMessageId
                 ? { ...m, isUnlocked: true }
                 : m
             ));

@@ -60,10 +60,10 @@ export default function CreatorEarningsPage() {
       setPayments(response.data);
 
       // Calcular estatísticas
-      const subscriptions = response.data.filter(p => 
+      const subscriptions = response.data.filter(p =>
         p.type === 'SUBSCRIPTION' || p.type === 'SUBSCRIPTION_RENEWAL'
       ).length;
-      const ppv = response.data.filter(p => 
+      const ppv = response.data.filter(p =>
         p.type === 'PPV_MESSAGE' || p.type === 'PPV_POST'
       ).length;
 
@@ -92,7 +92,7 @@ export default function CreatorEarningsPage() {
   };
 
   const handleCancelWithdrawal = async (withdrawalId) => {
-    if (! confirm('Tem certeza que deseja cancelar este saque?')) return;
+    if (!confirm('Tem certeza que deseja cancelar este saque?')) return;
 
     try {
       await withdrawalService.cancelWithdrawal(withdrawalId);
@@ -103,7 +103,7 @@ export default function CreatorEarningsPage() {
   };
 
   const formatCurrency = (value) => {
-    return new Intl. NumberFormat('en-US', {
+    return new Intl.NumberFormat('en-US', {
       style: 'currency',
       currency: 'USD',
     }).format(value);
@@ -334,21 +334,19 @@ export default function CreatorEarningsPage() {
               <div className="flex space-x-1 p-2">
                 <button
                   onClick={() => setActiveTab('payments')}
-                  className={`flex-1 px-4 py-2 rounded-lg font-medium text-sm transition-colors ${
-                    activeTab === 'payments'
+                  className={`flex-1 px-4 py-2 rounded-lg font-medium text-sm transition-colors ${activeTab === 'payments'
                       ? 'bg-indigo-600 text-white'
                       : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800'
-                  }`}
+                    }`}
                 >
                   💰 Recebimentos ({payments.length})
                 </button>
                 <button
                   onClick={() => setActiveTab('withdrawals')}
-                  className={`flex-1 px-4 py-2 rounded-lg font-medium text-sm transition-colors ${
-                    activeTab === 'withdrawals'
-                      ?  'bg-indigo-600 text-white'
+                  className={`flex-1 px-4 py-2 rounded-lg font-medium text-sm transition-colors ${activeTab === 'withdrawals'
+                      ? 'bg-indigo-600 text-white'
                       : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800'
-                  }`}
+                    }`}
                 >
                   🏦 Saques ({withdrawals.length})
                 </button>

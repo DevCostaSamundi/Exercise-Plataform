@@ -42,6 +42,8 @@ import CreatorPostEditPage from './pages/Creator/CreatorPostEditPage';
 import CreatorSettingsPage from './pages/Creator/creatorSettingsPage.jsx';
 import CreatorAnalyticsPage from './pages/Creator/CreatorAnalyticsPage';
 
+import AuthDebugger from './pages/AuthDebugger';
+
 
 function App() {
   const [isVerified, setIsVerified] = useState(false);
@@ -60,6 +62,9 @@ function App() {
       <div className="app">
         <Routes>
           {/* Público */}
+
+          <Route path="/debug" element={<AuthDebugger />} />
+
           <Route path="/" element={<HomePage />} />
           <Route path="/product/:id" element={<ProductPage />} />
           <Route path="/creator/:id" element={<CreatorPage />} />
@@ -92,95 +97,95 @@ function App() {
               CREATOR ROUTES - Protected
               Pattern: /creator/*
               ======================================== */}
-          <Route 
-            path="/creator/dashboard" 
+          <Route
+            path="/creator/dashboard"
             element={
               <ProtectedRoute requireCreator>
                 <CreatorDashboardPage />
               </ProtectedRoute>
-            } 
+            }
           />
-          <Route 
-            path="/creator/posts" 
+          <Route
+            path="/creator/posts"
             element={
               <ProtectedRoute requireCreator>
                 <CreatorPostsPage />
               </ProtectedRoute>
-            } 
+            }
           />
-          <Route 
-            path="/creator/upload" 
+          <Route
+            path="/creator/upload"
             element={
               <ProtectedRoute requireCreator>
                 <UploadContentPage />
               </ProtectedRoute>
-            } 
+            }
           />
-          <Route 
-            path="/creator/earnings" 
+          <Route
+            path="/creator/earnings"
             element={
               <ProtectedRoute requireCreator>
                 <CreatorEarningsPage />
               </ProtectedRoute>
-            } 
+            }
           />
-          <Route 
-            path="/creator/messages" 
+          <Route
+            path="/creator/messages"
             element={
               <ProtectedRoute requireCreator>
                 <CreatorMessagesPage />
               </ProtectedRoute>
-            } 
+            }
           />
-          <Route 
-            path="/creator/subscribers" 
+          <Route
+            path="/creator/subscribers"
             element={
               <ProtectedRoute requireCreator>
                 <CreatorSubscribersPage />
               </ProtectedRoute>
-            } 
+            }
           />
-          <Route 
-            path="/creator/analytics" 
+          <Route
+            path="/creator/analytics"
             element={
               <ProtectedRoute requireCreator>
                 <CreatorAnalyticsPage />
               </ProtectedRoute>
-            } 
+            }
           />
-          <Route 
-            path="/creator/notifications" 
+          <Route
+            path="/creator/notifications"
             element={
               <ProtectedRoute requireCreator>
                 <CreatorNotificationsPage />
               </ProtectedRoute>
-            } 
+            }
           />
-          <Route 
-            path="/creator/profile" 
+          <Route
+            path="/creator/profile"
             element={
               <ProtectedRoute requireCreator>
                 <CreatorProfilePage />
               </ProtectedRoute>
-            } 
+            }
           />
-          <Route 
-            path="/creator/settings" 
+          <Route
+            path="/creator/settings"
             element={
               <ProtectedRoute requireCreator>
                 <CreatorSettingsPage />
               </ProtectedRoute>
-            } 
+            }
           />
-          <Route 
-            path="/creator/posts/:id/edit" 
+          <Route
+            path="/creator/posts/:id/edit"
             element={
               <ProtectedRoute requireCreator>
                 <CreatorPostEditPage />
               </ProtectedRoute>
-            } 
+            }
           />
-  
+
           {/* ========================================
               STATIC / LEGAL PAGES
               ======================================== */}

@@ -129,14 +129,12 @@ function Toggle({ id, checked, onChange, label, description, disabled }) {
         aria-checked={checked}
         onClick={() => !disabled && onChange(!checked)}
         disabled={disabled}
-        className={`relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 dark:focus:ring-offset-slate-900 disabled:opacity-50 disabled:cursor-not-allowed ${
-          checked ? 'bg-indigo-600' : 'bg-slate-300 dark:bg-slate-600'
-        }`}
+        className={`relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 dark:focus:ring-offset-slate-900 disabled:opacity-50 disabled:cursor-not-allowed ${checked ? 'bg-indigo-600' : 'bg-slate-300 dark:bg-slate-600'
+          }`}
       >
         <span
-          className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out ${
-            checked ? 'translate-x-5' : 'translate-x-0'
-          }`}
+          className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out ${checked ? 'translate-x-5' : 'translate-x-0'
+            }`}
         />
       </button>
     </div>
@@ -221,11 +219,10 @@ function TabNavigation({ activeTab, setActiveTab }) {
           <button
             key={tab.id}
             onClick={() => setActiveTab(tab.id)}
-            className={`flex items-center space-x-2 px-4 py-2.5 rounded-lg text-sm font-medium transition-all whitespace-nowrap ${
-              activeTab === tab.id
-                ?  'bg-white dark:bg-slate-900 text-indigo-600 dark:text-indigo-400 shadow-sm'
+            className={`flex items-center space-x-2 px-4 py-2.5 rounded-lg text-sm font-medium transition-all whitespace-nowrap ${activeTab === tab.id
+                ? 'bg-white dark:bg-slate-900 text-indigo-600 dark:text-indigo-400 shadow-sm'
                 : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-white/50 dark:hover:bg-slate-700/50'
-            }`}
+              }`}
           >
             <span>{tab.icon}</span>
             <span className="hidden sm:inline">{tab.label}</span>
@@ -413,9 +410,9 @@ function ProfileSection({ profile, setProfile, onSave, saving, toast }) {
             <Input
               id="username"
               value={profile.username}
-              onChange={(e) => setProfile({ 
-                ...profile, 
-                username: e.target.value.toLowerCase().replace(/[^a-z0-9_]/g, '') 
+              onChange={(e) => setProfile({
+                ...profile,
+                username: e.target.value.toLowerCase().replace(/[^a-z0-9_]/g, '')
               })}
               placeholder="seu_username"
               prefix="@"
@@ -438,7 +435,7 @@ function ProfileSection({ profile, setProfile, onSave, saving, toast }) {
           <FormGroup label="Localização" htmlFor="location">
             <Input
               id="location"
-              value={profile. location}
+              value={profile.location}
               onChange={(e) => setProfile({ ...profile, location: e.target.value })}
               placeholder="São Paulo, Brasil"
             />
@@ -495,8 +492,8 @@ function ProfileSection({ profile, setProfile, onSave, saving, toast }) {
 
         <div className="mt-4 p-4 bg-indigo-50 dark:bg-indigo-900/20 border border-indigo-200 dark:border-indigo-800 rounded-lg">
           <p className="text-sm text-indigo-900 dark:text-indigo-200">
-            🏳️‍🌈 Essas informações são opcionais e ajudam a comunidade LGBT+ a 
-            encontrar criadores com identidades semelhantes. 
+            🏳️‍🌈 Essas informações são opcionais e ajudam a comunidade LGBT+ a
+            encontrar criadores com identidades semelhantes.
           </p>
         </div>
       </SettingsCard>
@@ -608,7 +605,7 @@ function AccountSection({ account, setAccount, onSave, saving, toast }) {
               {account.emailVerified ? 'Email verificado' : 'Email não verificado'}
             </span>
           </div>
-          {! account.emailVerified && (
+          {!account.emailVerified && (
             <Button variant="outline" size="sm">Verificar email</Button>
           )}
         </div>
@@ -704,7 +701,7 @@ function AccountSection({ account, setAccount, onSave, saving, toast }) {
         <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-4">
           <h4 className="font-semibold text-red-900 dark:text-red-200 mb-2">Excluir Conta</h4>
           <p className="text-sm text-red-700 dark:text-red-300 mb-4">
-            Ao excluir sua conta, todos os seus dados, conteúdos, assinantes e 
+            Ao excluir sua conta, todos os seus dados, conteúdos, assinantes e
             ganhos serão permanentemente removidos. Esta ação não pode ser desfeita.
           </p>
           <Button variant="danger" size="sm">🗑️ Excluir minha conta</Button>
@@ -762,13 +759,13 @@ function SubscriptionSection({ subscription, setSubscription, onSave, saving }) 
           ].map((bundle) => {
             const discount = subscription.discounts?.[bundle.key] || 0;
             const totalPrice = (subscription.monthlyPrice || 0) * bundle.months * (1 - discount / 100);
-            
+
             return (
               <div key={bundle.key} className="flex items-center justify-between p-4 bg-slate-50 dark:bg-slate-800 rounded-lg">
                 <div>
                   <p className="font-medium text-slate-900 dark:text-white">{bundle.label}</p>
                   <p className="text-sm text-slate-500">
-                    Total: ${totalPrice.toFixed(2)} 
+                    Total: ${totalPrice.toFixed(2)}
                     {discount > 0 && <span className="text-green-500 ml-1">(-{discount}%)</span>}
                   </p>
                 </div>
@@ -896,11 +893,10 @@ function PaymentsSection({ payments, setPayments, onSave, saving }) {
             <button
               key={method.id}
               onClick={() => setPayments({ ...payments, withdrawMethod: method.id })}
-              className={`p-4 rounded-xl border-2 transition-all text-left ${
-                payments.withdrawMethod === method.id
+              className={`p-4 rounded-xl border-2 transition-all text-left ${payments.withdrawMethod === method.id
                   ? 'border-indigo-500 bg-indigo-50 dark:bg-indigo-900/20'
                   : 'border-slate-200 dark:border-slate-700 hover:border-slate-300 dark:hover:border-slate-600'
-              }`}
+                }`}
             >
               <span className="text-3xl block mb-2">{method.icon}</span>
               <p className="font-medium text-slate-900 dark:text-white">{method.label}</p>
@@ -978,7 +974,7 @@ function PaymentsSection({ payments, setPayments, onSave, saving }) {
           description="Seus ganhos serão transferidos automaticamente"
         />
 
-        {payments. autoWithdraw && (
+        {payments.autoWithdraw && (
           <FormGroup label="Valor mínimo (USD)" htmlFor="autoWithdrawMin" className="mt-4">
             <Input
               id="autoWithdrawMin"
@@ -1038,7 +1034,7 @@ function NotificationsSection({ notifications, setNotifications, onSave, saving 
       {/* Push Notifications */}
       <SettingsCard title="Notificações Push" description="Notificações no navegador">
         <div className="divide-y divide-slate-100 dark:divide-slate-800">
-          {notificationOptions.slice(0,5).map((opt) => (
+          {notificationOptions.slice(0, 5).map((opt) => (
             <Toggle
               key={`push_${opt.key}`}
               id={`push_${opt.key}`}
@@ -1365,9 +1361,9 @@ function BlockingSection({ blocking, setBlocking }) {
         title="Palavras Bloqueadas"
         description="Comentários com essas palavras serão filtrados automaticamente"
       >
-        <FormGroup 
-          label="Palavras bloqueadas" 
-          htmlFor="blockedWords" 
+        <FormGroup
+          label="Palavras bloqueadas"
+          htmlFor="blockedWords"
           hint="Separe as palavras por vírgula"
         >
           <TextArea
@@ -1504,7 +1500,7 @@ export default function CreatorSettingsPage() {
 
   const handleSave = async () => {
     setSaving(true);
-    
+
     try {
       const formData = new FormData();
 
@@ -1548,12 +1544,12 @@ export default function CreatorSettingsPage() {
           'Content-Type': 'multipart/form-data',
         },
       });
-      
+
       showToast('Configurações salvas com sucesso!', 'success');
-      
+
       // Recarregar para obter URLs atualizadas
       await loadSettings();
-      
+
     } catch (error) {
       console.error('Erro ao salvar:', error);
       const errorMessage = error.response?.data?.message || 'Erro ao salvar configurações';
@@ -1605,7 +1601,7 @@ export default function CreatorSettingsPage() {
   return (
     <div className="flex h-screen bg-slate-50 dark:bg-slate-950">
       <CreatorSidebar />
-      
+
       <main className="flex-1 overflow-y-auto">
         <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           {/* Header */}
@@ -1640,9 +1636,9 @@ export default function CreatorSettingsPage() {
       </main>
 
       {/* Toast Notification */}
-      <Toast 
-        show={toast.show} 
-        message={toast.message} 
+      <Toast
+        show={toast.show}
+        message={toast.message}
         type={toast.type}
         onClose={() => setToast({ ...toast, show: false })}
       />

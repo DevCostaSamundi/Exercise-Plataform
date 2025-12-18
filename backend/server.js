@@ -1,11 +1,11 @@
-import dotenv from 'dotenv';
+import dotenv from 'dotenv/config';
+
 import http from 'http';
 import app from './src/app.js';
 import logger from './src/utils/logger.js';
 import initSocket from './src/socket/index.js';
 
 // Load environment variables
-dotenv.config();
 
 // Trust proxy (for production deployments behind nginx, etc)
 app.set('trust proxy', 1);

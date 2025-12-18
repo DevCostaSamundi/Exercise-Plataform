@@ -2,19 +2,24 @@ import jwt from 'jsonwebtoken';
 import prisma from '../config/database.js';
 import logger from '../utils/logger.js';
 import { UnauthorizedError } from '../utils/errors.js';
-
+import jwtConfig from '../config/jwt.js';
 /**
  * Middleware de autenticação obrigatória
  */
 export const authenticate = async (req, res, next) => {
   try {
-    const token = req.headers.authorization?.split(' ')[1] || req.cookies?.token;
+    const authHeader = req.headers.authorization;
 
-    if (!token || !token.startsWith('Bearer ')) {
+    if (!authHeader || !authHeader.startsWith('Bearer ')) {
       throw new UnauthorizedError('Token not provided');
     }
 
-    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    const token = authHeader.substring(7);
+    
+    if (!token) {
+      throw new UnauthorizedError('Token not provided');
+    }
+    const decoded = jwt.verify(token, jwtConfig.secret);
 
     const user = await prisma.user.findUnique({
       where: { id: decoded.userId },

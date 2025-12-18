@@ -31,13 +31,13 @@ export default function CreatorPage() {
     try {
       // Buscar perfil do criador
       const profileResponse = await creatorService.getCreatorProfile(id);
-      
+
       if (profileResponse.success) {
         setCreator(profileResponse.data);
-        
+
         // Buscar posts
         const postsResponse = await creatorService.getCreatorPosts(id, { limit: 20 });
-        
+
         if (postsResponse.success) {
           setPosts(postsResponse.data);
           setIsSubscribed(postsResponse.isSubscribed || false);
@@ -171,7 +171,7 @@ export default function CreatorPage() {
             </button>
 
             <div className="flex items-center space-x-3">
-              <button 
+              <button
                 onClick={handleShareProfile}
                 className="p-2 text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-colors"
                 title="Compartilhar perfil"
@@ -180,7 +180,7 @@ export default function CreatorPage() {
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z" />
                 </svg>
               </button>
-              <button 
+              <button
                 className="p-2 text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-colors"
                 title="Mais opções"
               >
@@ -201,7 +201,7 @@ export default function CreatorPage() {
           className="w-full h-full object-cover opacity-80"
         />
         <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent"></div>
-        
+
         {/* Subscription Badge */}
         {isSubscribed && (
           <div className="absolute top-4 right-4 bg-green-500 text-white px-4 py-2 rounded-full text-sm font-semibold flex items-center space-x-2 shadow-lg">
@@ -242,7 +242,7 @@ export default function CreatorPage() {
                   <span>{creator.displayName}</span>
                 </h1>
                 <p className="text-slate-600 dark:text-slate-400 mb-3">@{creator.username}</p>
-                
+
                 {/* Stats */}
                 <div className="flex items-center gap-4 sm:gap-6 text-sm flex-wrap">
                   <div>
@@ -274,7 +274,7 @@ export default function CreatorPage() {
             <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 p-6">
               <h2 className="text-lg font-bold text-slate-900 dark:text-white mb-3">Sobre</h2>
               <p className="text-slate-600 dark:text-slate-400 leading-relaxed mb-4 whitespace-pre-line">{creator.description}</p>
-              
+
               {/* Tags */}
               <div className="flex flex-wrap gap-2 mb-4">
                 {creator.tags.map(tag => (
@@ -310,31 +310,28 @@ export default function CreatorPage() {
               <div className="flex space-x-8">
                 <button
                   onClick={() => setActiveTab('posts')}
-                  className={`pb-3 border-b-2 font-medium text-sm transition-colors ${
-                    activeTab === 'posts'
+                  className={`pb-3 border-b-2 font-medium text-sm transition-colors ${activeTab === 'posts'
                       ? 'border-indigo-600 text-indigo-600'
                       : 'border-transparent text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-300'
-                  }`}
+                    }`}
                 >
                   Posts
                 </button>
                 <button
                   onClick={() => setActiveTab('media')}
-                  className={`pb-3 border-b-2 font-medium text-sm transition-colors ${
-                    activeTab === 'media'
+                  className={`pb-3 border-b-2 font-medium text-sm transition-colors ${activeTab === 'media'
                       ? 'border-indigo-600 text-indigo-600'
                       : 'border-transparent text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-300'
-                  }`}
+                    }`}
                 >
                   Mídia ({creator.photos + creator.videos})
                 </button>
                 <button
                   onClick={() => setActiveTab('about')}
-                  className={`pb-3 border-b-2 font-medium text-sm transition-colors ${
-                    activeTab === 'about'
+                  className={`pb-3 border-b-2 font-medium text-sm transition-colors ${activeTab === 'about'
                       ? 'border-indigo-600 text-indigo-600'
                       : 'border-transparent text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-300'
-                  }`}
+                    }`}
                 >
                   Sobre
                 </button>
@@ -346,31 +343,28 @@ export default function CreatorPage() {
               <div className="flex space-x-2">
                 <button
                   onClick={() => setFilterType('all')}
-                  className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
-                    filterType === 'all'
+                  className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${filterType === 'all'
                       ? 'bg-indigo-600 text-white'
                       : 'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300'
-                  }`}
+                    }`}
                 >
                   Tudo
                 </button>
                 <button
                   onClick={() => setFilterType('photos')}
-                  className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
-                    filterType === 'photos'
+                  className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${filterType === 'photos'
                       ? 'bg-indigo-600 text-white'
                       : 'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300'
-                  }`}
+                    }`}
                 >
                   📸 Fotos ({creator.photos})
                 </button>
                 <button
                   onClick={() => setFilterType('videos')}
-                  className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
-                    filterType === 'videos'
+                  className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${filterType === 'videos'
                       ? 'bg-indigo-600 text-white'
                       : 'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300'
-                  }`}
+                    }`}
                 >
                   🎥 Vídeos ({creator.videos})
                 </button>
@@ -388,8 +382,8 @@ export default function CreatorPage() {
                 ) : (
                   <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
                     {filteredPosts.map(post => (
-                      <div 
-                        key={post.id} 
+                      <div
+                        key={post.id}
                         className="relative aspect-square group cursor-pointer"
                         onClick={() => post.isLocked && !isSubscribed && post.price ? handleUnlockPost(post) : null}
                       >
@@ -399,7 +393,7 @@ export default function CreatorPage() {
                             alt={`Post ${post.id}`}
                             className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                           />
-                          
+
                           {/* Overlay */}
                           <div className="absolute inset-0 bg-black/0 group-hover:bg-black/40 transition-colors flex items-center justify-center">
                             <div className="opacity-0 group-hover:opacity-100 transition-opacity flex items-center space-x-4 text-white">
@@ -466,7 +460,7 @@ export default function CreatorPage() {
                         alt={`Post ${post.id}`}
                         className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                       />
-                      
+
                       {/* Overlay */}
                       <div className="absolute inset-0 bg-black/0 group-hover:bg-black/40 transition-colors flex items-center justify-center">
                         <div className="opacity-0 group-hover:opacity-100 transition-opacity flex items-center space-x-4 text-white">
@@ -519,7 +513,7 @@ export default function CreatorPage() {
               <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 p-6">
                 <h2 className="text-xl font-bold text-slate-900 dark:text-white mb-4">Sobre {creator.displayName}</h2>
                 <p className="text-slate-600 dark:text-slate-400 leading-relaxed mb-6 whitespace-pre-line">{creator.description}</p>
-                
+
                 <div className="space-y-4">
                   <div className="grid grid-cols-2 gap-4">
                     <div>
@@ -565,7 +559,7 @@ export default function CreatorPage() {
                   <p className="text-4xl font-bold">{formatPrice(creator.subscriptionPrice || 30)}</p>
                   <p className="text-sm opacity-75">por mês</p>
                 </div>
-                
+
                 <button
                   onClick={handleSubscribe}
                   className="w-full bg-white text-indigo-600 hover:bg-slate-50 py-3 px-6 rounded-lg font-semibold shadow-lg transition-all hover:shadow-xl mb-3"
@@ -722,7 +716,7 @@ const handleShareProfile = () => {
     navigator.share({
       title: `Confira o perfil de ${creator.displayName}`,
       url: url
-    }).catch(() => {});
+    }).catch(() => { });
   } else {
     navigator.clipboard.writeText(url);
     alert('Link copiado para a área de transferência!');

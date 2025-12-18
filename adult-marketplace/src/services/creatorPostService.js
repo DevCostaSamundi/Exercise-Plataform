@@ -1,51 +1,137 @@
+// creatorPostService.js - VERSÃO SEGURA
 import api from './api';
 
 class CreatorPostService {
   /**
-   * Obter meus posts como criador
+   * Upload de mídia via backend (SEGURO)
+   * Não expõe credenciais do Cloudinary no frontend
    */
-  async getMyPosts(params = {}) {
+  async uploadMedia(file, mediaType = 'photo') {
     try {
-      const response = await api.get('/creator/posts', { params });
-      return response.data;
+      console.log('📤 Starting upload via backend:', {
+        name: file.name,
+        size: file.size,
+        type: file.type,
+        mediaType
+      });
+
+      // Criar FormData
+      const formData = new FormData();
+      formData.append('file', file);
+      formData.append('mediaType', mediaType);
+
+      // Upload via backend
+      const response = await api.post('/upload/media', formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+        onUploadProgress: (progressEvent) => {
+          const percentCompleted = Math.round(
+            (progressEvent.loaded * 100) / progressEvent.total
+          );
+          console.log(`📊 Upload progress: ${percentCompleted}%`);
+        },
+      });
+
+      if (!response.data?.success) {
+        throw new Error(response.data?.message || 'Upload failed');
+      }
+
+      console.log('✅ Upload successful:', response.data.data);
+
+      return {
+        url: response.data.data.url,
+        publicId: response.data.data.publicId,
+        mediaType: response.data.data.mediaType,
+        thumbnail: response.data.data.thumbnail,
+      };
+
     } catch (error) {
-      console.error('❌ Error fetching my posts:', error);
+      console.error('❌ Upload error:', error);
+      throw new Error(
+        error.response?.data?.message || 
+        error.message || 
+        'Falha no upload'
+      );
+    }
+  }
+
+  /**
+   * Criar post com múltiplas mídias
+   */
+  async createPost(postData, files = []) {
+    try {
+      console.log('🚀 Creating post with media...');
+
+      // Upload de todas as mídias
+      const mediaUploads = [];
+      for (let i = 0; i < files.length; i++) {
+        const file = files[i];
+        console.log(`📤 Uploading ${i + 1}/${files.length}: ${file.name}`);
+        
+        const mediaType = file.type.startsWith('video/') ? 'video' : 'photo';
+        const uploadResult = await this.uploadMedia(file, mediaType);
+        
+        mediaUploads.push({
+          url: uploadResult.url,
+          publicId: uploadResult.publicId,
+          type: mediaType,
+          thumbnail: uploadResult.thumbnail,
+        });
+      }
+
+      // Criar post com as URLs das mídias
+      const postPayload = {
+        ...postData,
+        media: mediaUploads,
+      };
+
+      const response = await api.post('/posts', postPayload);
+
+      if (!response.data?.success) {
+        throw new Error(response.data?.message || 'Falha ao criar post');
+      }
+
+      console.log('✅ Post created successfully:', response.data.data);
+      return response.data.data;
+
+    } catch (error) {
+      console.error('❌ Create post error:', error);
       throw error;
     }
   }
 
   /**
-   * Criar novo post
+   * Buscar posts do criador
    */
-  async createPost(postData) {
+  async getMyPosts(params = {}) {
     try {
-      console.log('📤 Sending post data:', postData);
+      const { page = 1, limit = 10, status } = params;
+      
+      const queryParams = new URLSearchParams({
+        page: page.toString(),
+        limit: limit.toString(),
+        ...(status && { status }),
+      });
 
-      const response = await api.post('/creator/posts', postData);
-
-      console.log('✅ Post created:', response.data);
+      const response = await api.get(`/posts/my-posts?${queryParams}`);
       return response.data;
+
     } catch (error) {
-      console.error('❌ Error creating post:', error.response?.data || error);
-
-      // Melhor mensagem de erro
-      const errorMessage = error.response?.data?.message
-        || error.message
-        || 'Erro ao criar post';
-
-      throw new Error(errorMessage);
+      console.error('❌ Get posts error:', error);
+      throw error;
     }
   }
 
   /**
-   * Atualizar post existente
+   * Atualizar post
    */
-  async updatePost(postId, postData) {
+  async updatePost(postId, updateData) {
     try {
-      const response = await api.put(`/creator/posts/${postId}`, postData);
+      const response = await api.patch(`/posts/${postId}`, updateData);
       return response.data;
     } catch (error) {
-      console.error('Error updating post:', error);
+      console.error('❌ Update post error:', error);
       throw error;
     }
   }
@@ -55,107 +141,11 @@ class CreatorPostService {
    */
   async deletePost(postId) {
     try {
-      const response = await api.delete(`/creator/posts/${postId}`);
+      const response = await api.delete(`/posts/${postId}`);
       return response.data;
     } catch (error) {
-      console.error('Error deleting post:', error);
+      console.error('❌ Delete post error:', error);
       throw error;
-    }
-  }
-
-  /**
-   * Deletar múltiplos posts
-   */
-  async bulkDeletePosts(postIds) {
-    try {
-      const response = await api.post('/creator/posts/bulk-delete', { postIds });
-      return response.data;
-    } catch (error) {
-      console.error('Error bulk deleting posts:', error);
-      throw error;
-    }
-  }
-
-  /**
-   * Obter post específico
-   */
-  async getPost(postId) {
-    try {
-      const response = await api.get(`/creator/posts/${postId}`);
-      return response.data;
-    } catch (error) {
-      console.error('Error fetching post:', error);
-      throw error;
-    }
-  }
-
-  /**
-   * Upload de mídia para Cloudinary
-   * ✅ SEM AUTENTICAÇÃO - Upload direto
-   */
-  async uploadMedia(file, type = 'image') {
-    try {
-      console.log('📤 Starting Cloudinary upload:', {
-        name: file.name,
-        size: file.size,
-        type: file.type,
-        mediaType: type,
-      });
-
-      // ✅ Verificar variáveis de ambiente
-      const cloudName = import.meta.env.VITE_CLOUDINARY_CLOUD_NAME;
-      const uploadPreset = import.meta.env.VITE_CLOUDINARY_UPLOAD_PRESET || 'ml_default';
-
-      if (!cloudName) {
-        throw new Error(
-          'Configuração do Cloudinary não encontrada.\n' +
-          'Adicione VITE_CLOUDINARY_CLOUD_NAME no arquivo .env'
-        );
-      }
-
-      // Preparar FormData
-      const formData = new FormData();
-      formData.append('file', file);
-      formData.append('upload_preset', uploadPreset);
-
-      // Determinar tipo de recurso
-      const resourceType = type === 'video' ? 'video' : type === 'audio' ? 'video' : 'image';
-      const uploadUrl = `https://api.cloudinary.com/v1_1/${cloudName}/${resourceType}/upload`;
-
-      console.log(`🌐 Uploading to:  ${uploadUrl}`);
-
-      // ✅ Upload direto para Cloudinary (SEM passar pelo axios/api)
-      const response = await fetch(uploadUrl, {
-        method: 'POST',
-        body: formData,
-      });
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        console.error('❌ Cloudinary error response:', errorData);
-        throw new Error(errorData.error?.message || 'Upload falhou');
-      }
-
-      const data = await response.json();
-
-      console.log('✅ Cloudinary upload successful:', {
-        url: data.secure_url,
-        publicId: data.public_id,
-        format: data.format,
-      });
-
-      return {
-        url: data.secure_url,
-        publicId: data.public_id,
-        format: data.format,
-        width: data.width,
-        height: data.height,
-        duration: data.duration,
-        bytes: data.bytes,
-      };
-    } catch (error) {
-      console.error('❌ Cloudinary upload error:', error);
-      throw new Error(`Falha no upload:  ${error.message}`);
     }
   }
 }
