@@ -1,8 +1,3 @@
-/**
- * Configurações
- * Painel completo de configurações com 6 tabs
- */
-
 import { useState, useEffect } from 'react';
 import api from '../../services/api';
 import {
@@ -60,18 +55,19 @@ const Settings = () => {
   const fetchSettings = async () => {
     try {
       setLoading(true);
-      const response = await api.get('/user/settings');
+      // ✅ USAR ROTA CORRETA - criar esta rota no backend se não existir
+      const response = await api.get('/user/profile'); // ou /user/settings
 
-      setPersonalData(response.data.data || {});
-      setNotificationSettings(response.data.data?.notificationPreferences || {
-        emailNotifications: true,
-        pushNotifications: true,
-        newPosts: true,
-        newMessages: true,
-        subscriptionRenewals: true,
-        marketing: false,
+      setPersonalData({
+        email: response.data.email,
+        username: response.data.username,
+        displayName: response.data.displayName,
+        bio: response.data.bio,
       });
-      setPaymentMethods(response.data.data?.paymentMethods || []);
+
+      // Notificações viriam de outra rota ou do mesmo objeto
+      setNotificationSettings(response.data.notificationSettings || notificationSettings);
+
     } catch (err) {
       console.error('Erro ao buscar configurações:', err);
     } finally {
@@ -82,6 +78,7 @@ const Settings = () => {
   const handleSavePersonal = async () => {
     try {
       setSaving(true);
+      // ✅ USAR ROTA CORRETA
       await api.put('/user/profile', personalData);
       alert('Informações atualizadas com sucesso!');
     } catch (err) {
@@ -93,20 +90,14 @@ const Settings = () => {
   };
 
   const handleChangePassword = async () => {
-    // Validate
     if (securityData.newPassword !== securityData.confirmPassword) {
       alert('As senhas não coincidem');
       return;
     }
 
-    const validation = validatePassword(securityData.newPassword);
-    if (!validation.valid) {
-      setPasswordErrors(validation.errors);
-      return;
-    }
-
     try {
       setSaving(true);
+      // ✅ USAR ROTA CORRETA
       await api.put('/user/password', {
         currentPassword: securityData.currentPassword,
         newPassword: securityData.newPassword,
@@ -189,11 +180,10 @@ const Settings = () => {
                 <button
                   key={tab.id}
                   onClick={() => setActiveTab(tab.id)}
-                  className={`w-full flex items-center gap-3 px-4 py-3 transition-colors ${
-                    activeTab === tab.id
-                      ?  'bg-purple-50 dark:bg-purple-900/20 text-purple-600 dark:text-purple-400 font-semibold'
-                      : 'text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700'
-                  }`}
+                  className={`w-full flex items-center gap-3 px-4 py-3 transition-colors ${activeTab === tab.id
+                    ? 'bg-purple-50 dark:bg-purple-900/20 text-purple-600 dark:text-purple-400 font-semibold'
+                    : 'text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700'
+                    }`}
                 >
                   <Icon />
                   <span className="text-sm">{tab.label}</span>

@@ -1,6 +1,7 @@
 import jwt from 'jsonwebtoken';
 import prisma from '../config/database.js';
 import logger from '../utils/logger.js';
+import { UnauthorizedError } from '../utils/errors.js';
 
 /**
  * Middleware de autenticação obrigatória
@@ -9,15 +10,12 @@ export const authenticate = async (req, res, next) => {
   try {
     const token = req.headers.authorization?.split(' ')[1] || req.cookies?.token;
 
-    if (!token) {
-      return res.status(401).json({
-        success: false,
-        message: 'Authentication required',
-      });
+    if (!token || !token.startsWith('Bearer ')) {
+      throw new UnauthorizedError('Token not provided');
     }
 
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    
+
     const user = await prisma.user.findUnique({
       where: { id: decoded.userId },
       select: {
@@ -27,21 +25,16 @@ export const authenticate = async (req, res, next) => {
         role: true,
         isActive: true,
         isVerified: true,
+        creator: {
+          select: {
+            id: true,
+          },
+        },
       },
     });
 
     if (!user) {
-      return res.status(401).json({
-        success: false,
-        message: 'User not found',
-      });
-    }
-
-    if (!user.isActive) {
-      return res.status(403).json({
-        success: false,
-        message: 'Account is inactive',
-      });
+      throw new UnauthorizedError('User not found');
     }
 
     req.user = user;
@@ -53,7 +46,7 @@ export const authenticate = async (req, res, next) => {
         message: 'Invalid token',
       });
     }
-    
+
     if (error.name === 'TokenExpiredError') {
       return res.status(401).json({
         success: false,
@@ -61,6 +54,7 @@ export const authenticate = async (req, res, next) => {
       });
     }
 
+    logger.error('Authentication error:', error);
     return res.status(500).json({
       success: false,
       message: 'Authentication failed',
@@ -73,37 +67,46 @@ export const authenticate = async (req, res, next) => {
  */
 export const optionalAuth = async (req, res, next) => {
   try {
-    const token = req.headers.authorization?.split(' ')[1] || req.cookies?.token;
+    const authHeader = req.headers.authorization;
 
-    if (!token) {
-      req.user = null;
+    // Se não houver token, apenas continua sem autenticar
+    if (!authHeader || !authHeader.startsWith('Bearer ')) {
       return next();
     }
 
-    const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    
-    const user = await prisma.user.findUnique({
-      where: { id: decoded.userId },
-      select: {
-        id: true,
-        email: true,
-        username: true,
-        role: true,
-        isActive: true,
-        isVerified: true,
-      },
-    });
+    const token = authHeader.substring(7);
 
-    if (!user || !user.isActive) {
-      req.user = null;
-      return next();
+    try {
+      const decoded = jwt.verify(token, process.env.JWT_SECRET);
+
+      const user = await prisma.user.findUnique({
+        where: { id: decoded.userId },
+        select: {
+          id: true,
+          email: true,
+          username: true,
+          role: true,
+          isVerified: true,
+          creator: {
+            select: {
+              id: true,
+            },
+          },
+        },
+      });
+
+      if (user) {
+        req.user = user;
+      }
+    } catch (tokenError) {
+      // Token inválido, mas não retorna erro - apenas continua sem autenticar
+      logger.warn('Optional auth - invalid token:', tokenError.message);
     }
 
-    req.user = user;
     next();
   } catch (error) {
-    req.user = null;
-    next();
+    logger.error('Optional auth error:', error);
+    next(); // Continua mesmo com erro
   }
 };
 
@@ -112,7 +115,7 @@ export const optionalAuth = async (req, res, next) => {
  */
 export const requireCreator = async (req, res, next) => {
   try {
-    if (! req.user) {
+    if (!req.user) {
       return res.status(401).json({
         success: false,
         message: 'Authentication required',
@@ -167,27 +170,29 @@ export const authorizeCreator = async (req, res, next) => {
 /**
  * Verificar se é admin
  */
-export const requireAdmin = (req, res, next) => {
-  if (! req.user) {
-    return res.status(401).json({
+export const authorizeAdmin = (req, res, next) => {
+  try {
+    if (! req.user) {
+      throw new UnauthorizedError('Authentication required');
+    }
+
+    if (req.user.role !== 'ADMIN') {
+      throw new ForbiddenError('Admin access required');
+    }
+
+    next();
+  } catch (error) {
+    logger.error('Admin authorization error:', error);
+    return res.status(error.statusCode || 403).json({
       success: false,
-      message: 'Authentication required',
+      message:  error.message || 'Admin access required',
     });
   }
-
-  if (req.user.role !== 'ADMIN') {
-    return res.status(403).json({
-      success: false,
-      message: 'Admin access required',
-    });
-  }
-
-  next();
 };
 
 export default {
   authenticate,
   optionalAuth,
   requireCreator,
-  requireAdmin,
+  authorizeAdmin,
 };

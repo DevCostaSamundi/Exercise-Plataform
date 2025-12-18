@@ -1,10 +1,5 @@
-/**
- * Histórico de Transações
- * Lista completa de todas as transações
- */
-
 import { useState, useEffect } from 'react';
-import transactionService from '../../services/transactionService';
+import transactionService from '../../services/transactionService'; // USAR SERVIÇO
 import { TRANSACTION_TYPES, PAYMENT_STATUS } from '../../config/constants';
 import TransactionRow from '../../components/subscriber/TransactionRow';
 import useInfiniteScroll from '../../hooks/useInfiniteScroll';
@@ -20,7 +15,7 @@ const Transactions = () => {
     type: '',
     status: '',
     startDate: '',
-    endDate: '',
+    endDate:  '',
   });
 
   const lastTransactionRef = useInfiniteScroll(loadMore, hasMore, loading);
@@ -34,12 +29,11 @@ const Transactions = () => {
       setLoading(true);
       const response = await transactionService.getTransactions({
         page: pageNum,
-        limit: 20,
-        ...filters,
+        limit:  20,
+        ... filters,
       });
 
-      const newTransactions = response.data || [];
-      const more = response.pagination?.page < response.pagination?.pages;
+      const newTransactions = response.transactions || [];
 
       if (append) {
         setTransactions((prev) => [...prev, ...newTransactions]);
@@ -47,7 +41,7 @@ const Transactions = () => {
         setTransactions(newTransactions);
       }
 
-      setHasMore(more);
+      setHasMore(response.hasMore || false);
       setPage(pageNum);
     } catch (err) {
       console.error('Erro ao buscar transações:', err);
@@ -67,15 +61,13 @@ const Transactions = () => {
       const blob = await transactionService.exportTransactions(filters);
 
       // Download file
-      const url = window.URL.createObjectURL(new Blob([blob]));
+      const url = window.URL.createObjectURL(blob);
       const link = document.createElement('a');
       link.href = url;
       link.setAttribute('download', `transacoes_${Date.now()}.csv`);
       document.body.appendChild(link);
       link.click();
       link.remove();
-      
-      // Clean up: revoke the object URL to free memory
       window.URL.revokeObjectURL(url);
     } catch (err) {
       console.error('Erro ao exportar:', err);
@@ -85,7 +77,7 @@ const Transactions = () => {
 
   const clearFilters = () => {
     setFilters({
-      type: '',
+      type:  '',
       status: '',
       startDate: '',
       endDate: '',
@@ -104,119 +96,90 @@ const Transactions = () => {
           <div className="flex gap-2">
             <button
               onClick={handleExportCSV}
-              className="flex items-center gap-2 px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg font-semibold transition-colors"
+              className="flex items-center gap-2 px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg font-medium transition-colors"
             >
-              <FiDownload />
-              Exportar CSV
+              <FiDownload className="text-lg" />
+              <span>Exportar CSV</span>
             </button>
-
             <button
               onClick={() => setShowFilters(!showFilters)}
-              className="flex items-center gap-2 px-4 py-2 bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 rounded-lg transition-colors"
+              className="flex items-center gap-2 px-4 py-2 bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-300 rounded-lg font-medium transition-colors"
             >
-              <FiFilter />
-              Filtros
+              <FiFilter className="text-lg" />
+              <span>Filtros</span>
             </button>
           </div>
         </div>
 
-        {/* Filters Panel */}
+        {/* Filters */}
         {showFilters && (
-          <div className="bg-white dark:bg-gray-800 rounded-lg p-4 shadow-md border border-gray-200 dark:border-gray-700 mb-4">
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="font-semibold text-gray-900 dark:text-white">
-                Filtros Avançados
-              </h3>
-              <button
-                onClick={() => setShowFilters(false)}
-                className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg"
-              >
-                <FiX />
-              </button>
-            </div>
-
+          <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark: border-gray-700 p-4 mb-4">
             <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-              {/* Type Filter */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                   Tipo
                 </label>
                 <select
                   value={filters.type}
-                  onChange={(e) =>
-                    setFilters({ ...filters, type: e.target.value })
-                  }
-                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-900 text-gray-900 dark:text-white"
+                  onChange={(e) => setFilters({ ...filters, type: e.target.value })}
+                  className="w-full px-3 py-2 bg-gray-50 dark:bg-gray-900 border border-gray-300 dark: border-gray-600 rounded-lg text-gray-900 dark:text-white"
                 >
                   <option value="">Todos</option>
-                  <option value={TRANSACTION_TYPES.SUBSCRIPTION}>Assinatura</option>
-                  <option value={TRANSACTION_TYPES.PPV_POST}>Post PPV</option>
-                  <option value={TRANSACTION_TYPES.PPV_MESSAGE}>Mensagem PPV</option>
-                  <option value={TRANSACTION_TYPES.TIP}>Gorjeta</option>
+                  {Object.entries(TRANSACTION_TYPES).map(([key, value]) => (
+                    <option key={key} value={value}>
+                      {key}
+                    </option>
+                  ))}
                 </select>
               </div>
 
-              {/* Status Filter */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                <label className="block text-sm font-medium text-gray-700 dark: text-gray-300 mb-1">
                   Status
                 </label>
                 <select
                   value={filters.status}
-                  onChange={(e) =>
-                    setFilters({ ...filters, status: e.target.value })
-                  }
-                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-900 text-gray-900 dark:text-white"
+                  onChange={(e) => setFilters({ ...filters, status: e.target.value })}
+                  className="w-full px-3 py-2 bg-gray-50 dark: bg-gray-900 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-900 dark: text-white"
                 >
                   <option value="">Todos</option>
-                  <option value={PAYMENT_STATUS.COMPLETED}>Concluído</option>
-                  <option value={PAYMENT_STATUS.PENDING}>Pendente</option>
-                  <option value={PAYMENT_STATUS.FAILED}>Falhou</option>
-                  <option value={PAYMENT_STATUS.REFUNDED}>Reembolsado</option>
+                  {Object.entries(PAYMENT_STATUS).map(([key, value]) => (
+                    <option key={key} value={value}>
+                      {key}
+                    </option>
+                  ))}
                 </select>
               </div>
 
-              {/* Start Date */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                   Data Inicial
                 </label>
                 <input
                   type="date"
-                  value={filters.startDate}
-                  onChange={(e) =>
-                    setFilters({ ...filters, startDate: e.target.value })
-                  }
-                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-900 text-gray-900 dark:text-white"
+                  value={filters. startDate}
+                  onChange={(e) => setFilters({ ... filters, startDate: e.target.value })}
+                  className="w-full px-3 py-2 bg-gray-50 dark:bg-gray-900 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-900 dark:text-white"
                 />
               </div>
 
-              {/* End Date */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                   Data Final
                 </label>
                 <input
                   type="date"
                   value={filters. endDate}
-                  onChange={(e) =>
-                    setFilters({ ...filters, endDate: e.target.value })
-                  }
-                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-900 text-gray-900 dark:text-white"
+                  onChange={(e) => setFilters({ ... filters, endDate: e.target.value })}
+                  className="w-full px-3 py-2 bg-gray-50 dark:bg-gray-900 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-900 dark:text-white"
                 />
               </div>
             </div>
 
-            <div className="flex gap-2 mt-4">
-              <button
-                onClick={() => setShowFilters(false)}
-                className="flex-1 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-lg font-semibold"
-              >
-                Aplicar Filtros
-              </button>
+            <div className="flex justify-end gap-2 mt-4">
               <button
                 onClick={clearFilters}
-                className="px-4 py-2 bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 text-gray-900 dark:text-white rounded-lg font-semibold"
+                className="px-4 py-2 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg"
               >
                 Limpar
               </button>
@@ -227,38 +190,32 @@ const Transactions = () => {
 
       {/* Transactions List */}
       {loading && transactions.length === 0 ? (
-        <div className="text-center py-12">
-          <div className="inline-block w-8 h-8 border-4 border-purple-600 border-t-transparent rounded-full animate-spin" />
+        <div className="flex justify-center py-12">
+          <div className="animate-spin rounded-full h-12 w-12 border-4 border-indigo-600 border-t-transparent"></div>
         </div>
       ) : transactions.length === 0 ? (
-        <div className="text-center py-12">
-          <p className="text-gray-500">Nenhuma transação encontrada</p>
+        <div className="text-center py-12 text-gray-400">
+          Nenhuma transação encontrada
         </div>
       ) : (
-        <>
-          <div className="space-y-3">
-            {transactions.map((transaction, index) => {
-              const isLast = index === transactions.length - 1;
-              return (
-                <div key={transaction._id} ref={isLast ? lastTransactionRef : null}>
-                  <TransactionRow transaction={transaction} />
-                </div>
-              );
-            })}
+        <div className="bg-white dark:bg-gray-800 rounded-lg shadow border border-gray-200 dark:border-gray-700 overflow-hidden">
+          <div className="divide-y divide-gray-200 dark:divide-gray-700">
+            {transactions.map((transaction, index) => (
+              <div
+                key={transaction.id}
+                ref={index === transactions.length - 1 ? lastTransactionRef : null}
+              >
+                <TransactionRow transaction={transaction} />
+              </div>
+            ))}
           </div>
 
           {loading && (
-            <div className="text-center py-8">
-              <div className="inline-block w-8 h-8 border-4 border-purple-600 border-t-transparent rounded-full animate-spin" />
+            <div className="flex justify-center py-4">
+              <div className="animate-spin rounded-full h-8 w-8 border-4 border-indigo-600 border-t-transparent"></div>
             </div>
           )}
-
-          {! hasMore && transactions.length > 0 && (
-            <div className="text-center py-8 text-gray-500">
-              Todas as transações foram carregadas
-            </div>
-          )}
-        </>
+        </div>
       )}
     </div>
   );

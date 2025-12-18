@@ -2,9 +2,7 @@ import api from './api';
 
 class TrendingService {
   /**
-   * Get trending posts
-   * @param {Object} params - Query parameters (period, page, limit)
-   * @returns {Promise<Object>} Trending posts data
+   * Obter posts em trending
    */
   async getTrendingPosts(params = {}) {
     const response = await api.get('/trending/posts', { params });
@@ -12,9 +10,7 @@ class TrendingService {
   }
 
   /**
-   * Get trending creators
-   * @param {Object} params - Query parameters (period, page, limit)
-   * @returns {Promise<Object>} Trending creators data
+   * Obter criadores em trending
    */
   async getTrendingCreators(params = {}) {
     const response = await api.get('/trending/creators', { params });
@@ -22,9 +18,7 @@ class TrendingService {
   }
 
   /**
-   * Get trending tags/hashtags
-   * @param {Object} params - Query parameters (period, limit)
-   * @returns {Promise<Object>} Trending tags data
+   * Obter tags em trending
    */
   async getTrendingTags(params = {}) {
     const response = await api.get('/trending/tags', { params });

@@ -6,6 +6,7 @@ import { NotFoundError, UnauthorizedError, ConflictError } from '../utils/errors
 class UserController {
   /**
    * Get current user profile
+   * GET /api/v1/user/profile
    */
   async getProfile(req, res, next) {
     try {
@@ -15,6 +16,7 @@ class UserController {
           id: true,
           email: true,
           username: true,
+          displayName: true,
           firstName: true,
           lastName: true,
           avatar: true,
@@ -45,16 +47,18 @@ class UserController {
 
   /**
    * Update user profile
+   * PUT /api/v1/user/profile
    */
   async updateProfile(req, res, next) {
     try {
-      const { firstName, lastName, bio, avatar } = req.body;
+      const { firstName, lastName, displayName, bio, avatar } = req.body;
 
       const user = await prisma.user.update({
         where: { id: req.user.id },
         data: {
           firstName,
           lastName,
+          displayName,
           bio,
           avatar,
         },
@@ -62,6 +66,7 @@ class UserController {
           id: true,
           email: true,
           username: true,
+          displayName: true,
           firstName: true,
           lastName: true,
           avatar: true,
@@ -78,6 +83,7 @@ class UserController {
 
   /**
    * Change password
+   * PUT /api/v1/user/password
    */
   async changePassword(req, res, next) {
     try {
@@ -111,7 +117,89 @@ class UserController {
   }
 
   /**
+   * Get user settings
+   * GET /api/v1/user/settings
+   */
+  async getSettings(req, res, next) {
+    try {
+      const user = await prisma.user.findUnique({
+        where: { id: req.user.id },
+        select: {
+          id: true,
+          email: true,
+          username: true,
+          displayName: true,
+          bio: true,
+          avatar: true,
+          // Adicionar campos de configuração quando existirem no schema
+          // notificationSettings: true,
+          // privacySettings: true,
+        },
+      });
+
+      if (!user) {
+        throw new NotFoundError('User not found');
+      }
+
+      return ApiResponse.success(res, {
+        personal: {
+          email: user.email,
+          username: user.username,
+          displayName: user.displayName,
+          bio: user.bio,
+          avatar: user.avatar,
+        },
+        notifications: {
+          // Valores padrão - ajustar quando tiver no schema
+          email: true,
+          push: true,
+          marketing: false,
+        },
+      }, 'Settings retrieved successfully');
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  /**
+   * Update user settings
+   * PUT /api/v1/user/settings
+   */
+  async updateSettings(req, res, next) {
+    try {
+      const { personal, notifications, privacy } = req.body;
+
+      const updateData = {};
+
+      if (personal) {
+        if (personal.displayName !== undefined) updateData.displayName = personal.displayName;
+        if (personal.bio !== undefined) updateData.bio = personal.bio;
+        if (personal.avatar !== undefined) updateData.avatar = personal.avatar;
+      }
+
+      // Atualizar dados do usuário
+      const user = await prisma.user.update({
+        where: { id: req.user.id },
+        data: updateData,
+        select: {
+          id: true,
+          email: true,
+          username: true,
+          displayName: true,
+          bio: true,
+          avatar: true,
+        },
+      });
+
+      return ApiResponse.success(res, user, 'Settings updated successfully');
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  /**
    * Update email
+   * PUT /api/v1/user/email
    */
   async updateEmail(req, res, next) {
     try {
@@ -141,7 +229,7 @@ class UserController {
       // Update email
       const updatedUser = await prisma.user.update({
         where: { id: req.user.id },
-        data: { 
+        data: {
           email,
           isVerified: false, // Require re-verification
         },
@@ -153,7 +241,7 @@ class UserController {
         },
       });
 
-      return ApiResponse.success(res, updatedUser, 'Email updated successfully. Please verify your new email.');
+      return ApiResponse.success(res, updatedUser, 'Email updated successfully.  Please verify your new email.');
     } catch (error) {
       next(error);
     }
@@ -161,126 +249,30 @@ class UserController {
 
   /**
    * Delete account
+   * DELETE /api/v1/user/account
    */
   async deleteAccount(req, res, next) {
     try {
+      const { password } = req.body;
+
+      // Get user with password
+      const user = await prisma.user.findUnique({
+        where: { id: req.user.id },
+      });
+
+      // Verify password
+      const isPasswordValid = await bcrypt.compare(password, user.password);
+
+      if (!isPasswordValid) {
+        throw new UnauthorizedError('Password is incorrect');
+      }
+
+      // Delete user (cascade will delete related data)
       await prisma.user.delete({
         where: { id: req.user.id },
       });
 
       return ApiResponse.success(res, null, 'Account deleted successfully');
-    } catch (error) {
-      next(error);
-    }
-  }
-
-  /**
-   * Check if user has an active subscription to a creator
-   */
-  async getSubscriptionStatus(req, res, next) {
-    try {
-      const { id } = req.params;
-      const { creatorId } = req.query;
-
-      if (!creatorId) {
-        return ApiResponse.error(res, 'creatorId is required', 400);
-      }
-
-      const subscription = await prisma.subscription.findFirst({
-        where: {
-          userId: id,
-          creatorId: creatorId,
-          status: 'ACTIVE',
-        },
-      });
-
-      return ApiResponse.success(res, { isSubscriber: !!subscription }, 'Subscription status retrieved');
-    } catch (error) {
-      next(error);
-    }
-  }
-
-  /**
-   * Check if user has ever tipped a creator
-   */
-  async getHasTipped(req, res, next) {
-    try {
-      const { id } = req.params;
-      const { creatorId } = req.query;
-
-      if (!creatorId) {
-        return ApiResponse.error(res, 'creatorId is required', 400);
-      }
-
-      const tip = await prisma.tip.findFirst({
-        where: {
-          fromUserId: id,
-          toCreatorId: creatorId,
-        },
-      });
-
-      return ApiResponse.success(res, { hasTipped: !!tip }, 'Tip status retrieved');
-    } catch (error) {
-      next(error);
-    }
-  }
-
-  /**
-   * Get user settings
-   */
-  async getSettings(req, res, next) {
-    try {
-      const user = await prisma.user.findUnique({
-        where: { id: req.user.id },
-        select: {
-          id: true,
-          email: true,
-          username: true,
-          notificationPreferences: true,
-          privacySettings: true,
-          language: true,
-          timezone: true,
-        },
-      });
-
-      if (!user) {
-        throw new NotFoundError('User not found');
-      }
-
-      return ApiResponse.success(res, user, 'Settings retrieved successfully');
-    } catch (error) {
-      next(error);
-    }
-  }
-
-  /**
-   * Update user settings
-   */
-  async updateSettings(req, res, next) {
-    try {
-      const { notificationPreferences, privacySettings, language, timezone } = req.body;
-
-      const updateData = {};
-      if (notificationPreferences !== undefined) updateData.notificationPreferences = notificationPreferences;
-      if (privacySettings !== undefined) updateData.privacySettings = privacySettings;
-      if (language !== undefined) updateData.language = language;
-      if (timezone !== undefined) updateData.timezone = timezone;
-
-      const user = await prisma.user.update({
-        where: { id: req.user.id },
-        data: updateData,
-        select: {
-          id: true,
-          email: true,
-          username: true,
-          notificationPreferences: true,
-          privacySettings: true,
-          language: true,
-          timezone: true,
-        },
-      });
-
-      return ApiResponse.success(res, user, 'Settings updated successfully');
     } catch (error) {
       next(error);
     }

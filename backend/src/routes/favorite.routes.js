@@ -9,35 +9,19 @@ import {
 
 const router = express.Router();
 
-// All routes require authentication
+// Todas as rotas requerem autenticação
 router.use(authenticate);
 
-/**
- * @route   GET /api/v1/favorites
- * @desc    Get user's favorite creators
- * @access  Private
- */
+// GET /api/v1/favorites - Listar favoritos do usuário
 router.get('/', getUserFavorites);
 
-/**
- * @route   POST /api/v1/favorites/:creatorId
- * @desc    Add creator to favorites
- * @access  Private
- */
-router.post('/:creatorId', addFavorite);
-
-/**
- * @route   DELETE /api/v1/favorites/:creatorId
- * @desc    Remove creator from favorites
- * @access  Private
- */
-router.delete('/:creatorId', removeFavorite);
-
-/**
- * @route   GET /api/v1/favorites/check/:creatorId
- * @desc    Check if creator is favorited
- * @access  Private
- */
+// GET /api/v1/favorites/check/:creatorId - Verificar se está nos favoritos
 router.get('/check/:creatorId', checkFavorite);
+
+// POST /api/v1/favorites/: creatorId - Adicionar aos favoritos
+router.post('/: creatorId', addFavorite);
+
+// DELETE /api/v1/favorites/:creatorId - Remover dos favoritos
+router.delete('/:creatorId', removeFavorite);
 
 export default router;

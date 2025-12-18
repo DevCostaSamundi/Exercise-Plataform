@@ -1,10 +1,5 @@
-/**
- * Página de Favoritos
- * Criadores favoritados pelo usuário
- */
-
 import { useState, useEffect } from 'react';
-import favoriteService from '../../services/favoriteService';
+import favoriteService from '../../services/favoriteService'; // USAR SERVIÇO
 import { SORT_OPTIONS } from '../../config/constants';
 import CreatorCard from '../../components/subscriber/CreatorCard';
 import { FiHeart, FiInbox } from 'react-icons/fi';
@@ -22,7 +17,7 @@ const Favorites = () => {
     try {
       setLoading(true);
       const response = await favoriteService.getFavorites({ sort: sortBy });
-      setFavorites(response.data || []);
+      setFavorites(response.favorites || []);
     } catch (err) {
       console.error('Erro ao buscar favoritos:', err);
     } finally {
@@ -33,8 +28,7 @@ const Favorites = () => {
   const handleUnfavorite = async (creatorId) => {
     try {
       await favoriteService.removeFavorite(creatorId);
-      // Remove from list
-      setFavorites((prev) => prev.filter((fav) => fav.creatorId !== creatorId));
+      setFavorites((prev) => prev.filter((fav) => fav._id !== creatorId));
     } catch (err) {
       console.error('Erro ao desfavoritar:', err);
     }
@@ -56,7 +50,7 @@ const Favorites = () => {
           <div className="flex gap-2">
             {[
               { value: SORT_OPTIONS.RECENT, label: 'Recentes' },
-              { value: SORT_OPTIONS.ALPHABETICAL, label: 'A-Z' },
+              { value:  SORT_OPTIONS.ALPHABETICAL, label: 'A-Z' },
               { value: 'most_active', label: 'Mais Ativos' },
             ].map((option) => (
               <button
@@ -76,7 +70,7 @@ const Favorites = () => {
       </div>
 
       {/* Loading */}
-      {loading ?  (
+      {loading ? (
         <div className="text-center py-12">
           <div className="inline-block w-8 h-8 border-4 border-red-500 border-t-transparent rounded-full animate-spin" />
         </div>
@@ -86,35 +80,23 @@ const Favorites = () => {
           <div className="w-24 h-24 mx-auto mb-4 bg-gray-100 dark:bg-gray-800 rounded-full flex items-center justify-center">
             <FiHeart className="text-5xl text-gray-400" />
           </div>
-          <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
+          <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">
             Nenhum favorito ainda
           </h3>
-          <p className="text-gray-600 dark:text-gray-400 mb-4">
-            Favorite criadores para acompanhar mais facilmente! 
+          <p className="text-gray-500 dark:text-gray-400">
+            Comece favoritando criadores que você gosta
           </p>
-          <a
-            href="/explore"
-            className="inline-block px-6 py-3 bg-red-500 hover:bg-red-600 text-white rounded-lg font-semibold transition-colors"
-          >
-            Explorar Criadores
-          </a>
         </div>
       ) : (
-        /* Favorites Grid */
+        /* Grid de Favoritos */
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {favorites.map((creator) => (
-            <div key={creator._id} className="relative group">
-              <CreatorCard creator={creator} />
-              
-              {/* Unfavorite Button (on hover) */}
-              <button
-                onClick={() => handleUnfavorite(creator._id)}
-                className="absolute top-4 right-4 p-2 bg-white dark:bg-gray-800 rounded-full shadow-lg opacity-0 group-hover:opacity-100 transition-opacity"
-                title="Remover dos favoritos"
-              >
-                <FiHeart className="text-red-500 fill-current" />
-              </button>
-            </div>
+            <CreatorCard
+              key={creator._id}
+              creator={creator}
+              onUnfavorite={() => handleUnfavorite(creator._id)}
+              showUnfavoriteButton
+            />
           ))}
         </div>
       )}

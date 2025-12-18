@@ -21,3 +21,4 @@ export { default as subscriptionService } from './subscriptionService';
 export { default as transactionService } from './transactionService';
 export { default as walletService } from './walletService';
 export { default as withdrawalService } from './withdrawalService';
+export { default as trendingService } from './trendingService';

@@ -8,28 +8,16 @@ import {
 
 const router = express.Router();
 
-// All routes require authentication
+// Todas as rotas requerem autenticação
 router.use(authenticate);
 
-/**
- * @route   GET /api/v1/wallet
- * @desc    Get user wallet balance
- * @access  Private
- */
+// GET /api/v1/wallet - Obter dados da carteira
 router.get('/wallet', getWallet);
 
-/**
- * @route   GET /api/v1/transactions
- * @desc    Get user transaction history
- * @access  Private
- */
+// GET /api/v1/transactions - Listar transações
 router.get('/transactions', getTransactions);
 
-/**
- * @route   GET /api/v1/transactions/export
- * @desc    Export transactions to CSV
- * @access  Private
- */
+// GET /api/v1/transactions/export - Exportar para CSV
 router.get('/transactions/export', exportTransactions);
 
 export default router;

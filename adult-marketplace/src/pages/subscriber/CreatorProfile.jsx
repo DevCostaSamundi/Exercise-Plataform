@@ -6,8 +6,10 @@
 import { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import api from '../../services/api';
+import creatorService from '../../services/creatorService';
 import subscriptionService from '../../services/subscriptionService';
 import favoriteService from '../../services/favoriteService';
+import useInfiniteScroll from '../../hooks/useInfiniteScroll';
 import {
   FiHeart,
   FiMessageCircle,
@@ -52,9 +54,9 @@ const CreatorProfile = () => {
   const fetchCreator = async () => {
     try {
       setLoading(true);
-      const response = await api.get(`/creators/username/${username}`);
-      setCreator(response.data.data);
-      // Check subscription status - will be returned with posts
+      // ✅ USAR SERVIÇO
+      const response = await creatorService.getCreatorProfileByUsername(username);
+      setCreator(response.data);
     } catch (err) {
       console.error('Erro ao buscar criador:', err);
     } finally {
@@ -65,13 +67,16 @@ const CreatorProfile = () => {
   const fetchPosts = async (pageNum, append = true) => {
     try {
       setPostsLoading(true);
-      const response = await api.get(`/creators/username/${username}/posts`, {
-        params: { page: pageNum, limit: 20 },
+      // ✅ USAR SERVIÇO
+      const response = await creatorService.getCreatorPostsByUsername(username, {
+        page: pageNum,
+        limit: 20,
       });
 
-      const { data: newPosts, isSubscribed: subStatus, pagination } = response.data;
+      const newPosts = response.data || [];
+      const pagination = response.pagination || {};
 
-      setIsSubscribed(subStatus || false);
+      setIsSubscribed(response.isSubscribed || false);
 
       if (append) {
         setPosts((prev) => [...prev, ...newPosts]);
@@ -88,25 +93,21 @@ const CreatorProfile = () => {
     }
   };
 
-  function loadMorePosts() {
-    if (!postsLoading && hasMore) {
-      fetchPosts(page + 1, true);
-    }
-  }
-
   const handleSubscribe = async () => {
     try {
       setSubscribing(true);
 
       if (isSubscribed) {
-        // Find subscription and cancel it
-        const subs = await subscriptionService.getUserSubscriptions();
-        const subscription = subs.data?.find(s => s.creator.id === creator.id);
+        // Cancelar assinatura
+        const subs = await subscriptionService.getSubscriptions();
+        const subscription = subs.data?.find(s => s.creatorId === creator.id && s.status === 'ACTIVE');
+
         if (subscription) {
           await subscriptionService.cancelSubscription(subscription.id);
+          setIsSubscribed(false);
         }
-        setIsSubscribed(false);
       } else {
+        // ✅ CRIAR ASSINATURA CORRETAMENTE
         await subscriptionService.createSubscription(creator.id);
         setIsSubscribed(true);
       }
@@ -120,13 +121,9 @@ const CreatorProfile = () => {
 
   const handleFavorite = async () => {
     try {
-      if (isFavorited) {
-        await favoriteService.removeFavorite(creator.id);
-        setIsFavorited(false);
-      } else {
-        await favoriteService.addFavorite(creator.id);
-        setIsFavorited(true);
-      }
+      // ✅ USAR SERVIÇO DE FAVORITOS
+      await favoriteService.toggleFavorite(creator.id);
+      setIsFavorited(!isFavorited);
     } catch (err) {
       console.error('Erro ao favoritar:', err);
     }
@@ -196,11 +193,10 @@ const CreatorProfile = () => {
               <div className="flex gap-2">
                 <button
                   onClick={handleFavorite}
-                  className={`p-3 rounded-lg border-2 transition-all ${
-                    isFavorited
+                  className={`p-3 rounded-lg border-2 transition-all ${isFavorited
                       ? 'border-red-500 bg-red-50 dark:bg-red-900/20 text-red-500'
                       : 'border-gray-300 dark:border-gray-600 hover:border-red-500 text-gray-600 dark:text-gray-400'
-                  }`}
+                    }`}
                   title={isFavorited ? 'Remover dos favoritos' : 'Adicionar aos favoritos'}
                 >
                   <FiHeart className={isFavorited ? 'fill-current' : ''} />
@@ -217,17 +213,16 @@ const CreatorProfile = () => {
                 <button
                   onClick={handleSubscribe}
                   disabled={subscribing}
-                  className={`px-6 py-3 rounded-lg font-bold transition-all ${
-                    isSubscribed
+                  className={`px-6 py-3 rounded-lg font-bold transition-all ${isSubscribed
                       ? 'bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-300'
                       : 'bg-gradient-to-r from-purple-600 to-pink-600 text-white hover:from-purple-700 hover:to-pink-700'
-                  } ${subscribing ? 'opacity-50 cursor-not-allowed' : ''}`}
+                    } ${subscribing ? 'opacity-50 cursor-not-allowed' : ''}`}
                 >
                   {subscribing
                     ? 'Processando...'
                     : isSubscribed
-                    ? 'Assinando'
-                    : `Assinar · ${formatCurrency(creator.subscriptionPrice)}/mês`}
+                      ? 'Assinando'
+                      : `Assinar · ${formatCurrency(creator.subscriptionPrice)}/mês`}
                 </button>
               </div>
             </div>
@@ -324,11 +319,10 @@ const CreatorProfile = () => {
               <button
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id)}
-                className={`flex items-center gap-2 px-4 py-3 font-semibold transition-all ${
-                  activeTab === tab.id
+                className={`flex items-center gap-2 px-4 py-3 font-semibold transition-all ${activeTab === tab.id
                     ? 'text-purple-600 border-b-2 border-purple-600'
                     : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white'
-                }`}
+                  }`}
               >
                 <Icon />
                 {tab.label}
@@ -342,7 +336,7 @@ const CreatorProfile = () => {
       <div className="mt-6">
         {activeTab === 'posts' && (
           <div>
-            {!canViewContent ?  (
+            {!canViewContent ? (
               <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-12 text-center">
                 <div className="w-20 h-20 mx-auto mb-4 bg-purple-100 dark:bg-purple-900/20 rounded-full flex items-center justify-center">
                   <FiGrid className="text-4xl text-purple-600" />

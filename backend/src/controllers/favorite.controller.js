@@ -1,14 +1,22 @@
 import prisma from '../config/database.js';
 import logger from '../utils/logger.js';
+import ApiResponse from '../utils/response.js';
 
 /**
- * Get user's favorite creators
+ * Obter favoritos do usuário
+ * GET /api/v1/favorites
  */
 export const getUserFavorites = async (req, res) => {
   try {
     const userId = req.user.id;
-    const { page = 1, limit = 20 } = req.query;
-    const skip = (parseInt(page) - 1) * parseInt(limit);
+    const { sort = 'recent' } = req.query;
+
+    let orderBy = {};
+    if (sort === 'recent') {
+      orderBy = { createdAt: 'desc' };
+    } else if (sort === 'alphabetical') {
+      orderBy = { creator: { user: { displayName: 'asc' } } };
+    }
 
     const favorites = await prisma.favorite.findMany({
       where: { userId },
@@ -17,6 +25,7 @@ export const getUserFavorites = async (req, res) => {
           include: {
             user: {
               select: {
+                id: true,
                 username: true,
                 displayName: true,
                 avatar: true,
@@ -25,37 +34,26 @@ export const getUserFavorites = async (req, res) => {
           },
         },
       },
-      orderBy: { createdAt: 'desc' },
-      skip,
-      take: parseInt(limit),
+      orderBy,
     });
 
-    const total = await prisma.favorite.count({ where: { userId } });
+    const formatted = favorites.map(fav => ({
+      _id: fav.creator.id,
+      username: fav.creator.user.username,
+      displayName: fav.creator.user.displayName || fav.creator.user.username,
+      avatar: fav.creator.user.avatar,
+      subscriptionPrice: fav.creator.subscriptionPrice,
+      subscriberCount: fav.creator.subscriberCount || 0,
+      isVerified: fav.creator.isVerified,
+      addedAt: fav.createdAt,
+    }));
 
     res.json({
       success: true,
-      data: favorites.map(f => ({
-        id: f.id,
-        creatorId: f.creatorId,
-        creator: {
-          id: f.creator.id,
-          username: f.creator.user.username,
-          displayName: f.creator.displayName || f.creator.user.displayName,
-          avatar: f.creator.user.avatar,
-          subscriptionPrice: f.creator.subscriptionPrice,
-          isVerified: f.creator.isVerified,
-        },
-        createdAt: f.createdAt,
-      })),
-      pagination: {
-        page: parseInt(page),
-        limit: parseInt(limit),
-        total,
-        pages: Math.ceil(total / parseInt(limit)),
-      },
+      favorites: formatted,
     });
   } catch (error) {
-    logger.error('Get favorites error:', error);
+    logger.error('Error fetching favorites:', error);
     res.status(500).json({
       success: false,
       message: 'Failed to fetch favorites',
@@ -64,14 +62,15 @@ export const getUserFavorites = async (req, res) => {
 };
 
 /**
- * Add creator to favorites
+ * Adicionar criador aos favoritos
+ * POST /api/v1/favorites/: creatorId
  */
 export const addFavorite = async (req, res) => {
   try {
     const userId = req.user.id;
     const { creatorId } = req.params;
 
-    // Check if creator exists
+    // Verificar se o criador existe
     const creator = await prisma.creator.findUnique({
       where: { id: creatorId },
     });
@@ -83,48 +82,37 @@ export const addFavorite = async (req, res) => {
       });
     }
 
-    // Check if already favorited
-    const existing = await prisma.favorite.findFirst({
+    // Verificar se já está nos favoritos
+    const existing = await prisma.favorite.findUnique({
       where: {
-        userId,
-        creatorId,
+        userId_creatorId: {
+          userId,
+          creatorId,
+        },
       },
     });
 
     if (existing) {
-      return res.status(409).json({
+      return res.status(400).json({
         success: false,
         message: 'Creator already in favorites',
       });
     }
 
-    const favorite = await prisma.favorite.create({
+    // Adicionar aos favoritos
+    await prisma.favorite.create({
       data: {
         userId,
         creatorId,
-      },
-      include: {
-        creator: {
-          include: {
-            user: {
-              select: {
-                username: true,
-                displayName: true,
-                avatar: true,
-              },
-            },
-          },
-        },
       },
     });
 
     res.status(201).json({
       success: true,
-      data: favorite,
       message: 'Creator added to favorites',
     });
   } catch (error) {
-    logger.error('Add favorite error:', error);
+    logger.error('Error adding favorite:', error);
     res.status(500).json({
       success: false,
       message: 'Failed to add favorite',
@@ -133,17 +121,20 @@ export const addFavorite = async (req, res) => {
 };
 
 /**
- * Remove creator from favorites
+ * Remover criador dos favoritos
+ * DELETE /api/v1/favorites/:creatorId
  */
 export const removeFavorite = async (req, res) => {
   try {
     const userId = req.user.id;
     const { creatorId } = req.params;
 
-    const favorite = await prisma.favorite.findFirst({
+    const favorite = await prisma.favorite.findUnique({
       where: {
-        userId,
-        creatorId,
+        userId_creatorId: {
+          userId,
+          creatorId,
+        },
       },
     });
 
@@ -155,7 +146,9 @@ export const removeFavorite = async (req, res) => {
     }
 
     await prisma.favorite.delete({
-      where: { id: favorite.id },
+      where: {
+        id: favorite.id,
+      },
     });
 
     res.json({
@@ -163,7 +156,7 @@ export const removeFavorite = async (req, res) => {
       message: 'Creator removed from favorites',
     });
   } catch (error) {
-    logger.error('Remove favorite error:', error);
+    logger.error('Error removing favorite:', error);
     res.status(500).json({
       success: false,
       message: 'Failed to remove favorite',
@@ -172,32 +165,32 @@ export const removeFavorite = async (req, res) => {
 };
 
 /**
- * Check if creator is favorited
+ * Verificar se criador está nos favoritos
+ * GET /api/v1/favorites/check/:creatorId
  */
 export const checkFavorite = async (req, res) => {
   try {
     const userId = req.user.id;
     const { creatorId } = req.params;
 
-    const favorite = await prisma.favorite.findFirst({
+    const favorite = await prisma.favorite.findUnique({
       where: {
-        userId,
-        creatorId,
+        userId_creatorId: {
+          userId,
+          creatorId,
+        },
       },
     });
 
     res.json({
       success: true,
-      data: {
-        isFavorite: !!favorite,
-        favorite: favorite || null,
-      },
+      isFavorited: !!favorite,
     });
   } catch (error) {
-    logger.error('Check favorite error:', error);
+    logger.error('Error checking favorite:', error);
     res.status(500).json({
       success: false,
-      message: 'Failed to check favorite status',
+      message: 'Failed to check favorite',
     });
   }
 };

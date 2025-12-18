@@ -1,53 +1,46 @@
 import prisma from '../config/database.js';
 import logger from '../utils/logger.js';
 
-// Trending score weights
-const TRENDING_WEIGHTS = {
-  POST_LIKE: 2,
-  POST_COMMENT: 1,
-  POST_VIEW: 0.1,
-  CREATOR_POST: 5,
-  CREATOR_SUBSCRIPTION: 10,
-};
-
 /**
- * Get trending posts
+ * Obter posts em trending
+ * GET /api/v1/trending/posts
  */
 export const getTrendingPosts = async (req, res) => {
   try {
-    const { period = '7d', page = 1, limit = 20 } = req.query;
-    const skip = (parseInt(page) - 1) * parseInt(limit);
+    const { period = '24h', limit = 20 } = req.query;
 
-    // Calculate date range based on period
+    // Calcular data de início baseado no período
     const now = new Date();
-    let startDate;
+    let startDate = new Date();
+    
     switch (period) {
-      case '24h':
-        startDate = new Date(now.getTime() - 24 * 60 * 60 * 1000);
+      case '24h': 
+        startDate.setHours(now.getHours() - 24);
         break;
       case '7d':
-        startDate = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+        startDate.setDate(now.getDate() - 7);
         break;
-      case '30d':
-        startDate = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
+      case '30d': 
+        startDate.setDate(now.getDate() - 30);
         break;
       default:
-        startDate = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+        startDate.setHours(now.getHours() - 24);
     }
 
-    // Get posts with engagement counts
     const posts = await prisma.post.findMany({
       where: {
         createdAt: {
           gte: startDate,
         },
+        isPublished: true,
       },
       include: {
         creator: {
           include: {
-            user: {
+            user:  {
               select: {
-                username: true,
+                id: true,
+                username:  true,
                 displayName: true,
                 avatar: true,
               },
@@ -62,79 +55,84 @@ export const getTrendingPosts = async (req, res) => {
         },
       },
       orderBy: [
-        { viewCount: 'desc' },
-        { createdAt: 'desc' },
+        { likesCount: 'desc' },
+        { viewsCount: 'desc' },
+        { commentsCount: 'desc' },
       ],
-      skip,
       take: parseInt(limit),
-    });
-
-    // Calculate engagement score and sort
-    const trending = posts.map(post => ({
-      ...post,
-      engagementScore: 
-        (post._count.likes * TRENDING_WEIGHTS.POST_LIKE) + 
-        (post._count.comments * TRENDING_WEIGHTS.POST_COMMENT) + 
-        ((post.viewCount || 0) * TRENDING_WEIGHTS.POST_VIEW),
-    })).sort((a, b) => b.engagementScore - a.engagementScore);
-
-    const total = await prisma.post.count({
-      where: {
-        createdAt: {
-          gte: startDate,
-        },
-      },
     });
 
     res.json({
       success: true,
-      data: trending,
-      pagination: {
-        page: parseInt(page),
-        limit: parseInt(limit),
-        total,
-        pages: Math.ceil(total / parseInt(limit)),
-      },
+      posts:  posts.map(post => ({
+        id: post.id,
+        caption: post.caption,
+        mediaUrl: post.mediaUrl,
+        mediaType: post.mediaType,
+        isPPV: post.isPPV,
+        price: post.price,
+        likesCount: post.likesCount,
+        commentsCount: post.commentsCount,
+        viewsCount: post.viewsCount,
+        createdAt: post.createdAt,
+        creator: {
+          id: post.creator.id,
+          username: post.creator.user.username,
+          displayName: post.creator.user.displayName,
+          avatar: post.creator.user.avatar,
+        },
+      })),
     });
   } catch (error) {
-    logger.error('Get trending posts error:', error);
+    logger.error('Error fetching trending posts:', error);
     res.status(500).json({
       success: false,
-      message: 'Failed to fetch trending posts',
+      message:  'Failed to fetch trending posts',
     });
   }
 };
 
 /**
- * Get trending creators
+ * Obter criadores em trending
+ * GET /api/v1/trending/creators
  */
 export const getTrendingCreators = async (req, res) => {
   try {
-    const { period = '7d', page = 1, limit = 20 } = req.query;
-    const skip = (parseInt(page) - 1) * parseInt(limit);
+    const { period = '24h', limit = 20 } = req.query;
 
-    // Calculate date range
+    // Calcular data de início
     const now = new Date();
-    let startDate;
+    let startDate = new Date();
+    
     switch (period) {
-      case '24h':
-        startDate = new Date(now.getTime() - 24 * 60 * 60 * 1000);
+      case '24h': 
+        startDate.setHours(now.getHours() - 24);
         break;
       case '7d':
-        startDate = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+        startDate.setDate(now.getDate() - 7);
         break;
       case '30d':
-        startDate = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
+        startDate.setDate(now.getDate() - 30);
         break;
       default:
-        startDate = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+        startDate. setHours(now.getHours() - 24);
     }
 
-    // Get creators with recent activity
+    // Buscar criadores com mais atividade recente
     const creators = await prisma.creator.findMany({
+      where: {
+        posts: {
+          some: {
+            createdAt: {
+              gte: startDate,
+            },
+          },
+        },
+      },
       include: {
         user: {
           select: {
+            id: true,
             username: true,
             displayName: true,
             avatar: true,
@@ -146,70 +144,30 @@ export const getTrendingCreators = async (req, res) => {
             subscriptions: true,
           },
         },
-        posts: {
-          where: {
-            createdAt: {
-              gte: startDate,
-            },
-          },
-          select: {
-            _count: {
-              select: {
-                likes: true,
-                comments: true,
-              },
-            },
-            viewCount: true,
-          },
-        },
       },
-      skip,
+      orderBy: {
+        subscriberCount: 'desc',
+      },
       take: parseInt(limit),
     });
 
-    // Calculate trending score
-    const trending = creators.map(creator => {
-      const totalLikes = creator.posts.reduce((sum, post) => sum + post._count.likes, 0);
-      const totalComments = creator.posts.reduce((sum, post) => sum + post._count.comments, 0);
-      const totalViews = creator.posts.reduce((sum, post) => sum + (post.viewCount || 0), 0);
-      const recentPosts = creator.posts.length;
-
-      const trendingScore = 
-        (totalLikes * TRENDING_WEIGHTS.POST_LIKE) + 
-        (totalComments * TRENDING_WEIGHTS.POST_COMMENT) + 
-        (totalViews * TRENDING_WEIGHTS.POST_VIEW) + 
-        (recentPosts * TRENDING_WEIGHTS.CREATOR_POST) + 
-        (creator._count.subscriptions * TRENDING_WEIGHTS.CREATOR_SUBSCRIPTION);
-
-      return {
-        id: creator.id,
-        username: creator.user.username,
-        displayName: creator.displayName || creator.user.displayName,
-        avatar: creator.user.avatar,
-        bio: creator.bio,
-        subscriptionPrice: creator.subscriptionPrice,
-        isVerified: creator.isVerified,
-        subscriberCount: creator._count.subscriptions,
-        postCount: creator._count.posts,
-        recentPosts,
-        trendingScore,
-      };
-    }).sort((a, b) => b.trendingScore - a.trendingScore);
-
-    const total = await prisma.creator.count();
-
     res.json({
       success: true,
-      data: trending,
-      pagination: {
-        page: parseInt(page),
-        limit: parseInt(limit),
-        total,
-        pages: Math.ceil(total / parseInt(limit)),
-      },
+      creators: creators.map(creator => ({
+        id: creator.id,
+        username: creator.user.username,
+        displayName: creator.user.displayName || creator.user.username,
+        avatar: creator.user.avatar,
+        bio: creator.user.bio,
+        subscriptionPrice: creator.subscriptionPrice,
+        subscriberCount: creator.subscriberCount || 0,
+        postsCount: creator._count.posts,
+        isVerified: creator.isVerified,
+        coverImage: creator.coverImage,
+      })),
     });
   } catch (error) {
-    logger.error('Get trending creators error:', error);
+    logger.error('Error fetching trending creators:', error);
     res.status(500).json({
       success: false,
       message: 'Failed to fetch trending creators',
@@ -218,66 +176,19 @@ export const getTrendingCreators = async (req, res) => {
 };
 
 /**
- * Get trending tags/hashtags
+ * Obter tags em trending
+ * GET /api/v1/trending/tags
  */
 export const getTrendingTags = async (req, res) => {
   try {
-    const { period = '7d', limit = 20 } = req.query;
-
-    // Calculate date range
-    const now = new Date();
-    let startDate;
-    switch (period) {
-      case '24h':
-        startDate = new Date(now.getTime() - 24 * 60 * 60 * 1000);
-        break;
-      case '7d':
-        startDate = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
-        break;
-      case '30d':
-        startDate = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
-        break;
-      default:
-        startDate = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
-    }
-
-    // Get posts with tags in the time period
-    const posts = await prisma.post.findMany({
-      where: {
-        createdAt: {
-          gte: startDate,
-        },
-        tags: {
-          not: null,
-        },
-      },
-      select: {
-        tags: true,
-      },
-    });
-
-    // Count tag occurrences
-    const tagCounts = {};
-    posts.forEach(post => {
-      if (post.tags && Array.isArray(post.tags)) {
-        post.tags.forEach(tag => {
-          tagCounts[tag] = (tagCounts[tag] || 0) + 1;
-        });
-      }
-    });
-
-    // Convert to array and sort
-    const trendingTags = Object.entries(tagCounts)
-      .map(([tag, count]) => ({ tag, count }))
-      .sort((a, b) => b.count - a.count)
-      .slice(0, parseInt(limit));
-
+    // Por enquanto, retornar array vazio
+    // TODO: Implementar sistema de tags
     res.json({
       success: true,
-      data: trendingTags,
+      tags: [],
     });
   } catch (error) {
-    logger.error('Get trending tags error:', error);
+    logger.error('Error fetching trending tags:', error);
     res.status(500).json({
       success: false,
       message: 'Failed to fetch trending tags',

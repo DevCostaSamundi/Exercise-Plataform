@@ -1,5 +1,6 @@
 import prisma from '../config/database.js';
 import logger from '../utils/logger.js';
+import ApiResponse from '../utils/response.js';
 
 /**
  * Verificar status de assinatura
@@ -139,17 +140,29 @@ export const cancelSubscription = async (req, res) => {
   }
 };
 
+
 /**
- * Create a new subscription
+ * ADICIONAR ESTA FUNÇÃO NOVA
+ * Criar nova assinatura
+ * POST /api/v1/subscriptions/: creatorId
  */
 export const createSubscription = async (req, res) => {
   try {
     const userId = req.user.id;
     const { creatorId } = req.params;
+    const { planType = 'monthly' } = req.body; // monthly, quarterly, annual
 
-    // Check if creator exists
+    // Verificar se o criador existe
     const creator = await prisma.creator.findUnique({
       where: { id: creatorId },
+      include: {
+        user: {
+          select: {
+            username: true,
+            displayName: true,
+          },
+        },
+      },
     });
 
     if (!creator) {
@@ -159,36 +172,66 @@ export const createSubscription = async (req, res) => {
       });
     }
 
-    // Check if already subscribed
+    // Verificar se não é o próprio criador tentando se inscrever
+    if (creator.userId === userId) {
+      return res.status(400).json({
+        success: false,
+        message: 'You cannot subscribe to yourself',
+      });
+    }
+
+    // Verificar se já existe assinatura ativa
     const existingSubscription = await prisma.subscription.findFirst({
       where: {
         userId,
         creatorId,
-        status: 'ACTIVE',
+        status: {
+          in: ['ACTIVE', 'TRIALING'],
+        },
       },
     });
 
     if (existingSubscription) {
-      return res.status(409).json({
+      return res.status(400).json({
         success: false,
-        message: 'Already subscribed to this creator',
+        message: 'You already have an active subscription to this creator',
       });
     }
 
-    // Calculate subscription dates
-    const startDate = new Date();
-    const endDate = new Date();
-    endDate.setMonth(endDate.getMonth() + 1); // 1 month subscription
+    // Calcular preço baseado no plano
+    const basePrice = creator.subscriptionPrice || 9.99;
+    let price = basePrice;
+    let duration = 1; // meses
 
-    // Create subscription
+    switch (planType) {
+      case 'quarterly':
+        duration = 3;
+        price = basePrice * 3 * 0.9; // 10% desconto
+        break;
+      case 'annual':
+        duration = 12;
+        price = basePrice * 12 * 0.8; // 20% desconto
+        break;
+      default:
+        duration = 1;
+        price = basePrice;
+    }
+
+    // Calcular data de expiração
+    const now = new Date();
+    const expiresAt = new Date(now);
+    expiresAt.setMonth(expiresAt.getMonth() + duration);
+
+    // Criar assinatura
     const subscription = await prisma.subscription.create({
       data: {
         userId,
         creatorId,
-        amount: creator.subscriptionPrice,
-        status: 'ACTIVE',
-        startDate,
-        endDate,
+        status: 'ACTIVE', // Em produção, seria 'PENDING' até confirmar pagamento
+        price,
+        planType,
+        startedAt: now,
+        expiresAt,
         autoRenew: true,
       },
       include: {
@@ -206,13 +249,32 @@ export const createSubscription = async (req, res) => {
       },
     });
 
+    // Incrementar contador de assinantes do criador
+    await prisma.creator.update({
+      where: { id: creatorId },
+      data: {
+        subscriberCount: {
+          increment: 1,
+        },
+      },
+    });
+
     res.status(201).json({
       success: true,
-      data: subscription,
       message: 'Subscription created successfully',
+      data: {
+        id: subscription.id,
+        creatorId: subscription.creatorId,
+        creatorName: subscription.creator.user.displayName || subscription.creator.user.username,
+        status: subscription.status,
+        price: subscription.price,
+        planType: subscription.planType,
+        expiresAt: subscription.expiresAt,
+        autoRenew: subscription.autoRenew,
+      },
     });
   } catch (error) {
-    logger.error('Create subscription error:', error);
+    logger.error('Error creating subscription:', error);
     res.status(500).json({
       success: false,
       message: 'Failed to create subscription',
@@ -220,9 +282,10 @@ export const createSubscription = async (req, res) => {
   }
 };
 
+// Exportar também a nova função
 export default {
   checkSubscription,
   getUserSubscriptions,
   cancelSubscription,
-  createSubscription,
+  createSubscription, // ADICIONAR AQUI
 };

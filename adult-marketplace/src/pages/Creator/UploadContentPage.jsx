@@ -1,18 +1,19 @@
 import { useState, useRef } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import CreatorSidebar from '../../components/CreatorSidebar';
+import creatorPostService from '../../services/creatorPostService'; // ✅ ADICIONAR IMPORT
 
 export default function UploadContentPage() {
   const navigate = useNavigate();
   const fileInputRef = useRef(null);
-  const [step, setStep] = useState(1); // 1: Upload, 2: Details, 3: Preview
+  const [step, setStep] = useState(1);
   const [files, setFiles] = useState([]);
   const [formData, setFormData] = useState({
     title: '',
     description: '',
-    contentType: 'photo', // photo, video, audio
-    visibility: 'subscribers', // subscribers, premium, free
-    price: 0, // Para conteúdo PPV
+    contentType: 'photo',
+    visibility: 'subscribers',
+    price: 0,
     tags: [],
     scheduled: false,
     scheduledDate: '',
@@ -30,7 +31,7 @@ export default function UploadContentPage() {
     'Behind the scenes', 'Exclusivo', 'Novo', 'Popular', 'Teaser'
   ];
 
-  const MAX_FILE_SIZE = 100 * 1024 * 1024; // 100MB
+  const MAX_FILE_SIZE = 100 * 1024 * 1024;
   const ACCEPTED_IMAGE_TYPES = ['image/jpeg', 'image/png', 'image/webp', 'image/gif'];
   const ACCEPTED_VIDEO_TYPES = ['video/mp4', 'video/quicktime', 'video/webm'];
   const ACCEPTED_AUDIO_TYPES = ['audio/mpeg', 'audio/wav', 'audio/ogg'];
@@ -39,7 +40,7 @@ export default function UploadContentPage() {
     const { name, value, type, checked } = e.target;
     setFormData(prev => ({
       ...prev,
-      [name]: type === 'checkbox' ? checked : value
+      [name]: type === 'checkbox' ?  checked : value
     }));
     if (errors[name]) {
       setErrors(prev => ({ ...prev, [name]: '' }));
@@ -70,14 +71,14 @@ export default function UploadContentPage() {
     e.stopPropagation();
     setDragActive(false);
 
-    if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
+    if (e.dataTransfer.files && e.dataTransfer.files. length > 0) {
       handleFiles(Array.from(e.dataTransfer.files));
     }
   };
 
   const handleFileInput = (e) => {
     if (e.target.files && e.target.files.length > 0) {
-      handleFiles(Array.from(e.target.files));
+      handleFiles(Array.from(e.target. files));
     }
   };
 
@@ -86,25 +87,22 @@ export default function UploadContentPage() {
     const newErrors = {};
 
     newFiles.forEach((file, index) => {
-      // Check file size
       if (file.size > MAX_FILE_SIZE) {
         newErrors[`file-${index}`] = `${file.name} excede o tamanho máximo de 100MB`;
         return;
       }
 
-      // Check file type
-      const acceptedTypes = [...ACCEPTED_IMAGE_TYPES, ...ACCEPTED_VIDEO_TYPES, ...ACCEPTED_AUDIO_TYPES];
+      const acceptedTypes = [... ACCEPTED_IMAGE_TYPES, ...ACCEPTED_VIDEO_TYPES, ...ACCEPTED_AUDIO_TYPES];
       if (!acceptedTypes.includes(file.type)) {
         newErrors[`file-${index}`] = `${file.name} não é um tipo de arquivo suportado`;
         return;
       }
 
-      // Create preview URL
       const preview = URL.createObjectURL(file);
       validFiles.push({
         file,
         preview,
-        type: file.type.startsWith('image/') ? 'image' : file.type.startsWith('video/') ? 'video' : 'audio',
+        type: file.type. startsWith('image/') ? 'image' : file.type.startsWith('video/') ? 'video' : 'audio',
         name: file.name,
         size: file.size,
         id: Date.now() + index,
@@ -118,7 +116,6 @@ export default function UploadContentPage() {
     setFiles(prev => [...prev, ...validFiles]);
 
     if (validFiles.length > 0 && step === 1) {
-      // Auto detect content type
       const firstFile = validFiles[0];
       setFormData(prev => ({
         ...prev,
@@ -140,13 +137,13 @@ export default function UploadContentPage() {
   const validateStep2 = () => {
     const newErrors = {};
 
-    if (!formData.title.trim()) {
+    if (! formData.title. trim()) {
       newErrors.title = 'Título é obrigatório';
-    } else if (formData.title.length < 3) {
+    } else if (formData.title. length < 3) {
       newErrors.title = 'Título deve ter no mínimo 3 caracteres';
     }
 
-    if (!formData.description.trim()) {
+    if (! formData.description.trim()) {
       newErrors.description = 'Descrição é obrigatória';
     } else if (formData.description.length < 10) {
       newErrors.description = 'Descrição deve ter no mínimo 10 caracteres';
@@ -160,7 +157,7 @@ export default function UploadContentPage() {
       newErrors.scheduledDate = 'Selecione uma data';
     }
 
-    if (formData.scheduled && !formData.scheduledTime) {
+    if (formData.scheduled && !formData. scheduledTime) {
       newErrors.scheduledTime = 'Selecione um horário';
     }
 
@@ -190,35 +187,84 @@ export default function UploadContentPage() {
     window.scrollTo(0, 0);
   };
 
+  // ✅ NOVA FUNÇÃO DE UPLOAD REAL
   const handlePublish = async () => {
     setIsUploading(true);
+    setUploadProgress(0);
 
     try {
-      // TODO: Upload para servidor/cloud storage
-      // const formDataToSend = new FormData();
-      // files.forEach((fileObj, index) => {
-      //   formDataToSend.append(`file-${index}`, fileObj.file);
-      // });
-      // formDataToSend.append('metadata', JSON.stringify(formData));
+      console.log('🚀 Starting upload process...');
 
-      // Simular upload com progresso
-      for (let i = 0; i <= 100; i += 10) {
-        await new Promise(resolve => setTimeout(resolve, 200));
-        setUploadProgress(i);
+      // Step 1: Upload files to Cloudinary
+      const uploadedUrls = [];
+      const totalFiles = files.length;
+
+      for (let i = 0; i < totalFiles; i++) {
+        const fileObj = files[i];
+        console.log(`📤 Uploading ${i + 1}/${totalFiles}: `, fileObj.name);
+
+        try {
+          const result = await creatorPostService.uploadMedia(
+            fileObj. file,
+            formData.contentType
+          );
+          uploadedUrls.push(result. url);
+          
+          const progress = ((i + 1) / totalFiles) * 70; // 0-70%
+          setUploadProgress(Math.round(progress));
+          
+          console.log(`✅ Uploaded: `, result.url);
+        } catch (uploadError) {
+          console.error(`❌ Error uploading ${fileObj.name}:`, uploadError);
+          throw new Error(`Falha ao fazer upload de ${fileObj.name}`);
+        }
       }
 
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      setUploadProgress(75);
 
-      // Redirecionar para posts
-      navigate('/creator/posts', {
-        state: {
-          message: formData.scheduled
-            ? 'Post agendado com sucesso!'
-            : 'Post publicado com sucesso!'
-        }
-      });
+      // Step 2: Prepare post data
+      let scheduledFor = null;
+      if (formData. scheduled && formData.scheduledDate && formData.scheduledTime) {
+        scheduledFor = `${formData.scheduledDate}T${formData.scheduledTime}: 00`;
+      }
+
+      const postData = {
+        title:  formData.title,
+        caption: formData.description,
+        mediaUrl: uploadedUrls,
+        mediaType: formData.contentType,
+        isPPV: formData.visibility === 'premium',
+        price: formData.visibility === 'premium' ? parseFloat(formData.price) : null,
+        subscribersOnly: formData.visibility !== 'free',
+        tags: formData. tags,
+        scheduledFor,
+      };
+
+      console.log('📝 Creating post:', postData);
+
+      setUploadProgress(85);
+
+      // Step 3: Create post
+      const response = await creatorPostService.createPost(postData);
+
+      setUploadProgress(100);
+
+      console.log('✅ Post created successfully:', response);
+
+      // Navigate to posts page
+      setTimeout(() => {
+        navigate('/creator/posts', {
+          state: {
+            message: formData.scheduled
+              ? 'Post agendado com sucesso!'
+              : 'Post publicado com sucesso!'
+          }
+        });
+      }, 500);
+
     } catch (error) {
-      setErrors({ submit: 'Erro ao publicar. Tente novamente.' });
+      console.error('❌ Upload error:', error);
+      setErrors({ submit: error.message || 'Erro ao publicar. Tente novamente.' });
       setIsUploading(false);
       setUploadProgress(0);
     }
@@ -228,7 +274,7 @@ export default function UploadContentPage() {
     if (bytes === 0) return '0 Bytes';
     const k = 1024;
     const sizes = ['Bytes', 'KB', 'MB', 'GB'];
-    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    const i = Math.floor(Math. log(bytes) / Math.log(k));
     return Math.round(bytes / Math.pow(k, i) * 100) / 100 + ' ' + sizes[i];
   };
 
