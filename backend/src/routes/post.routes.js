@@ -46,4 +46,5 @@ router.put('/:id', authenticate, validate(updatePostSchema), postController.upda
  */
 router.delete('/:id', authenticate, postController.deletePost);
 
+router.get('/my-posts', authenticate, postController.getMyPosts);
 export default router;

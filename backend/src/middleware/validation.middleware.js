@@ -11,6 +11,9 @@ const validate = (schema) => {
     });
 
     if (error) {
+
+      console.log('❌ Validation errors:', JSON.stringify(error.details, null, 2));
+      console.log('📦 Request body:', JSON.stringify(req.body, null, 2));
       const errors = error.details.map((detail) => ({
         field: detail.path.join('.'),
         message: detail.message,

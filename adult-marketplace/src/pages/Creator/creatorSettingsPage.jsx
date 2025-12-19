@@ -214,12 +214,12 @@ function SettingsCard({ title, description, children, actions }) {
 function TabNavigation({ activeTab, setActiveTab }) {
   return (
     <div className="mb-8 overflow-x-auto scrollbar-thin scrollbar-thumb-slate-300 dark:scrollbar-thumb-slate-700">
-      <div className="flex space-x-1 min-w-max bg-slate-100 dark:bg-slate-800 p-1.5 rounded-xl">
+      <div className="flex justify-center space-x-1 min-w-max bg-slate-100 dark:bg-slate-800 p-1.5 rounded-xl">
         {TABS.map((tab) => (
           <button
             key={tab.id}
             onClick={() => setActiveTab(tab.id)}
-            className={`flex items-center space-x-2 px-4 py-2.5 rounded-lg text-sm font-medium transition-all whitespace-nowrap ${activeTab === tab.id
+            className={`flex items-center align-center space-x-2 px-4 py-2.5 rounded-lg text-sm font-medium transition-all whitespace-nowrap ${activeTab === tab.id
                 ? 'bg-white dark:bg-slate-900 text-indigo-600 dark:text-indigo-400 shadow-sm'
                 : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-white/50 dark:hover:bg-slate-700/50'
               }`}
@@ -1603,7 +1603,7 @@ export default function CreatorSettingsPage() {
       <CreatorSidebar />
 
       <main className="flex-1 overflow-y-auto">
-        <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div className="flex-1 w-full px-4 sm:px-6 lg:px-8 py-8">
           {/* Header */}
           <div className="mb-8">
             <h1 className="text-2xl sm:text-3xl font-bold text-slate-900 dark:text-white mb-2">

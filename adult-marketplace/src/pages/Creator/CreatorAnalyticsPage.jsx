@@ -163,7 +163,7 @@ export default function CreatorAnalyticsPage() {
 
         {/* Main Content */}
         <div className="flex-1 overflow-y-auto">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+          <div className="flex-1 w-full px-4 sm:px-6 lg:px-8 py-8">
             {/* Error Warning */}
             {error && (
               <div className="mb-6 bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg p-4">

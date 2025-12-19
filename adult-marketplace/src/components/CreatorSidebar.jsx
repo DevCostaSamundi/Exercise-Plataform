@@ -90,7 +90,7 @@ export default function CreatorSidebar() {
         <div className="flex flex-col h-full py-4 px-3">
           {/* Logo / título */}
           <div className="flex items-center justify-between px-2 mb-6">
-            <Link to="/creator/dashboard" className="flex items-center space-x-3 group">
+            <Link to="/" className="flex items-center space-x-3 group">
               <div className="w-10 h-10 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-xl flex items-center justify-center flex-shrink-0 group-hover:scale-110 transition-transform">
                 <span className="text-white font-black text-xl">P</span>
               </div>

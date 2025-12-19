@@ -81,6 +81,8 @@ model Creator {
   website               String?
   category              String?
   socialLinks           Json?
+
+  postsCount      Int       @default(0)
   
   // Subscription settings
   discounts             Json?           @default("{\"threeMonths\": 10, \"sixMonths\": 15, \"twelveMonths\": 20}")
@@ -161,8 +163,13 @@ model Post {
   mediaType   MediaType   @default(IMAGE)
   isPublic    Boolean     @default(false) // false = subscribers only
   isPPV       Boolean     @default(false) // Pay-per-view
-  ppvPrice    Decimal?     @db.Decimal(10, 2)
+  ppvPrice    Decimal?    @db.Decimal(10, 2)
   
+  // NOVOS CAMPOS ADICIONADOS
+  tags        String[]    @default([])    // Array de tags
+  scheduledFor  DateTime?                 // Data de Agendamento
+  status      PostStatus  @default(PUBLISHED) // Status do Post
+
   // Engagement
   likesCount  Int         @default(0)
   commentsCount Int       @default(0)
@@ -177,6 +184,13 @@ model Post {
   likes       Like[]
   
   @@map("posts")
+}
+
+enum PostStatus {
+  DRAFT
+  PUBLISHED
+  SCHEDULED
+  ARCHIVED
 }
 
 enum MediaType {

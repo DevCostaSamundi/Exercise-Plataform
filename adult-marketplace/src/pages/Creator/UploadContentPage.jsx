@@ -188,6 +188,7 @@ export default function UploadContentPage() {
   };
 
   // ✅ NOVA FUNÇÃO DE UPLOAD REAL
+  // ✅ FUNÇÃO CORRIGIDA - handlePublish
   const handlePublish = async () => {
     setIsUploading(true);
     setUploadProgress(0);
@@ -196,7 +197,7 @@ export default function UploadContentPage() {
       console.log('🚀 Starting upload process...');
 
       // Step 1: Upload files to Cloudinary
-      const uploadedUrls = [];
+      const uploadedMedia = [];
       const totalFiles = files.length;
 
       for (let i = 0; i < totalFiles; i++) {
@@ -208,9 +209,9 @@ export default function UploadContentPage() {
             fileObj.file,
             formData.contentType
           );
-          uploadedUrls.push(result.url);
+          uploadedMedia.push(result.url);
 
-          const progress = ((i + 1) / totalFiles) * 70; // 0-70%
+          const progress = ((i + 1) / totalFiles) * 70;
           setUploadProgress(Math.round(progress));
 
           console.log(`✅ Uploaded: `, result.url);
@@ -225,17 +226,25 @@ export default function UploadContentPage() {
       // Step 2: Prepare post data
       let scheduledFor = null;
       if (formData.scheduled && formData.scheduledDate && formData.scheduledTime) {
-        scheduledFor = `${formData.scheduledDate}T${formData.scheduledTime}: 00`;
+        scheduledFor = new Date(`${formData.scheduledDate}T${formData.scheduledTime}:00`).toISOString();
       }
+
+      // ✅ CORRIGIDO: Mapear contentType para o enum correto do backend
+      const mediaTypeMap = {
+        'photo': 'IMAGE',
+        'video': 'VIDEO',
+        'audio': 'AUDIO',
+        'document': 'DOCUMENT'
+      };
 
       const postData = {
         title: formData.title,
-        caption: formData.description,
-        mediaUrl: uploadedUrls,
-        mediaType: formData.contentType,
+        content: formData.description,
+        mediaUrls: uploadedMedia,
+        mediaType: mediaTypeMap[formData.contentType] || 'IMAGE', // ✅ CONVERSÃO AQUI
+        isPublic: formData.visibility === 'free',
         isPPV: formData.visibility === 'premium',
-        price: formData.visibility === 'premium' ? parseFloat(formData.price) : null,
-        subscribersOnly: formData.visibility !== 'free',
+        ppvPrice: formData.visibility === 'premium' ? parseFloat(formData.price) : null,
         tags: formData.tags,
         scheduledFor,
       };
@@ -245,11 +254,11 @@ export default function UploadContentPage() {
       setUploadProgress(85);
 
       // Step 3: Create post
-      const response = await creatorPostService.createPost(postData);
+      await creatorPostService.createPost(postData);
 
       setUploadProgress(100);
 
-      console.log('✅ Post created successfully:', response);
+      console.log('✅ Post created successfully!');
 
       // Navigate to posts page
       setTimeout(() => {
@@ -541,8 +550,12 @@ export default function UploadContentPage() {
                         }`}
                     >
                       <svg xmlns="http://www.w3.org/2000/svg" className={`h-6 w-6 mx-auto mb-2 ${formData.visibility === 'premium' ? 'text-purple-600' : 'text-slate-400'}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3.895-3 2s1.343 2 3 2 3.895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                      </svg>
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M12 8c1.657 0 3-1.343 3-3S13.657 2 12 2 9 3.343 9 5s1.343 3 3 3zm0 0v14m-6 0h12"
+                        />                      </svg>
                       <p className="text-sm font-medium text-slate-900 dark:text-white">PPV Premium</p>
                       <p className="text-xs text-slate-500 mt-1">Pagamento extra</p>
                     </button>

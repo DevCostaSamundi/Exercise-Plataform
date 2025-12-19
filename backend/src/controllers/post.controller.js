@@ -34,15 +34,15 @@ class PostController {
       const skip = (pageNum - 1) * limitNum;
 
       const where = {};
-      
+
       if (creatorId) {
         where.creatorId = creatorId;
       }
-      
+
       if (mediaType) {
         where.mediaType = mediaType;
       }
-      
+
       if (isPublic !== undefined) {
         where.isPublic = isPublic === 'true';
       }
@@ -82,6 +82,67 @@ class PostController {
     }
   }
 
+
+  /**
+ * Get current creator's posts
+ */
+  async getMyPosts(req, res, next) {
+    try {
+      const { page = 1, limit = 20, status } = req.query;
+      const pageNum = parseInt(page, 10);
+      const limitNum = parseInt(limit, 10);
+      const skip = (pageNum - 1) * limitNum;
+
+      // Get creator profile
+      const creator = await prisma.creator.findUnique({
+        where: { userId: req.user.id },
+      });
+
+      if (!creator) {
+        throw new ForbiddenError('Only creators can access this');
+      }
+
+      const where = { creatorId: creator.id };
+
+      // Filter by status if provided
+      if (status && status !== 'all') {
+        where.status = status.toUpperCase();
+      }
+
+      const [posts, total] = await Promise.all([
+        prisma.post.findMany({
+          where,
+          skip,
+          take: limitNum,
+          orderBy: {
+            createdAt: 'desc',
+          },
+        }),
+        prisma.post.count({ where }),
+      ]);
+
+      // Calculate stats
+      const stats = {
+        all: await prisma.post.count({ where: { creatorId: creator.id } }),
+        published: await prisma.post.count({ where: { creatorId: creator.id, status: 'PUBLISHED' } }),
+        scheduled: await prisma.post.count({ where: { creatorId: creator.id, status: 'SCHEDULED' } }),
+        draft: await prisma.post.count({ where: { creatorId: creator.id, status: 'DRAFT' } }),
+      };
+
+      return ApiResponse.success(res, {
+        data: posts,
+        stats,
+        pagination: {
+          page: pageNum,
+          limit: limitNum,
+          total,
+          pages: Math.ceil(total / limitNum),
+        },
+      }, 'Posts retrieved successfully');
+    } catch (error) {
+      next(error);
+    }
+  }
   /**
    * Get post by ID
    */
@@ -148,53 +209,73 @@ class PostController {
    * Create new post
    */
   async createPost(req, res, next) {
-    try {
-      const { title, content, mediaType, isPublic, isPPV, ppvPrice } = req.body;
+  try {
+    const { 
+      title, 
+      content, 
+      mediaUrls,      // ← Array de URLs
+      mediaType, 
+      isPublic, 
+      isPPV, 
+      ppvPrice,
+      tags,
+      scheduledFor
+    } = req.body;
 
-      // Get creator profile
-      const creator = await prisma.creator.findUnique({
-        where: { userId: req.user.id },
-      });
-
-      if (!creator) {
-        throw new ForbiddenError('Only creators can create posts');
-      }
-
-      const post = await prisma.post.create({
-        data: {
-          creatorId: creator.id,
-          title,
-          content,
-          mediaType,
-          isPublic,
-          isPPV,
-          ppvPrice,
-        },
-        include: {
-          creator: {
-            include: {
-              user: {
-                select: {
-                  username: true,
-                  avatar: true,
-                },
-              },
-            },
-          },
-        },
-      });
-
-      // Increment creator's post count
-      await prisma.creator.update({
-        where: { id: creator.id },
-        data: { postsCount: { increment: 1 } },
-      });
-
-      return ApiResponse.success(res, post, 'Post created successfully', 201);
-    } catch (error) {
-      next(error);
+    // Validação básica
+    if (!title || !content) {
+      return ApiResponse.error(res, 'Título e conteúdo são obrigatórios', 400);
     }
+
+    if (!mediaUrls || mediaUrls.length === 0) {
+      return ApiResponse.error(res, 'Pelo menos uma mídia é obrigatória', 400);
+    }
+
+    // Get creator profile
+    const creator = await prisma.creator.findUnique({
+      where: { userId: req.user.id },
+    });
+
+    if (!creator) {
+      throw new ForbiddenError('Only creators can create posts');
+    }
+
+    // Determinar status do post
+    let status = 'PUBLISHED';
+    if (scheduledFor) {
+      const scheduledDate = new Date(scheduledFor);
+      if (scheduledDate > new Date()) {
+        status = 'SCHEDULED';
+      }
+    }
+
+    const post = await prisma.post.create({
+      data: {
+        creatorId: creator.id,
+        title,
+        content,
+        mediaUrls,         // Salvar array de URLs
+        mediaType,
+        isPublic: isPublic || false,
+        isPPV: isPPV || false,
+        ppvPrice: isPPV ? ppvPrice : null,
+        tags: tags || [],
+        scheduledFor: scheduledFor ? new Date(scheduledFor) : null,
+        status,
+      },
+    });
+
+    // Increment creator's post count
+    await prisma.creator.update({
+      where: { id: creator.id },
+      data: { postsCount: { increment: 1 } },
+    });
+
+    return ApiResponse.success(res, post, 'Post created successfully', 201);
+  } catch (error) {
+    next(error);
   }
+}
 
   /**
    * Update post

@@ -1,11 +1,7 @@
-// creatorPostService.js - VERSÃO SEGURA
+// creatorPostService.js - VERSÃO CORRIGIDA
 import api from './api';
 
 class CreatorPostService {
-  /**
-   * Upload de mídia via backend (SEGURO)
-   * Não expõe credenciais do Cloudinary no frontend
-   */
   async uploadMedia(file, mediaType = 'photo') {
     try {
       console.log('📤 Starting upload via backend:', {
@@ -15,12 +11,10 @@ class CreatorPostService {
         mediaType
       });
 
-      // Criar FormData
       const formData = new FormData();
       formData.append('file', file);
       formData.append('mediaType', mediaType);
 
-      // Upload via backend
       const response = await api.post('/upload/media', formData, {
         headers: {
           'Content-Type': 'multipart/form-data',
@@ -33,7 +27,8 @@ class CreatorPostService {
         },
       });
 
-      if (!response.data?.success) {
+      // ✅ CORRIGIDO: Verificar response.data.status em vez de response.data.success
+      if (response.data?.status !== 'success') {
         throw new Error(response.data?.message || 'Upload failed');
       }
 
@@ -49,46 +44,20 @@ class CreatorPostService {
     } catch (error) {
       console.error('❌ Upload error:', error);
       throw new Error(
-        error.response?.data?.message || 
-        error.message || 
+        error.response?.data?.message ||
+        error.message ||
         'Falha no upload'
       );
     }
   }
 
-  /**
-   * Criar post com múltiplas mídias
-   */
-  async createPost(postData, files = []) {
+  async createPost(postData) {
     try {
-      console.log('🚀 Creating post with media...');
+      console.log('📝 Creating post:', postData);
 
-      // Upload de todas as mídias
-      const mediaUploads = [];
-      for (let i = 0; i < files.length; i++) {
-        const file = files[i];
-        console.log(`📤 Uploading ${i + 1}/${files.length}: ${file.name}`);
-        
-        const mediaType = file.type.startsWith('video/') ? 'video' : 'photo';
-        const uploadResult = await this.uploadMedia(file, mediaType);
-        
-        mediaUploads.push({
-          url: uploadResult.url,
-          publicId: uploadResult.publicId,
-          type: mediaType,
-          thumbnail: uploadResult.thumbnail,
-        });
-      }
+      const response = await api.post('/posts', postData);
 
-      // Criar post com as URLs das mídias
-      const postPayload = {
-        ...postData,
-        media: mediaUploads,
-      };
-
-      const response = await api.post('/posts', postPayload);
-
-      if (!response.data?.success) {
+      if (response.data?.status !== 'success') {
         throw new Error(response.data?.message || 'Falha ao criar post');
       }
 
@@ -97,21 +66,22 @@ class CreatorPostService {
 
     } catch (error) {
       console.error('❌ Create post error:', error);
-      throw error;
+      throw new Error(
+        error.response?.data?.message ||
+        error.message ||
+        'Erro ao criar post'
+      );
     }
   }
 
-  /**
-   * Buscar posts do criador
-   */
   async getMyPosts(params = {}) {
     try {
       const { page = 1, limit = 10, status } = params;
-      
+
       const queryParams = new URLSearchParams({
         page: page.toString(),
         limit: limit.toString(),
-        ...(status && { status }),
+        ...(status && status !== 'all' && { status }),
       });
 
       const response = await api.get(`/posts/my-posts?${queryParams}`);
@@ -123,9 +93,6 @@ class CreatorPostService {
     }
   }
 
-  /**
-   * Atualizar post
-   */
   async updatePost(postId, updateData) {
     try {
       const response = await api.patch(`/posts/${postId}`, updateData);
@@ -136,15 +103,22 @@ class CreatorPostService {
     }
   }
 
-  /**
-   * Deletar post
-   */
   async deletePost(postId) {
     try {
       const response = await api.delete(`/posts/${postId}`);
       return response.data;
     } catch (error) {
       console.error('❌ Delete post error:', error);
+      throw error;
+    }
+  }
+
+  async bulkDeletePosts(postIds) {
+    try {
+      const response = await api.post('/posts/bulk-delete', { postIds });
+      return response.data;
+    } catch (error) {
+      console.error('❌ Bulk delete error:', error);
       throw error;
     }
   }
