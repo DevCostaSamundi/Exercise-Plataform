@@ -3,11 +3,13 @@ import prisma from '../config/database.js';
 import logger from '../utils/logger.js';
 import { UnauthorizedError } from '../utils/errors.js';
 import jwtConfig from '../config/jwt.js';
+
 /**
  * Middleware de autenticação obrigatória
  */
 export const authenticate = async (req, res, next) => {
   try {
+    logger.info('🔒 authenticate middleware called for:', req.method, req.path);
     const authHeader = req.headers.authorization;
 
     if (!authHeader || !authHeader.startsWith('Bearer ')) {
@@ -19,6 +21,7 @@ export const authenticate = async (req, res, next) => {
     if (!token) {
       throw new UnauthorizedError('Token not provided');
     }
+    
     const decoded = jwt.verify(token, jwtConfig.secret);
 
     const user = await prisma.user.findUnique({
@@ -72,17 +75,25 @@ export const authenticate = async (req, res, next) => {
  */
 export const optionalAuth = async (req, res, next) => {
   try {
+    logger.info('🔓 optionalAuth middleware called for:', req.method, req.path);
     const authHeader = req.headers.authorization;
 
     // Se não houver token, apenas continua sem autenticar
     if (!authHeader || !authHeader.startsWith('Bearer ')) {
+      req.user = null; // Explicitamente definir como null
       return next();
     }
 
     const token = authHeader.substring(7);
+    
+    if (!token) {
+      req.user = null;
+      return next();
+    }
 
     try {
-      const decoded = jwt.verify(token, process.env.JWT_SECRET);
+      // ✅ CORREÇÃO: Usar jwtConfig.secret ao invés de process.env.JWT_SECRET
+      const decoded = jwt.verify(token, jwtConfig.secret);
 
       const user = await prisma.user.findUnique({
         where: { id: decoded.userId },
@@ -102,15 +113,19 @@ export const optionalAuth = async (req, res, next) => {
 
       if (user) {
         req.user = user;
+      } else {
+        req.user = null;
       }
     } catch (tokenError) {
       // Token inválido, mas não retorna erro - apenas continua sem autenticar
       logger.warn('Optional auth - invalid token:', tokenError.message);
+      req.user = null;
     }
 
     next();
   } catch (error) {
     logger.error('Optional auth error:', error);
+    req.user = null;
     next(); // Continua mesmo com erro
   }
 };
@@ -141,12 +156,14 @@ export const requireCreator = async (req, res, next) => {
     req.creator = creator;
     next();
   } catch (error) {
+    logger.error('Require creator error:', error);
     return res.status(500).json({
       success: false,
       message: 'Authorization failed',
     });
   }
 };
+
 export const authorizeCreator = async (req, res, next) => {
   try {
     // Buscar perfil de criador
@@ -157,7 +174,7 @@ export const authorizeCreator = async (req, res, next) => {
     if (!creator) {
       return res.status(403).json({
         success: false,
-        message: 'Acesso negado.  Apenas criadores.',
+        message: 'Acesso negado. Apenas criadores.',
       });
     }
 
@@ -172,17 +189,21 @@ export const authorizeCreator = async (req, res, next) => {
     });
   }
 };
+
 /**
  * Verificar se é admin
  */
 export const authorizeAdmin = (req, res, next) => {
   try {
-    if (! req.user) {
+    if (!req.user) {
       throw new UnauthorizedError('Authentication required');
     }
 
     if (req.user.role !== 'ADMIN') {
-      throw new ForbiddenError('Admin access required');
+      return res.status(403).json({
+        success: false,
+        message: 'Admin access required',
+      });
     }
 
     next();
@@ -190,7 +211,7 @@ export const authorizeAdmin = (req, res, next) => {
     logger.error('Admin authorization error:', error);
     return res.status(error.statusCode || 403).json({
       success: false,
-      message:  error.message || 'Admin access required',
+      message: error.message || 'Admin access required',
     });
   }
 };
@@ -199,5 +220,6 @@ export default {
   authenticate,
   optionalAuth,
   requireCreator,
+  authorizeCreator,
   authorizeAdmin,
 };

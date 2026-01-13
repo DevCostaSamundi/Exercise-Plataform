@@ -5,7 +5,6 @@ import helmet from 'helmet';
 import rateLimit from 'express-rate-limit';
 import cookieParser from 'cookie-parser';
 
-
 // Import routes
 import authRoutes from './routes/auth.routes.js';
 import userRoutes from './routes/user.routes.js';
@@ -25,7 +24,6 @@ import likeRoutes from './routes/like.routes.js';
 import favoriteRoutes from './routes/favorite.routes.js';
 import trendingRoutes from './routes/trending.routes.js';
 import transactionRoutes from './routes/transaction.routes.js';
-
 import uploadRoutes from './routes/upload.routes.js';
 
 // Import middleware
@@ -33,36 +31,26 @@ import errorMiddleware from './middleware/error.middleware.js';
 import logger from './utils/logger.js';
 
 const app = express();
-// Load environment variables
 
 // Security middleware
 app.use(helmet());
 
 // ------------------- CORS -------------------
-// Allowed origins
 const allowedOrigins = [
   process.env.FRONTEND_URL || 'http://localhost:5173',
   'http://localhost:5173',
   'http://localhost:3000',
 ];
 
-// CORS configuration
 const corsOptions = {
   origin: function (origin, callback) {
-    // ✅ IMPORTANTE: Permitir requests sem origin (curl, Postman, mobile apps)
     if (!origin) return callback(null, true);
-
-    // ✅ Permitir origens na lista
-    if (allowedOrigins. some(o => origin.startsWith(o))) {
+    if (allowedOrigins.some(o => origin.startsWith(o))) {
       return callback(null, true);
     }
-
-    // ⚠️ APENAS EM DESENVOLVIMENTO: Permitir localhost em qualquer porta
-    if (process.env. NODE_ENV !== 'production' && origin.includes('localhost')) {
+    if (process.env.NODE_ENV !== 'production' && origin.includes('localhost')) {
       return callback(null, true);
     }
-
-    // ❌ Bloquear outras origens
     console.warn(`Blocked CORS request from origin: ${origin}`);
     return callback(new Error('Not allowed by CORS'));
   },
@@ -108,10 +96,24 @@ app.get('/health', (req, res) => {
 // ------------------- API Routes -------------------
 const API_VERSION = process.env.API_VERSION || 'v1';
 
-// Auth routes (inclui /register, /login, /creator-register, etc)
+// ============================================
+// ORDEM IMPORTANTE: Rotas mais específicas PRIMEIRO
+// ============================================
+
+// Auth routes (públicas)
 app.use(`/api/${API_VERSION}/auth`, authRoutes);
 
-// User routes
+// ✅ CRÍTICO: Rotas de GERENCIAMENTO do criador (mais específicas)
+// Estas devem vir ANTES de /creators para evitar conflito
+app.use(`/api/${API_VERSION}/creator/posts`, creatorPostRoutes);
+app.use(`/api/${API_VERSION}/creator/dashboard`, creatorDashboardRoutes);
+app.use(`/api/${API_VERSION}/creator/settings`, creatorSettingsRoutes);
+
+// ✅ Rotas PÚBLICAS de criadores (menos específicas)
+// Esta deve vir DEPOIS das rotas de gerenciamento
+app.use(`/api/${API_VERSION}/creators`, creatorRoutes);
+
+// User routes (protegidas)
 app.use(`/api/${API_VERSION}/user`, userRoutes);
 
 // Subscription routes
@@ -125,14 +127,6 @@ app.use(`/api/${API_VERSION}/trending`, trendingRoutes);
 
 // Wallet and transaction routes
 app.use(`/api/${API_VERSION}`, transactionRoutes);
-
-// ✅ IMPORTANTE: Creator management ANTES de rotas públicas
-app.use(`/api/${API_VERSION}/creator`, creatorSettingsRoutes);
-app.use(`/api/${API_VERSION}/creator/posts`, creatorPostRoutes);
-app.use(`/api/${API_VERSION}/creator-dashboard`, creatorDashboardRoutes);
-
-// Creator routes públicas (perfil, listar) - DEPOIS
-app.use(`/api/${API_VERSION}/creators`, creatorRoutes);
 
 // Post routes (públicos)
 app.use(`/api/${API_VERSION}/posts`, postRoutes);
@@ -158,7 +152,7 @@ app.use(`/api/${API_VERSION}/payments`, paymentRoutes);
 // Withdrawal routes
 app.use(`/api/${API_VERSION}/withdrawals`, withdrawalRoutes);
 
-
+// Upload routes
 app.use(`/api/${API_VERSION}/upload`, uploadRoutes);
 
 // ------------------- 404 handler -------------------
