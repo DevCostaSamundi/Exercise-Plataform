@@ -74,6 +74,8 @@ class CreatorPostService {
     }
   }
 
+  // creatorPostService.js
+
   async getMyPosts(params = {}) {
     try {
       const { page = 1, limit = 10, status } = params;
@@ -85,11 +87,43 @@ class CreatorPostService {
       });
 
       const response = await api.get(`/posts/my-posts?${queryParams}`);
-      return response.data;
+
+      // Estrutura esperada: { status: 'success', data: { data: [...], stats: {...}, pagination: {...} } }
+      const result = response.data;
+
+      // Se a API retorna { status, data: { data, stats } }
+      if (result.data && result.data.data) {
+        return {
+          data: result.data.data,
+          stats: result.data.stats,
+          pagination: result.data.pagination
+        };
+      }
+
+      // Se a API retorna { status, data: [...] }
+      if (Array.isArray(result.data)) {
+        return {
+          data: result.data,
+          stats: { all: 0, published: 0, scheduled: 0, draft: 0 },
+          pagination: null
+        };
+      }
+
+      // Fallback
+      return {
+        data: [],
+        stats: { all: 0, published: 0, scheduled: 0, draft: 0 },
+        pagination: null
+      };
 
     } catch (error) {
       console.error('❌ Get posts error:', error);
-      throw error;
+      // Retornar estrutura vazia em vez de throw
+      return {
+        data: [],
+        stats: { all: 0, published: 0, scheduled: 0, draft: 0 },
+        pagination: null
+      };
     }
   }
 

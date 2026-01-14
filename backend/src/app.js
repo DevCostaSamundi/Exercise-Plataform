@@ -17,7 +17,7 @@ import creatorPostRoutes from './routes/creatorPost.routes.js';
 import messageRoutes from './routes/message.routes.js';
 import paymentRoutes from './routes/payment.routes.js';
 import withdrawalRoutes from './routes/withdrawal.routes.js';
-import subscriptionRoutes from './routes/subscription.routes.js';
+import subscriptionRoutes from './routes/creatorSubscribers.routes.js';
 import creatorDashboardRoutes from './routes/creatorDashboard.routes.js';
 import commentRoutes from './routes/comment.routes.js';
 import likeRoutes from './routes/like.routes.js';
@@ -25,6 +25,7 @@ import favoriteRoutes from './routes/favorite.routes.js';
 import trendingRoutes from './routes/trending.routes.js';
 import transactionRoutes from './routes/transaction.routes.js';
 import uploadRoutes from './routes/upload.routes.js';
+import creatorSubscribersRoutes from './routes/creatorSubscribers.routes.js';
 
 // Import middleware
 import errorMiddleware from './middleware/error.middleware.js';
@@ -105,9 +106,10 @@ app.use(`/api/${API_VERSION}/auth`, authRoutes);
 
 // ✅ CRÍTICO: Rotas de GERENCIAMENTO do criador (mais específicas)
 // Estas devem vir ANTES de /creators para evitar conflito
+app.use(`/api/${API_VERSION}/creator-dashboard`, creatorDashboardRoutes);
 app.use(`/api/${API_VERSION}/creator/posts`, creatorPostRoutes);
-app.use(`/api/${API_VERSION}/creator/dashboard`, creatorDashboardRoutes);
 app.use(`/api/${API_VERSION}/creator/settings`, creatorSettingsRoutes);
+app.use(`/api/${API_VERSION}/creator/subscribers`, creatorSubscribersRoutes);
 
 // ✅ Rotas PÚBLICAS de criadores (menos específicas)
 // Esta deve vir DEPOIS das rotas de gerenciamento

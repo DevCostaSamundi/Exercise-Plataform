@@ -1,50 +1,43 @@
-import express from 'express';
+// backend/src/routes/post.routes.js
+import { Router } from 'express';
 import postController from '../controllers/post.controller.js';
-import { authenticate, optionalAuth } from '../middleware/auth.middleware.js';
-import validate from '../middleware/validation.middleware.js';
-import { validateQuery } from '../middleware/validation.middleware.js';
-import {
-  createPostSchema,
-  updatePostSchema,
-  getPostsQuerySchema,
-} from '../validators/post.validator.js';
+import { authenticate } from '../middleware/auth.middleware.js';
 
-const router = express.Router();
+const router = Router();
 
-/**
- * @route   GET /api/v1/posts
- * @desc    Get all posts
- * @access  Public (with optional auth for personalized content)
- */
-router.get('/', optionalAuth, validateQuery(getPostsQuerySchema), postController.getPosts);
+// ============================================
+// ⚠️ ORDEM CRÍTICA! Rotas específicas PRIMEIRO
+// ============================================
 
-/**
- * @route   GET /api/v1/posts/:id
- * @desc    Get post by ID
- * @access  Public (some posts may require subscription)
- */
-router.get('/:id', optionalAuth, postController.getPostById);
+// ✅ ESTAS ROTAS DEVEM VIR PRIMEIRO (antes de /:id)
+router.get('/my-posts', authenticate, (req, res, next) => {
+  postController.getMyPosts(req, res, next);
+});
 
-/**
- * @route   POST /api/v1/posts
- * @desc    Create new post
- * @access  Private (Creator only)
- */
-router.post('/', authenticate, validate(createPostSchema), postController.createPost);
+router.post('/bulk-delete', authenticate, (req, res, next) => {
+  postController.bulkDeletePosts(req, res, next);
+});
 
-/**
- * @route   PUT /api/v1/posts/:id
- * @desc    Update post
- * @access  Private (Creator/Admin)
- */
-router.put('/:id', authenticate, validate(updatePostSchema), postController.updatePost);
+// ✅ Rotas gerais
+router.get('/', (req, res, next) => {
+  postController.getPosts(req, res, next);
+});
 
-/**
- * @route   DELETE /api/v1/posts/:id
- * @desc    Delete post
- * @access  Private (Creator/Admin)
- */
-router.delete('/:id', authenticate, postController.deletePost);
+router.post('/', authenticate, (req, res, next) => {
+  postController.createPost(req, res, next);
+});
 
-router.get('/my-posts', authenticate, postController.getMyPosts);
+// ✅ ESTAS ROTAS DEVEM VIR POR ÚLTIMO (com :id)
+router.get('/:id', (req, res, next) => {
+  postController.getPostById(req, res, next);
+});
+
+router.patch('/:id', authenticate, (req, res, next) => {
+  postController.updatePost(req, res, next);
+});
+
+router.delete('/:id', authenticate, (req, res, next) => {
+  postController.deletePost(req, res, next);
+});
+
 export default router;

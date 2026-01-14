@@ -55,11 +55,13 @@ export default function CreatorDashboardPage() {
     setError(null);
 
     try {
+      // ============================================
+      // ✅ ROTA PRINCIPAL (ÚNICA QUE EXISTE)
+      // ============================================
       const statsResponse = await api.get(
         `/creator-dashboard/stats?timeRange=${timeRange}`
       );
 
-      // ✅ CORRIGIDO: Forçar conversão para número
       if (statsResponse.data?.data) {
         const data = statsResponse.data.data;
         setStats({
@@ -69,50 +71,39 @@ export default function CreatorDashboardPage() {
           earningsGrowth: toNumber(data.earningsGrowth),
           posts: toNumber(data.posts),
           postsThisMonth: toNumber(data.postsThisMonth),
-          engagement: toNumber(data.engagement), // ✅ Sempre número
+          engagement: toNumber(data.engagement),
           views: toNumber(data.views),
         });
 
         if (data.earningsChart && Array.isArray(data.earningsChart)) {
           setEarningsChart(data.earningsChart);
         }
+
+        // Se o backend retornar esses dados junto com stats, usar:
+        if (data.recentSubscribers) {
+          setRecentSubscribers(data.recentSubscribers);
+        }
+        if (data.topPosts) {
+          setTopPosts(data.topPosts);
+        }
+        if (data.notifications) {
+          setNotifications(data.notifications);
+        }
       }
 
-      // Buscar dados adicionais (opcional - não quebra se falhar)
-      try {
-        const subscribersResponse = await api.get(
-          '/creator-dashboard/recent-subscribers?limit=5'
-        );
-        setRecentSubscribers(subscribersResponse.data?.data || []);
-      } catch (err) {
-        console.warn('Rota de assinantes não disponível:', err.message);
-      }
-
-      try {
-        const postsResponse = await api.get(
-          '/creator-dashboard/top-posts?limit=3'
-        );
-        setTopPosts(postsResponse.data?.data || []);
-      } catch (err) {
-        console.warn('Rota de posts não disponível:', err.message);
-      }
-
-      try {
-        const notificationsResponse = await api.get(
-          '/creator-dashboard/notifications?limit=4'
-        );
-        setNotifications(notificationsResponse.data?.data || []);
-      } catch (err) {
-        console.warn('Rota de notificações não disponível:', err.message);
-      }
+      // ❌ REMOVIDO: Rotas que não existem no backend
+      // - /creator-dashboard/recent-subscribers
+      // - /creator-dashboard/top-posts  
+      // - /creator-dashboard/notifications
 
     } catch (err) {
-      console.error('Erro ao carregar dashboard:', err);
+      console.error('❌ Erro ao carregar dashboard:', err);
       setError(err.response?.data?.message || err.message || 'Erro ao carregar dados');
     } finally {
       setLoading(false);
     }
   };
+
 
   const formatCurrency = (value) => {
     return new Intl.NumberFormat('pt-BR', {

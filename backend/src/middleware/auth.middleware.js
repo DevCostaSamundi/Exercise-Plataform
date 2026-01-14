@@ -9,7 +9,6 @@ import jwtConfig from '../config/jwt.js';
  */
 export const authenticate = async (req, res, next) => {
   try {
-    logger.info('🔒 authenticate middleware called for:', req.method, req.path);
     const authHeader = req.headers.authorization;
 
     if (!authHeader || !authHeader.startsWith('Bearer ')) {
@@ -75,7 +74,6 @@ export const authenticate = async (req, res, next) => {
  */
 export const optionalAuth = async (req, res, next) => {
   try {
-    logger.info('🔓 optionalAuth middleware called for:', req.method, req.path);
     const authHeader = req.headers.authorization;
 
     // Se não houver token, apenas continua sem autenticar
