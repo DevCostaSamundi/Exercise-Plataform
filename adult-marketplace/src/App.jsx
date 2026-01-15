@@ -43,7 +43,11 @@ import CreatorSettingsPage from './pages/Creator/creatorSettingsPage.jsx';
 import CreatorAnalyticsPage from './pages/Creator/CreatorAnalyticsPage';
 
 import AuthDebugger from './pages/AuthDebugger';
+import MessagesPage from './pages/subscriber/MessagesPage.jsx';
 
+
+import { AuthProvider } from './contexts/AuthContext';
+import { SocketProvider } from './contexts/SocketContext';
 
 function App() {
   const [isVerified, setIsVerified] = useState(false);
@@ -59,34 +63,30 @@ function App() {
 
   return (
     <Router>
-      <div className="app">
+      <div className="App">
         <Routes>
-          {/* Público */}
-
+          {/* Debug Route */}
           <Route path="/debug" element={<AuthDebugger />} />
 
+          {/* Public Routes */}
           <Route path="/" element={<HomePage />} />
           <Route path="/product/:id" element={<ProductPage />} />
           <Route path="/creator/:id" element={<CreatorPage />} />
           <Route path="/post/:postId" element={<PostView />} />
 
-          {/* Autenticação */}
+          {/* Authentication */}
           <Route path="/login" element={<LoginPage />} />
           <Route path="/register" element={<RegisterPage />} />
           <Route path="/forgot-password" element={<ForgotPasswordPage />} />
-
-          {/* Criador - registro */}
           <Route path="/creator-register" element={<CreatorRegisterPage />} />
 
           {/* ========================================
-              REDIRECTS - Old Routes to New Routes
-              /creator-* → /creator/*
-              ======================================== */}
+          REDIRECTS - Old Routes to New Routes
+          ======================================== */}
           <Route path="/creator-dashboard" element={<Navigate to="/creator/dashboard" replace />} />
           <Route path="/creator-posts" element={<Navigate to="/creator/posts" replace />} />
           <Route path="/creator-upload" element={<Navigate to="/creator/upload" replace />} />
           <Route path="/creator-earnings" element={<Navigate to="/creator/earnings" replace />} />
-          <Route path="/creator-messages" element={<Navigate to="/creator/messages" replace />} />
           <Route path="/creator-subscribers" element={<Navigate to="/creator/subscribers" replace />} />
           <Route path="/creator-analytics" element={<Navigate to="/creator/analytics" replace />} />
           <Route path="/creator-notifications" element={<Navigate to="/creator/notifications" replace />} />
@@ -94,9 +94,8 @@ function App() {
           <Route path="/creator-profile" element={<Navigate to="/creator/profile" replace />} />
 
           {/* ========================================
-              CREATOR ROUTES - Protected
-              Pattern: /creator/*
-              ======================================== */}
+          CREATOR ROUTES - Protected
+          ======================================== */}
           <Route
             path="/creator/dashboard"
             element={
@@ -110,6 +109,14 @@ function App() {
             element={
               <ProtectedRoute requireCreator>
                 <CreatorPostsPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/creator/posts/:id/edit"
+            element={
+              <ProtectedRoute requireCreator>
+                <CreatorPostEditPage />
               </ProtectedRoute>
             }
           />
@@ -177,39 +184,59 @@ function App() {
               </ProtectedRoute>
             }
           />
+
+          {/* ========================================
+          SUBSCRIBER ROUTES - Protected
+          ======================================== */}
           <Route
-            path="/creator/posts/:id/edit"
+            path="/profile"
             element={
-              <ProtectedRoute requireCreator>
-                <CreatorPostEditPage />
+              <ProtectedRoute>
+                <div>Profile Page (TODO)</div>
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/messages"
+            element={
+              <ProtectedRoute>
+                <MessagesPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/settings"
+            element={
+              <ProtectedRoute>
+                <div>Settings Page (TODO)</div>
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/notifications"
+            element={
+              <ProtectedRoute>
+                <div>Notifications Page (TODO)</div>
               </ProtectedRoute>
             }
           />
 
           {/* ========================================
-              STATIC / LEGAL PAGES
-              ======================================== */}
-          <Route path="/terms" element={<TermsPage />} />
-          <Route path="/privacy" element={<PrivacyPage />} />
-          <Route path="/support" element={<SupportPage />} />
-          <Route path="/help" element={<HelpPage />} />
-          <Route path="/safety" element={<SafetyPage />} />
-
-          {/* ========================================
-              PUBLIC PAGES
-              ======================================== */}
+          PUBLIC PAGES
+          ======================================== */}
           <Route path="/trending" element={<TrendingPage />} />
           <Route path="/explore" element={<ExplorePage />} />
           <Route path="/favorites" element={<FavoritesPage />} />
           <Route path="/my-subscriptions" element={<MySubscriptionsPage />} />
 
           {/* ========================================
-              SUBSCRIBER ROUTES - TODO: Create remaining pages
-              ======================================== */}
-          <Route path="/profile" element={<div>Profile Page (TODO)</div>} />
-          <Route path="/messages" element={<div>Messages Page (TODO)</div>} />
-          <Route path="/settings" element={<div>Settings Page (TODO)</div>} />
-          <Route path="/notifications" element={<div>Notifications Page (TODO)</div>} />
+          STATIC / LEGAL PAGES
+          ======================================== */}
+          <Route path="/terms" element={<TermsPage />} />
+          <Route path="/privacy" element={<PrivacyPage />} />
+          <Route path="/support" element={<SupportPage />} />
+          <Route path="/help" element={<HelpPage />} />
+          <Route path="/safety" element={<SafetyPage />} />
         </Routes>
       </div>
     </Router>

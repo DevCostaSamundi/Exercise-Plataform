@@ -124,7 +124,11 @@ export const getCreatorSettings = async (req, res) => {
 /**
  * Atualizar configurações do criador
  */
-export const updateCreatorSettings = async (req, res) => {
+/**
+ * PUT /api/v1/creator/settings
+ * Atualizar configurações do criador
+ */
+export const updateCreatorSettings = async (req, res, next) => {
   try {
     const userId = req.user.id;
     const files = req.files;
@@ -160,11 +164,9 @@ export const updateCreatorSettings = async (req, res) => {
     let coverUrl = creator.coverImage;
 
     if (files?.avatar?.[0]) {
-      // Deletar avatar antigo se existir
       if (creator.user.avatar) {
         await deleteFromCloudinary(creator.user.avatar);
       }
-
       const result = await uploadToCloudinary(
         files.avatar[0].buffer,
         `creators/${userId}/avatar`
@@ -173,11 +175,9 @@ export const updateCreatorSettings = async (req, res) => {
     }
 
     if (files?.cover?.[0]) {
-      // Deletar cover antiga se existir
       if (creator.coverImage) {
         await deleteFromCloudinary(creator.coverImage);
       }
-
       const result = await uploadToCloudinary(
         files.cover[0].buffer,
         `creators/${userId}/cover`
@@ -210,6 +210,23 @@ export const updateCreatorSettings = async (req, res) => {
       });
     }
 
+    // ✅ CORREÇÃO: Mesclar socialLinks ao invés de substituir
+    let socialLinksToUpdate = creator.socialLinks || {};
+    if (settings.profile?.socialLinks) {
+      // Mesclar os links sociais existentes com os novos
+      socialLinksToUpdate = {
+        ...socialLinksToUpdate,
+        ...settings.profile.socialLinks,
+      };
+
+      // Remover links vazios
+      Object.keys(socialLinksToUpdate).forEach(key => {
+        if (!socialLinksToUpdate[key] || socialLinksToUpdate[key].trim() === '') {
+          delete socialLinksToUpdate[key];
+        }
+      });
+    }
+
     // Atualizar Creator
     const updateData = {
       // Profile
@@ -225,8 +242,9 @@ export const updateCreatorSettings = async (req, res) => {
       ...(settings.profile?.category && {
         category: settings.profile.category,
       }),
+      // ✅ USAR socialLinksToUpdate mesclado
       ...(settings.profile?.socialLinks && {
-        socialLinks: settings.profile.socialLinks,
+        socialLinks: socialLinksToUpdate,
       }),
       ...(coverUrl !== creator.coverImage && { coverImage: coverUrl }),
 

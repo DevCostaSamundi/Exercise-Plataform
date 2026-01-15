@@ -37,7 +37,16 @@ export default function CreatorMessagesPage() {
   const typingTimeoutRef = useRef(null);
 
   // WebSocket
-  const currentUser = JSON.parse(localStorage.getItem('user') || '{}');
+  const currentUser = useMemo(() => {
+    try {
+      return JSON.parse(localStorage.getItem('user') || '{}');
+    } catch (error) {
+      console.error('Error parsing user from localStorage:', error);
+      return {};
+    }
+  }, []);
+
+  // ✅ Passar objeto user completo
   const {
     isConnected,
     newMessage,
@@ -46,7 +55,7 @@ export default function CreatorMessagesPage() {
     startTyping,
     stopTyping,
     setNewMessage
-  } = useMessageSocket(currentUser.id);
+  } = useMessageSocket(currentUser);
 
   // Buscar conversas ao montar componente
   useEffect(() => {

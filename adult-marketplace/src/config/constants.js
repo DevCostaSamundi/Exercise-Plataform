@@ -10,18 +10,14 @@ export const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:50
 export const SOCKET_URL = import.meta.env.VITE_SOCKET_URL || 'http://localhost:5000';
 
 export const API = {
-  BASE_URL: API_BASE_URL, // Reuse the same value to avoid duplication
+  BASE_URL: API_BASE_URL,
   TIMEOUT: 15000, // 15 seconds
   VERSION: 'v1',
 };
 
 // Currency Configuration
 export const CURRENCY = {
-  // Conversion rate from USD to BRL (Brazilian Real)
-  // This should ideally come from a currency API in production
   USD_TO_BRL: 5.5,
-  
-  // Currency symbols
   USD_SYMBOL: '$',
   BRL_SYMBOL: 'R$',
 };
@@ -169,7 +165,7 @@ export const MIN_WITHDRAWAL_AMOUNT = 100;
 // Platform fee percentage
 export const PLATFORM_FEE_PERCENTAGE = 20;
 
-// Error Messages (can be externalized to i18n later)
+// Error Messages
 export const ERROR_MESSAGES = {
   NETWORK_ERROR: 'Não foi possível conectar ao servidor. Verifique sua conexão.',
   GENERIC_ERROR: 'Ocorreu um erro inesperado. Por favor, tente novamente.',
@@ -182,13 +178,13 @@ export const ERROR_MESSAGES = {
 
 // Mensagens de sucesso padrão
 export const SUCCESS_MESSAGES = {
-  POST_LIKED: 'Post curtido!',
+  POST_LIKED: 'Post curtido! ',
   POST_UNLIKED: 'Curtida removida.',
-  COMMENT_POSTED: 'Comentário publicado!',
+  COMMENT_POSTED: 'Comentário publicado! ',
   SUBSCRIBED: 'Assinatura realizada com sucesso!',
   UNSUBSCRIBED: 'Assinatura cancelada.',
-  MESSAGE_SENT: 'Mensagem enviada!',
-  PROFILE_UPDATED: 'Perfil atualizado!',
+  MESSAGE_SENT: 'Mensagem enviada! ',
+  PROFILE_UPDATED: 'Perfil atualizado! ',
   SETTINGS_SAVED: 'Configurações salvas!',
   PPV_UNLOCKED: 'Conteúdo desbloqueado!',
 };
@@ -239,29 +235,277 @@ export const LANGUAGES = {
 export const APP_INFO = {
   NAME: import.meta.env.VITE_APP_NAME || 'PrideConnect',
   VERSION: import.meta.env.VITE_APP_VERSION || '1.0.0',
-  LAST_UPDATED: new Date().toISOString().split('T')[0], // YYYY-MM-DD
+  LAST_UPDATED: new Date().toISOString().split('T')[0],
 };
+
+// ============================================
+// ✅ UTILITY FUNCTIONS
+// ============================================
 
 /**
  * Currency Formatter
- * Converts USD to BRL and formats the currency
- * @deprecated Use formatters.js formatCurrency instead
+ * Formats amounts with proper currency symbol and formatting
+ * @param {number} amount - Amount to format
+ * @param {string} currency - Currency code ('USD' or 'BRL')
+ * @returns {string} Formatted currency string
  */
-export const formatCurrency = (usdAmount, currency = 'BRL') => {
-  const amount = currency === 'BRL' ? usdAmount * CURRENCY.USD_TO_BRL : usdAmount;
-  const symbol = currency === 'BRL' ? CURRENCY.BRL_SYMBOL : CURRENCY.USD_SYMBOL;
-  
-  return `${symbol} ${amount.toFixed(2).replace('.', ',')}`;
+export const formatCurrency = (amount, currency = 'USD') => {
+  if (typeof amount !== 'number') {
+    amount = parseFloat(amount) || 0;
+  }
+
+  if (currency === 'BRL') {
+    const brlAmount = amount * CURRENCY.USD_TO_BRL;
+    return new Intl.NumberFormat('pt-BR', {
+      style: 'currency',
+      currency: 'BRL',
+    }).format(brlAmount);
+  }
+
+  // Default to USD
+  return new Intl.NumberFormat('en-US', {
+    style: 'currency',
+    currency: 'USD',
+  }).format(amount);
 };
 
 /**
  * Date Formatter
  * Formats date to Brazilian locale
- * @deprecated Use formatters.js formatDate instead
+ * @param {string|Date} dateString - Date to format
+ * @param {string} format - Optional format ('short', 'long', 'time')
+ * @returns {string} Formatted date string
  */
-export const formatDate = (dateString) => {
-  return new Date(dateString).toLocaleDateString('pt-BR');
+export const formatDate = (dateString, format = 'short') => {
+  if (!dateString) return '';
+
+  const date = new Date(dateString);
+
+  if (format === 'long') {
+    return new Intl.DateTimeFormat('pt-BR', {
+      day: '2-digit',
+      month: 'long',
+      year: 'numeric',
+    }).format(date);
+  }
+
+  if (format === 'time') {
+    return new Intl.DateTimeFormat('pt-BR', {
+      hour: '2-digit',
+      minute: '2-digit',
+    }).format(date);
+  }
+
+  // Default:  short format
+  return new Intl.DateTimeFormat('pt-BR', {
+    day: '2-digit',
+    month: '2-digit',
+    year: 'numeric',
+  }).format(date);
 };
+
+/**
+ * Format date with time
+ * @param {string|Date} dateString - Date to format
+ * @returns {string} Formatted date string with time
+ */
+export const formatDateTime = (dateString) => {
+  if (!dateString) return '';
+
+  return new Intl.DateTimeFormat('pt-BR', {
+    day: '2-digit',
+    month: 'long',
+    year: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
+  }).format(new Date(dateString));
+};
+
+/**
+ * Format date only (no time)
+ * @param {string|Date} dateString - Date to format
+ * @returns {string} Formatted date string
+ */
+export const formatDateOnly = (dateString) => {
+  if (!dateString) return '';
+
+  return new Intl.DateTimeFormat('pt-BR', {
+    day: '2-digit',
+    month: '2-digit',
+    year: 'numeric',
+  }).format(new Date(dateString));
+};
+
+/**
+ * Format relative time (e.g., "2 hours ago")
+ * @param {string|Date} dateString - Date to format
+ * @returns {string} Relative time string
+ */
+export const formatRelativeTime = (dateString) => {
+  if (!dateString) return '';
+
+  const date = new Date(dateString);
+  const now = new Date();
+  const diffMs = now - date;
+  const diffSec = Math.floor(diffMs / 1000);
+  const diffMin = Math.floor(diffSec / 60);
+  const diffHour = Math.floor(diffMin / 60);
+  const diffDay = Math.floor(diffHour / 24);
+
+  if (diffSec < 60) return 'agora';
+  if (diffMin < 60) return `${diffMin}m atrás`;
+  if (diffHour < 24) return `${diffHour}h atrás`;
+  if (diffDay < 7) return `${diffDay}d atrás`;
+
+  return formatDate(dateString);
+};
+
+/**
+ * Format number with K/M suffixes
+ * @param {number} num - Number to format
+ * @returns {string} Formatted number string
+ */
+export const formatNumber = (num) => {
+  if (typeof num !== 'number') {
+    num = parseFloat(num) || 0;
+  }
+
+  if (num >= 1000000) {
+    return (num / 1000000).toFixed(1).replace(/\.0$/, '') + 'M';
+  }
+  if (num >= 1000) {
+    return (num / 1000).toFixed(1).replace(/\.0$/, '') + 'K';
+  }
+  return num.toString();
+};
+
+/**
+ * Truncate text with ellipsis
+ * @param {string} text - Text to truncate
+ * @param {number} maxLength - Maximum length
+ * @returns {string} Truncated text
+ */
+export const truncateText = (text, maxLength = 100) => {
+  if (!text || text.length <= maxLength) return text;
+  return text.substring(0, maxLength).trim() + '...';
+};
+
+/**
+ * Validate email format
+ * @param {string} email - Email to validate
+ * @returns {boolean} Is valid email
+ */
+export const isValidEmail = (email) => {
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  return emailRegex.test(email);
+};
+
+/**
+ * Validate username format
+ * @param {string} username - Username to validate
+ * @returns {boolean} Is valid username
+ */
+export const isValidUsername = (username) => {
+  return PATTERNS.USERNAME.test(username);
+};
+
+/**
+ * Get file extension
+ * @param {string} filename - Filename
+ * @returns {string} File extension
+ */
+export const getFileExtension = (filename) => {
+  if (!filename) return '';
+  return filename.split('.').pop().toLowerCase();
+};
+
+/**
+ * Check if file is an image
+ * @param {File|string} file - File object or filename
+ * @returns {boolean} Is image
+ */
+export const isImageFile = (file) => {
+  const ext = typeof file === 'string' ? getFileExtension(file) : file.type;
+  const imageExts = ['jpg', 'jpeg', 'png', 'gif', 'webp', 'svg'];
+  return imageExts.some(e => ext.includes(e));
+};
+
+/**
+ * Check if file is a video
+ * @param {File|string} file - File object or filename
+ * @returns {boolean} Is video
+ */
+export const isVideoFile = (file) => {
+  const ext = typeof file === 'string' ? getFileExtension(file) : file.type;
+  const videoExts = ['mp4', 'webm', 'mov', 'avi'];
+  return videoExts.some(e => ext.includes(e));
+};
+
+/**
+ * Format file size
+ * @param {number} bytes - File size in bytes
+ * @returns {string} Formatted file size
+ */
+export const formatFileSize = (bytes) => {
+  if (bytes === 0) return '0 Bytes';
+
+  const k = 1024;
+  const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+  const i = Math.floor(Math.log(bytes) / Math.log(k));
+
+  return Math.round(bytes / Math.pow(k, i) * 100) / 100 + ' ' + sizes[i];
+};
+
+/**
+ * Generate unique ID
+ * @returns {string} Unique ID
+ */
+export const generateId = () => {
+  return `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+};
+
+/**
+ * Sleep/delay function
+ * @param {number} ms - Milliseconds to sleep
+ * @returns {Promise} Promise that resolves after delay
+ */
+export const sleep = (ms) => {
+  return new Promise(resolve => setTimeout(resolve, ms));
+};
+
+/**
+ * Copy text to clipboard
+ * @param {string} text - Text to copy
+ * @returns {Promise<boolean>} Success status
+ */
+export const copyToClipboard = async (text) => {
+  try {
+    await navigator.clipboard.writeText(text);
+    return true;
+  } catch (error) {
+    console.error('Failed to copy:', error);
+    return false;
+  }
+};
+
+/**
+ * Get initials from name
+ * @param {string} name - Full name
+ * @returns {string} Initials
+ */
+export const getInitials = (name) => {
+  if (!name) return '';
+  return name
+    .split(' ')
+    .map(n => n[0])
+    .join('')
+    .toUpperCase()
+    .substring(0, 2);
+};
+
+// ============================================
+// ✅ DEFAULT EXPORT
+// ============================================
 
 export default {
   API_BASE_URL,
@@ -299,6 +543,22 @@ export default {
   THEMES,
   LANGUAGES,
   APP_INFO,
+  // Utility Functions
   formatCurrency,
   formatDate,
+  formatDateTime,
+  formatDateOnly,
+  formatRelativeTime,
+  formatNumber,
+  truncateText,
+  isValidEmail,
+  isValidUsername,
+  getFileExtension,
+  isImageFile,
+  isVideoFile,
+  formatFileSize,
+  generateId,
+  sleep,
+  copyToClipboard,
+  getInitials,
 };

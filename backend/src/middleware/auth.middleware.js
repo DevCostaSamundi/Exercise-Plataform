@@ -7,6 +7,8 @@ import jwtConfig from '../config/jwt.js';
 /**
  * Middleware de autenticação obrigatória
  */
+
+
 export const authenticate = async (req, res, next) => {
   try {
     const authHeader = req.headers.authorization;
@@ -68,6 +70,8 @@ export const authenticate = async (req, res, next) => {
     });
   }
 };
+
+
 
 /**
  * Autenticação opcional - não bloqueia se não tiver token

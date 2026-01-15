@@ -12,31 +12,18 @@ const router = express.Router();
 router.use(authenticate);
 router.use(requireCreator);
 
-// GET /api/v1/creator/settings - Obter configurações
-router.get('/settings', getCreatorSettings);
+// ✅ CORRIGIDO:  Remover '/settings' - a rota base já é '/creator/settings'
+// GET /api/v1/creator/settings
+router.get('/', getCreatorSettings);
 
-// PUT /api/v1/creator/settings - Atualizar configurações
+// PUT /api/v1/creator/settings
 router.put(
-  '/settings',
+  '/',
   upload.fields([
     { name: 'avatar', maxCount: 1 },
     { name: 'cover', maxCount: 1 },
   ]),
   updateCreatorSettings
 );
-
-// GET /api/v1/creator/dashboard - Dashboard data
-router.get('/dashboard', async (req, res) => {
-  // TODO: Implementar controller
-  res.json({
-    success: true,
-    data: {
-      earnings: 1234.56,
-      subscribers: 42,
-      posts: 17,
-      lastPayment: '2024-06-01',
-    }
-  });
-});
 
 export default router;

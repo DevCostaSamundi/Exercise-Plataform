@@ -1,66 +1,47 @@
+// routes/message.routes.js
 import express from 'express';
-import multer from 'multer';
 import { authenticate } from '../middleware/auth.middleware.js';
-import {
-  getConversations,
-  getMessages,
-  sendMessage,
-  getOrCreateConversation,
-  markAsRead,
-} from '../controllers/message.controller.js';
-import { uploadMessageMedia } from '../controllers/messageUpload.controller.js';
-import {
-  sendPaidMessage,
-  unlockPaidMessage,
-} from '../controllers/paidMessage.controller.js';
+import messageController from '../controllers/message.controller.js';
+import paidMessageController from '../controllers/paidMessage.controller.js';
+import messageUploadController from '../controllers/messageUpload.controller.js';
+import multer from 'multer';
 
 const router = express.Router();
 
-// Configurar multer para memória
+// Configurar multer para upload de mídia
 const upload = multer({
-  storage: multer.memoryStorage(),
+  storage:  multer.memoryStorage(),
   limits: {
     fileSize: 10 * 1024 * 1024, // 10MB
   },
 });
 
-// ✅ Todas as rotas requerem autenticação
-router. use(authenticate);
+// ✅ APLICAR autenticação em todas as rotas
+router.use(authenticate);
 
-// ============================================
-// ROTAS PRINCIPAIS DE MENSAGENS
-// ============================================
+// ==========================================
+// CONVERSAS
+// ==========================================
+router.get('/conversations', messageController.getConversations);
+router.post('/conversations', messageController. getOrCreateConversation);
+router.get('/conversations/:conversationId', messageController.getConversation);
+router.get('/conversations/:conversationId/messages', messageController.getMessages);
 
-// GET /api/v1/messages/conversations - Listar conversas
-router.get('/conversations', getConversations);
+// ==========================================
+// MENSAGENS
+// ==========================================
+router.post('/', messageController.sendMessage);
+router.post('/:messageId/read', messageController.markAsRead);
 
-// POST /api/v1/messages/conversations - Criar ou buscar conversa
-router.post('/conversations', getOrCreateConversation);
+// ==========================================
+// MENSAGENS PAGAS (PPV)
+// ==========================================
+router.post('/paid', paidMessageController.sendPaidMessage);
+router.post('/:messageId/unlock', paidMessageController.unlockPaidMessage);
 
-// GET /api/v1/messages/:conversationId - Buscar mensagens de uma conversa
-router.get('/:conversationId', getMessages);
-
-// POST /api/v1/messages - Enviar mensagem
-router. post('/', sendMessage);
-
-// PUT /api/v1/messages/:messageId/read - Marcar como lida
-router.put('/:messageId/read', markAsRead);
-
-// ============================================
-// ROTAS DE UPLOAD
-// ============================================
-
-// POST /api/v1/messages/upload - Upload de mídia
-router. post('/upload', upload.single('file'), uploadMessageMedia);
-
-// ============================================
-// ROTAS DE MENSAGENS PAGAS (PPV)
-// ============================================
-
-// POST /api/v1/messages/paid - Enviar mensagem paga
-router.post('/paid', sendPaidMessage);
-
-// POST /api/v1/messages/:messageId/unlock - Desbloquear mensagem paga
-router.post('/:messageId/unlock', unlockPaidMessage);
+// ==========================================
+// UPLOAD DE MÍDIA
+// ==========================================
+router.post('/upload', upload.single('file'), messageUploadController.uploadMessageMedia);
 
 export default router;

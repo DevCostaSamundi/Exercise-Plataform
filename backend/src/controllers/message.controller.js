@@ -85,6 +85,7 @@ export const getConversations = async (req, res) => {
     }
 };
 
+
 // Obter mensagens de uma conversa
 export const getMessages = async (req, res) => {
     try {
@@ -330,6 +331,9 @@ export const sendMessage = async (req, res) => {
 };
 
 // Criar ou buscar conversa
+// controllers/message.controller.js
+
+// Criar ou buscar conversa
 export const getOrCreateConversation = async (req, res) => {
     console.log('🔥 getOrCreateConversation CHAMADO! ');
     console.log('🔥 User:', req.user);
@@ -343,6 +347,18 @@ export const getOrCreateConversation = async (req, res) => {
             return res.status(400).json({
                 success: false,
                 message: 'ID do destinatário é obrigatório',
+            });
+        }
+
+        // ✅ Verificar se o destinatário existe
+        const recipient = await prisma.user.findUnique({
+            where: { id: recipientId },
+        });
+
+        if (!recipient) {
+            return res.status(404).json({
+                success: false,
+                message: 'Destinatário não encontrado',
             });
         }
 
@@ -376,12 +392,19 @@ export const getOrCreateConversation = async (req, res) => {
             },
         });
 
-        // Criar se não existir
+        // ✅ Criar se não existir
         if (!conversation) {
+            console.log('📝 Creating new conversation');
+
+            // Determinar quem é o criador
+            const recipientCreator = await prisma.creator.findUnique({
+                where: { userId: recipientId },
+            });
+
             conversation = await prisma.conversation.create({
                 data: {
-                    creatorId: recipientId,
-                    subscriberId: userId,
+                    creatorId: recipientCreator ? recipientId : userId,
+                    subscriberId: recipientCreator ? userId : recipientId,
                     status: 'active',
                 },
                 include: {
@@ -413,6 +436,98 @@ export const getOrCreateConversation = async (req, res) => {
         });
     } catch (error) {
         logger.error('Error getting/creating conversation:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Erro ao buscar conversa',
+        });
+    }
+};
+
+// Obter detalhes de uma conversa específica
+export const getConversation = async (req, res) => {
+    try {
+        const { conversationId } = req.params;
+        const userId = req.user.id;
+
+        const conversation = await prisma.conversation.findUnique({
+            where: { id: conversationId },
+            include: {
+                creator: {
+                    select: {
+                        id: true,
+                        username: true,
+                        displayName: true,
+                        avatar: true,
+                        isVerified: true,
+                    },
+                },
+                subscriber: {
+                    select: {
+                        id: true,
+                        username: true,
+                        displayName: true,
+                        avatar: true,
+                        isVerified: true,
+                    },
+                },
+            },
+        });
+
+        if (!conversation) {
+            return res.status(404).json({
+                success: false,
+                message: 'Conversa não encontrada',
+            });
+        }
+
+        // Verificar se usuário faz parte da conversa
+        const isParticipant =
+            conversation.creatorId === userId ||
+            conversation.subscriberId === userId;
+
+        if (!isParticipant) {
+            return res.status(403).json({
+                success: false,
+                message: 'Acesso negado',
+            });
+        }
+
+        // Formatar resposta
+        const isCreator = conversation.creatorId === userId;
+        const otherUser = isCreator ? conversation.subscriber : conversation.creator;
+        const unreadCount = isCreator
+            ? conversation.unreadCountCreator
+            : conversation.unreadCountSubscriber;
+
+        const formatted = {
+            id: conversation.id,
+            otherUser: {
+                id: otherUser.id,
+                username: otherUser.username,
+                displayName: otherUser.displayName,
+                avatar: otherUser.avatar,
+                isVerified: otherUser.isVerified,
+            },
+            lastMessage: conversation.lastMessageText
+                ? {
+                    text: conversation.lastMessageText,
+                    sender: { _id: conversation.lastMessageSenderId },
+                    timestamp: conversation.lastMessageTimestamp,
+                }
+                : null,
+            unreadCount,
+            isVIP: conversation.isVIP,
+            status: conversation.status,
+            createdAt: conversation.createdAt,
+            updatedAt: conversation.updatedAt,
+        };
+
+        res.json({
+            success: true,
+            data: formatted,
+        });
+    } catch (error) {
+        logger.error('Error fetching conversation:', error);
         res.status(500).json({
             success: false,
             message: 'Erro ao buscar conversa',
@@ -467,8 +582,9 @@ export const markAsRead = async (req, res) => {
 
 export default {
     getConversations,
+    getOrCreateConversation,
+    getConversation,
     getMessages,
     sendMessage,
-    getOrCreateConversation,
     markAsRead,
 };

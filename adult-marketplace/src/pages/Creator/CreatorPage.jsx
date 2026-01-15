@@ -4,6 +4,7 @@ import PaymentModal from '../../components/PaymentModal';
 import TipModal from '../../components/TipModal';
 import creatorService from '../../services/creatorService';
 import subscriptionService from '../../services/subscriptionService';
+import messageService from '../../services/messageService';
 
 export default function CreatorPage() {
   const { id } = useParams();
@@ -66,16 +67,24 @@ export default function CreatorPage() {
     setShowPaymentModal(true);
   };
 
-  const handleSendMessage = () => {
-    if (!currentUser || !currentUser.id) {
-      alert('Você precisa estar logado para enviar mensagens!');
-      navigate('/login');
-      return;
+  const handleSendMessage = async (creatorId) => {
+    try {
+      setLoading(true);
+      
+      // ✅ Criar ou buscar conversa
+      const response = await messageService.getOrCreateConversation(creatorId);
+      
+      console.log('✅ Conversation created/found:', response);
+      
+      // ✅ Redirecionar para mensagens com o ID da conversa
+      navigate(`/messages?conversation=${response.data.id}`);
+      
+    } catch (error) {
+      console.error('❌ Error creating conversation:', error);
+      alert('Erro ao iniciar conversa:   ' + error.message);
+    } finally {
+      setLoading(false);
     }
-
-    navigate('/messages', {
-      state: { recipientId: creator.userId, recipientName: creator.displayName }
-    });
   };
 
   const handleSendTip = () => {
@@ -311,8 +320,8 @@ export default function CreatorPage() {
                 <button
                   onClick={() => setActiveTab('posts')}
                   className={`pb-3 border-b-2 font-medium text-sm transition-colors ${activeTab === 'posts'
-                      ? 'border-indigo-600 text-indigo-600'
-                      : 'border-transparent text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-300'
+                    ? 'border-indigo-600 text-indigo-600'
+                    : 'border-transparent text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-300'
                     }`}
                 >
                   Posts
@@ -320,8 +329,8 @@ export default function CreatorPage() {
                 <button
                   onClick={() => setActiveTab('media')}
                   className={`pb-3 border-b-2 font-medium text-sm transition-colors ${activeTab === 'media'
-                      ? 'border-indigo-600 text-indigo-600'
-                      : 'border-transparent text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-300'
+                    ? 'border-indigo-600 text-indigo-600'
+                    : 'border-transparent text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-300'
                     }`}
                 >
                   Mídia ({creator.photos + creator.videos})
@@ -329,8 +338,8 @@ export default function CreatorPage() {
                 <button
                   onClick={() => setActiveTab('about')}
                   className={`pb-3 border-b-2 font-medium text-sm transition-colors ${activeTab === 'about'
-                      ? 'border-indigo-600 text-indigo-600'
-                      : 'border-transparent text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-300'
+                    ? 'border-indigo-600 text-indigo-600'
+                    : 'border-transparent text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-300'
                     }`}
                 >
                   Sobre
@@ -344,8 +353,8 @@ export default function CreatorPage() {
                 <button
                   onClick={() => setFilterType('all')}
                   className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${filterType === 'all'
-                      ? 'bg-indigo-600 text-white'
-                      : 'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300'
+                    ? 'bg-indigo-600 text-white'
+                    : 'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300'
                     }`}
                 >
                   Tudo
@@ -353,8 +362,8 @@ export default function CreatorPage() {
                 <button
                   onClick={() => setFilterType('photos')}
                   className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${filterType === 'photos'
-                      ? 'bg-indigo-600 text-white'
-                      : 'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300'
+                    ? 'bg-indigo-600 text-white'
+                    : 'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300'
                     }`}
                 >
                   📸 Fotos ({creator.photos})
@@ -362,8 +371,8 @@ export default function CreatorPage() {
                 <button
                   onClick={() => setFilterType('videos')}
                   className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${filterType === 'videos'
-                      ? 'bg-indigo-600 text-white'
-                      : 'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300'
+                    ? 'bg-indigo-600 text-white'
+                    : 'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300'
                     }`}
                 >
                   🎥 Vídeos ({creator.videos})
@@ -593,12 +602,85 @@ export default function CreatorPage() {
               </div>
             )}
 
+            {/* Redes Sociais */}
+            {creator.socialLinks && Object.keys(creator.socialLinks).filter(key => creator.socialLinks[key]).length > 0 && (
+              <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 p-6">
+                <h2 className="text-lg font-bold text-slate-900 dark:text-white mb-4 flex items-center space-x-2">
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                    <path d="M15 8a3 3 0 10-2.977-2.63l-4.94 2.47a3 3 0 100 4.319l4.94 2.47a3 3 0 10.895-1.789l-4.94-2.47a3.027 3.027 0 000-.74l4.94-2.47C13.456 7.68 14.19 8 15 8z" />
+                  </svg>
+                  <span>Redes Sociais</span>
+                </h2>
+                <div className="grid grid-cols-2 gap-2">
+                  {creator.socialLinks.twitter && (
+                    <a
+                      href={creator.socialLinks.twitter}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="flex items-center justify-center space-x-2 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 py-3 px-4 rounded-lg transition-colors"
+                    >
+                      <span className="text-xl">𝕏</span>
+                      <span className="text-sm font-medium text-slate-700 dark:text-slate-300">Twitter</span>
+                    </a>
+                  )}
+
+                  {creator.socialLinks.instagram && (
+                    <a
+                      href={creator.socialLinks.instagram}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="flex items-center justify-center space-x-2 bg-gradient-to-br from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 py-3 px-4 rounded-lg transition-all text-white"
+                    >
+                      <span className="text-xl">📸</span>
+                      <span className="text-sm font-medium">Instagram</span>
+                    </a>
+                  )}
+
+                  {creator.socialLinks.tiktok && (
+                    <a
+                      href={creator.socialLinks.tiktok}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="flex items-center justify-center space-x-2 bg-slate-900 hover:bg-slate-800 dark:bg-slate-100 dark:hover:bg-slate-200 py-3 px-4 rounded-lg transition-colors"
+                    >
+                      <span className="text-xl">🎵</span>
+                      <span className="text-sm font-medium text-white dark:text-slate-900">TikTok</span>
+                    </a>
+                  )}
+
+                  {creator.socialLinks.youtube && (
+                    <a
+                      href={creator.socialLinks.youtube}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="flex items-center justify-center space-x-2 bg-red-600 hover:bg-red-700 py-3 px-4 rounded-lg transition-colors text-white"
+                    >
+                      <span className="text-xl">▶️</span>
+                      <span className="text-sm font-medium">YouTube</span>
+                    </a>
+                  )}
+
+                  {creator.website && (
+                    <a
+                      href={creator.website}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="flex items-center justify-center space-x-2 bg-indigo-100 dark:bg-indigo-900/20 hover:bg-indigo-200 dark:hover:bg-indigo-900/30 py-3 px-4 rounded-lg transition-colors"
+                    >
+                      <span className="text-xl">🌐</span>
+                      <span className="text-sm font-medium text-indigo-700 dark:text-indigo-400">Website</span>
+                    </a>
+                  )}
+                </div>
+              </div>
+            )}
             {/* Action Buttons */}
             <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 p-4 space-y-3">
               <button
-                onClick={handleSendMessage}
+                onClick={() => handleSendMessage(creator.userId)}
                 className="w-full bg-indigo-600 hover:bg-indigo-700 text-white py-3 px-4 rounded-lg font-semibold transition-colors flex items-center justify-center space-x-2"
               >
+                
                 <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
                   <path fillRule="evenodd" d="M18 10c0 3.866-3.582 7-8 7a8.841 8.841 0 01-4.083-.98L2 17l1.338-3.123C2.493 12.767 2 11.434 2 10c0-3.866 3.582-7 8-7s8 3.134 8 7zM7 9H5v2h2V9zm8 0h-2v2h2V9zM9 9h2v2H9V9z" clipRule="evenodd" />
                 </svg>

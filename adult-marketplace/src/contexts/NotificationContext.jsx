@@ -1,13 +1,9 @@
-/**
- * Context para gerenciar notificações
- * Handles notificações in-app e real-time via Socket.io
- */
-
 import { createContext, useContext, useState, useEffect, useCallback } from 'react';
-import { useSocket } from './SocketContext';
-import notificationService from '../services/notificationService';
+import { io } from 'socket.io-client';
+import api, { getAuthToken } from '../services/api';
+import PropTypes from 'prop-types';
 
-const NotificationContext = createContext(null);
+const NotificationContext = createContext();
 
 export const useNotifications = () => {
   const context = useContext(NotificationContext);
@@ -21,182 +17,174 @@ export const NotificationProvider = ({ children }) => {
   const [notifications, setNotifications] = useState([]);
   const [unreadCount, setUnreadCount] = useState(0);
   const [loading, setLoading] = useState(false);
-  const [hasMore, setHasMore] = useState(true);
-  const [page, setPage] = useState(1);
+  const [socket, setSocket] = useState(null);
+  const [connected, setConnected] = useState(false);
 
-  const { socket, isConnected } = useSocket();
+  // Inicializar WebSocket
+  useEffect(() => {
+    const token = getAuthToken();
+    if (! token) {
+      console.log('No token found, skipping WebSocket connection');
+      return;
+    }
 
-  // Buscar notificações iniciais
-  const fetchNotifications = useCallback(async (pageNum = 1, append = false) => {
+    const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+
+    const newSocket = io(API_URL, {
+      auth: { token },
+      transports: ['websocket', 'polling'],
+      reconnection: true,
+      reconnectionAttempts: 5,
+      reconnectionDelay: 1000,
+    });
+
+    newSocket.on('connect', () => {
+      console.log('✅ Connected to notification server');
+      setConnected(true);
+    });
+
+    newSocket.on('connected', (data) => {
+      console. log('🔔 Notification server ready:', data);
+    });
+
+    newSocket.on('notification: new', (notification) => {
+      console.log('🔔 New notification:', notification);
+      setNotifications((prev) => [notification, ...prev]);
+      setUnreadCount((prev) => prev + 1);
+      
+      // Mostrar notificação do navegador (se permitido)
+      showBrowserNotification(notification);
+    });
+
+    newSocket.on('disconnect', (reason) => {
+      console.log('❌ Disconnected from notification server:', reason);
+      setConnected(false);
+    });
+
+    newSocket.on('connect_error', (error) => {
+      console.error('Connection error:', error. message);
+      setConnected(false);
+    });
+
+    setSocket(newSocket);
+
+    return () => {
+      newSocket. disconnect();
+    };
+  }, []);
+
+  // Carregar notificações
+  const fetchNotifications = useCallback(async (filters = {}) => {
     try {
       setLoading(true);
+      const params = new URLSearchParams();
       
-      const response = await notificationService.getNotifications({
-        page: pageNum,
-        limit: 20,
-      });
+      if (filters. type && filters.type !== 'all') params.append('type', filters.type);
+      if (filters.unread) params.append('unread', 'true');
+      if (filters.page) params.append('page', filters. page);
+      if (filters. limit) params.append('limit', filters.limit);
 
-      const { notifications: newNotifications, hasMore: more, unreadCount: count } = response;
-
-      if (append) {
-        setNotifications(prev => [...prev, ...newNotifications]);
-      } else {
-        setNotifications(newNotifications);
-      }
-
-      setUnreadCount(count);
-      setHasMore(more);
-      setPage(pageNum);
+      const response = await api.get(`/notifications?${params.toString()}`);
+      
+      setNotifications(response.data.data. notifications);
+      setUnreadCount(response.data.data.unreadCount);
+      
+      return response.data.data;
     } catch (error) {
-      console.error('Erro ao buscar notificações:', error);
+      console.error('Error fetching notifications:', error);
+      throw error;
     } finally {
       setLoading(false);
     }
   }, []);
 
-  // Carregar notificações na montagem
-  useEffect(() => {
-    fetchNotifications();
-  }, [fetchNotifications]);
-
-  // Escutar novas notificações via Socket
-  useEffect(() => {
-    if (!socket || !isConnected) return;
-
-    const handleNewNotification = (notification) => {
-      // Adicionar notificação no topo
-      setNotifications(prev => [notification, ...prev]);
-      setUnreadCount(prev => prev + 1);
-
-      // Tocar som (opcional)
-      playNotificationSound();
-
-      // Mostrar notificação do navegador (se permitido)
-      showBrowserNotification(notification);
-    };
-
-    // Listen to both event names for compatibility
-    socket.on('notification', handleNewNotification);
-    socket.on('new_notification', handleNewNotification);
-
-    return () => {
-      socket.off('notification', handleNewNotification);
-      socket.off('new_notification', handleNewNotification);
-    };
-  }, [socket, isConnected]);
-
   // Marcar como lida
-  const markAsRead = useCallback(async (notificationId) => {
+  const markAsRead = useCallback(async (id) => {
     try {
-      await notificationService.markAsRead(notificationId);
-
-      // Atualizar estado local
-      setNotifications(prev =>
-        prev.map(notif =>
-          notif._id === notificationId ? { ...notif, read: true } : notif
-        )
+      await api.patch(`/notifications/${id}/read`);
+      
+      setNotifications((prev) =>
+        prev.map((n) => (n.id === id ? { ...n, unread: false } : n))
       );
-
-      setUnreadCount(prev => Math.max(0, prev - 1));
+      setUnreadCount((prev) => Math.max(0, prev - 1));
     } catch (error) {
-      console.error('Erro ao marcar notificação como lida:', error);
+      console.error('Error marking notification as read:', error);
+      throw error;
+    }
+  }, []);
+
+  // Marcar como não lida
+  const markAsUnread = useCallback(async (id) => {
+    try {
+      await api.patch(`/notifications/${id}/unread`);
+      
+      setNotifications((prev) =>
+        prev.map((n) => (n.id === id ? { ...n, unread: true } : n))
+      );
+      setUnreadCount((prev) => prev + 1);
+    } catch (error) {
+      console.error('Error marking notification as unread:', error);
+      throw error;
     }
   }, []);
 
   // Marcar todas como lidas
   const markAllAsRead = useCallback(async () => {
     try {
-      await notificationService.markAllAsRead();
-
-      // Atualizar estado local
-      setNotifications(prev =>
-        prev.map(notif => ({ ...notif, read: true }))
-      );
-
+      await api.patch('/notifications/mark-all-read');
+      
+      setNotifications((prev) => prev.map((n) => ({ ...n, unread: false })));
       setUnreadCount(0);
     } catch (error) {
-      console.error('Erro ao marcar todas como lidas:', error);
+      console.error('Error marking all as read:', error);
+      throw error;
     }
   }, []);
 
   // Deletar notificação
-  const deleteNotification = useCallback(async (notificationId) => {
+  const deleteNotification = useCallback(async (id) => {
     try {
-      await notificationService.deleteNotification(notificationId);
-
-      // Remover do estado
-      setNotifications(prev => prev.filter(notif => notif._id !== notificationId));
+      await api.delete(`/notifications/${id}`);
+      
+      const wasUnread = notifications.find((n) => n.id === id)?.unread;
+      setNotifications((prev) => prev.filter((n) => n.id !== id));
+      if (wasUnread) {
+        setUnreadCount((prev) => Math.max(0, prev - 1));
+      }
     } catch (error) {
-      console.error('Erro ao deletar notificação:', error);
+      console.error('Error deleting notification:', error);
+      throw error;
     }
-  }, []);
+  }, [notifications]);
 
-  // Carregar mais notificações
-  const loadMore = useCallback(() => {
-    if (!loading && hasMore) {
-      fetchNotifications(page + 1, true);
+  // Deletar múltiplas
+  const bulkDelete = useCallback(async (ids) => {
+    try {
+      await api.delete('/notifications/bulk-delete', { data: { ids } });
+      
+      const unreadDeleted = notifications.filter(
+        (n) => ids.includes(n.id) && n.unread
+      ).length;
+      
+      setNotifications((prev) => prev.filter((n) => !ids.includes(n.id)));
+      setUnreadCount((prev) => Math.max(0, prev - unreadDeleted));
+    } catch (error) {
+      console.error('Error bulk deleting notifications:', error);
+      throw error;
     }
-  }, [loading, hasMore, page, fetchNotifications]);
-
-  // Tocar som de notificação
-  const playNotificationSound = () => {
-    const audio = new Audio('/sounds/notification.mp3');
-    audio.volume = 0.5;
-    audio.play().catch(err => {
-      // Ignorar erro se usuário não permitiu autoplay
-      console.log('Autoplay bloqueado:', err);
-    });
-  };
-
-  // Mostrar notificação do navegador
-  const showBrowserNotification = (notification) => {
-    if (! ('Notification' in window)) return;
-
-    if (Notification.permission === 'granted') {
-      new Notification('PrideConnect', {
-        body: notification.message,
-        icon: '/logo.png',
-        badge: '/badge.png',
-      });
-    } else if (Notification.permission !== 'denied') {
-      Notification.requestPermission().then(permission => {
-        if (permission === 'granted') {
-          showBrowserNotification(notification);
-        }
-      });
-    }
-  };
-
-  // Solicitar permissão para notificações
-  const requestNotificationPermission = useCallback(async () => {
-    if (! ('Notification' in window)) {
-      console.log('Este navegador não suporta notificações');
-      return false;
-    }
-
-    if (Notification.permission === 'granted') {
-      return true;
-    }
-
-    if (Notification.permission !== 'denied') {
-      const permission = await Notification.requestPermission();
-      return permission === 'granted';
-    }
-
-    return false;
-  }, []);
+  }, [notifications]);
 
   const value = {
     notifications,
     unreadCount,
     loading,
-    hasMore,
+    connected,
     fetchNotifications,
     markAsRead,
+    markAsUnread,
     markAllAsRead,
     deleteNotification,
-    loadMore,
-    requestNotificationPermission,
+    bulkDelete,
   };
 
   return (
@@ -206,4 +194,27 @@ export const NotificationProvider = ({ children }) => {
   );
 };
 
-export default NotificationContext;
+NotificationProvider.propTypes = {
+  children: PropTypes.node. isRequired,
+};
+
+// Helper:  Notificação do navegador
+function showBrowserNotification(notification) {
+  if ('Notification' in window && Notification.permission === 'granted') {
+    new Notification(notification.title, {
+      body: notification.message,
+      icon: '/logo.png',
+      badge: '/logo.png',
+      tag: notification.id,
+    });
+  }
+}
+
+// Solicitar permissão de notificações
+export const requestNotificationPermission = async () => {
+  if ('Notification' in window && Notification. permission === 'default') {
+    const permission = await Notification.requestPermission();
+    return permission === 'granted';
+  }
+  return Notification.permission === 'granted';
+};

@@ -31,7 +31,7 @@ class AuthController {
       } = req.body;
 
       // Normalize
-      const normalizedEmail = email?. trim().toLowerCase();
+      const normalizedEmail = email?.trim().toLowerCase();
       const normalizedUsername = username?.trim().toLowerCase();
 
       // Check if user already exists
@@ -46,7 +46,7 @@ class AuthController {
 
       if (existingUser) {
         logger.warn('❌ User already exists:', { email: existingUser.email, username: existingUser.username });
-        
+
         if (existingUser.email === normalizedEmail) {
           throw new ConflictError('Email already registered');
         }
@@ -63,7 +63,7 @@ class AuthController {
           username: normalizedUsername,
           password: hashedPassword,
           displayName,
-          birthDate: birthDate ?  new Date(birthDate) : null,
+          birthDate: birthDate ? new Date(birthDate) : null,
           genderIdentity,
           orientation,
           firstName,
@@ -91,7 +91,7 @@ class AuthController {
       const tokens = JwtService.generateTokens(user.id, user.role);
 
       // Send welcome email (don't wait for it)
-      emailService.sendWelcomeEmail(user.email, user.displayName || user.username). catch((err) => {
+      emailService.sendWelcomeEmail(user.email, user.displayName || user.username).catch((err) => {
         logger.error('Failed to send welcome email:', err);
       });
 
@@ -130,7 +130,7 @@ class AuthController {
         cpf,
         pixKeyType,
         pixKey,
-        criptoKey,
+        cryptoKey,
         agreeTerms,
         ageConfirm,
         contentOwnership
@@ -161,23 +161,23 @@ class AuthController {
       if (!agree || !age || !contentOwn) {
         return ApiResponse.error(res, 'You must confirm terms, age and ownership', 400);
       }
-      if (! bio || bio.length < 50) {
+      if (!bio || bio.length < 50) {
         return ApiResponse.error(res, 'Bio must have at least 50 characters', 400);
       }
 
       const existingUser = await prisma.user.findFirst({
         where: { OR: [{ email: normalizedEmail }, { username: normalizedUsername }] }
       });
-      
+
       if (existingUser) {
-        return ApiResponse. error(res, 'Email or username already registered', 409);
+        return ApiResponse.error(res, 'Email or username already registered', 409);
       }
 
       const kycDocs = {};
       if (req.files) {
         if (req.files.idDocument && req.files.idDocument[0]) {
           const file = req.files.idDocument[0];
-          const result = await cloudinaryService.uploadBufferToCloudinary(file. buffer, { folder: 'kyc/id_documents', resource_type: 'image' });
+          const result = await cloudinaryService.uploadBufferToCloudinary(file.buffer, { folder: 'kyc/id_documents', resource_type: 'image' });
           kycDocs.idDocument = { url: result.secure_url, public_id: result.public_id };
         }
         if (req.files.selfieWithId && req.files.selfieWithId[0]) {
@@ -210,7 +210,7 @@ class AuthController {
             displayName: displayName || u.displayName || u.username,
             description: bio || null,
             subscriptionPrice: subscriptionValue,
-            kycDocuments: Object.keys(kycDocs).length ?  kycDocs : null,
+            kycDocuments: Object.keys(kycDocs).length ? kycDocs : null,
             socialLinks: null,
             isVerified: false,
             kycStatus: 'PENDING',
@@ -220,7 +220,7 @@ class AuthController {
         return [u, c];
       });
 
-      const tokens = JwtService.generateTokens(user.id, user. role);
+      const tokens = JwtService.generateTokens(user.id, user.role);
 
       res.cookie('refreshToken', tokens.refreshToken, {
         httpOnly: true,
@@ -292,7 +292,7 @@ class AuthController {
       // Check password
       const isPasswordValid = await bcrypt.compare(password, user.password);
 
-      if (! isPasswordValid) {
+      if (!isPasswordValid) {
         logger.warn('❌ Invalid password for:', email);
         throw new UnauthorizedError('Invalid credentials');
       }
@@ -331,7 +331,7 @@ class AuthController {
     try {
       const refreshToken = req.body.refreshToken || req.cookies?.refreshToken;
       if (!refreshToken) throw new UnauthorizedError('Refresh token required');
-      
+
       const decoded = JwtService.verifyRefreshToken(refreshToken);
 
       const user = await prisma.user.findUnique({
@@ -343,7 +343,7 @@ class AuthController {
         throw new UnauthorizedError('Invalid refresh token');
       }
 
-      const accessToken = JwtService.generateAccessToken(user.id, user. role);
+      const accessToken = JwtService.generateAccessToken(user.id, user.role);
 
       return ApiResponse.success(res, { accessToken }, 'Token refreshed');
     } catch (error) {
@@ -400,7 +400,7 @@ class AuthController {
    */
   async resetPassword(req, res, next) {
     try {
-      const { token, password } = req. body;
+      const { token, password } = req.body;
 
       const decoded = JwtService.verifyAccessToken(token);
 

@@ -19,24 +19,44 @@ class MessageService {
     return response.data;
   }
 
+  // Obter ou criar conversa
+  async getOrCreateConversation(recipientId) {
+    const response = await api.post('/messages/conversations', { recipientId });
+    return response.data;
+  }
+
   // Listar mensagens de uma conversa
   async getMessages(conversationId, params = {}) {
     const response = await api.get(`/messages/conversations/${conversationId}/messages`, { params });
     return response.data;
   }
 
-  // Enviar mensagem
-  async sendMessage(data) {
-    const response = await api.post('/messages', data);
+  // ✅ Enviar mensagem (CORRIGIDO)
+  async sendMessage(conversationId, recipientId, content, type = 'text') {
+    const response = await api.post('/messages', {
+      conversationId,
+      recipientId,
+      content,
+      type,
+    });
+    return response. data;
+  }
+
+  // Enviar mensagem paga
+  async sendPaidMessage(conversationId, recipientId, content, price) {
+    const response = await api.post('/messages/paid', {
+      conversationId,
+      recipientId,
+      content,
+      price,
+    });
     return response.data;
   }
 
-  // Enviar mensagem com arquivo
-  async sendMessageWithFile(formData) {
-    const response = await api.post('/messages', formData, {
-      headers: {
-        'Content-Type': 'multipart/form-data',
-      },
+  // Desbloquear mensagem paga
+  async unlockPaidMessage(messageId, paymentMethod = 'crypto') {
+    const response = await api.post(`/messages/${messageId}/unlock`, {
+      paymentMethod,
     });
     return response.data;
   }
@@ -44,6 +64,20 @@ class MessageService {
   // Marcar mensagens como lidas
   async markAsRead(conversationId) {
     const response = await api.post(`/messages/conversations/${conversationId}/read`);
+    return response.data;
+  }
+
+  // Upload de mídia
+  async uploadMedia(file) {
+    const formData = new FormData();
+    formData.append('file', file);
+
+    const response = await api.post('/messages/upload', formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data',
+      },
+    });
+
     return response.data;
   }
 

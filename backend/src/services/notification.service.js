@@ -1,7 +1,47 @@
 import logger from '../utils/logger.js';
 import prisma from '../config/database.js';
+import { getIO } from '../config/socket.js'; // WebSocket (vamos criar)
 
 class NotificationService {
+  /**
+   * Criar uma notificação genérica
+   */
+  async createNotification(data) {
+    try {
+      const notification = await prisma.notification.create({
+        data: {
+          userId: data.userId,
+          type: data.type,
+          title: data.title,
+          message: data.message,
+          metadata: data.metadata || {},
+          actionUrl: data. actionUrl,
+        },
+      });
+
+      // Emitir via WebSocket (tempo real)
+      this.emitNotification(data. userId, notification);
+
+      logger.info(`✅ Notification created: ${data.type} for user ${data.userId}`);
+      return notification;
+    } catch (error) {
+      logger.error('Error creating notification:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Emitir notificação via WebSocket
+   */
+  emitNotification(userId, notification) {
+    try {
+      const io = getIO();
+      io.to(`user: ${userId}`).emit('notification:new', notification);
+    } catch (error) {
+      logger.error('Error emitting notification:', error);
+    }
+  }
+
   /**
    * Notificar novo assinante
    */
@@ -10,41 +50,75 @@ class NotificationService {
       const sub = await prisma.subscription.findUnique({
         where: { id: subscription.id },
         include: {
-          user: {
-            select: {
-              username: true,
-              displayName: true,
-              email: true,
-            },
-          },
-          creator: {
-            include: {
-              user: {
-                select: {
-                  username: true,
-                  displayName: true,
-                  email: true,
-                },
-              },
-            },
-          },
+          user: { select: { username: true, displayName: true } },
+          creator: { include: { user: true } },
         },
       });
 
-      // Email para o usuário
-      logger.info(`📧 [DEV] Email para ${sub.user.email}:`);
-      logger.info(`   Assunto: Bem-vindo à ${sub.creator.user.displayName}!`);
-      logger.info(`   Você agora tem acesso a todo conteúdo exclusivo!`);
-
-      // Email para o criador
-      logger. info(`📧 [DEV] Email para ${sub.creator.user.email}:`);
-      logger.info(`   Assunto: Novo assinante! `);
-      logger.info(`   @${sub.user.username} acabou de assinar seu conteúdo! `);
-
-      // TODO: Integrar com serviço de email real (SendGrid, Mailgun, etc)
-      
+      await this.createNotification({
+        userId: sub.creator.userId,
+        type: 'SUBSCRIBER',
+        title: 'Novo assinante! ',
+        message: `${sub.user.displayName || sub.user.username} acabou de assinar seu plano. `,
+        metadata: { subscriptionId: sub.id, subscriberId: sub.userId },
+        actionUrl: '/creator/subscribers',
+      });
     } catch (error) {
-      logger.error('Error sending notifications:', error);
+      logger.error('Error notifying new subscriber:', error);
+    }
+  }
+
+  /**
+   * Notificar novo comentário
+   */
+  async notifyNewComment(comment, post) {
+    try {
+      await this.createNotification({
+        userId: post.creatorId,
+        type: 'COMMENT',
+        title: 'Novo comentário',
+        message: `${comment.user.displayName} comentou no seu post "${post.title}".`,
+        metadata: { commentId: comment.id, postId: post.id },
+        actionUrl: `/creator/posts? highlight=${post.id}`,
+      });
+    } catch (error) {
+      logger.error('Error notifying new comment:', error);
+    }
+  }
+
+  /**
+   * Notificar gorjeta recebida
+   */
+  async notifyTipReceived(tip) {
+    try {
+      await this.createNotification({
+        userId: tip.creatorId,
+        type: 'TIP',
+        title:  'Gorjeta recebida! ',
+        message: `Você recebeu $${tip.amount} de gorjeta! `,
+        metadata: { tipId: tip.id, amount: tip.amount },
+        actionUrl: '/creator/earnings',
+      });
+    } catch (error) {
+      logger.error('Error notifying tip:', error);
+    }
+  }
+
+  /**
+   * Notificar milestone atingido
+   */
+  async notifyMilestone(userId, milestone) {
+    try {
+      await this.createNotification({
+        userId,
+        type: 'MILESTONE',
+        title: `Marco atingido!  🎉`,
+        message: milestone.message,
+        metadata: milestone.data,
+        actionUrl: '/creator/dashboard',
+      });
+    } catch (error) {
+      logger.error('Error notifying milestone:', error);
     }
   }
 
@@ -56,26 +130,18 @@ class NotificationService {
       const paymentData = await prisma.payment.findUnique({
         where: { id: payment.id },
         include: {
-          user: {
-            select: { email: true, displayName: true },
-          },
-          creator: {
-            include: {
-              user: {
-                select: { email: true, displayName: true },
-              },
-            },
-          },
+          creator: { include: { user: true } },
         },
       });
 
-      logger.info(`💰 [DEV] Pagamento confirmado! `);
-      logger.info(`   De: ${paymentData.user.displayName}`);
-      logger.info(`   Para: ${paymentData.creator?.user.displayName || 'Plataforma'}`);
-      logger.info(`   Valor: $${paymentData.amountUSD}`);
-      logger.info(`   Cripto: ${paymentData.cryptoCurrency}`);
-      logger.info(`   TX: ${paymentData.txHash}`);
-
+      await this.createNotification({
+        userId: paymentData.creator.userId,
+        type: 'PAYMENT',
+        title: 'Pagamento aprovado',
+        message: `Transferência de $${paymentData. amountUSD} foi aprovada. `,
+        metadata: { paymentId: payment.id, amount: paymentData.amountUSD },
+        actionUrl: '/creator/earnings',
+      });
     } catch (error) {
       logger.error('Error notifying payment:', error);
     }

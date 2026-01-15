@@ -12,12 +12,10 @@ import creatorRoutes from './routes/creator.routes.js';
 import postRoutes from './routes/post.routes.js';
 import chatRoutes from './routes/chat.routes.js';
 import liveRoutes from './routes/live.routes.js';
-import creatorSettingsRoutes from './routes/creatorSettings.routes.js';
 import creatorPostRoutes from './routes/creatorPost.routes.js';
 import messageRoutes from './routes/message.routes.js';
 import paymentRoutes from './routes/payment.routes.js';
 import withdrawalRoutes from './routes/withdrawal.routes.js';
-import subscriptionRoutes from './routes/creatorSubscribers.routes.js';
 import creatorDashboardRoutes from './routes/creatorDashboard.routes.js';
 import commentRoutes from './routes/comment.routes.js';
 import likeRoutes from './routes/like.routes.js';
@@ -26,6 +24,10 @@ import trendingRoutes from './routes/trending.routes.js';
 import transactionRoutes from './routes/transaction.routes.js';
 import uploadRoutes from './routes/upload.routes.js';
 import creatorSubscribersRoutes from './routes/creatorSubscribers.routes.js';
+import notificationRoutes from './routes/notification.routes.js';
+import creatorSettingsRoutes from './routes/creatorSettings.routes.js';
+import subscriptionRoutes from './routes/subscription.routes.js';
+
 
 // Import middleware
 import errorMiddleware from './middleware/error.middleware.js';
@@ -49,7 +51,7 @@ const corsOptions = {
     if (allowedOrigins.some(o => origin.startsWith(o))) {
       return callback(null, true);
     }
-    if (process.env.NODE_ENV !== 'production' && origin.includes('localhost')) {
+    if (process.env.NODE_ENV !== 'production' && origin. includes('localhost')) {
       return callback(null, true);
     }
     console.warn(`Blocked CORS request from origin: ${origin}`);
@@ -57,7 +59,7 @@ const corsOptions = {
   },
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH'],
-  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
+  allowedHeaders:  ['Content-Type', 'Authorization', 'X-Requested-With'],
   exposedHeaders: ['Content-Range', 'X-Content-Range'],
   maxAge: 600,
 };
@@ -104,11 +106,11 @@ const API_VERSION = process.env.API_VERSION || 'v1';
 // Auth routes (públicas)
 app.use(`/api/${API_VERSION}/auth`, authRoutes);
 
-// ✅ CRÍTICO: Rotas de GERENCIAMENTO do criador (mais específicas)
+// ✅ CRÍTICO:  Rotas de GERENCIAMENTO do criador (mais específicas)
 // Estas devem vir ANTES de /creators para evitar conflito
+app.use(`/api/${API_VERSION}/creator/settings`, creatorSettingsRoutes);
 app.use(`/api/${API_VERSION}/creator-dashboard`, creatorDashboardRoutes);
 app.use(`/api/${API_VERSION}/creator/posts`, creatorPostRoutes);
-app.use(`/api/${API_VERSION}/creator/settings`, creatorSettingsRoutes);
 app.use(`/api/${API_VERSION}/creator/subscribers`, creatorSubscribersRoutes);
 
 // ✅ Rotas PÚBLICAS de criadores (menos específicas)
@@ -118,7 +120,7 @@ app.use(`/api/${API_VERSION}/creators`, creatorRoutes);
 // User routes (protegidas)
 app.use(`/api/${API_VERSION}/user`, userRoutes);
 
-// Subscription routes
+// ✅ Subscription routes (ASSINANTE gerencia suas assinaturas)
 app.use(`/api/${API_VERSION}/subscriptions`, subscriptionRoutes);
 
 // Favorites routes
@@ -156,6 +158,9 @@ app.use(`/api/${API_VERSION}/withdrawals`, withdrawalRoutes);
 
 // Upload routes
 app.use(`/api/${API_VERSION}/upload`, uploadRoutes);
+
+// Notification routes
+app.use(`/api/${API_VERSION}/notifications`, notificationRoutes);
 
 // ------------------- 404 handler -------------------
 app.use('/api', (req, res) => {

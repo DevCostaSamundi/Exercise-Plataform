@@ -27,11 +27,16 @@ app.get(`/api/${process.env.API_VERSION || 'v1'}`, (req, res) => {
       auth_creator_register: '/api/v1/auth/creator-register',
       creators: '/api/v1/creators',
       users: '/api/v1/users/profile',
+      posts: '/api/v1/posts',
+      subscriptions: '/api/v1/subscriptions',
+      payments: '/api/v1/payments',
+      withdrawals: '/api/v1/withdrawals',
+      notifications: '/api/v1/notifications',
     },
   });
 });
 
-const PORT = process.env.PORT || 5000;
+const PORT = process.env.PORT || 50001;
 
 const server = http.createServer(app);
 initSocket(server);

@@ -1,53 +1,62 @@
+// src/services/subscriptionService.js
 import api from './api';
 
-class SubscriptionService {
+const subscriptionService = {
   /**
+   * GET /api/v1/subscriptions
+   * Listar assinaturas do usuário logado
+   */
+  async getSubscriptions() {
+    try {
+      const response = await api. get('/subscriptions');
+      return response.data;
+    } catch (error) {
+      console.error('Error fetching subscriptions:', error);
+      throw error;
+    }
+  },
+
+  /**
+   * POST /api/v1/subscriptions
    * Criar nova assinatura
    */
-  async createSubscription(creatorId, data = {}) {
-    const response = await api.post(`/subscriptions/${creatorId}`, data);
-    return response.data;
-  }
+  async createSubscription(creatorId) {
+    try {
+      const response = await api.post('/subscriptions', { creatorId });
+      return response.data;
+    } catch (error) {
+      console.error('Error creating subscription:', error);
+      throw error;
+    }
+  },
 
   /**
-   * Listar assinaturas do usuário
-   */
-  async getSubscriptions(params = {}) {
-    const response = await api.get('/subscriptions', { params });
-    return response.data;
-  }
-
-  /**
-   * Verificar status de assinatura
-   */
-  async checkSubscription(creatorId) {
-    const response = await api.get(`/subscriptions/check/${creatorId}`);
-    return response.data;
-  }
-
-  /**
+   * POST /api/v1/subscriptions/: id/cancel
    * Cancelar assinatura
    */
   async cancelSubscription(subscriptionId) {
-    const response = await api.delete(`/subscriptions/${subscriptionId}`);
-    return response.data;
-  }
+    try {
+      const response = await api. post(`/subscriptions/${subscriptionId}/cancel`);
+      return response.data;
+    } catch (error) {
+      console.error('Error canceling subscription:', error);
+      throw error;
+    }
+  },
 
   /**
-   * Pausar assinatura
+   * POST /api/v1/subscriptions/:id/reactivate
+   * Reativar assinatura cancelada
    */
-  async pauseSubscription(subscriptionId) {
-    const response = await api.put(`/subscriptions/${subscriptionId}/pause`);
-    return response.data;
-  }
+  async reactivateSubscription(subscriptionId) {
+    try {
+      const response = await api.post(`/subscriptions/${subscriptionId}/reactivate`);
+      return response.data;
+    } catch (error) {
+      console.error('Error reactivating subscription:', error);
+      throw error;
+    }
+  },
+};
 
-  /**
-   * Reativar assinatura
-   */
-  async resumeSubscription(subscriptionId) {
-    const response = await api.put(`/subscriptions/${subscriptionId}/resume`);
-    return response.data;
-  }
-}
-
-export default new SubscriptionService();
+export default subscriptionService;
