@@ -1,29 +1,45 @@
 import api from './api';
 
-class WithdrawalService {
-  // Obter saldo do criador
-  async getBalance() {
+const withdrawalService = {
+  /**
+   * Obter saldo do criador
+   */
+  getCreatorBalance: async () => {
     const response = await api.get('/withdrawals/balance');
     return response.data;
-  }
+  },
 
-  // Solicitar saque
-  async requestWithdrawal(data) {
+  /**
+   * Solicitar saque
+   */
+  requestWithdrawal: async (data) => {
     const response = await api.post('/withdrawals', data);
     return response.data;
-  }
+  },
 
-  // Listar saques
-  async getWithdrawals(params = {}) {
+  /**
+   * Listar saques
+   */
+  getWithdrawals: async (params = {}) => {
     const response = await api.get('/withdrawals', { params });
     return response.data;
-  }
+  },
 
-  // Cancelar saque
-  async cancelWithdrawal(withdrawalId) {
+  /**
+   * Cancelar saque pendente
+   */
+  cancelWithdrawal: async (withdrawalId) => {
     const response = await api.delete(`/withdrawals/${withdrawalId}`);
     return response.data;
-  }
-}
+  },
 
-export default new WithdrawalService();
+  /**
+   * Obter detalhes de um saque
+   */
+  getWithdrawalDetails: async (withdrawalId) => {
+    const response = await api.get(`/withdrawals/${withdrawalId}`);
+    return response.data;
+  },
+};
+
+export default withdrawalService;

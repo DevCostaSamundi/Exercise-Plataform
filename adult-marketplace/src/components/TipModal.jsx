@@ -10,6 +10,14 @@ export default function TipModal({ isOpen, onClose, creator, onSuccess }) {
 
   if (!isOpen) return null;
 
+  const handleContinue = () => {
+    if (amount < 1) {
+      alert('Valor mínimo é $1');
+      return;
+    }
+    setShowPayment(true);
+  };
+
   return (
     <>
       <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
@@ -59,7 +67,7 @@ export default function TipModal({ isOpen, onClose, creator, onSuccess }) {
           </div>
 
           <div className="mb-6">
-            <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
+            <label className="block text-sm font-medium text-slate-700 dark: text-slate-300 mb-2">
               Mensagem (opcional)
             </label>
             <textarea
@@ -72,7 +80,7 @@ export default function TipModal({ isOpen, onClose, creator, onSuccess }) {
           </div>
 
           <button
-            onClick={() => setShowPayment(true)}
+            onClick={handleContinue}
             disabled={amount < 1}
             className="w-full bg-gradient-to-r from-pink-500 to-purple-600 hover:from-pink-600 hover:to-purple-700 disabled:opacity-50 disabled:cursor-not-allowed text-white font-bold py-3 rounded-lg transition-all"
           >
@@ -86,14 +94,16 @@ export default function TipModal({ isOpen, onClose, creator, onSuccess }) {
           isOpen={showPayment}
           onClose={() => setShowPayment(false)}
           paymentData={{
-            creatorId: creator.id,
+            creatorId: creator. id,
             type: 'TIP',
             amountUSD: amount,
-            message,
+            message,  // ✅ INCLUIR MENSAGEM
           }}
           onSuccess={(payment) => {
+            console. log('✅ Tip sent:', payment);
             setShowPayment(false);
-            onSuccess?.();
+            onClose();
+            onSuccess?. ();
           }}
         />
       )}

@@ -38,9 +38,13 @@
     "joi": "^17.11.0",
     "jsonwebtoken": "^9.0.2",
     "multer": "^2.0.2",
+    "node-cron": "^4.2.1",
     "nodemailer": "^7.0.10",
+    "qrcode": "^1.5.4",
+    "qrcode.react": "^4.2.0",
     "socket.io": "^4.8.3",
     "streamifier": "^0.1.1",
+    "stripe": "^20.1.2",
     "winston": "^3.11.0"
   },
   "devDependencies": {

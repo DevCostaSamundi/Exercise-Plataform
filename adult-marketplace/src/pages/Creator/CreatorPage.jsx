@@ -53,8 +53,8 @@ export default function CreatorPage() {
   };
 
   const handleSubscribe = () => {
-    if (!currentUser || !currentUser.id) {
-      alert('Você precisa estar logado para assinar!');
+    if (! currentUser || !currentUser.id) {
+      alert('Você precisa estar logado para assinar! ');
       navigate('/login');
       return;
     }
@@ -77,11 +77,11 @@ export default function CreatorPage() {
       console.log('✅ Conversation created/found:', response);
       
       // ✅ Redirecionar para mensagens com o ID da conversa
-      navigate(`/messages?conversation=${response.data.id}`);
+      navigate(`/messages? conversation=${response.data.id}`);
       
     } catch (error) {
       console.error('❌ Error creating conversation:', error);
-      alert('Erro ao iniciar conversa:   ' + error.message);
+      alert('Erro ao iniciar conversa:  ' + error.message);
     } finally {
       setLoading(false);
     }
@@ -98,7 +98,7 @@ export default function CreatorPage() {
   };
 
   const handleUnlockPost = (post) => {
-    if (!currentUser || !currentUser.id) {
+    if (!currentUser || !currentUser. id) {
       alert('Você precisa estar logado para desbloquear conteúdo!');
       navigate('/login');
       return;
@@ -108,15 +108,30 @@ export default function CreatorPage() {
     setPaymentData({
       creatorId: creator.id,
       postId: post.id,
-      type: 'PPV',
-      amountUSD: post.price || 5,
+      type: 'PPV_POST',
+      amountUSD:  post.price || 5,
     });
     setShowPaymentModal(true);
   };
 
+  const handleShareProfile = () => {
+    if (! creator) return;
+    
+    const url = window.location.href;
+    if (navigator.share) {
+      navigator.share({
+        title: `Confira o perfil de ${creator.displayName}`,
+        url: url
+      }).catch(() => {});
+    } else {
+      navigator.clipboard.writeText(url);
+      alert('Link copiado para a área de transferência!');
+    }
+  };
+
   const formatPrice = (price, currency = 'USD') => {
     return new Intl.NumberFormat('en-US', {
-      style: 'currency',
+      style:  'currency',
       currency,
     }).format(price);
   };
@@ -167,14 +182,14 @@ export default function CreatorPage() {
     <div className="min-h-screen bg-white dark:bg-slate-950">
       {/* Header with Back Button */}
       <header className="sticky top-0 z-20 bg-white/80 dark:bg-slate-950/80 backdrop-blur-xl border-b border-slate-200 dark:border-slate-800">
-        <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="max-w-5xl mx-auto px-4 sm:px-6 lg: px-8">
           <div className="flex items-center justify-between h-16">
             <button
               onClick={() => navigate(-1)}
               className="flex items-center space-x-2 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-colors"
             >
               <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                <path fillRule="evenodd" d="M9.707 16.707a1 1 0 01-1.414 0l-6-6a1 1 0 010-1.414l6-6a1 1 0 011.414 1.414L5.414 9H17a1 1 0 110 2H5.414l4.293 4.293a1 1 0 010 1.414z" clipRule="evenodd" />
+                <path fillRule="evenodd" d="M9. 707 16.707a1 1 0 01-1.414 0l-6-6a1 1 0 010-1.414l6-6a1 1 0 011.414 1.414L5.414 9H17a1 1 0 110 2H5.414l4.293 4.293a1 1 0 010 1.414z" clipRule="evenodd" />
               </svg>
               <span className="font-medium">Voltar</span>
             </button>
@@ -186,7 +201,7 @@ export default function CreatorPage() {
                 title="Compartilhar perfil"
               >
                 <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z" />
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8. 684 13.342C8.886 12.938 9 12.482 9 12c0-. 482-. 114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6. 632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z" />
                 </svg>
               </button>
               <button
@@ -247,7 +262,7 @@ export default function CreatorPage() {
             {/* Name & Stats */}
             <div className="flex-1 w-full">
               <div className="bg-white/90 dark:bg-slate-900/90 backdrop-blur-sm rounded-xl p-4 shadow-lg border border-slate-200 dark:border-slate-800">
-                <h1 className="text-2xl sm:text-3xl font-bold text-slate-900 dark:text-white mb-1 flex items-center space-x-2">
+                <h1 className="text-2xl sm:text-3xl font-bold text-slate-900 dark: text-white mb-1 flex items-center space-x-2">
                   <span>{creator.displayName}</span>
                 </h1>
                 <p className="text-slate-600 dark:text-slate-400 mb-3">@{creator.username}</p>
@@ -255,7 +270,7 @@ export default function CreatorPage() {
                 {/* Stats */}
                 <div className="flex items-center gap-4 sm:gap-6 text-sm flex-wrap">
                   <div>
-                    <span className="font-bold text-slate-900 dark:text-white">{creator.posts}</span>
+                    <span className="font-bold text-slate-900 dark: text-white">{creator.posts}</span>
                     <span className="text-slate-500 dark:text-slate-400 ml-1">Posts</span>
                   </div>
                   <div>
@@ -280,13 +295,13 @@ export default function CreatorPage() {
           {/* Main Content */}
           <div className="lg:col-span-2 space-y-6">
             {/* Bio */}
-            <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 p-6">
-              <h2 className="text-lg font-bold text-slate-900 dark:text-white mb-3">Sobre</h2>
+            <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark: border-slate-800 p-6">
+              <h2 className="text-lg font-bold text-slate-900 dark: text-white mb-3">Sobre</h2>
               <p className="text-slate-600 dark:text-slate-400 leading-relaxed mb-4 whitespace-pre-line">{creator.description}</p>
 
               {/* Tags */}
               <div className="flex flex-wrap gap-2 mb-4">
-                {creator.tags.map(tag => (
+                {creator.tags. map(tag => (
                   <span key={tag} className="bg-indigo-100 dark:bg-indigo-900/20 text-indigo-700 dark:text-indigo-400 text-sm px-3 py-1 rounded-full font-medium">
                     #{tag}
                   </span>
@@ -296,20 +311,20 @@ export default function CreatorPage() {
               {/* Info Grid */}
               <div className="grid grid-cols-2 gap-4 pt-4 border-t border-slate-200 dark:border-slate-800">
                 <div>
-                  <p className="text-xs text-slate-500 dark:text-slate-400 mb-1">Identidade</p>
+                  <p className="text-xs text-slate-500 dark: text-slate-400 mb-1">Identidade</p>
                   <p className="text-sm font-medium text-slate-900 dark:text-white">{creator.genderIdentity}</p>
                 </div>
                 <div>
-                  <p className="text-xs text-slate-500 dark:text-slate-400 mb-1">Orientação</p>
-                  <p className="text-sm font-medium text-slate-900 dark:text-white">{creator.orientation}</p>
+                  <p className="text-xs text-slate-500 dark: text-slate-400 mb-1">Orientação</p>
+                  <p className="text-sm font-medium text-slate-900 dark:text-white">{creator. orientation}</p>
                 </div>
                 <div>
                   <p className="text-xs text-slate-500 dark:text-slate-400 mb-1">Localização</p>
-                  <p className="text-sm font-medium text-slate-900 dark:text-white">{creator.location}</p>
+                  <p className="text-sm font-medium text-slate-900 dark:text-white">{creator. location}</p>
                 </div>
                 <div>
                   <p className="text-xs text-slate-500 dark:text-slate-400 mb-1">Membro desde</p>
-                  <p className="text-sm font-medium text-slate-900 dark:text-white">{creator.joinDate}</p>
+                  <p className="text-sm font-medium text-slate-900 dark: text-white">{creator.joinDate}</p>
                 </div>
               </div>
             </div>
@@ -330,7 +345,7 @@ export default function CreatorPage() {
                   onClick={() => setActiveTab('media')}
                   className={`pb-3 border-b-2 font-medium text-sm transition-colors ${activeTab === 'media'
                     ? 'border-indigo-600 text-indigo-600'
-                    : 'border-transparent text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-300'
+                    : 'border-transparent text-slate-500 hover: text-slate-700 dark: text-slate-400 dark: hover:text-slate-300'
                     }`}
                 >
                   Mídia ({creator.photos + creator.videos})
@@ -339,7 +354,7 @@ export default function CreatorPage() {
                   onClick={() => setActiveTab('about')}
                   className={`pb-3 border-b-2 font-medium text-sm transition-colors ${activeTab === 'about'
                     ? 'border-indigo-600 text-indigo-600'
-                    : 'border-transparent text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-300'
+                    : 'border-transparent text-slate-500 hover: text-slate-700 dark: text-slate-400 dark: hover:text-slate-300'
                     }`}
                 >
                   Sobre
@@ -363,7 +378,7 @@ export default function CreatorPage() {
                   onClick={() => setFilterType('photos')}
                   className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${filterType === 'photos'
                     ? 'bg-indigo-600 text-white'
-                    : 'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300'
+                    : 'bg-slate-100 dark: bg-slate-800 text-slate-700 dark:text-slate-300'
                     }`}
                 >
                   📸 Fotos ({creator.photos})
@@ -371,7 +386,7 @@ export default function CreatorPage() {
                 <button
                   onClick={() => setFilterType('videos')}
                   className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${filterType === 'videos'
-                    ? 'bg-indigo-600 text-white'
+                    ?  'bg-indigo-600 text-white'
                     : 'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300'
                     }`}
                 >
@@ -394,7 +409,7 @@ export default function CreatorPage() {
                       <div
                         key={post.id}
                         className="relative aspect-square group cursor-pointer"
-                        onClick={() => post.isLocked && !isSubscribed && post.price ? handleUnlockPost(post) : null}
+                        onClick={() => post.isLocked && ! isSubscribed && post.price ?  handleUnlockPost(post) : null}
                       >
                         <div className="w-full h-full rounded-xl overflow-hidden bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700">
                           <img
@@ -408,21 +423,21 @@ export default function CreatorPage() {
                             <div className="opacity-0 group-hover:opacity-100 transition-opacity flex items-center space-x-4 text-white">
                               <div className="flex items-center space-x-1">
                                 <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                                  <path fillRule="evenodd" d="M3.172 5.172a4 4 0 015.656 0L10 6.343l1.172-1.171a4 4 0 115.656 5.656L10 17.657l-6.828-6.829a4 4 0 010-5.656z" clipRule="evenodd" />
+                                  <path fillRule="evenodd" d="M3. 172 5.172a4 4 0 015.656 0L10 6.343l1.172-1.171a4 4 0 115.656 5.656L10 17.657l-6.828-6.829a4 4 0 010-5.656z" clipRule="evenodd" />
                                 </svg>
                                 <span className="text-sm font-medium">{post.likes}</span>
                               </div>
                               <div className="flex items-center space-x-1">
                                 <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                                  <path fillRule="evenodd" d="M18 10c0 3.866-3.582 7-8 7a8.841 8.841 0 01-4.083-.98L2 17l1.338-3.123C2.493 12.767 2 11.434 2 10c0-3.866 3.582-7 8-7s8 3.134 8 7zM7 9H5v2h2V9zm8 0h-2v2h2V9zM9 9h2v2H9V9z" clipRule="evenodd" />
+                                  <path fillRule="evenodd" d="M18 10c0 3.866-3.582 7-8 7a8.841 8.841 0 01-4.083-. 98L2 17l1.338-3.123C2.493 12.767 2 11.434 2 10c0-3.866 3.582-7 8-7s8 3.134 8 7zM7 9H5v2h2V9zm8 0h-2v2h2V9zM9 9h2v2H9V9z" clipRule="evenodd" />
                                 </svg>
-                                <span className="text-sm font-medium">{post.comments}</span>
+                                <span className="text-sm font-medium">{post. comments}</span>
                               </div>
                             </div>
                           </div>
 
                           {/* Lock overlay for locked content */}
-                          {post.isLocked && !isSubscribed && (
+                          {post. isLocked && ! isSubscribed && (
                             <div className="absolute inset-0 bg-black/60 backdrop-blur-sm flex flex-col items-center justify-center">
                               <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8 text-white mb-2" viewBox="0 0 20 20" fill="currentColor">
                                 <path fillRule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clipRule="evenodd" />
@@ -443,10 +458,10 @@ export default function CreatorPage() {
                           )}
 
                           {/* Video indicator */}
-                          {post.type === 'video' && (!post.isLocked || isSubscribed) && (
+                          {post. type === 'video' && (! post.isLocked || isSubscribed) && (
                             <div className="absolute top-2 right-2 bg-black/70 rounded-lg px-2 py-1">
                               <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 text-white" viewBox="0 0 20 20" fill="currentColor">
-                                <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" clipRule="evenodd" />
+                                <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM9. 555 7.168A1 1 0 008 8v4a1 1 0 001. 555.832l3-2a1 1 0 000-1.664l-3-2z" clipRule="evenodd" />
                               </svg>
                             </div>
                           )}
@@ -477,7 +492,7 @@ export default function CreatorPage() {
                             <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
                               <path fillRule="evenodd" d="M3.172 5.172a4 4 0 015.656 0L10 6.343l1.172-1.171a4 4 0 115.656 5.656L10 17.657l-6.828-6.829a4 4 0 010-5.656z" clipRule="evenodd" />
                             </svg>
-                            <span className="text-sm font-medium">{post.likes}</span>
+                            <span className="text-sm font-medium">{post. likes}</span>
                           </div>
                           <div className="flex items-center space-x-1">
                             <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
@@ -535,7 +550,7 @@ export default function CreatorPage() {
                     </div>
                     <div>
                       <p className="text-sm text-slate-500 dark:text-slate-400 mb-1">Localização</p>
-                      <p className="font-medium text-slate-900 dark:text-white">{creator.location}</p>
+                      <p className="font-medium text-slate-900 dark: text-white">{creator.location}</p>
                     </div>
                     <div>
                       <p className="text-sm text-slate-500 dark:text-slate-400 mb-1">Membro desde</p>
@@ -561,7 +576,7 @@ export default function CreatorPage() {
           {/* Sidebar */}
           <div className="space-y-4">
             {/* Subscription Card */}
-            {!isSubscribed ? (
+            {! isSubscribed ?  (
               <div className="bg-gradient-to-br from-indigo-600 to-purple-600 rounded-xl p-6 text-white shadow-xl">
                 <div className="text-center mb-4">
                   <p className="text-sm font-medium opacity-90 mb-1">Assine por apenas</p>
@@ -579,7 +594,7 @@ export default function CreatorPage() {
                 <div className="space-y-2 text-sm">
                   {benefits.map((benefit, idx) => (
                     <div key={idx} className="flex items-start space-x-2">
-                      <span className="text-lg">{benefit.icon}</span>
+                      <span className="text-lg">{benefit. icon}</span>
                       <div>
                         <p className="font-semibold">{benefit.title}</p>
                         <p className="text-xs opacity-75">{benefit.description}</p>
@@ -596,8 +611,8 @@ export default function CreatorPage() {
                       <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
                     </svg>
                   </div>
-                  <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-1">Você é assinante!</h3>
-                  <p className="text-sm text-slate-600 dark:text-slate-400">Aproveite todo o conteúdo exclusivo</p>
+                  <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-1">Você é assinante! </h3>
+                  <p className="text-sm text-slate-600 dark: text-slate-400">Aproveite todo o conteúdo exclusivo</p>
                 </div>
               </div>
             )}
@@ -607,7 +622,7 @@ export default function CreatorPage() {
               <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 p-6">
                 <h2 className="text-lg font-bold text-slate-900 dark:text-white mb-4 flex items-center space-x-2">
                   <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                    <path d="M15 8a3 3 0 10-2.977-2.63l-4.94 2.47a3 3 0 100 4.319l4.94 2.47a3 3 0 10.895-1.789l-4.94-2.47a3.027 3.027 0 000-.74l4.94-2.47C13.456 7.68 14.19 8 15 8z" />
+                    <path d="M15 8a3 3 0 10-2. 977-2.63l-4.94 2.47a3 3 0 100 4.319l4.94 2.47a3 3 0 10. 895-1.789l-4.94-2.47a3.027 3.027 0 000-. 74l4.94-2.47C13.456 7.68 14.19 8 15 8z" />
                   </svg>
                   <span>Redes Sociais</span>
                 </h2>
@@ -624,7 +639,7 @@ export default function CreatorPage() {
                     </a>
                   )}
 
-                  {creator.socialLinks.instagram && (
+                  {creator.socialLinks. instagram && (
                     <a
                       href={creator.socialLinks.instagram}
                       target="_blank"
@@ -638,7 +653,7 @@ export default function CreatorPage() {
 
                   {creator.socialLinks.tiktok && (
                     <a
-                      href={creator.socialLinks.tiktok}
+                      href={creator. socialLinks.tiktok}
                       target="_blank"
                       rel="noopener noreferrer"
                       className="flex items-center justify-center space-x-2 bg-slate-900 hover:bg-slate-800 dark:bg-slate-100 dark:hover:bg-slate-200 py-3 px-4 rounded-lg transition-colors"
@@ -648,7 +663,7 @@ export default function CreatorPage() {
                     </a>
                   )}
 
-                  {creator.socialLinks.youtube && (
+                  {creator.socialLinks. youtube && (
                     <a
                       href={creator.socialLinks.youtube}
                       target="_blank"
@@ -674,13 +689,13 @@ export default function CreatorPage() {
                 </div>
               </div>
             )}
+
             {/* Action Buttons */}
             <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 p-4 space-y-3">
               <button
                 onClick={() => handleSendMessage(creator.userId)}
                 className="w-full bg-indigo-600 hover:bg-indigo-700 text-white py-3 px-4 rounded-lg font-semibold transition-colors flex items-center justify-center space-x-2"
               >
-                
                 <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
                   <path fillRule="evenodd" d="M18 10c0 3.866-3.582 7-8 7a8.841 8.841 0 01-4.083-.98L2 17l1.338-3.123C2.493 12.767 2 11.434 2 10c0-3.866 3.582-7 8-7s8 3.134 8 7zM7 9H5v2h2V9zm8 0h-2v2h2V9zM9 9h2v2H9V9z" clipRule="evenodd" />
                 </svg>
@@ -692,8 +707,8 @@ export default function CreatorPage() {
                 className="w-full bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-900 dark:text-white py-3 px-4 rounded-lg font-semibold transition-colors flex items-center justify-center space-x-2"
               >
                 <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                  <path d="M8.433 7.418c.155-.103.346-.196.567-.267v1.698a2.305 2.305 0 01-.567-.267C8.07 8.34 8 8.114 8 8c0-.114.07-.34.433-.582zM11 12.849v-1.698c.22.071.412.164.567.267.364.243.433.468.433.582 0.114-.07.34-.433.582a2.305 2.305 0 01-.567.267z" />
-                  <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-13a1 1 0 10-2 0v.092a4.535 4.535 0 00-1.676.662C6.602 6.234 6 7.009 6 8c0.99.602 1.765 1.324 2.246.48.32 1.054.545 1.676.662v1.941c-.391-.127-.68-.317-.843-.504a1 1 0 10-1.51 1.31c.562.649 1.413 1.076 2.353 1.253V15a1 1 0 102 0v-.092a4.535 4.535 0 001.676-.662C13.398 13.766 14 12.991 14 12c0-.99-.602-1.765-1.324-2.246A4.535 4.535 0 0011 9.092V7.151c.391.127.68.317.843.504a1 1 0 101.511-1.31c-.563-.649-1.413-1.076-2.354-1.253V5z" clipRule="evenodd" />
+                  <path d="M8.433 7.418c.155-.103.346-.196.567-.267v1.698a2.305 2.305 0 01-.567-. 267C8.07 8.34 8 8.114 8 8c0-.114.07-.34.433-.582zM11 12. 849v-1.698c. 22. 071.412.164.567.267.364.243. 433.468.433.582 0.114-. 07.34-.433.582a2.305 2.305 0 01-.567.267z" />
+                  <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-13a1 1 0 10-2 0v. 092a4.535 4.535 0 00-1.676. 662C6.602 6.234 6 7.009 6 8c0.99. 602 1.765 1.324 2.246. 48.32 1.054.545 1.676.662v1.941c-. 391-. 127-.68-.317-. 843-.504a1 1 0 10-1.51 1.31c.562.649 1.413 1.076 2.353 1.253V15a1 1 0 102 0v-. 092a4.535 4.535 0 001.676-. 662C13.398 13.766 14 12.991 14 12c0-. 99-.602-1.765-1.324-2.246A4.535 4.535 0 0011 9.092V7. 151c. 391.127.68.317.843.504a1 1 0 101.511-1.31c-. 563-.649-1.413-1.076-2.354-1.253V5z" clipRule="evenodd" />
                 </svg>
                 <span>Enviar Gorjeta</span>
               </button>
@@ -712,8 +727,8 @@ export default function CreatorPage() {
                   <span className="font-semibold text-slate-900 dark:text-white">{creator.photos}</span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-slate-600 dark:text-slate-400">Vídeos</span>
-                  <span className="font-semibold text-slate-900 dark:text-white">{creator.videos}</span>
+                  <span className="text-slate-600 dark: text-slate-400">Vídeos</span>
+                  <span className="font-semibold text-slate-900 dark:text-white">{creator. videos}</span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-slate-600 dark:text-slate-400">Assinantes</span>
@@ -728,19 +743,25 @@ export default function CreatorPage() {
       {/* Modals */}
       {showPaymentModal && paymentData && (
         <PaymentModal
-          creatorId={paymentData.creatorId}
-          postId={paymentData.postId}
-          type={paymentData.type}
-          amountUSD={paymentData.amountUSD}
+          isOpen={showPaymentModal}
+          paymentData={paymentData}
           onClose={() => {
             setShowPaymentModal(false);
             setPaymentData(null);
             setSelectedPost(null);
           }}
-          onSuccess={() => {
+          onSuccess={(payment) => {
+            console.log('✅ Payment successful:', payment);
             setShowPaymentModal(false);
             setPaymentData(null);
             setSelectedPost(null);
+            
+            // Atualizar status de assinatura se foi SUBSCRIPTION
+            if (paymentData.type === 'SUBSCRIPTION') {
+              setIsSubscribed(true);
+            }
+            
+            // Recarregar dados do criador
             fetchCreatorData();
           }}
         />
@@ -748,12 +769,17 @@ export default function CreatorPage() {
 
       {showTipModal && (
         <TipModal
-          creatorId={creator.id}
-          creatorName={creator.displayName}
+          isOpen={showTipModal}
+          creator={{
+            id: creator.id,
+            displayName: creator.displayName,
+            avatar: creator.avatar,
+            username: creator.username,
+          }}
           onClose={() => setShowTipModal(false)}
           onSuccess={() => {
             setShowTipModal(false);
-            alert('Gorjeta enviada com sucesso! 🎉');
+            alert('Gorjeta enviada com sucesso!  🎉');
           }}
         />
       )}
@@ -777,7 +803,7 @@ function LoadingSkeleton() {
           <div className="lg:col-span-2 space-y-6">
             <div className="h-48 bg-slate-200 dark:bg-slate-800 rounded-xl"></div>
             <div className="grid grid-cols-3 gap-3">
-              {[...Array(6)].map((_, i) => (
+              {[... Array(6)].map((_, i) => (
                 <div key={i} className="aspect-square bg-slate-200 dark:bg-slate-800 rounded-xl"></div>
               ))}
             </div>
@@ -791,16 +817,3 @@ function LoadingSkeleton() {
     </div>
   );
 }
-
-const handleShareProfile = () => {
-  const url = window.location.href;
-  if (navigator.share) {
-    navigator.share({
-      title: `Confira o perfil de ${creator.displayName}`,
-      url: url
-    }).catch(() => { });
-  } else {
-    navigator.clipboard.writeText(url);
-    alert('Link copiado para a área de transferência!');
-  }
-};

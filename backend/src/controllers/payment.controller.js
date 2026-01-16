@@ -1,13 +1,180 @@
 import paymentService from '../services/payment/index.js';
+import nowpaymentsService from '../services/payment/nowpayments.service.js';
 import prisma from '../config/database.js';
 import logger from '../utils/logger.js';
+
+/**
+ * Obter moedas disponíveis
+ */
+export const getAvailableCurrencies = async (req, res) => {
+  try {
+    // Lista combinada:  stablecoins + cryptos selecionadas
+    const currencies = [
+      // Stablecoins
+      {
+        code: 'USDT_TRC20',
+        name: 'Tether (TRC20)',
+        network: 'TRON',
+        icon: '₮',
+        recommended: true,
+        minAmount: 5,
+        avgConfirmTime: '1-3 min',
+        type: 'stablecoin',
+      },
+      {
+        code:  'USDT_BEP20',
+        name: 'Tether (BEP20)',
+        network: 'BSC',
+        icon: '₮',
+        minAmount: 5,
+        avgConfirmTime:  '1-3 min',
+        type: 'stablecoin',
+      },
+      {
+        code: 'USDC',
+        name: 'USD Coin',
+        network: 'Ethereum',
+        icon: 'USDC',
+        minAmount: 10,
+        avgConfirmTime:  '2-5 min',
+        type: 'stablecoin',
+      },
+      {
+        code: 'DAI',
+        name: 'Dai',
+        network: 'Ethereum',
+        icon: 'DAI',
+        minAmount: 10,
+        avgConfirmTime: '2-5 min',
+        type: 'stablecoin',
+      },
+      
+      // Cryptos
+      {
+        code: 'MATIC',
+        name: 'Polygon',
+        network: 'Polygon',
+        icon: 'MATIC',
+        minAmount:  5,
+        avgConfirmTime:  '30 sec',
+        recommended: true,
+        type: 'crypto',
+      },
+      {
+        code: 'LTC',
+        name: 'Litecoin',
+        network: 'Litecoin',
+        icon: 'Ł',
+        minAmount: 5,
+        avgConfirmTime:  '5-15 min',
+        type: 'crypto',
+      },
+      {
+        code: 'XMR',
+        name: 'Monero',
+        network:  'Monero',
+        icon: 'ɱ',
+        minAmount: 5,
+        avgConfirmTime:  '5-20 min',
+        privacy: true,
+        type: 'crypto',
+      },
+    ];
+
+    res.json({
+      success: true,
+      data: currencies,
+    });
+  } catch (error) {
+    logger.error('Get currencies error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to get currencies',
+    });
+  }
+};
+
+/**
+ * Estimar preço em cripto
+ */
+export const estimatePrice = async (req, res) => {
+  try {
+    const { amountUSD, currency } = req.query;
+
+    if (!amountUSD || !currency) {
+      return res.status(400).json({
+        success: false,
+        message: 'Amount and currency are required',
+      });
+    }
+
+    // Se for PIX, apenas converter USD para BRL
+    if (currency === 'PIX') {
+      const brlRate = 5.5;
+      
+      return res.json({
+        success: true,
+        data: {
+          amountUSD: parseFloat(amountUSD),
+          currency: 'BRL',
+          estimatedAmount: (parseFloat(amountUSD) * brlRate).toFixed(2),
+          exchangeRate: brlRate,
+        },
+      });
+    }
+
+    // Para cryptos, usar NowPayments API
+    try {
+      // ✅ CORRIGIR: Usar getEstimate (não estimatePrice)
+      const payCurrency = currency. toLowerCase().replace('_', '');
+      
+      const estimate = await nowpaymentsService. getEstimate(
+        parseFloat(amountUSD),
+        'usd',
+        payCurrency
+      );
+
+      res.json({
+        success: true,
+        data: {
+          amountUSD: parseFloat(amountUSD),
+          currency: currency,
+          estimatedAmount: estimate.estimatedAmount,
+          minAmount: estimate.minAmount,
+          maxAmount: estimate.maxAmount,
+        },
+      });
+    } catch (error) {
+      logger.error('Estimate price error:', error);
+      
+      // ✅ FALLBACK: Retornar estimativa 1: 1 se NowPayments falhar
+      res.json({
+        success: true,
+        data: {
+          amountUSD: parseFloat(amountUSD),
+          currency: currency,
+          estimatedAmount: parseFloat(amountUSD).toFixed(8),
+          minAmount: 1,
+          maxAmount: 10000,
+          isEstimated: true, // Flag indicando que é aproximado
+        },
+      });
+    }
+  } catch (error) {
+    logger.error('Estimate price error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to estimate price',
+    });
+  }
+};
 
 /**
  * Criar novo pagamento
  */
 export const createPayment = async (req, res) => {
   try {
-    const userId = req.user.id;
+    const userId = req.user. id;
     const {
       creatorId,
       type,
@@ -16,7 +183,7 @@ export const createPayment = async (req, res) => {
       subscriptionId,
       postId,
       messageId,
-    } = req.body;
+    } = req. body;
 
     // Validações
     if (!amountUSD || amountUSD <= 0) {
@@ -40,6 +207,14 @@ export const createPayment = async (req, res) => {
       });
     }
 
+    logger.info('Creating payment:', {
+      userId,
+      creatorId,
+      type,
+      amountUSD,
+      cryptoCurrency,
+    });
+
     // Criar pagamento
     const payment = await paymentService.createPayment({
       userId,
@@ -52,6 +227,13 @@ export const createPayment = async (req, res) => {
       messageId,
       ipAddress: req.ip,
       userAgent: req.headers['user-agent'],
+    });
+
+    logger.info('Payment created successfully:', {
+      paymentId: payment. paymentId,
+      cryptoCurrency:  payment.payCurrency || payment.cryptoCurrency,
+      hasQrCode: !!payment.qrCode,
+      hasAddress: !!payment.payAddress || !!payment.address,
     });
 
     res.status(201).json({
@@ -102,8 +284,8 @@ export const getPaymentStatus = async (req, res) => {
       data: {
         id: updatedPayment.id,
         status: updatedPayment.status,
-        cryptoCurrency: updatedPayment.cryptoCurrency,
-        cryptoAmount: updatedPayment.expectedAmount,
+        cryptoCurrency: updatedPayment. cryptoCurrency,
+        cryptoAmount: updatedPayment. expectedAmount,
         address: updatedPayment.cryptoAddress,
         txHash: updatedPayment.txHash,
         confirmations: updatedPayment.confirmations,
@@ -125,7 +307,7 @@ export const getPaymentStatus = async (req, res) => {
  */
 export const getUserPayments = async (req, res) => {
   try {
-    const userId = req.user.id;
+    const userId = req.user. id;
     const { status, type, limit = 20, offset = 0 } = req.query;
 
     const where = { userId };
@@ -137,7 +319,7 @@ export const getUserPayments = async (req, res) => {
       include: {
         creator: {
           select: {
-            id: true,
+            id:  true,
             displayName: true,
             userId: true,
             user: {
@@ -161,7 +343,7 @@ export const getUserPayments = async (req, res) => {
       data: payments,
       pagination: {
         total,
-        limit: parseInt(limit),
+        limit:  parseInt(limit),
         offset: parseInt(offset),
       },
     });
@@ -170,222 +352,6 @@ export const getUserPayments = async (req, res) => {
     res.status(500).json({
       success: false,
       message: 'Failed to get payments',
-    });
-  }
-};
-
-/**
- * Obter moedas disponíveis
- */
-export const getAvailableCurrencies = async (req, res) => {
-  try {
-    // Lista estática das moedas suportadas
-    const currencies = [
-      {
-        code: 'USDT_TRC20',
-        name: 'Tether (TRC20)',
-        network: 'TRON',
-        icon: '₮',
-        recommended: true,
-        minAmount: 5,
-        avgConfirmTime: '1-3 min',
-      },
-      {
-        code: 'USDT_ERC20',
-        name: 'Tether (ERC20)',
-        network: 'Ethereum',
-        icon: '₮',
-        minAmount: 10,
-        avgConfirmTime: '2-5 min',
-      },
-      {
-        code: 'USDT_BEP20',
-        name: 'Tether (BEP20)',
-        network: 'BSC',
-        icon: '₮',
-        minAmount: 5,
-        avgConfirmTime: '1-3 min',
-      },
-      {
-        code: 'BTC',
-        name: 'Bitcoin',
-        network: 'Bitcoin',
-        icon: '₿',
-        minAmount: 10,
-        avgConfirmTime: '10-60 min',
-      },
-      {
-        code: 'BTC_LIGHTNING',
-        name: 'Bitcoin Lightning',
-        network: 'Lightning',
-        icon: '⚡',
-        minAmount: 1,
-        avgConfirmTime: 'Instant',
-        recommended: true,
-      },
-      {
-        code: 'ETH',
-        name: 'Ethereum',
-        network: 'Ethereum',
-        icon: 'Ξ',
-        minAmount: 10,
-        avgConfirmTime: '2-5 min',
-      },
-      {
-        code: 'LTC',
-        name: 'Litecoin',
-        network: 'Litecoin',
-        icon: 'Ł',
-        minAmount: 5,
-        avgConfirmTime: '5-15 min',
-      },
-      {
-        code: 'XMR',
-        name: 'Monero',
-        network: 'Monero',
-        icon: 'ɱ',
-        minAmount: 5,
-        avgConfirmTime: '5-20 min',
-        privacy: true,
-      },
-      {
-        code: 'BNB',
-        name: 'BNB',
-        network: 'BSC',
-        icon: 'BNB',
-        minAmount: 5,
-        avgConfirmTime: '1-3 min',
-      },
-      {
-        code: 'MATIC',
-        name: 'Polygon',
-        network: 'Polygon',
-        icon: 'MATIC',
-        minAmount: 5,
-        avgConfirmTime: '30 sec',
-      },
-      {
-        code: 'PIX',
-        name: 'PIX',
-        network: 'Brasil',
-        icon: '🇧🇷',
-        minAmount: 5,
-        avgConfirmTime: 'Instant',
-        fiat: true,
-      },
-      {
-        code: 'SOL',
-        name: 'Solana',
-        network: 'Solana',
-        icon: 'SOL',
-        minAmount: 5,
-        avgConfirmTime: '1-3 sec',
-      },
-      {
-        code: 'ADA',
-        name: 'Cardano',
-        network: 'Cardano',
-        icon: 'ADA',
-        minAmount: 5,
-        avgConfirmTime: '10-20 min',
-      },
-      {
-        code: 'DOT',
-        name: 'Polkadot',
-        network: 'Polkadot',
-        icon: 'DOT',
-        minAmount: 5,
-        avgConfirmTime: '5-15 min',
-      },
-      {
-        code: 'AVAX',
-        name: 'Avalanche',
-        network: 'Avalanche',
-        icon: 'AVAX',
-        minAmount: 5,
-        avgConfirmTime: '2-5 sec',
-      },
-      {
-        code: 'ZEC',
-        name: 'Zcash',
-        network: 'Zcash',
-        icon: 'ZEC',
-        minAmount: 5,
-        avgConfirmTime: '10-20 min',
-        privacy: true,
-      },
-      {
-        code: 'DASH',
-        name: 'Dash',
-        network: 'Dash',
-        icon: 'DASH',
-        minAmount: 5,
-        avgConfirmTime: '1-3 min',
-        privacy: true,
-      },
-    ];
-
-    res.json({
-      success: true,
-      data: currencies,
-    });
-  } catch (error) {
-    logger.error('Get currencies error:', error);
-    res.status(500).json({
-      success: false,
-      message: 'Failed to get currencies',
-    });
-  }
-};
-
-/**
- * Estimar preço em cripto
- */
-export const estimatePrice = async (req, res) => {
-  try {
-    const { amountUSD, currency } = req.query;
-
-    if (!amountUSD || !currency) {
-      return res.status(400).json({
-        success: false,
-        message: 'Amount and currency are required',
-      });
-    }
-
-    // Se for PIX, apenas converter USD para BRL
-    if (currency === 'PIX') {
-      const brlRate = 5.5; // Obter de API de câmbio real
-      return res.json({
-        success: true,
-        data: {
-          amountUSD: parseFloat(amountUSD),
-          currency: 'BRL',
-          estimatedAmount: (parseFloat(amountUSD) * brlRate).toFixed(2),
-        },
-      });
-    }
-
-    // Para cryptos, usar NOWPayments API
-    const estimate = await paymentService.nowpayments.estimatePrice(
-      parseFloat(amountUSD),
-      currency.toLowerCase().replace('_', '')
-    );
-
-    res.json({
-      success: true,
-      data: {
-        amountUSD: parseFloat(amountUSD),
-        currency,
-        estimatedAmount: estimate.estimated_amount,
-        minAmount: estimate.min_amount,
-        maxAmount: estimate.max_amount,
-      },
-    });
-  } catch (error) {
-    logger.error('Estimate price error:', error);
-    res.status(500).json({
-      success: false,
-      message: 'Failed to estimate price',
     });
   }
 };
