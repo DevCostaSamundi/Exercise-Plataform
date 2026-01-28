@@ -6,6 +6,9 @@ import initSocket from './src/socket/index.js';
 import { startPaymentJobs } from './src/jobs/payment.jobs.js';
 import prisma from './src/config/database.js'; // 👈 FALTAVA IMPORTAR
 
+import web3Service from './src/services/web3.service.js';
+import { startBlockchainMonitor } from './src/jobs/blockchain-monitor.job.js';
+import { validateWeb3Config } from './src/config/web3.config.js';
 // Trust proxy (for production deployments behind nginx, etc)
 app.set('trust proxy', 1);
 
@@ -51,11 +54,29 @@ async function startServer() {
     // Test database connection
     logger.info('🔄 Connecting to database...');
     await prisma.$connect();
+
     logger.info('✅ Database connected successfully');
 
     // Start cron jobs for payments
     logger.info('🕐 Starting payment cron jobs...');
     startPaymentJobs();
+    try {
+      validateWeb3Config()
+    } catch (error) {
+      logger.warn('❌ Failed to validate Web3 configuration:', error.message);
+      logger.warn('⚠️ Web3 configuration is invalid:');
+    }
+
+    try {
+      await web3Service.init();
+      logger.info('✅ Web3 service initialized');
+
+      startBlockchainMonitor();
+      logger.info('✅ Blockchain monitor started');
+      } catch (error) {
+      logger.warn('❌ Failed to start blockchain monitor:', error.message);
+      logger.warn('⚠️ Blockchain monitor is invalid:');
+    }
 
     // Start HTTP server
     await new Promise((resolve, reject) => {
@@ -81,6 +102,9 @@ async function startServer() {
     process.exit(1);
   }
 }
+
+
+
 
 // Graceful shutdown handler
 async function gracefulShutdown(signal) {

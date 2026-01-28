@@ -1,0 +1,23 @@
+{
+  "name": "prideconnect-contracts",
+  "version": "1.0.0",
+  "description": "Smart contracts for PrideConnect Web3 payment system",
+  "scripts": {
+    "test": "hardhat test",
+    "compile": "hardhat compile",
+    "deploy:testnet": "hardhat run scripts/deploy.js --network mumbai",
+    "deploy:mainnet": "hardhat run scripts/deploy.js --network polygon",
+    "verify:testnet": "hardhat verify --network mumbai",
+    "verify:mainnet": "hardhat verify --network polygon"
+  },
+  "keywords": ["solidity", "ethereum", "polygon", "smart-contracts"],
+  "author": "",
+  "license": "MIT",
+  "devDependencies": {
+    "@nomicfoundation/hardhat-toolbox": "^4.0.0",
+    "hardhat": "^2.19.4"
+  },
+  "dependencies": {
+    "@openzeppelin/contracts": "^5.0.1"
+  }
+}

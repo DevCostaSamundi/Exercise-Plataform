@@ -27,11 +27,18 @@ model User {
   isActive      Boolean   @default(true)
   role          UserRole  @default(USER)
   
-  payments      Payment[] @relation("UserPayments")
-  wallet        UserWallet? 
+  // Web3 fields
+  web3Wallet    String?   @unique
+  web3Provider  String?   // 'web3auth', 'metamask', 'walletconnect', 'coinbase', 'trustwallet', 'binance', 'okx', 'ledger', 'trezor', 'phantom', 'solflare', 'brave', 'opera', 'edge', 'firefox', 'chrome', 'safari', 'other'
+  web3Verified  Boolean   @default(false)
+  web3VerifiedAt DateTime?
 
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
+  
+  payments      Payment[] @relation("UserPayments")
+  wallet        UserWallet? 
+
   
   // Relations originais
   creator       Creator?  
@@ -50,7 +57,8 @@ model User {
   likes                    Like[]
 
   notifications            Notification[]
-  
+
+  @@index([web3Wallet])  
   @@map("users")
 }
 
@@ -96,10 +104,13 @@ model Creator {
   trialDays             Int?
   
   // Payment settings
-  withdrawMethod        String          @default("pix")
+  withdrawMethod        String          @default("web3")
   pixType               String?
   pixKey                String?
-  cryptoWallets         Json?
+  
+  // Web3 wallet for receiving USDC
+  payoutWallet          String?         // Wallet address for USDC payouts
+  walletVerified        Boolean         @default(false)
   autoWithdraw          Boolean         @default(false)
   autoWithdrawMin       Int             @default(100)
   
@@ -141,9 +152,15 @@ model Creator {
   products        Product[]
   subscriptions   Subscription[]
 
+  // Web3 PAYOUT 
+  payoutWallet    User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  payoutVerified  Boolean    @default(false)
+
+
   receivedPayments  Payment[]   @relation("CreatorPayments")
   balance           CreatorBalance? 
   withdrawals       Withdrawal[]
+  subscriptionPlans SubscriptionPlan[]
   
   @@map("creators")
 }
@@ -501,9 +518,20 @@ model Payment {
   actuallyPaid    String?       // Quantidade realmente paga
   
   // Blockchain
-  txHash          String?       // Transaction hash
+  txHash          String?       @unique // Transaction hash
   confirmations   Int           @default(0)
   networkFee      String?       // Taxa de rede paga
+  
+  // Web3 specific
+  web3TxHash         String?   @unique  // On-chain transaction hash
+  web3BlockNumber    Int?                // Block number
+  web3Confirmations  Int       @default(0)
+  web3ContractAddress String?            // Smart contract used
+  
+  // Transak specific
+  transakOrderId     String?   @unique  // Transak order ID
+  transakStatus      String?             // Transak status
+  transakWebhookData Json?               // Webhook data
   
   // Status
   status          PaymentStatus @default(PENDING)
@@ -659,12 +687,15 @@ enum PaymentStatus {
 }
 
 enum PaymentGateway {
-  NOWPAYMENTS      // API externa (fácil)
-  BTCPAY           // Self-hosted (economia)
-  COINPAYMENTS     // Alternativa
-  PIX              // Brasil
-  STRIPE           // Cartão
-  MANUAL           // Transferência manual
+  TRANSAK          // On-ramp FIAT → USDC
+  WEB3_DIRECT      // Direct wallet payment
+  MANUAL           // Manual transfer
+  // Legacy (deprecated)
+  NOWPAYMENTS      // ❌ Deprecated
+  BTCPAY           // ❌ Deprecated
+  COINPAYMENTS     // ❌ Deprecated
+  PIX              // ❌ Deprecated (now via Transak)
+  STRIPE           // ❌ Deprecated (replaced by Transak)
 }
 
 enum WithdrawalStatus {
