@@ -70,10 +70,9 @@ export const getCreatorSettings = async (req, res) => {
         trialDays: creator.trialDays || 0,
       },
       payments: {
-        withdrawMethod: creator.withdrawMethod || 'pix',
-        pixType: creator.pixType || 'email',
-        pixKey: creator.pixKey || '',
-        cryptoWallets: creator.cryptoWallets || {},
+        withdrawMethod: creator.withdrawMethod || 'web3',
+        payoutWallet: creator.payoutWallet || '',
+        walletVerified: creator.walletVerified || false,
         autoWithdraw: creator.autoWithdraw || false,
         autoWithdrawMin: creator.autoWithdrawMin || 100,
       },
@@ -278,14 +277,11 @@ export const updateCreatorSettings = async (req, res, next) => {
       ...(settings.payments?.withdrawMethod && {
         withdrawMethod: settings.payments.withdrawMethod,
       }),
-      ...(settings.payments?.pixType && {
-        pixType: settings.payments.pixType,
+      ...(settings.payments?.payoutWallet !== undefined && {
+        payoutWallet: settings.payments.payoutWallet,
       }),
-      ...(settings.payments?.pixKey !== undefined && {
-        pixKey: settings.payments.pixKey,
-      }),
-      ...(settings.payments?.cryptoWallets && {
-        cryptoWallets: settings.payments.cryptoWallets,
+      ...(settings.payments?.walletVerified !== undefined && {
+        walletVerified: settings.payments.walletVerified,
       }),
       ...(settings.payments?.autoWithdraw !== undefined && {
         autoWithdraw: settings.payments.autoWithdraw,

@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback, createContext, useContext } from 'react';
-import { createWeb3AuthInstance } from '../config/web3auth.config';
+import { createWeb3AuthInstance } from '../config/web3auth.config.js';
 import { ethers } from 'ethers';
 import axios from 'axios';
 
@@ -21,19 +21,24 @@ export const Web3AuthProvider = ({ children }) => {
         const init = async () => {
             try {
                 setLoading(true);
+                console.log('🔄 Initializing Web3Auth...');
                 
                 const web3authInstance = createWeb3AuthInstance();
-                await web3authInstance.initModal();
+                
+                // ✅ CORRIGIDO: v8 usa init() ao invés de initModal()
+                await web3authInstance.init();
                 
                 setWeb3auth(web3authInstance);
                 setIsInitialized(true);
+                console.log('✅ Web3Auth initialized');
 
                 // Check if already connected
                 if (web3authInstance.connected) {
+                    console.log('🔗 Already connected, restoring session...');
                     await handleConnectedState(web3authInstance);
                 }
             } catch (err) {
-                console.error('Web3Auth initialization error:', err);
+                console.error('❌ Web3Auth initialization error:', err);
                 setError(err.message);
             } finally {
                 setLoading(false);
@@ -47,6 +52,12 @@ export const Web3AuthProvider = ({ children }) => {
     const handleConnectedState = async (web3authInstance) => {
         try {
             const web3Provider = web3authInstance.provider;
+            
+            if (!web3Provider) {
+                console.error('❌ No provider available');
+                return;
+            }
+
             setProvider(web3Provider);
 
             // Get user info from Web3Auth
@@ -67,9 +78,14 @@ export const Web3AuthProvider = ({ children }) => {
             });
 
             // Auto-login to backend
-            await loginToBackend(web3authInstance, userAddress);
+            try {
+                await loginToBackend(web3authInstance, userAddress);
+            } catch (err) {
+                console.warn('⚠️ Backend login failed:', err.message);
+                // Continue anyway - user is still connected to Web3Auth
+            }
         } catch (err) {
-            console.error('Error handling connected state:', err);
+            console.error('❌ Error handling connected state:', err);
             setError(err.message);
         }
     };
@@ -97,7 +113,7 @@ export const Web3AuthProvider = ({ children }) => {
 
             return { token, user };
         } catch (err) {
-            console.error('Backend login error:', err);
+            console.error('❌ Backend login error:', err);
             throw err;
         }
     };
@@ -112,7 +128,15 @@ export const Web3AuthProvider = ({ children }) => {
             setLoading(true);
             setError(null);
 
+            console.log('🔐 Starting Web3Auth login...');
+            
+            // ✅ CORRIGIDO: v8 usa connect() que retorna o provider
             const web3Provider = await web3auth.connect();
+            
+            if (!web3Provider) {
+                throw new Error('Failed to connect - no provider returned');
+            }
+
             await handleConnectedState(web3auth);
 
             return {
@@ -120,7 +144,7 @@ export const Web3AuthProvider = ({ children }) => {
                 userInfo,
             };
         } catch (err) {
-            console.error('Login error:', err);
+            console.error('❌ Login error:', err);
             setError(err.message);
             throw err;
         } finally {
@@ -133,6 +157,7 @@ export const Web3AuthProvider = ({ children }) => {
         if (!web3auth) return;
 
         try {
+            console.log('🔓 Logging out...');
             await web3auth.logout();
             
             setProvider(null);
@@ -145,7 +170,7 @@ export const Web3AuthProvider = ({ children }) => {
 
             console.log('✅ Logged out');
         } catch (err) {
-            console.error('Logout error:', err);
+            console.error('❌ Logout error:', err);
             setError(err.message);
         }
     }, [web3auth]);
@@ -159,7 +184,7 @@ export const Web3AuthProvider = ({ children }) => {
             const balance = await ethersProvider.getBalance(address);
             return ethers.formatEther(balance);
         } catch (err) {
-            console.error('Get balance error:', err);
+            console.error('❌ Get balance error:', err);
             return '0';
         }
     }, [provider, address]);
@@ -172,6 +197,11 @@ export const Web3AuthProvider = ({ children }) => {
             const ethersProvider = new ethers.BrowserProvider(provider);
             const usdcAddress = import.meta.env.VITE_USDC_ADDRESS;
             
+            if (!usdcAddress) {
+                console.warn('⚠️ USDC address not configured');
+                return '0';
+            }
+
             const usdcContract = new ethers.Contract(
                 usdcAddress,
                 ['function balanceOf(address) view returns (uint256)'],
@@ -181,7 +211,7 @@ export const Web3AuthProvider = ({ children }) => {
             const balance = await usdcContract.balanceOf(address);
             return ethers.formatUnits(balance, 6); // USDC has 6 decimals
         } catch (err) {
-            console.error('Get USDC balance error:', err);
+            console.error('❌ Get USDC balance error:', err);
             return '0';
         }
     }, [provider, address]);
@@ -198,7 +228,7 @@ export const Web3AuthProvider = ({ children }) => {
             const signature = await signer.signMessage(message);
             return signature;
         } catch (err) {
-            console.error('Sign message error:', err);
+            console.error('❌ Sign message error:', err);
             throw err;
         }
     }, [provider]);
@@ -215,7 +245,7 @@ export const Web3AuthProvider = ({ children }) => {
             const transaction = await signer.sendTransaction(tx);
             return transaction;
         } catch (err) {
-            console.error('Send transaction error:', err);
+            console.error('❌ Send transaction error:', err);
             throw err;
         }
     }, [provider]);

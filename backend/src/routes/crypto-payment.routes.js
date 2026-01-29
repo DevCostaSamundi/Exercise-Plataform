@@ -10,9 +10,9 @@ import {
     alchemyWebhook,
     testAlchemyWebhook,
 } from '../controllers/alchemy-webhook.controller.js';
-import { authenticate } from '../middleware/auth.js';
-import { validate } from '../middleware/validation.js';
-import { createBalancePayment } from '../controllers/balance.controller.js';
+import { authenticate } from '../middleware/auth.middleware.js';
+import  validate from '../middleware/validation.middleware.js';
+import { createBalancePayment } from '../controllers/balance-payment.controller.js';
 import Joi from 'joi';
 
 const router = express.Router();

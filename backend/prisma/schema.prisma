@@ -105,8 +105,6 @@ model Creator {
   
   // Payment settings
   withdrawMethod        String          @default("web3")
-  pixType               String?
-  pixKey                String?
   
   // Web3 wallet for receiving USDC
   payoutWallet          String?         // Wallet address for USDC payouts
@@ -152,15 +150,9 @@ model Creator {
   products        Product[]
   subscriptions   Subscription[]
 
-  // Web3 PAYOUT 
-  payoutWallet    User       @relation(fields: [userId], references: [id], onDelete: Cascade)
-  payoutVerified  Boolean    @default(false)
-
-
   receivedPayments  Payment[]   @relation("CreatorPayments")
   balance           CreatorBalance? 
   withdrawals       Withdrawal[]
-  subscriptionPlans SubscriptionPlan[]
   
   @@map("creators")
 }
@@ -507,11 +499,11 @@ model Payment {
   
   // Valores em FIAT
   amountUSD       Decimal       @db.Decimal(10, 2)
-  amountBRL       Decimal?        @db.Decimal(10, 2)
+  amountBRL       Decimal?      @db.Decimal(10, 2)
   currency        String        @default("USD")
   
   // Valores em Cripto
-  cryptoCurrency  String?         // BTC, ETH, USDT_TRC20, etc
+  cryptoCurrency  String?       // BTC, ETH, USDT_TRC20, etc
   cryptoAmount    String?       // Quantidade exata em cripto
   cryptoAddress   String?       // Endereço de recebimento gerado
   expectedAmount  String?       // Quantidade esperada
@@ -610,7 +602,7 @@ model Withdrawal {
   
   // Blockchain
   txHash          String?
-  networkFee      Decimal?           @db.Decimal(10, 2)
+  networkFee      Decimal?         @db.Decimal(10, 2)
   
   // Status
   status          WithdrawalStatus @default(PENDING)
@@ -689,13 +681,9 @@ enum PaymentStatus {
 enum PaymentGateway {
   TRANSAK          // On-ramp FIAT → USDC
   WEB3_DIRECT      // Direct wallet payment
+  CRYPTO_DIRECT    // Direct crypto payment via smart contract
+  BALANCE          // Internal wallet balance
   MANUAL           // Manual transfer
-  // Legacy (deprecated)
-  NOWPAYMENTS      // ❌ Deprecated
-  BTCPAY           // ❌ Deprecated
-  COINPAYMENTS     // ❌ Deprecated
-  PIX              // ❌ Deprecated (now via Transak)
-  STRIPE           // ❌ Deprecated (replaced by Transak)
 }
 
 enum WithdrawalStatus {
@@ -763,6 +751,7 @@ model Notification {
 
   @@index([userId, unread])
   @@index([userId, createdAt])
+  @@map("notifications")
 }
 
 enum NotificationType {

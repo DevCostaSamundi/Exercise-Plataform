@@ -68,6 +68,48 @@ export const alchemyWebhook = async (req, res) => {
     }
 };
 
+export const testAlchemyWebhook = async (req, res) => {
+    try {
+        if (process.env.NODE_ENV === 'production') {
+            return res.status(403).json({ error: 'Not available in production' });
+        }
+
+        const { txHash, paymentId } = req.body;
+
+        if (!txHash || !paymentId) {
+            return res.status(400).json({
+                error: 'txHash and paymentId are required',
+            });
+        }
+
+        // Simular atividade do Alchemy
+        const mockActivity = {
+            category: 'token',
+            hash: txHash,
+            fromAddress: '0x742d35Cc6634C0532925a3b844Bc454e4438f44e',
+            toAddress: process.env.USDC_RECEIVER_ADDRESS,
+            value: '1000000', // 1 USDC (6 decimals)
+            asset: 'USDC',
+            rawContract: {
+                address: process.env.USDC_CONTRACT_ADDRESS,
+                decimals: 6,
+            },
+        };
+
+        await processAlchemyActivity(mockActivity);
+
+        res.status(200).json({
+            success: true,
+            message: 'Test webhook processed',
+            txHash,
+            paymentId,
+        });
+    } catch (error) {
+        console.error('❌ Test webhook error:', error);
+        res.status(500).json({ error: error.message });
+    }
+};
+
 export default {
     alchemyWebhook,
 };

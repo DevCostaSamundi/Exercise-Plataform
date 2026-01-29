@@ -14,8 +14,6 @@ import chatRoutes from './routes/chat.routes.js';
 import liveRoutes from './routes/live.routes.js';
 import creatorPostRoutes from './routes/creatorPost.routes.js';
 import messageRoutes from './routes/message.routes.js';
-import paymentRoutes from './routes/payment.routes.js';
-import withdrawalRoutes from './routes/withdrawal.routes.js';
 import creatorDashboardRoutes from './routes/creatorDashboard.routes.js';
 import commentRoutes from './routes/comment.routes.js';
 import likeRoutes from './routes/like.routes.js';
@@ -27,14 +25,8 @@ import creatorSubscribersRoutes from './routes/creatorSubscribers.routes.js';
 import notificationRoutes from './routes/notification.routes.js';
 import creatorSettingsRoutes from './routes/creatorSettings.routes.js';
 import subscriptionRoutes from './routes/subscription.routes.js';
-import web3PaymentRoutes from './routes/web3-payment.routes.js';
-import web3WebhookRoutes from './routes/web3-webhook.routes.js';
-import web3WalletRoutes from './routes/web3-wallet.routes.js';
-import web3WithdrawalRoutes from './routes/web3-withdrawal.routes.js';
-import web3UploadRoutes from './routes/web3-upload.routes.js';
-import web3AuthRoutes from './routes/web3auth.routes.js';
+import web3authRoutes from './routes/web3auth.routes.js';
 import cryptoPaymentRoutes from './routes/crypto-payment.routes.js';
-
 
 import errorMiddleware from './middleware/error.middleware.js';
 import logger from './utils/logger.js';
@@ -156,35 +148,18 @@ app.use(`/api/${API_VERSION}/messages`, messageRoutes);
 // Chat routes
 app.use(`/api/${API_VERSION}/chat`, chatRoutes);
 
-// Payment routes
-app.use(`/api/${API_VERSION}/payments`, paymentRoutes);
-
-// Withdrawal routes
-app.use(`/api/${API_VERSION}/withdrawals`, withdrawalRoutes);
-
 // Upload routes
 app.use(`/api/${API_VERSION}/upload`, uploadRoutes);
 
 // Notification routes
 app.use(`/api/${API_VERSION}/notifications`, notificationRoutes);
 
-// Web3 Payment routes
-app.use(`/api/${API_VERSION}/web3-payment`, web3PaymentRoutes);
 
-// Web3 Webhook routes
-app.use(`/api/${API_VERSION}/web3-webhook`, web3WebhookRoutes);
-
-// Web3 Wallet routes
-app.use(`/api/${API_VERSION}/web3-wallet`, web3WalletRoutes);
-
-// Web3 Withdrawal routes
-app.use(`/api/${API_VERSION}/web3-withdrawal`, web3WithdrawalRoutes);
 
 // Web3 Upload routes
-app.use(`/api/${API_VERSION}/web3-upload`, web3UploadRoutes);
 
 // Web3 Auth routes
-app.use(`/api/${API_VERSION}/web3-auth`, web3AuthRoutes);
+app.use(`/api/${API_VERSION}/web3-auth`, web3authRoutes);
 
 app.use(`/api/${API_VERSION}/crypto-payment`, cryptoPaymentRoutes);
 

@@ -31,11 +31,8 @@ A modern, decentralized content creator platform built with **React**, **Node.js
 - ✅ Dark mode support
 - ✅ Real-time updates
 - ✅ Mobile-friendly interface
-
 ---
-
 ## 🛠️ Tech Stack
-
 ### Frontend
 - **React 18** - UI framework
 - **Vite** - Build tool

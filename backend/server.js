@@ -3,7 +3,6 @@ import http from 'http';
 import app from './src/app.js';
 import logger from './src/utils/logger.js';
 import initSocket from './src/socket/index.js';
-import { startPaymentJobs } from './src/jobs/payment.jobs.js';
 import prisma from './src/config/database.js'; // 👈 FALTAVA IMPORTAR
 
 import web3Service from './src/services/web3.service.js';
@@ -59,7 +58,6 @@ async function startServer() {
 
     // Start cron jobs for payments
     logger.info('🕐 Starting payment cron jobs...');
-    startPaymentJobs();
     try {
       validateWeb3Config()
     } catch (error) {

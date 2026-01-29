@@ -10,7 +10,7 @@ import {
     getWalletBalance,
     checkBalance,
 } from '../controllers/deposit.controller.js';
-import { authenticate } from '../middleware/auth.js';
+import { authenticate } from '../middleware/auth.middleware.js';
 
 const router = express.Router();
 

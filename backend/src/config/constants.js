@@ -36,9 +36,8 @@ export const TRANSACTION_TYPES = {
 
 // Payment methods
 export const PAYMENT_METHODS = {
-  PIX: 'pix',
-  CREDIT_CARD: 'credit_card',
   CRYPTO: 'crypto',
+  BALANCE: 'balance', // Internal wallet balance (USDC)
 };
 
 // Content types

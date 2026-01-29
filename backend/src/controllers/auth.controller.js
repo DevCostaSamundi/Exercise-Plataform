@@ -128,9 +128,6 @@ class AuthController {
         subscriptionPrice,
         fullName,
         cpf,
-        pixKeyType,
-        pixKey,
-        cryptoKey,
         agreeTerms,
         ageConfirm,
         contentOwnership
