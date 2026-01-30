@@ -168,10 +168,8 @@ export default function Web3PaymentModal({
                                 Payment Methods
                             </h3>
                             <ul className="text-sm text-gray-600 dark:text-gray-400 space-y-1">
-                                <li>• Credit/Debit Card</li>
-                                <li>• PIX (Brazil)</li>
-                                <li>• Bank Transfer</li>
-                                <li>• Apple Pay / Google Pay</li>
+
+                            <li> Crypto (USDC)</li>
                             </ul>
                         </div>
 

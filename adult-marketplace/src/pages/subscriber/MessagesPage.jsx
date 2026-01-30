@@ -474,7 +474,7 @@ export default function MessagesPage() {
                             <div className="flex flex-col sm:flex-row items-start sm:items-center sm:justify-between gap-2 sm:gap-3">
                               <div>
                                 <p className="font-semibold text-xs sm:text-sm">🔒 Conteúdo Bloqueado</p>
-                                <p className="text-xs">R$ {msg.content.price?.toFixed(2)}</p>
+                                <p className="text-xs">$ {msg.content.price?.toFixed(2)}</p>
                               </div>
                               <button
                                 onClick={() => {

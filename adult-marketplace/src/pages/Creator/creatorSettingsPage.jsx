@@ -220,8 +220,8 @@ function TabNavigation({ activeTab, setActiveTab }) {
             key={tab.id}
             onClick={() => setActiveTab(tab.id)}
             className={`flex items-center align-center space-x-2 px-4 py-2.5 rounded-lg text-sm font-medium transition-all whitespace-nowrap ${activeTab === tab.id
-                ? 'bg-white dark:bg-slate-900 text-indigo-600 dark:text-indigo-400 shadow-sm'
-                : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-white/50 dark:hover:bg-slate-700/50'
+              ? 'bg-white dark:bg-slate-900 text-indigo-600 dark:text-indigo-400 shadow-sm'
+              : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-white/50 dark:hover:bg-slate-700/50'
               }`}
           >
             <span>{tab.icon}</span>
@@ -741,7 +741,7 @@ function SubscriptionSection({ subscription, setSubscription, onSave, saving }) 
               ${creatorEarnings.toFixed(2)}
               <span className="text-sm font-normal text-green-500 ml-2">/ mês</span>
             </p>
-            <p className="text-xs text-green-600 dark:text-green-400 mt-1">Taxa da plataforma: 20%</p>
+            <p className="text-xs text-green-600 dark:text-green-400 mt-1">Taxa da plataforma: 10%</p>
           </div>
         </div>
       </SettingsCard>
@@ -884,18 +884,17 @@ function PaymentsSection({ payments, setPayments, onSave, saving }) {
         title="Método de Recebimento"
         description="Como você deseja receber seus pagamentos"
       >
-        <div className="grid sm:grid-cols-3 gap-4">
+        <div className="grid sm:grid-cols-2 gap-4">
           {[
-            { id: 'pix', icon: '🇧🇷', label: 'PIX', desc: 'Instantâneo no Brasil' },
-            { id: 'crypto', icon: '₿', label: 'Criptomoedas', desc: 'BTC, ETH, USDT.. .' },
-            { id: 'bank', icon: '🏦', label: 'Transferência', desc: 'Conta bancária' },
+            { id: 'web3', icon: '🔐', label: 'Web3 Wallet', desc: 'USDC na Polygon' },
+            { id: 'manual', icon: '🏦', label: 'Manual', desc: 'Transferência manual' },
           ].map((method) => (
             <button
               key={method.id}
               onClick={() => setPayments({ ...payments, withdrawMethod: method.id })}
               className={`p-4 rounded-xl border-2 transition-all text-left ${payments.withdrawMethod === method.id
-                  ? 'border-indigo-500 bg-indigo-50 dark:bg-indigo-900/20'
-                  : 'border-slate-200 dark:border-slate-700 hover:border-slate-300 dark:hover:border-slate-600'
+                ? 'border-indigo-500 bg-indigo-50 dark:bg-indigo-900/20'
+                : 'border-slate-200 dark:border-slate-700 hover:border-slate-300 dark:hover:border-slate-600'
                 }`}
             >
               <span className="text-3xl block mb-2">{method.icon}</span>
@@ -906,60 +905,26 @@ function PaymentsSection({ payments, setPayments, onSave, saving }) {
         </div>
       </SettingsCard>
 
-      {/* PIX Config */}
-      {payments.withdrawMethod === 'pix' && (
-        <SettingsCard title="Configuração PIX" description="Informe sua chave PIX">
-          <FormGroup label="Tipo de chave" htmlFor="pixType">
-            <Select
-              id="pixType"
-              value={payments.pixType}
-              onChange={(e) => setPayments({ ...payments, pixType: e.target.value })}
-              options={[
-                { value: 'cpf', label: 'CPF' },
-                { value: 'email', label: 'Email' },
-                { value: 'phone', label: 'Telefone' },
-                { value: 'random', label: 'Chave aleatória' },
-              ]}
-              placeholder="Selecione o tipo"
-            />
-          </FormGroup>
-
-          <FormGroup label="Chave PIX" htmlFor="pixKey" required>
+      {/* Web3 Wallet Config */}
+      {payments.withdrawMethod === 'web3' && (
+        <SettingsCard title="Configuração Web3 Wallet" description="Endereço da sua carteira para receber USDC">
+          <FormGroup label="Endereço da Wallet (Polygon)" htmlFor="payoutWallet" required>
             <Input
-              id="pixKey"
-              value={payments.pixKey}
-              onChange={(e) => setPayments({ ...payments, pixKey: e.target.value })}
-              placeholder="Sua chave PIX"
+              id="payoutWallet"
+              value={payments.payoutWallet || ''}
+              onChange={(e) => setPayments({ ...payments, payoutWallet: e.target.value })}
+              placeholder="0x..."
             />
           </FormGroup>
-        </SettingsCard>
-      )}
 
-      {/* Crypto Config */}
-      {payments.withdrawMethod === 'crypto' && (
-        <SettingsCard title="Carteiras de Criptomoeda" description="Endereços das suas carteiras">
-          <div className="space-y-4">
-            {[
-              { key: 'btc', label: 'Bitcoin (BTC)', icon: '₿', placeholder: 'bc1q.. .' },
-              { key: 'eth', label: 'Ethereum (ETH)', icon: 'Ξ', placeholder: '0x...' },
-              { key: 'usdt', label: 'USDT (TRC20)', icon: '₮', placeholder: 'T.. .' },
-              { key: 'ltc', label: 'Litecoin (LTC)', icon: 'Ł', placeholder: 'ltc1...' },
-            ].map((crypto) => (
-              <FormGroup key={crypto.key} label={`${crypto.icon} ${crypto.label}`} htmlFor={`wallet_${crypto.key}`}>
-                <Input
-                  id={`wallet_${crypto.key}`}
-                  value={payments.cryptoWallets?.[crypto.key] || ''}
-                  onChange={(e) => setPayments({
-                    ...payments,
-                    cryptoWallets: { ...payments.cryptoWallets, [crypto.key]: e.target.value }
-                  })}
-                  placeholder={crypto.placeholder}
-                />
-              </FormGroup>
-            ))}
+          <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4 mt-4">
+            <p className="text-sm text-blue-700 dark:text-blue-300">
+              ℹ️ <strong>Importante:</strong> Use apenas endereços da rede Polygon. Pagamentos são feitos em USDC.
+            </p>
           </div>
         </SettingsCard>
       )}
+
 
       {/* Saque Automático */}
       <SettingsCard
@@ -1425,10 +1390,9 @@ export default function CreatorSettingsPage() {
   });
 
   const [payments, setPayments] = useState({
-    withdrawMethod: 'pix',
-    pixType: 'email',
-    pixKey: '',
-    cryptoWallets: {},
+    withdrawMethod: 'web3',
+    payoutWallet: '',
+    walletVerified: false,
     autoWithdraw: false,
     autoWithdrawMin: 100,
   });

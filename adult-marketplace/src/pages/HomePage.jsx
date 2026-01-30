@@ -3,20 +3,10 @@ import { Link } from 'react-router-dom';
 import creatorService from '../services/creatorService';
 import Sidebar from '../components/Sidebar';
 import RightSidebar from '../components/RightSidebar';
-
-// Mock creators for feed tab (to be replaced when posts API is implemented)
-const mockFeedCreators = {
-  1: { id: 1, displayName: 'Luna', avatar: 'https://placehold.co/100x100/8B7FE8/white?text=L' },
-  2: { id: 2, displayName: 'Kai', avatar: 'https://placehold.co/100x100/6366F1/white?text=K' },
-  4: { id: 4, displayName: 'Aria', avatar: 'https://placehold.co/100x100/EC4899/white?text=A' },
-};
-
-// Mock de posts recentes (keep for feed tab)
-const mockRecentPosts = [
-  { id: 1, creatorId: 1, image: 'https://placehold.co/300x300/8B7FE8/white?text=Post1', likes: 120, comments: 15, isExclusive: true },
-  { id: 2, creatorId: 2, image: 'https://placehold.co/300x300/6366F1/white?text=Post2', likes: 85, comments: 8, isExclusive: false },
-  { id: 3, creatorId: 4, image: 'https://placehold.co/300x300/EC4899/white?text=Post3', likes: 200, comments: 25, isExclusive: true },
-];
+import ImageViewer from '../components/ImageViewer';
+import LikeButton from '../components/LikeButton';
+import CommentSection from '../components/CommentSection';
+import feedService from '../services/feedService';
 
 // Configuração de filtros categorizados
 const FILTER_CATEGORIES = {
@@ -46,8 +36,8 @@ const FILTER_CATEGORIES = {
   }
 };
 
-const formatPrice = (price, currency = 'BRL') => {
-  const locale = currency === 'BRL' ? 'pt-BR' : 'en-US';
+const formatPrice = (price, currency = 'USD') => {
+  const locale = currency === 'USD' ? 'en-US' : 'en-US';
   return new Intl.NumberFormat(locale, {
     style: 'currency',
     currency,
@@ -81,6 +71,15 @@ export default function HomePage() {
   const [hasMore, setHasMore] = useState(true);
   const [totalCreators, setTotalCreators] = useState(0);
 
+  // Image viewer state
+  const [showImageViewer, setShowImageViewer] = useState(false);
+  const [viewerImages, setViewerImages] = useState([]);
+  const [viewerInitialIndex, setViewerInitialIndex] = useState(0);
+
+  // Comments state
+  const [showComments, setShowComments] = useState({});
+  const [currentUserId, setCurrentUserId] = useState(null);
+
   // Ref for debounce timer
   const searchTimerRef = useRef(null);
 
@@ -95,7 +94,6 @@ export default function HomePage() {
   }, [discreetMode]);
 
   // Function to fetch creators from API
-  // ✅ CORRETO - Atualizar função fetchCreators
   const fetchCreators = async (pageNum = 1, appendResults = false) => {
     setLoading(true);
     setError(null);
@@ -140,14 +138,10 @@ export default function HomePage() {
     }
   };
 
-  // ✅ CORRETO - useEffect inicial
-  useEffect(() => {
-    fetchCreators(1, false);
-  }, []); 
-
   // Initial fetch
   useEffect(() => {
     fetchCreators(1, false);
+    // eslint-disable-next-line
   }, []);
 
   // Debounced search effect
@@ -166,12 +160,14 @@ export default function HomePage() {
         clearTimeout(searchTimerRef.current);
       }
     };
+    // eslint-disable-next-line
   }, [search]);
 
   // Refetch when filters change
   useEffect(() => {
     setPage(1);
     fetchCreators(1, false);
+    // eslint-disable-next-line
   }, [selectedFilters]);
 
   // Handle load more
@@ -275,11 +271,37 @@ export default function HomePage() {
       </button>
     </div>
   );
+  // Feed state
+  const [feedPosts, setFeedPosts] = useState([]);
+  const [feedLoading, setFeedLoading] = useState(false);
+  const [feedError, setFeedError] = useState(null);
+
+  // Buscar posts reais para a aba feed
+  const fetchFeedPosts = async () => {
+    setFeedLoading(true);
+    setFeedError(null);
+    try {
+      const response = await feedService.getFeed({ page: 1, limit: 10 });
+      setFeedPosts(response.posts || response.data || []);
+    } catch (err) {
+      setFeedError('Erro ao carregar feed');
+    } finally {
+      setFeedLoading(false);
+    }
+  };
+
+  // Buscar feed ao trocar para a aba feed
+  useEffect(() => {
+    if (activeTab === 'feed') {
+      fetchFeedPosts();
+    }
+    // eslint-disable-next-line
+  }, [activeTab]);
 
   return (
     <div className="flex min-h-screen bg-white dark:bg-slate-950">
-      {/* Header Clean & Minimal */}
       <Sidebar />
+      
       <div className="flex-1 flex flex-col min-w-0">
         <header className="sticky top-0 z-30 bg-white/80 dark:bg-slate-950/80 backdrop-blur-xl border-b border-slate-200 dark:border-slate-800">
           <div className="w-full px-4 sm:px-6 lg:px-8 xl:px-10">
@@ -311,7 +333,7 @@ export default function HomePage() {
                 {/* Notifications */}
                 <button className="relative p-2 text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-colors">
                   <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0.538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
                   </svg>
                   <span className="absolute top-1 right-1 w-2 h-2 bg-indigo-600 rounded-full"></span>
                 </button>
@@ -336,7 +358,7 @@ export default function HomePage() {
                   ) : (
                     <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
                       <path fillRule="evenodd" d="M3.707 2.293a1 1 0 00-1.414 1.414l14 14a1 1 0 001.414-1.414l-1.473-1.473A10.014 10.014 0 0019.542 10C18.268 5.943 14.478 3 10 3a9.958 9.958 0 00-4.512 1.074l-1.78-1.781zm4.261 4.26l1.514 1.515a2.003 2.003 0 012.45 2.45l1.514 1.514a4 4 0 00-5.478-5.478z" clipRule="evenodd" />
-                      <path d="M12.454 16.697L9.75 13.992a4 4 0 01-3.742-3.741L2.335 6.578A9.98 9.98 0 00.458 10c1.274 4.057 5.065 7 9.542 7.847 0 1.669-.105 2.454-.303z" />
+                      <path d="M12.454 16.697L9.75 13.992a4 4 0 01-3.742-3.741L2.335 6.578A9.98 9.98 0 00.458 10c1.274 4.057 5.065 7 9.542 7 .847 0 1.669-.105 2.454-.303z" />
                     </svg>
                   )}
                 </button>
@@ -379,7 +401,7 @@ export default function HomePage() {
                     }`}
                 >
                   <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
-                    <path fillRule="evenodd" d="M3 3a1 1 0 011-1h12a1 1 0 011 1v3a1 1 0 01-.293.707L12 11.414V15a1 1 0 01-.293.707l-2 2A1 1 0 008 17v-5.586L3.293 6.707A1 1 0 013 6V3z" clipRule="evenodd" />
+                    <path fillRule="evenodd" d="M3 3a1 1 0 011-1h12a1 1 0 011 1v3a1 1 0 01-.293.707L12 11.414V15a1 1 0 01-.293.707l-2 2A1 1 0 018 17v-5.586L3.293 6.707A1 1 0 013 6V3z" clipRule="evenodd" />
                   </svg>
                   <span>Filtros</span>
                   {activeFiltersCount > 0 && (
@@ -461,7 +483,7 @@ export default function HomePage() {
                       >
                         <span>{value}</span>
                         <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
-                          <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 1.414L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" />
+                          <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" />
                         </svg>
                       </button>
                     ))
@@ -628,7 +650,7 @@ export default function HomePage() {
                               {/* Price */}
                               <div className="flex items-baseline justify-between">
                                 <span className="text-base font-bold text-indigo-600 dark:text-indigo-400">
-                                  {formatPrice(creator.price, creator.currency)}
+                                  {formatPrice(creator.subscriptionPrice ?? creator.price ?? 0, creator.currency)}
                                 </span>
                                 <span className="text-xs text-slate-500">/mês</span>
                               </div>
@@ -692,65 +714,89 @@ export default function HomePage() {
 
           {activeTab === 'feed' && (
             <div className="max-w-2xl mx-auto space-y-6">
-              {mockRecentPosts.map(post => {
-                const creator = mockFeedCreators[post.creatorId];
-                if (!creator) return null;
-                return (
-                  <div key={post.id} className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 overflow-hidden">
-                    {/* Post Header */}
-                    <div className="flex items-center justify-between p-4">
-                      <div className="flex items-center space-x-3">
-                        <img src={creator.avatar} alt={creator.displayName} className="w-10 h-10 rounded-full" />
-                        <div>
-                          <h4 className="font-semibold text-sm text-slate-900 dark:text-white">{creator.displayName}</h4>
-                          <p className="text-xs text-slate-500">há 2 horas</p>
-                        </div>
+              {feedLoading && (
+                <div className="text-center py-12">
+                  <div className="w-12 h-12 border-4 border-purple-600 border-t-transparent rounded-full animate-spin mx-auto mb-4" />
+                  <p>Carregando feed...</p>
+                </div>
+              )}
+              {feedError && (
+                <div className="text-center py-12">
+                  <p className="text-red-500">{feedError}</p>
+                </div>
+              )}
+              {!feedLoading && !feedError && feedPosts.length === 0 && (
+                <div className="text-center py-12">
+                  <p className="text-slate-500">Nenhum post encontrado no feed.</p>
+                </div>
+              )}
+              {feedPosts.map(post => (
+                <div key={post.id || post._id} className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 overflow-hidden">
+                  {/* Post Header */}
+                  <div className="flex items-center justify-between p-4">
+                    <div className="flex items-center space-x-3">
+                      <img src={post.creator?.avatar || '/default-avatar.png'} alt={post.creator?.displayName || 'Criador'} className="w-10 h-10 rounded-full" />
+                      <div>
+                        <h4 className="font-semibold text-sm text-slate-900 dark:text-white">{post.creator?.displayName || post.creator?.name || 'Criador'}</h4>
+                        <p className="text-xs text-slate-500">{post.createdAt ? new Date(post.createdAt).toLocaleString() : ''}</p>
                       </div>
-                      <button className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200">
-                        <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                          <path d="M2.003 5.884L10 9.882l7.997-3.998A2 2 0 0016 4H4a2 2 0 00-1.997 1.884z" />
-                          <path d="M18 8.118l-8 4-8-4V14a2 2 0 002 2h12a2 2 0 002-2V8.118z" />
-                        </svg>
-                      </button>
                     </div>
+                  </div>
 
-                    {/* Post Image */}
-                    <div className="relative">
-                      <img src={post.image} alt="Post" className="w-full aspect-square object-cover" />
+                  {/* Post Image */}
+                  {post.media && post.media.length > 0 && (
+                    <div
+                      className="relative cursor-pointer group"
+                      onClick={() => {
+                        setViewerImages(post.media.map(m => m.url));
+                        setViewerInitialIndex(0);
+                        setShowImageViewer(true);
+                      }}
+                    >
+                      <img src={post.media[0].url} alt="Post" className="w-full aspect-square object-cover group-hover:opacity-95 transition-opacity" />
                       {post.isExclusive && (
                         <div className="absolute top-4 right-4 bg-indigo-600 text-white text-xs px-3 py-1 rounded-full font-bold">
                           Exclusivo
                         </div>
                       )}
                     </div>
+                  )}
 
-                    {/* Post Footer */}
-                    <div className="p-4">
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center space-x-4">
-                          <button className="flex items-center space-x-2 text-slate-600 dark:text-slate-400 hover:text-red-500 dark:hover:text-red-400">
-                            <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
-                            </svg>
-                            <span className="text-sm font-medium">{post.likes}</span>
-                          </button>
-                          <button className="flex items-center space-x-2 text-slate-600 dark:text-slate-400 hover:text-indigo-500 dark:hover:text-indigo-400">
-                            <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
-                            </svg>
-                            <span className="text-sm font-medium">{post.comments}</span>
-                          </button>
-                        </div>
-                        <button className="text-slate-600 dark:text-slate-400 hover:text-indigo-500 dark:hover:text-indigo-400">
+                  {/* Post Footer */}
+                  <div className="p-4">
+                    <div className="flex items-center justify-between mb-4">
+                      <div className="flex items-center space-x-4">
+                        <LikeButton
+                          postId={post.id || post._id}
+                          initialLiked={post.isLiked}
+                          initialCount={post.likes}
+                          onLikeChange={() => {}}
+                        />
+                        <button
+                          onClick={() => setShowComments({ ...showComments, [post.id || post._id]: !showComments[post.id || post._id] })}
+                          className="flex items-center space-x-2 text-slate-600 dark:text-slate-400 hover:text-indigo-500 dark:hover:text-indigo-400"
+                        >
                           <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 5a2 2 0 002-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z" />
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
                           </svg>
+                          <span className="text-sm font-medium">{post.commentsCount || 0}</span>
                         </button>
                       </div>
                     </div>
+
+                    {/* Comments Section */}
+                    {showComments[post.id || post._id] && (
+                      <div className="mt-4 pt-4 border-t border-slate-200 dark:border-slate-700">
+                        <CommentSection
+                          postId={post.id || post._id}
+                          creatorId={post.creator?.id}
+                          currentUserId={currentUserId}
+                        />
+                      </div>
+                    )}
                   </div>
-                );
-              })}
+                </div>
+              ))}
             </div>
           )}
 
@@ -787,7 +833,7 @@ export default function HomePage() {
                                 <path d="M10 12a2 2 0 100-4 2 2 0 000 4z" />
                                 <path fillRule="evenodd" d="M.458 10C1.732 5.943 5.522 3 10 3s8.268 2.943 9.542 7c-1.274 4.057-5.064 7-9.542 7S1.732 14.057.458 10zM14 10a4 4 0 11-8 0 4 4 0 018 0z" clipRule="evenodd" />
                               </svg>
-                              <span className="text-sm font-medium">1.2k</span>
+                              <span className="text-sm font-medium">{formatNumber(creator.viewersCount || 0)}</span>
                             </div>
                           </div>
                         </div>
@@ -800,68 +846,25 @@ export default function HomePage() {
                   <svg xmlns="http://www.w3.org/2000/svg" className="mx-auto h-12 w-12 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
                   </svg>
-                  <h3 className="mt-2 text-sm font-medium text-slate-900 dark:text-white">Nenhuma live ao vivo</h3>
-                  <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">Volte mais tarde para ver conteúdo ao vivo!</p>
+                  <h3 className="mt-2 text-sm font-medium text-slate-900 dark:text-white">Nenhuma live no momento</h3>
+                  <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">Volte mais tarde para ver criadores ao vivo</p>
                 </div>
               )}
             </>
           )}
         </main>
-
-        {/* Footer */}
-        <footer className="bg-slate-50 dark:bg-slate-900 border-t border-slate-200 dark:border-slate-800 mt-12">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-            <div className="text-center space-y-4">
-              <div className="flex items-center justify-center space-x-3 text-2xl">
-                <span>🔒</span>
-                <span>🏳️‍🌈</span>
-                <span>✨</span>
-              </div>
-              <p className="text-sm text-slate-600 dark:text-slate-400 max-w-2xl mx-auto">
-                {discreetMode
-                  ? 'Plataforma segura e confidencial com criptografia end-to-end.'
-                  : 'Pagamentos 100% discretos. Proteção total da sua privacidade. Espaço seguro para a comunidade LGBT+.'}
-              </p>
-              <p className="text-sm font-medium text-indigo-600 dark:text-indigo-400">
-                Feito com 💜 para a comunidade LGBT+
-              </p>
-              <div className="flex items-center justify-center space-x-6 text-xs text-slate-500 dark:text-slate-400 pt-4">
-                <Link to="/terms" className="hover:text-indigo-600 dark:hover:text-indigo-400">Termos</Link>
-                <Link to="/privacy" className="hover:text-indigo-600 dark:hover:text-indigo-400">Privacidade</Link>
-                <Link to="/dmca" className="hover:text-indigo-600 dark:hover:text-indigo-400">DMCA</Link>
-                <Link to="/support" className="hover:text-indigo-600 dark:hover:text-indigo-400">Suporte</Link>
-              </div>
-            </div>
-          </div>
-        </footer>
       </div>
+
       <RightSidebar />
 
-      {/* Styles */}
-      <style>{`
-        .hide-scrollbar::-webkit-scrollbar {
-          display: none;
-        }
-        .hide-scrollbar {
-          -ms-overflow-style: none;
-          scrollbar-width: none;
-        }
-      `}</style>
-      <style>{`
-        @keyframes slideDown {
-          from {
-            opacity: 0;
-            transform: translateY(-10px);
-          }
-          to {
-            opacity: 1;
-            transform: translateY(0);
-          }
-        }
-        .animate-slideDown {
-          animation: slideDown 0.3s ease-out;
-        }
-      `}</style>
+      {/* Image Viewer Modal */}
+      {showImageViewer && (
+        <ImageViewer
+          images={viewerImages}
+          initialIndex={viewerInitialIndex}
+          onClose={() => setShowImageViewer(false)}
+        />
+      )}
     </div>
   );
 }

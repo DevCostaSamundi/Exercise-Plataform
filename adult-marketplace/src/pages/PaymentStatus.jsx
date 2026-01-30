@@ -26,8 +26,6 @@ export default function PaymentStatus() {
         try {
             setStatus('loading');
 
-            // If we have orderId from Transak redirect, we need to find the payment
-            // For now, we'll poll with the paymentId
             if (paymentId) {
                 // Start polling
                 const finalStatus = await pollPaymentStatus(paymentId, (update) => {

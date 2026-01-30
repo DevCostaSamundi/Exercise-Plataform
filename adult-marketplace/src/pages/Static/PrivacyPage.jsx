@@ -308,7 +308,6 @@ export default function PrivacyPage() {
                 items={[
                   'Documento de identidade com foto',
                   'Selfie com documento para verificação',
-                  'Informações bancárias/PIX para recebimento',
                   'Dados fiscais quando exigido por lei',
                 ]}
               />
@@ -372,7 +371,6 @@ export default function PrivacyPage() {
             <SubSection title="5.1 Provedores de Serviços">
               <BulletList
                 items={[
-                  'Processadores de pagamento (NOWPayments, BTCPay, PIX, Stripe)',
                   'Serviços de hospedagem e infraestrutura em nuvem',
                   'Armazenamento de mídia (Cloudinary)',
                   'Serviços de e-mail e notificações',
@@ -589,7 +587,6 @@ export default function PrivacyPage() {
             <SubSection title="11.2 Dados Financeiros">
               <BulletList
                 items={[
-                  'Chave PIX ou dados bancários para recebimento',
                   'Endereços de carteiras de criptomoedas',
                   'Histórico de ganhos e saques',
                   'Informações para emissão de relatórios fiscais',
@@ -619,9 +616,7 @@ export default function PrivacyPage() {
             <SubSection title="12.1 Métodos de Pagamento">
               <BulletList
                 items={[
-                  <><strong>Criptomoedas:</strong> Bitcoin, Ethereum, USDT, Monero e outras (via NOWPayments/BTCPay).</>,
-                  <><strong>PIX:</strong> Pagamentos instantâneos para usuários brasileiros.</>,
-                  <><strong>Cartão:</strong> Processado por gateway terceirizado (não armazenamos dados de cartão).</>,
+                  <><strong>Criptomoedas:</strong> USDT (Polygon).</>,
                 ]}
               />
             </SubSection>

@@ -1,7 +1,4 @@
-/**
- * Feed Principal
- * Feed personalizado com posts de criadores seguidos
- */
+
 
 import { useState, useEffect } from 'react';
 import { CONTENT_TYPES } from '../../utils/constansts';

@@ -4,8 +4,8 @@
  */
 
 import { useState, useEffect } from 'react';
-import axios from 'axios';
-import { API_BASE_URL, SUBSCRIPTION_STATUS } from '../../config/constants';
+import subscriptionService from '../../services/subscriptionService';
+import { SUBSCRIPTION_STATUS } from '../../config/constants';
 import SubscriptionCard from '../../components/subscriber/SubscriptionCard';
 import { FiList, FiFilter } from 'react-icons/fi';
 
@@ -21,13 +21,13 @@ const Subscriptions = () => {
   const fetchSubscriptions = async () => {
     try {
       setLoading(true);
-      const token = localStorage.getItem('pride_connect_token');
-      const response = await axios.get(`${API_BASE_URL}/subscriptions`, {
-        headers: { Authorization: `Bearer ${token}` },
-        params: { status: filter !== 'all' ? filter : undefined },
-      });
-
-      setSubscriptions(response.data.subscriptions);
+      const response = await subscriptionService.getSubscriptions();
+      // Filtrar no frontend se necessário
+      let subs = response.subscriptions || response.data || [];
+      if (filter !== 'all') {
+        subs = subs.filter((sub) => (sub.status || sub.subscriptionStatus) === filter);
+      }
+      setSubscriptions(subs);
     } catch (err) {
       console.error('Erro ao buscar assinaturas:', err);
     } finally {
@@ -37,23 +37,17 @@ const Subscriptions = () => {
 
   const handleCancel = async (subscriptionId) => {
     try {
-      const token = localStorage.getItem('pride_connect_token');
-      await axios.delete(`${API_BASE_URL}/subscriptions/${subscriptionId}`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-
-      // Update list
+      await subscriptionService.cancelSubscription(subscriptionId);
       setSubscriptions((prev) =>
         prev.map((sub) =>
           sub._id === subscriptionId
-            ?  { ...sub, status: SUBSCRIPTION_STATUS.CANCELLED }
+            ? { ...sub, status: SUBSCRIPTION_STATUS.CANCELLED }
             : sub
         )
       );
-
       alert('Assinatura cancelada com sucesso!');
     } catch (err) {
-      console. error('Erro ao cancelar:', err);
+      console.error('Erro ao cancelar:', err);
       alert(err.response?.data?.message || 'Erro ao cancelar assinatura');
       throw err;
     }

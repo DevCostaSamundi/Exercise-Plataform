@@ -5,7 +5,7 @@
 
 import { useState } from 'react';
 import { FiDownload, FiChevronDown, FiChevronUp } from 'react-icons/fi';
-import { SiPix, SiBitcoin } from 'react-icons/si';
+import { SiBitcoin } from 'react-icons/si';
 import { FiCreditCard } from 'react-icons/fi';
 import { formatCurrency, formatDate } from '../../utils/formatters';
 import { PAYMENT_METHODS, PAYMENT_STATUS, TRANSACTION_TYPES } from '../../config/constants';
@@ -32,11 +32,11 @@ const TransactionRow = ({ transaction }) => {
     switch (status) {
       case PAYMENT_STATUS.COMPLETED:
         return 'Concluído';
-      case PAYMENT_STATUS. PENDING:
+      case PAYMENT_STATUS.PENDING:
         return 'Pendente';
       case PAYMENT_STATUS.FAILED:
         return 'Falhou';
-      case PAYMENT_STATUS. REFUNDED:
+      case PAYMENT_STATUS.REFUNDED:
         return 'Reembolsado';
       case PAYMENT_STATUS.CANCELLED:
         return 'Cancelado';
@@ -47,7 +47,7 @@ const TransactionRow = ({ transaction }) => {
 
   const getTypeText = (type) => {
     switch (type) {
-      case TRANSACTION_TYPES. SUBSCRIPTION:
+      case TRANSACTION_TYPES.SUBSCRIPTION:
         return 'Assinatura';
       case TRANSACTION_TYPES.PPV_POST:
         return 'Post PPV';
@@ -62,8 +62,6 @@ const TransactionRow = ({ transaction }) => {
 
   const getPaymentMethodIcon = (method) => {
     switch (method) {
-      case PAYMENT_METHODS.PIX:
-        return <SiPix className="text-lg" />;
       case PAYMENT_METHODS.CRYPTO:
         return <SiBitcoin className="text-lg" />;
       case PAYMENT_METHODS.CREDIT_CARD:

@@ -539,7 +539,6 @@ export default function TermsPage() {
                 items={[
                   'Ter pelo menos 18 anos de idade;',
                   'Completar verificação de identidade (KYC) quando solicitado;',
-                  'Fornecer informações bancárias/PIX válidas para recebimento;',
                   'Manter informações fiscais atualizadas quando aplicável;',
                   'Concordar com os termos específicos para criadores.',
                 ]}
@@ -667,9 +666,7 @@ export default function TermsPage() {
               <p>Aceitamos os seguintes métodos de pagamento:</p>
               <BulletList
                 items={[
-                  <><strong>Criptomoedas:</strong> Bitcoin (BTC), Ethereum (ETH), USDT, USDC, Litecoin (LTC), Monero (XMR) e outras;</>,
-                  <><strong>PIX:</strong> Pagamentos instantâneos para usuários brasileiros;</>,
-                  <><strong>Cartão de crédito:</strong> Via processadores terceirizados (quando disponível). </>,
+                  <><strong>Criptomoedas:</strong> USDT (Polygon).</>,
                 ]}
               />
             </SubSection>
@@ -677,12 +674,11 @@ export default function TermsPage() {
             <SubSection title="9.2 Taxas da Plataforma">
               <FeeTable
                 fees={[
-                  { type: 'Assinaturas', rate: '20%', description: 'Taxa sobre assinaturas mensais' },
-                  { type: 'Conteúdo PPV', rate: '20%', description: 'Taxa sobre vendas pay-per-view' },
-                  { type: 'Gorjetas (Tips)', rate: '20%', description: 'Taxa sobre gorjetas recebidas' },
-                  { type: 'Mensagens Pagas', rate: '20%', description: 'Taxa sobre mensagens PPV' },
+                  { type: 'Assinaturas', rate: '10%', description: 'Taxa sobre assinaturas mensais' },
+                  { type: 'Conteúdo PPV', rate: '10%', description: 'Taxa sobre vendas pay-per-view' },
+                  { type: 'Gorjetas (Tips)', rate: '10%', description: 'Taxa sobre gorjetas recebidas' },
+                  { type: 'Mensagens Pagas', rate: '10%', description: 'Taxa sobre mensagens PPV' },
                   { type: 'Saque (Crypto)', rate: '$2 + rede', description: 'Taxa fixa + fee da blockchain' },
-                  { type: 'Saque (PIX)', rate: '$2', description: 'Taxa fixa por saque' },
                 ]}
               />
               <p className="text-sm text-slate-500 dark:text-slate-400 mt-3">
@@ -726,9 +722,7 @@ export default function TermsPage() {
             <SubSection title="10.2 Métodos de Saque">
               <BulletList
                 items={[
-                  <><strong>Criptomoedas:</strong> BTC, ETH, USDT, LTC, XMR e outras (processamento em 24h);</>,
-                  <><strong>PIX:</strong> Disponível para criadores brasileiros (processamento em 24-48h);</>,
-                  <><strong>Transferência bancária:</strong> Disponibilidade varia por região. </>,
+                  <><strong>Criptomoedas:</strong> USDT (Polygon),</>,
                 ]}
               />
             </SubSection>
@@ -962,7 +956,7 @@ export default function TermsPage() {
 
             <p>
               Nossa responsabilidade total não excederá o maior valor entre: 
-              (a) valores pagos por você nos últimos 12 meses; ou (b) R$ 500,00. 
+              (a) valores pagos por você nos últimos 12 meses; ou (b) $ 500.00. 
             </p>
           </Section>
 

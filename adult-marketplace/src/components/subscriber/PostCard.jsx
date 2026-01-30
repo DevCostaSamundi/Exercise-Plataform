@@ -128,7 +128,7 @@ const PostCard = ({ post, onLike, onUnlock }) => {
                     Conteúdo Exclusivo
                   </p>
                   <p className="text-white text-lg mb-4">
-                    R$ {post.price?.toFixed(2)}
+                    {formatCurrency(post.price, post.currency)}
                   </p>
                   <button
                     onClick={(e) => {

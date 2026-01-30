@@ -43,7 +43,7 @@ export default function HelpPage() {
         {
           id: 6,
           question: 'Quais métodos de pagamento são aceitos?',
-          answer: 'Aceitamos cartões de crédito, débito, PIX e carteiras digitais. Todos os pagamentos são processados de forma segura.',
+          answer: 'Só criptomoedas. Todos os pagamentos são processados de forma segura.',
         },
       ],
     },
@@ -58,12 +58,12 @@ export default function HelpPage() {
         {
           id: 8,
           question: 'Como recebo meus ganhos?',
-          answer: 'Você pode solicitar saques quando atingir o valor mínimo de R$ 100. Os pagamentos são processados em até 5 dias úteis via transferência bancária.',
+          answer: 'Você pode solicitar saques quando atingir o valor mínimo de $ 100. Os pagamentos são processados em até 5 dias úteis via transferência bancária.',
         },
         {
           id: 9,
           question: 'Qual é a taxa da plataforma?',
-          answer: 'Cobramos uma taxa de 20% sobre os ganhos dos criadores. Os criadores recebem 80% do valor das assinaturas.',
+          answer: 'Cobramos uma taxa de 10% sobre os ganhos dos criadores. Os criadores recebem 80% do valor das assinaturas.',
         },
       ],
     },

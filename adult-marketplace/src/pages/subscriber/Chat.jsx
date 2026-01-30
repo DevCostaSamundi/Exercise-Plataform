@@ -262,7 +262,7 @@ const Chat = () => {
                     <div className="flex flex-col items-center gap-2 p-4">
                       <FiLock className="text-3xl text-yellow-600" />
                       <p className="font-semibold">Mensagem Bloqueada</p>
-                      <p className="text-sm">R$ {message.price?.toFixed(2)}</p>
+                      <p className="text-sm">$ {message.price?.toFixed(2)}</p>
                       <button
                         onClick={() => {
                           setSelectedPPV(message);

@@ -1,24 +1,10 @@
 export default {
-  nowPayments: {
-    apiKey: process.env.NOWPAYMENTS_API_KEY,
-    ipnSecret: process.env.NOWPAYMENTS_IPN_SECRET,
-    
-    // ✅ Permitir forçar sandbox via variável
-    sandbox: process.env.NOWPAYMENTS_SANDBOX === 'true' || process.env.NODE_ENV === 'development',
-    
-    // ✅ Detectar automaticamente a URL
-    apiUrl: (() => {
-      // Se tem "sandbox" na key, usar sandbox
-      if (process.env.NOWPAYMENTS_API_KEY?. includes('SANDBOX')) {
-        return 'https://api-sandbox.nowpayments.io/v1';
-      }
-      // Se NODE_ENV é production, usar produção
-      if (process.env.NODE_ENV === 'production') {
-        return 'https://api.nowpayments.io/v1';
-      }
-      // Padrão:  sandbox
-      return 'https://api-sandbox.nowpayments.io/v1';
-    })(),
+  web3: {
+    rpcUrl: process.env.WEB3_RPC_URL || 'https://rpc.ankr.com/polygon',
+    confirmationsRequired: 3,
+  },
+
+  paymentGateway: {
     
     acceptedCurrencies: ['usdttrc20', 'usdtbep20', 'usdcmatic', 'usdtmatic'],
     baseCurrency: 'USD'

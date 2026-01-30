@@ -24,7 +24,6 @@ export default function WithdrawalModal({ isOpen, onClose, availableBalance, onS
   const fetchCurrencies = async () => {
     try {
       const response = await paymentService.getAvailableCurrencies();
-      // Filtrar apenas cryptos (não PIX)
       const cryptoOnly = response.data.filter(c => ! c.fiat);
       setCurrencies(cryptoOnly);
     } catch (err) {

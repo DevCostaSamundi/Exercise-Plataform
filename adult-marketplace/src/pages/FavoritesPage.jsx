@@ -25,12 +25,6 @@ export default function FavoritesPage() {
       console.error('Erro ao carregar favoritos:', err);
       setError(err.response?.data?.message || 'Erro ao carregar favoritos');
       
-      // Mock data
-      setFavorites([
-        { id: 1, username: 'sophiastar', displayName: 'Sophia Star', avatar: null, subscribers: 12450, isSubscribed: true },
-        { id: 2, username: 'lucasfit', displayName: 'Lucas Fitness', avatar: null, subscribers: 8920, isSubscribed: false },
-        { id: 3, username: 'mariaart', displayName: 'Maria Art', avatar: null, subscribers: 6540, isSubscribed: true },
-      ]);
     } finally {
       setLoading(false);
     }

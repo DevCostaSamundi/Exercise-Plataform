@@ -13,7 +13,7 @@ export const sendPaidMessage = async (req, res) => {
     if (!price || price < 5 || price > 500) {
       return res.status(400).json({
         success: false,
-        message: 'Preço deve estar entre R$ 5,00 e R$ 500,00',
+        message: 'Preço deve estar entre $ 5.00 e $ 500.00',
       });
     }
 
@@ -73,7 +73,7 @@ export const sendPaidMessage = async (req, res) => {
     await prisma.conversation.update({
       where: { id: conversationId },
       data: {
-        lastMessageText: `💰 Conteúdo pago - R$ ${price.toFixed(2)}`,
+        lastMessageText: `💰 Conteúdo pago - $ ${price.toFixed(2)}`,
         lastMessageSenderId: userId,
         lastMessageTimestamp: new Date(),
         unreadCountSubscriber: { increment: 1 },

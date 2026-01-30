@@ -49,11 +49,11 @@ export default function CreatorSidebar() {
   };
 
   const formatCurrency = (value) => {
-    if (!value) return 'R$ 0,00';
-    return new Intl.NumberFormat('pt-BR', {
+    if (!value) return '$ 0.00';
+    return new Intl.NumberFormat('en-US', {
       style: 'currency',
-      currency: 'BRL',
-    }).format(value * 5.5); // Converter USD para BRL (taxa exemplo)
+      currency: 'USD',
+    }).format(value);
   };
 
   const linkBase = 'flex items-center space-x-3 px-4 py-3 rounded-lg text-sm font-medium transition-all';
@@ -125,13 +125,13 @@ export default function CreatorSidebar() {
                 <div className="flex justify-between items-center">
                   <span className="text-xs text-slate-400">💰 Disponível</span>
                   <span className="text-sm font-bold text-green-400">
-                    {balance ? formatCurrency(balance.availableUSD) : 'R$ 0,00'}
+                    {balance ? formatCurrency(balance.availableUSD) : '$ 0,00'}
                   </span>
                 </div>
                 <div className="flex justify-between items-center">
                   <span className="text-xs text-slate-400">📈 Este mês</span>
                   <span className="text-sm font-bold text-white">
-                    {balance ? formatCurrency(balance.monthlyEarnings) : 'R$ 0,00'}
+                    {balance ? formatCurrency(balance.monthlyEarnings) : '$ 0,00'}
                   </span>
                 </div>
                 <Link 

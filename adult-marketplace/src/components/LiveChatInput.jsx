@@ -90,14 +90,14 @@ export default function LiveChatInput({ liveId }) {
 
     // TODO: Replace with proper modal component for better UX
     // This is a stub for MVP - payment integration pending
-    const confirmTip = confirm(`Enviar tip de R$${amount}? (STUB - sem pagamento real)`);
+    const confirmTip = confirm(`Enviar tip de $${amount}? (STUB - sem pagamento real)`);
     if (!confirmTip) return;
 
-    socket.emit('tip:send', { liveId, amount, content: text || `Tip de R$${amount}` }, (err, savedMessage) => {
+    socket.emit('tip:send', { liveId, amount, content: text || `Tip de $${amount}` }, (err, savedMessage) => {
       if (err) {
         alert('Erro ao enviar tip');
       } else {
-        alert(`Tip de R$${amount} enviado com sucesso!`);
+        alert(`Tip de $${amount} enviado com sucesso!`);
         setText('');
       }
     });
@@ -114,7 +114,7 @@ export default function LiveChatInput({ liveId }) {
           className="bg-yellow-500 text-white px-3 py-1 rounded text-sm"
           onClick={() => sendTip(10)}
         >
-          💰 Tip R$10
+          💰 Tip $10
         </button>
       </div>
     </div>

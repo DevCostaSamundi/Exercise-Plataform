@@ -1,20 +1,34 @@
 import { Link } from 'react-router-dom';
 
-export default function RightSidebar() {
-  // Mock data
-  const trendingCreators = [
-    { id: 1, name: 'Luna', avatar: 'https://placehold.co/50x50/8B7FE8/white?text=L', subscribers: '1.2k', isVerified: true },
-    { id: 2, name: 'Kai', avatar: 'https://placehold.co/50x50/6366F1/white?text=K', subscribers: '2.9k', isVerified: true },
-    { id: 4, name: 'Aria', avatar: 'https://placehold.co/50x50/EC4899/white?text=A', subscribers: '3.5k', isVerified: true },
-  ];
 
-  const trendingTags = [
-    { tag: 'Trans', count: '2.4k', emoji: '🏳️‍⚧️' },
-    { tag: 'Fitness', count: '1.8k', emoji: '💪' },
-    { tag: 'Drag', count: '1.5k', emoji: '✨' },
-    { tag: 'BDSM', count: '1.2k', emoji: '🔗' },
-    { tag: 'Natural', count: '980', emoji: '🌿' },
-  ];
+import { useEffect, useState } from 'react';
+import trendingService from '../services/trendingService';
+
+export default function RightSidebar() {
+  const [trendingCreators, setTrendingCreators] = useState([]);
+  const [trendingTags, setTrendingTags] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  useEffect(() => {
+    async function fetchTrending() {
+      setLoading(true);
+      setError(null);
+      try {
+        const [creatorsRes, tagsRes] = await Promise.all([
+          trendingService.getTrendingCreators(),
+          trendingService.getTrendingTags(),
+        ]);
+        setTrendingCreators(creatorsRes.data || []);
+        setTrendingTags(tagsRes.data || []);
+      } catch (err) {
+        setError('Erro ao carregar dados em alta');
+      } finally {
+        setLoading(false);
+      }
+    }
+    fetchTrending();
+  }, []);
 
   const suggestions = [
     { title: 'Complete seu perfil', description: 'Adicione uma bio e foto de perfil', icon: '👤', color: 'indigo' },

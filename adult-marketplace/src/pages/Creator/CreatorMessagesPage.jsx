@@ -235,7 +235,7 @@ export default function CreatorMessagesPage() {
     }
 
     if (!ppvPrice || ppvPrice < 5 || ppvPrice > 500) {
-      alert('Preço deve estar entre R$ 5,00 e R$ 500,00');
+      alert('Preço deve estar entre $ 5.00 e $ 500.00');
       return;
     }
 
@@ -262,7 +262,7 @@ export default function CreatorMessagesPage() {
           ? {
             ...conv,
             lastMessage: {
-              text: `💰 Conteúdo pago - R$ ${ppvPrice.toFixed(2)}`,
+              text: `💰 Conteúdo pago - $ ${ppvPrice.toFixed(2)}`,
               sender: { _id: currentUser.id },
               timestamp: new Date(),
             },
@@ -605,7 +605,7 @@ export default function CreatorMessagesPage() {
                               <div className="flex items-center space-x-2 mb-2 pb-2 border-b border-yellow-400/30">
                                 <span className="text-yellow-400">💰</span>
                                 <span className="text-xs font-semibold">
-                                  Conteúdo Pago - R$ {msg.content.price?.toFixed(2)}
+                                  Conteúdo Pago - $ {msg.content.price?.toFixed(2)}
                                 </span>
                               </div>
                             )}
@@ -828,10 +828,10 @@ export default function CreatorMessagesPage() {
 
             <div className="mb-4 sm:mb-6">
               <label className="block text-sm font-medium text-slate-700 dark: text-slate-300 mb-2">
-                Defina o preço (R$ 5,00 - R$ 500,00)
+                Defina o preço ($ 5.00 - $ 500.00)
               </label>
               <div className="relative">
-                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500">R$</span>
+                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500">$</span>
                 <input
                   type="number"
                   min="5"
@@ -843,7 +843,7 @@ export default function CreatorMessagesPage() {
                 />
               </div>
               <p className="text-xs text-slate-500 dark:text-slate-400 mt-2">
-                Você receberá ~R$ {(ppvPrice * 0.8).toFixed(2)} (80% após taxas)
+                Você receberá ~$ {(ppvPrice * 0.8).toFixed(2)} (80% após taxas)
               </p>
             </div>
 

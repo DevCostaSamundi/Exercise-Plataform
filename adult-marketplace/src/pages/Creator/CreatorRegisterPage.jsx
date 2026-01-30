@@ -1,16 +1,6 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 
-/**
- * Página de Registro de Criador Atualizada:
- * - Criptomoedas como método principal de pagamento (seleção padrão)
- * - Cartões (Stripe) como opção secundária principal
- * - PIX como método opcional, principalmente para o Brasil
- * - Plataforma descentralizada e global: sem padrões específicos de país, CPF opcional, opções cripto expandidas
- * - Adicionadas mais criptomoedas para suporte global
- * - Preços de assinatura em múltiplas moedas (USD para internacional), mas mantido R$ para exibição nas prévias
- * - Validações ajustadas: CPF apenas necessário para PIX; sem campos obrigatórios específicos do Brasil
- */
 
 export default function CreatorRegisterPage() {
   const navigate = useNavigate();
@@ -31,18 +21,14 @@ export default function CreatorRegisterPage() {
     aesthetic: [],
     subscriptionPrice: '',
 
-    // Pagamentos: Crypto primário, cartão secundário, PIX opcional
+
     paymentMethod: 'crypto', // Padrão para crypto com foco descentralizado
-    cryptoCurrency: 'BTC', // Opções expandidas
+    cryptoCurrency: 'USDC', // Opções expandidas
     cryptoWallet: '',
-    stripeCustomerId: '',
     cardOnFile: false,
     cardLast4: '',
 
     fullName: '',
-    cpf: '', // Apenas obrigatório se PIX selecionado
-    pixKey: '',
-    pixKeyType: 'email',
     idDocument: null,
     selfieWithId: null,
     agreeTerms: false,
@@ -60,14 +46,13 @@ export default function CreatorRegisterPage() {
   const allowedTypes = ['image/jpeg', 'image/png', 'image/gif', 'application/pdf'];
 
   const genderOptions = ['Homem Cis', 'Mulher Cis', 'Homem Trans', 'Mulher Trans', 'Não-binário', 'Queer', 'Gênero fluido'];
-  const orientationOptions = ['Gay', 'Lésbica', 'Bissexual', 'Pansexual', 'Assexual', 'Queer'];
+  const orientationOptions = ['Gay', 'Lésbica', 'Bissexual', 'Pansexual', 'Assexual', 'Heterossexual', 'Queer'];
   const contentTypeOptions = ['Fotos artísticas', 'Vídeos curtos', 'Lives interativas', 'Chat personalizado', 'Áudio sensual', 'Conteúdo educativo'];
   const aestheticOptions = ['Sensual', 'Fetichista', 'Natural', 'Drag/Performance', 'Fitness', 'Adorável', 'Dominante', 'Submisso'];
 
   // Opções de criptomoedas expandidas para suporte global descentralizado
   const cryptoCurrencyOptions = [
-    'BTC', 'ETH', 'USDC', 'USDT', 'SOL', 'ADA', 'DOT', 'AVAX',
-    'MATIC', 'LINK', 'UNI', 'LTC', 'BCH', 'XRP'
+    'USDC', 'USDT', 'POLYGON',
   ];
 
   // Opções de países expandidas
@@ -179,33 +164,6 @@ export default function CreatorRegisterPage() {
     return newErrors;
   };
 
-  const validateStep4 = () => {
-    const newErrors = {};
-    if (!formData.fullName) newErrors.fullName = 'Nome completo é obrigatório';
-
-    // CPF apenas obrigatório para PIX
-    if (formData.paymentMethod === 'pix') {
-      if (!formData.cpf) {
-        newErrors.cpf = 'CPF é obrigatório para pagamentos PIX';
-      } else if (!/^\d{11}$/.test(formData.cpf.replace(/\D/g, ''))) {
-        newErrors.cpf = 'CPF inválido';
-      }
-    }
-
-    // Validações por método de pagamento
-    if (formData.paymentMethod === 'crypto') {
-      if (!formData.cryptoWallet) newErrors.cryptoWallet = 'Forneça o endereço da sua carteira crypto';
-      else if (formData.cryptoWallet.length < 10) newErrors.cryptoWallet = 'Endereço de carteira inválido';
-    } else if (formData.paymentMethod === 'card') {
-      if (!formData.cardOnFile) {
-        newErrors.cardOnFile = 'Adicione um cartão para receber pagamentos';
-      }
-    } else if (formData.paymentMethod === 'pix') {
-      if (!formData.pixKey) newErrors.pixKey = 'Chave PIX é obrigatória';
-    }
-
-    return newErrors;
-  };
 
   const validateStep5 = () => {
     const newErrors = {};
@@ -223,7 +181,6 @@ export default function CreatorRegisterPage() {
     if (step === 1) newErrors = validateStep1();
     else if (step === 2) newErrors = validateStep2();
     else if (step === 3) newErrors = validateStep3();
-    else if (step === 4) newErrors = validateStep4();
 
     if (Object.keys(newErrors).length > 0) {
       setErrors(newErrors);
@@ -237,44 +194,6 @@ export default function CreatorRegisterPage() {
   const handleBack = () => {
     setStep(step - 1);
     window.scrollTo(0, 0);
-  };
-
-  const handleAddCard = async () => {
-    try {
-      setIsLoading(true);
-      const res = await fetch('/api/v1/payments/create-stripe-setup-session', {
-        method: 'POST',
-        credentials: 'include',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          returnUrl: window.location.origin + '/creator-register?cardAdded=1'
-        })
-      });
-      const json = await res.json();
-
-      if (json?.url) {
-        window.location.href = json.url;
-      } else if (json?.setupCompleted) {
-        setFormData(prev => ({
-          ...prev,
-          cardOnFile: true,
-          cardLast4: json.last4 || ''
-        }));
-      } else {
-        setErrors(prev => ({
-          ...prev,
-          submit: json.message || 'Não foi possível iniciar fluxo de cartão'
-        }));
-      }
-    } catch (err) {
-      console.error('Erro ao iniciar fluxo de cartão', err);
-      setErrors(prev => ({
-        ...prev,
-        submit: 'Erro ao conectar com provedor de pagamentos'
-      }));
-    } finally {
-      setIsLoading(false);
-    }
   };
 
   const handleSubmit = async (e) => {
@@ -321,15 +240,11 @@ export default function CreatorRegisterPage() {
 
       // Dados de pagamento
       payload.append('fullName', formData.fullName || '');
-      payload.append('cpf', formData.cpf || '');
-      payload.append('pixKey', formData.pixKey || '');
-      payload.append('pixKeyType', formData.pixKeyType || '');
       payload.append('paymentMethod', formData.paymentMethod || 'crypto');
       payload.append('cryptoCurrency', formData.cryptoCurrency || '');
       payload.append('cryptoWallet', formData.cryptoWallet || '');
       payload.append('cardOnFile', formData.cardOnFile ? 'true' : 'false');
       payload.append('cardLast4', formData.cardLast4 || '');
-      payload.append('stripeCustomerId', formData.stripeCustomerId || '');
 
       // Termos e verificações
       payload.append('agreeTerms', formData.agreeTerms ? 'true' : 'false');
@@ -493,7 +408,7 @@ export default function CreatorRegisterPage() {
             Torne-se um Criador 🌍
           </h2>
           <p className="text-slate-600 dark:text-slate-400">
-            Plataforma descentralizada global para criadores +18.  Aceite crypto, cartões e PIX.
+            Plataforma descentralizada global para criadores +18.  Aceite crypto.
           </p>
         </div>
 
@@ -528,7 +443,7 @@ export default function CreatorRegisterPage() {
               <div className="space-y-5">
                 <div className="bg-indigo-50 dark:bg-indigo-900/20 border border-indigo-200 dark:border-indigo-800 rounded-lg p-4 mb-6">
                   <p className="text-sm text-indigo-900 dark:text-indigo-200">
-                    🌍 <strong>Plataforma Global:</strong> Bem-vindo à primeira plataforma descentralizada para criadores +18.  Suportamos pagamentos em crypto, cartão e PIX.
+                    🌍 <strong>Plataforma Global:</strong> Bem-vindo à primeira plataforma descentralizada para criadores +18.  Suportamos pagamentos em crypto.
                   </p>
                 </div>
 
@@ -815,12 +730,12 @@ export default function CreatorRegisterPage() {
                   </div>
                   {errors.subscriptionPrice && <p className="mt-1 text-sm text-red-600">{errors.subscriptionPrice}</p>}
                   <p className="mt-1 text-xs text-slate-500">
-                    Preço em USD.  Fãs podem pagar com crypto, cartão ou PIX (conversão automática)
+                    Preço em USD.  Fãs podem pagar com Crypto. (conversão automática)
                   </p>
 
                   {/* Previsão de Ganhos */}
                   <div className="mt-4 bg-slate-50 dark:bg-slate-800 rounded-lg p-4">
-                    <p className="text-sm font-medium text-slate-900 dark:text-white mb-2">💰 Previsão de Ganhos (após 20% taxa)</p>
+                    <p className="text-sm font-medium text-slate-900 dark:text-white mb-2">💰 Previsão de Ganhos (após 10% taxa)</p>
                     <div className="space-y-1 text-xs text-slate-600 dark:text-slate-400">
                       <div className="flex justify-between">
                         <span>10 assinantes:</span>
@@ -842,7 +757,7 @@ export default function CreatorRegisterPage() {
                       </div>
                     </div>
                     <p className="mt-2 text-xs text-slate-500">
-                      🌍 Valores em USD. Pagos em crypto, cartão ou PIX conforme preferência do usuário
+                      🌍 Valores em USD. Pagos em crypto conforme preferência do usuário
                     </p>
                   </div>
                 </div>
@@ -854,7 +769,7 @@ export default function CreatorRegisterPage() {
               <div className="space-y-5">
                 <div className="bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg p-4 mb-6">
                   <p className="text-sm text-yellow-900 dark:text-yellow-200">
-                    🔒 <strong>Pagamentos Descentralizados:</strong> Crypto é nossa opção principal para uma plataforma verdadeiramente global.  Cartões via Stripe são seguros, PIX disponível para Brasil.
+                    🔒 <strong>Pagamentos Descentralizados:</strong> Crypto é nossa opção principal para uma plataforma verdadeiramente global.
                   </p>
                 </div>
 
@@ -879,44 +794,6 @@ export default function CreatorRegisterPage() {
                         <div className="text-2xl mb-2">₿</div>
                         <div className="font-semibold">Cryptocurrency</div>
                         <div className="text-xs opacity-80">Descentralizada & Global</div>
-                      </div>
-                    </label>
-
-                    <label className={`px-4 py-4 rounded-lg cursor-pointer border-2 transition-all ${formData.paymentMethod === 'card'
-                        ? 'bg-indigo-600 text-white border-indigo-600'
-                        : 'bg-slate-50 dark:bg-slate-800 border-slate-200 dark:border-slate-700 hover:border-indigo-300'
-                      }`}>
-                      <input
-                        type="radio"
-                        name="paymentMethod"
-                        value="card"
-                        checked={formData.paymentMethod === 'card'}
-                        onChange={handleChange}
-                        className="hidden"
-                      />
-                      <div className="text-center">
-                        <div className="text-2xl mb-2">💳</div>
-                        <div className="font-semibold">Cartão (Stripe)</div>
-                        <div className="text-xs opacity-80">Seguro & Rápido</div>
-                      </div>
-                    </label>
-
-                    <label className={`px-4 py-4 rounded-lg cursor-pointer border-2 transition-all ${formData.paymentMethod === 'pix'
-                        ? 'bg-indigo-600 text-white border-indigo-600'
-                        : 'bg-slate-50 dark:bg-slate-800 border-slate-200 dark:border-slate-700 hover:border-indigo-300'
-                      }`}>
-                      <input
-                        type="radio"
-                        name="paymentMethod"
-                        value="pix"
-                        checked={formData.paymentMethod === 'pix'}
-                        onChange={handleChange}
-                        className="hidden"
-                      />
-                      <div className="text-center">
-                        <div className="text-2xl mb-2">🇧🇷</div>
-                        <div className="font-semibold">PIX</div>
-                        <div className="text-xs opacity-80">Brasil Only</div>
                       </div>
                     </label>
                   </div>
@@ -976,94 +853,6 @@ export default function CreatorRegisterPage() {
                       <p className="mt-2 text-xs text-slate-500">
                         ⚡ Pagamentos instantâneos e globais.  Sem intermediários, sem fronteiras.
                       </p>
-                    </div>
-                  </div>
-                )}
-
-                {formData.paymentMethod === 'card' && (
-                  <div className="space-y-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg p-4">
-                    <h3 className="font-medium text-slate-900 dark:text-white">Configuração Cartão</h3>
-
-                    <p className="text-sm text-slate-600 dark:text-slate-400">
-                      Pagamentos seguros processados pela Stripe. Seus dados nunca passam pelos nossos servidores.
-                    </p>
-
-                    <div className="flex items-center space-x-3">
-                      <button
-                        type="button"
-                        onClick={handleAddCard}
-                        disabled={isLoading}
-                        className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50"
-                      >
-                        {formData.cardOnFile ? 'Gerenciar Cartão' : 'Adicionar Cartão'}
-                      </button>
-                      {formData.cardOnFile && (
-                        <span className="text-sm text-slate-700 dark:text-slate-300">
-                          ✓ Cartão salvo terminado em {formData.cardLast4}
-                        </span>
-                      )}
-                    </div>
-                    {errors.cardOnFile && <p className="mt-1 text-sm text-red-600">{errors.cardOnFile}</p>}
-                  </div>
-                )}
-
-                {formData.paymentMethod === 'pix' && (
-                  <div className="space-y-4 bg-green-50 dark:bg-green-900/20 rounded-lg p-4">
-                    <h3 className="font-medium text-slate-900 dark:text-white">Configuração PIX (Brasil)</h3>
-
-                    <div>
-                      <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
-                        Tipo de Chave PIX
-                      </label>
-                      <select
-                        name="pixKeyType"
-                        value={formData.pixKeyType}
-                        onChange={handleChange}
-                        className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                      >
-                        <option value="email">Email</option>
-                        <option value="cpf">CPF</option>
-                        <option value="phone">Telefone</option>
-                        <option value="random">Chave Aleatória</option>
-                      </select>
-                    </div>
-
-                    <div>
-                      <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
-                        Chave PIX
-                      </label>
-                      <input
-                        type="text"
-                        name="pixKey"
-                        value={formData.pixKey}
-                        onChange={handleChange}
-                        className={`w-full px-4 py-3 bg-slate-50 dark:bg-slate-800 border ${errors.pixKey ? 'border-red-300' : 'border-slate-200 dark:border-slate-700'
-                          } rounded-lg text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500`}
-                        placeholder={
-                          formData.pixKeyType === 'email' ? 'seu@email.com' :
-                            formData.pixKeyType === 'cpf' ? '000.000.000-00' :
-                              formData.pixKeyType === 'phone' ? '(11) 99999-9999' :
-                                'Chave aleatória do banco'
-                        }
-                      />
-                      {errors.pixKey && <p className="mt-1 text-sm text-red-600">{errors.pixKey}</p>}
-                    </div>
-
-                    <div>
-                      <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
-                        CPF (obrigatório para PIX)
-                      </label>
-                      <input
-                        type="text"
-                        name="cpf"
-                        value={formData.cpf}
-                        onChange={handleChange}
-                        className={`w-full px-4 py-3 bg-slate-50 dark:bg-slate-800 border ${errors.cpf ? 'border-red-300' : 'border-slate-200 dark:border-slate-700'
-                          } rounded-lg text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500`}
-                        placeholder="000.000.000-00"
-                        maxLength="14"
-                      />
-                      {errors.cpf && <p className="mt-1 text-sm text-red-600">{errors.cpf}</p>}
                     </div>
                   </div>
                 )}

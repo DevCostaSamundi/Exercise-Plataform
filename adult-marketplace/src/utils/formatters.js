@@ -8,14 +8,14 @@ import { ptBR } from 'date-fns/locale';
 /**
  * Formata valores monetários em BRL
  * @param {number} value - Valor a ser formatado
- * @returns {string} Valor formatado (ex: "R$ 99,90")
+ * @returns {string} Valor formatado (ex: "$ 1.000,00")
  */
 export const formatCurrency = (value) => {
-  if (!value && value !== 0) return 'R$ 0,00';
+  if (!value && value !== 0) return '$ 0,00';
   
   return new Intl.NumberFormat('pt-BR', {
     style: 'currency',
-    currency: 'BRL',
+    currency: 'USD',
   }).format(value);
 };
 

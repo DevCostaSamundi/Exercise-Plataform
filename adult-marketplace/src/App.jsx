@@ -31,6 +31,9 @@ import MySubscriptionsPage from './pages/MySubscriptionsPage';
 
 // Subscriber Pages
 import PostView from './pages/subscriber/PostView';
+import Settings from './pages/subscriber/Settings';
+import Profile from './pages/subscriber/Profile'; // ADICIONE ESTA LINHA
+import Notifications from './pages/subscriber/Notifications'; // ADICIONE ESTA LINHA
 
 // Creator Pages
 import CreatorProfilePage from './pages/Creator/CreatorProfilePage';
@@ -192,7 +195,7 @@ function App() {
             path="/profile"
             element={
               <ProtectedRoute>
-                <div>Profile Page (TODO)</div>
+                <Profile /> {/* ALTERE AQUI */}
               </ProtectedRoute>
             }
           />
@@ -208,7 +211,7 @@ function App() {
             path="/settings"
             element={
               <ProtectedRoute>
-                <div>Settings Page (TODO)</div>
+                <Settings /> {/* ALTERE AQUI */}
               </ProtectedRoute>
             }
           />
@@ -216,7 +219,7 @@ function App() {
             path="/notifications"
             element={
               <ProtectedRoute>
-                <div>Notifications Page (TODO)</div>
+                <Notifications /> {/* ALTERE AQUI */}
               </ProtectedRoute>
             }
           />

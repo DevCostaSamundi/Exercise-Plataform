@@ -545,7 +545,6 @@ paths:
                 status: "success"
                 data:
                   sessionId: "cs_test_a1b2c3d4"
-                  checkoutUrl: "https://checkout.stripe.com/pay/cs_test_a1b2c3d4"
                   expiresAt: "2024-01-01T01:00:00.000Z"
         '400':
           $ref: '#/components/responses/BadRequest'
@@ -559,7 +558,6 @@ paths:
       tags:
         - Payments
       summary: Payment webhook
-      description: Handle payment provider webhooks (e.g., Stripe, PayPal)
       security: []
       requestBody:
         required: true

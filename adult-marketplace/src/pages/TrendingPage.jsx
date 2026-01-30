@@ -14,6 +14,7 @@ export default function TrendingPage() {
 
   useEffect(() => {
     fetchTrendingCreators();
+    // eslint-disable-next-line
   }, [filter]);
 
   const fetchTrendingCreators = async () => {
@@ -21,87 +22,24 @@ export default function TrendingPage() {
     setError(null);
 
     try {
-      const response = await api.get(`/creators/trending?filter=${filter}`);
-      setTrendingCreators(response.data?.data || []);
+      // Tente rota trending, se der 404, tente rota padrão de criadores
+      let response;
+      try {
+        response = await api.get(`/creators/trending?filter=${filter}`);
+        setTrendingCreators(response.data?.data || []);
+      } catch (err) {
+        if (err.response?.status === 404) {
+          // Fallback para rota padrão
+          response = await api.get('/creators', { params: { sort: filter } });
+          setTrendingCreators(response.data?.data || response.data || []);
+        } else {
+          throw err;
+        }
+      }
     } catch (err) {
       console.error('Erro ao carregar criadores em alta:', err);
       setError(err.response?.data?.message || 'Erro ao carregar criadores');
-      
-      // Mock data for demonstration
-      setTrendingCreators([
-        {
-          id: 1,
-          username: 'sophiastar',
-          displayName: 'Sophia Star',
-          avatar: null,
-          subscribers: 12450,
-          postsCount: 234,
-          subscriptionPrice: 19.99,
-          bio: 'Modelo profissional e criadora de conteúdo premium 💫',
-          verified: true,
-          trending: '+245%',
-        },
-        {
-          id: 2,
-          username: 'lucasfit',
-          displayName: 'Lucas Fitness',
-          avatar: null,
-          subscribers: 8920,
-          postsCount: 189,
-          subscriptionPrice: 14.99,
-          bio: 'Personal trainer e lifestyle 💪',
-          verified: true,
-          trending: '+189%',
-        },
-        {
-          id: 3,
-          username: 'mariaart',
-          displayName: 'Maria Art',
-          avatar: null,
-          subscribers: 6540,
-          postsCount: 145,
-          subscriptionPrice: 12.99,
-          bio: 'Artista e fotografa 🎨',
-          verified: false,
-          trending: '+156%',
-        },
-        {
-          id: 4,
-          username: 'rafamusic',
-          displayName: 'Rafa Music',
-          avatar: null,
-          subscribers: 5230,
-          postsCount: 98,
-          subscriptionPrice: 9.99,
-          bio: 'Músico e compositor 🎵',
-          verified: true,
-          trending: '+134%',
-        },
-        {
-          id: 5,
-          username: 'anacooking',
-          displayName: 'Ana Cooking',
-          avatar: null,
-          subscribers: 4180,
-          postsCount: 76,
-          subscriptionPrice: 7.99,
-          bio: 'Chef e criadora de receitas 👩‍🍳',
-          verified: false,
-          trending: '+98%',
-        },
-        {
-          id: 6,
-          username: 'pedrogamer',
-          displayName: 'Pedro Gamer',
-          avatar: null,
-          subscribers: 3920,
-          postsCount: 134,
-          subscriptionPrice: 11.99,
-          bio: 'Streamer e gamer profissional 🎮',
-          verified: true,
-          trending: '+87%',
-        },
-      ]);
+      setTrendingCreators([]);
     } finally {
       setLoading(false);
     }
@@ -208,7 +146,7 @@ export default function TrendingPage() {
                     <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
                   </svg>
                   <p className="text-sm font-medium">
-                    Dados de demonstração - API não conectada
+                    {error}
                   </p>
                 </div>
               </div>
@@ -217,7 +155,7 @@ export default function TrendingPage() {
             {/* Creators Grid */}
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
               {trendingCreators.map((creator) => (
-                <CreatorCard key={creator.id} creator={creator} />
+                <CreatorCard key={creator.id || creator._id} creator={creator} />
               ))}
             </div>
 
@@ -255,6 +193,7 @@ export default function TrendingPage() {
 // Creator Card Component
 function CreatorCard({ creator }) {
   const getInitials = (name) => {
+    if (!name) return '';
     return name
       .split(' ')
       .map((n) => n[0])
@@ -269,16 +208,18 @@ function CreatorCard({ creator }) {
       className="group bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 overflow-hidden hover:shadow-xl transition-all duration-300 hover:-translate-y-1"
     >
       {/* Trending Badge */}
-      <div className="absolute top-3 right-3 z-10 bg-red-500 text-white px-3 py-1 rounded-full text-xs font-bold flex items-center gap-1">
-        <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
-          <path
-            fillRule="evenodd"
-            d="M12.395 2.553a1 1 0 00-1.45-.385c-.345.23-.614.558-.822.88-.214.33-.403.713-.57 1.116-.334.804-.614 1.768-.84 2.734a31.365 31.365 0 00-.613 3.58 2.64 2.64 0 01-.945-1.067c-.328-.68-.398-1.534-.398-2.654A1 1 0 005.05 6.05 6.981 6.981 0 003 11a7 7 0 1011.95-4.95c-.592-.591-.98-.985-1.348-1.467-.363-.476-.724-1.063-1.207-2.03zM12.12 15.12A3 3 0 017 13s.879.5 2.5.5c0-1 .5-4 1.25-4.5.5 1 .786 1.293 1.371 1.879A2.99 2.99 0 0113 13a2.99 2.99 0 01-.879 2.121z"
-            clipRule="evenodd"
-          />
-        </svg>
-        {creator.trending}
-      </div>
+      {creator.trending && (
+        <div className="absolute top-3 right-3 z-10 bg-red-500 text-white px-3 py-1 rounded-full text-xs font-bold flex items-center gap-1">
+          <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
+            <path
+              fillRule="evenodd"
+              d="M12.395 2.553a1 1 0 00-1.45-.385c-.345.23-.614.558-.822.88-.214.33-.403.713-.57 1.116-.334.804-.614 1.768-.84 2.734a31.365 31.365 0 00-.613 3.58 2.64 2.64 0 01-.945-1.067c-.328-.68-.398-1.534-.398-2.654A1 1 0 005.05 6.05 6.981 6.981 0 003 11a7 7 0 1011.95-4.95c-.592-.591-.98-.985-1.348-1.467-.363-.476-.724-1.063-1.207-2.03zM12.12 15.12A3 3 0 017 13s.879.5 2.5.5c0-1 .5-4 1.25-4.5.5 1 .786 1.293 1.371 1.879A2.99 2.99 0 0113 13a2.99 2.99 0 01-.879 2.121z"
+              clipRule="evenodd"
+            />
+          </svg>
+          {creator.trending}
+        </div>
+      )}
 
       {/* Avatar */}
       <div className="relative h-48 bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center">
@@ -324,13 +265,13 @@ function CreatorCard({ creator }) {
           <div>
             <p className="text-slate-500 dark:text-slate-400">Assinantes</p>
             <p className="font-bold text-slate-900 dark:text-white">
-              {creator.subscribers.toLocaleString()}
+              {creator.subscribers?.toLocaleString?.() ?? 0}
             </p>
           </div>
           <div>
             <p className="text-slate-500 dark:text-slate-400">Posts</p>
             <p className="font-bold text-slate-900 dark:text-white">
-              {creator.postsCount}
+              {creator.postsCount ?? 0}
             </p>
           </div>
         </div>
@@ -338,7 +279,7 @@ function CreatorCard({ creator }) {
         {/* Subscribe Button */}
         <div className="flex items-center justify-between pt-4 border-t border-slate-200 dark:border-slate-800">
           <span className="text-lg font-bold text-indigo-600 dark:text-indigo-400">
-            {formatCurrency(creator.subscriptionPrice)}/mês
+            {formatCurrency(creator.subscriptionPrice ?? creator.price ?? 0, 'USD')}/month
           </span>
           <button className="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors">
             Assinar

@@ -234,11 +234,11 @@ export const validatePrice = (value, min = 0, max = 10000) => {
   }
   
   if (numValue < min) {
-    return { valid: false, error: `Valor mínimo: R$ ${min.toFixed(2)}` };
+    return { valid: false, error: `Valor mínimo: $ ${min.toFixed(2)}` };
   }
   
   if (numValue > max) {
-    return { valid: false, error: `Valor máximo: R$ ${max.toFixed(2)}` };
+    return { valid: false, error: `Valor máximo: $ ${max.toFixed(2)}` };
   }
   
   return { valid: true, error: null };

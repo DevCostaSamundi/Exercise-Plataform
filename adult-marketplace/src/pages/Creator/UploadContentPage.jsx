@@ -584,7 +584,7 @@ export default function UploadContentPage() {
                       Preço (PPV - Pay Per View) *
                     </label>
                     <div className="relative">
-                      <span className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400">R$</span>
+                      <span className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400">$</span>
                       <input
                         type="number"
                         name="price"
@@ -598,7 +598,7 @@ export default function UploadContentPage() {
                       />
                     </div>
                     {errors.price && <p className="mt-1 text-sm text-red-600">{errors.price}</p>}
-                    <p className="mt-1 text-xs text-slate-500">Preço mínimo: R$ 5,00 | Máximo: R$ 500,00</p>
+                    <p className="mt-1 text-xs text-slate-500">Preço mínimo: $ 5.00 | Máximo: $ 500.00</p>
                   </div>
                 )}
 

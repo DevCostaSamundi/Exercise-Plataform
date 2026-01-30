@@ -12,12 +12,7 @@ This directory contains the smart contracts for PrideConnect's decentralized pay
 ## 🏗️ Architecture
 
 ```
-User pays FIAT (PIX/Card) via Transak
-         ↓
-Transak converts to USDC
-         ↓
-USDC sent to PaymentSplitter contract
-         ↓
+
 Contract automatically splits:
   → 90% to Creator wallet
   → 10% to Platform wallet

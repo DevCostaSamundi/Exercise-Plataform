@@ -520,10 +520,6 @@ model Payment {
   web3Confirmations  Int       @default(0)
   web3ContractAddress String?            // Smart contract used
   
-  // Transak specific
-  transakOrderId     String?   @unique  // Transak order ID
-  transakStatus      String?             // Transak status
-  transakWebhookData Json?               // Webhook data
   
   // Status
   status          PaymentStatus @default(PENDING)
@@ -679,7 +675,6 @@ enum PaymentStatus {
 }
 
 enum PaymentGateway {
-  TRANSAK          // On-ramp FIAT → USDC
   WEB3_DIRECT      // Direct wallet payment
   CRYPTO_DIRECT    // Direct crypto payment via smart contract
   BALANCE          // Internal wallet balance

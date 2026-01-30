@@ -174,7 +174,7 @@ const PostView = () => {
                     Conteúdo Exclusivo
                   </p>
                   <p className="text-white text-xl mb-6">
-                    R$ {post.price?.toFixed(2)}
+                    $ {post.price?.toFixed(2)}
                   </p>
                   <button
                     onClick={() => setShowPPVModal(true)}

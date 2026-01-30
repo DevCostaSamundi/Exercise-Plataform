@@ -19,7 +19,6 @@ export const API = {
 export const CURRENCY = {
   USD_TO_BRL: 5.5,
   USD_SYMBOL: '$',
-  BRL_SYMBOL: 'R$',
 };
 
 // Upload limits
@@ -53,8 +52,6 @@ export const PAYMENT_STATUS = {
 
 // Métodos de pagamento
 export const PAYMENT_METHODS = {
-  PIX: 'pix',
-  CREDIT_CARD: 'credit_card',
   CRYPTO: 'crypto',
 };
 
