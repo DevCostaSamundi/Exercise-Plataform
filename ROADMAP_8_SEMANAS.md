@@ -18,8 +18,13 @@
 - [x] TokenFactory.sol implementado
 - [x] Testes do TokenFactory (16/16 passing)
 - [x] Documentação inicial (PROJETO_ESTRUTURA.md, README_LAUNCHPAD.md)
+- [x] **SEMANA 1 COMPLETA:**
+  - [x] BondingCurve.sol (428 linhas, 25 testes)
+  - [x] LiquidityLocker.sol (304 linhas, 34 testes)
+  - [x] deploy-core.js script
+  - [x] 75/75 testes passando
 
-**Próximo Checkpoint:** Semana 1 - BondingCurve.sol
+**Próximo Checkpoint:** Semana 2 - YieldDistributor.sol
 
 ---
 
@@ -30,48 +35,58 @@ Implementar os contratos fundamentais de precificação e liquidez.
 
 ### Deliverables
 
-#### 1.1 BondingCurve.sol ⏳
+#### 1.1 BondingCurve.sol ✅
 **Responsabilidade:** Precificação automática baseada em supply/demand
 ```solidity
 // Funcionalidades:
-- calculatePrice(supply) // Função quadrática
-- buy(tokenAddress, amount) // Compra tokens
-- sell(tokenAddress, amount) // Vende tokens
-- Integration com TokenFactory
-- Slippage protection (max 5%)
+- calculatePrice(supply) // Função quadrática ✅
+- buy(tokenAddress, amount) // Compra tokens ✅
+- sell(tokenAddress, amount) // Vende tokens ✅
+- Integration com TokenFactory ✅
+- Slippage protection (max 5%) ✅
 ```
 
 **Testes necessários:**
-- [x] Price calculation accuracy
+- [x] Price calculation accuracy (25 testes passing)
 - [x] Buy/sell operations
 - [x] Slippage scenarios
 - [x] Edge cases (supply = 0, very large amounts)
 
-#### 1.2 LiquidityLocker.sol ⏳
+**Arquivo:** [contracts/Bondi✅
 **Responsabilidade:** Trava liquidez por 30 dias (obrigatório)
 ```solidity
 // Funcionalidades:
-- lockLiquidity(token, amount, duration) // Min 30 days
-- unlock(lockId) // Só após timelock
-- getLockInfo(lockId) // View function
-- Emergency unlock (owner only, com penalty)
+- lockLiquidity(token, amount, duration) // Min 30 days ✅
+- unlock(lockId) // Só após timelock ✅
+- getLockInfo(lockId) // View function ✅
+- Emergency unlock (owner only, com penalty 20%) ✅
+- extendLock() e increaseLock() ✅
 ```
 
 **Testes necessários:**
-- [x] Lock creation
+- [x] Lock creation (34 testes passing)
 - [x] Timelock enforcement
+- [x] Unlock after expiry
+- [x] Emergency unlock penalty
+
+**Arquivo:** [contracts/LiquidityLocker.sol](contracts/contracts/LiquidityLocker.sol) - 304 linhas
 - [x] Unlock after expiry
 - [x] Emergency unlock penalty
 
 #### 1.3 Deploy no Base Sepolia
 ```bash
-npx hardhat run scripts/deploy-core.js --network baseSepolia
-npx hardhat verify --network baseSepolia <address>
-```
-
-### Validação Semana 1
-- [ ] 3 contratos deployados no testnet
+npxx] 3 contratos implementados (TokenFactory, BondingCurve, LiquidityLocker)
+- [x] 75/75 testes passando
+- [x] Deploy script criado ([scripts/deploy-core.js](contracts/scripts/deploy-core.js))
+- [ ] Deployados no Base Sepolia testnet
 - [ ] Verificados no BaseScan
+- [ ] Gas consumption documented
+
+**Status:** ✅ **SEMANA 1 COMPLETA - Pronto para deploy testnet**
+
+**Estimativa Gas:** ~650k-900k total (deploy 3 contratos)  
+**Custo Real Base:** ~$0.05-0.50 USD  
+**ETH Testnet:** 0.05 ETH necessário (grátis via faucet)
 - [ ] Testes 100% passing
 - [ ] Gas consumption documented
 
