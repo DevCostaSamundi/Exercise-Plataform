@@ -1,21 +1,21 @@
 import { createConfig, http } from 'wagmi';
-import { polygon, polygonAmoy } from 'wagmi/chains';
+import { base, baseSepolia } from 'wagmi/chains';
 import { injected, walletConnect, coinbaseWallet } from 'wagmi/connectors';
 
 const projectId = import.meta.env.VITE_WALLETCONNECT_PROJECT_ID || 'YOUR_PROJECT_ID';
 
 // Determine which chain to use
-const isProduction = import.meta.env.VITE_NETWORK === 'polygon' || import.meta.env.NODE_ENV === 'production';
-const currentChain = isProduction ? polygon : polygonAmoy;
+const isProduction = import.meta.env.VITE_NETWORK === 'base' || import.meta.env.NODE_ENV === 'production';
+const currentChain = isProduction ? base : baseSepolia;
 
 // RPC URLs
-const polygonRpcUrl = import.meta.env.VITE_POLYGON_RPC_URL || 'https://polygon-rpc.com';
-const amoyRpcUrl = import.meta.env.VITE_POLYGON_AMOY_RPC_URL || 'https://rpc-amoy.polygon.technology';
+const baseRpcUrl = import.meta.env.VITE_BASE_RPC_URL || 'https://mainnet.base.org';
+const baseSepoliaRpcUrl = import.meta.env.VITE_BASE_SEPOLIA_RPC_URL || 'https://sepolia.base.org';
 
-console.log('🔧 Wagmi Config:', {
-  network: isProduction ? 'Polygon Mainnet' : 'Polygon Amoy Testnet',
+console.log('🚀 Wagmi Config:', {
+  network: isProduction ? 'Base Mainnet' : 'Base Sepolia Testnet',
   chainId: currentChain.id,
-  rpcUrl: isProduction ? polygonRpcUrl : amoyRpcUrl,
+  rpcUrl: isProduction ? baseRpcUrl : baseSepoliaRpcUrl,
 });
 
 export const wagmiConfig = createConfig({
@@ -29,13 +29,13 @@ export const wagmiConfig = createConfig({
       showQrModal: true,
     }),
     coinbaseWallet({ 
-      appName: 'PrideConnect',
-      appLogoUrl: 'https://prideconnect.com/logo.png',
+      appName: 'Launchpad 2.0',
+      appLogoUrl: 'https://launchpad2.com/logo.png',
     }),
   ],
   transports: {
-    [polygon.id]: http(polygonRpcUrl),
-    [polygonAmoy.id]: http(amoyRpcUrl),
+    [base.id]: http(baseRpcUrl),
+    [baseSepolia.id]: http(baseSepoliaRpcUrl),
   },
   ssr: false,
 });

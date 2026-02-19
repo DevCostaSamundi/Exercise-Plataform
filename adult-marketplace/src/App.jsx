@@ -1,19 +1,6 @@
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
-import { useState, useEffect } from 'react';
-
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import MobileBottomNav from './components/MobileBottomNav';
 import HomePage from './pages/HomePage';
-import CreatorPage from './pages/Creator/CreatorPage';
-import ProductPage from './pages/ProductPage';
-import LoginPage from './pages/LoginPage';
-import RegisterPage from './pages/RegisterPage';
-import CreatorRegisterPage from './pages/Creator/CreatorRegisterPage';
-import ForgotPasswordPage from './pages/ForgotPasswordPage';
-
-import CreatorDashboardPage from './pages/Creator/CreatorDashboardPage';
-import CreatorPostsPage from './pages/Creator/CreatorPostsPage';
-import UploadContentPage from './pages/Creator/UploadContentPage';
-
-import AgeGate from './components/AgeGate';
 import ProtectedRoute from './components/ProtectedRoute';
 
 // Static Pages
@@ -26,221 +13,69 @@ import SafetyPage from './pages/SafetyPage';
 // Public Pages
 import TrendingPage from './pages/TrendingPage';
 import ExplorePage from './pages/ExplorePage';
-import FavoritesPage from './pages/FavoritesPage';
-import MySubscriptionsPage from './pages/MySubscriptionsPage';
 
-// Subscriber Pages
-import PostView from './pages/subscriber/PostView';
-import Settings from './pages/subscriber/Settings';
-import Profile from './pages/subscriber/Profile'; // ADICIONE ESTA LINHA
-import Notifications from './pages/subscriber/Notifications'; // ADICIONE ESTA LINHA
-
-// Creator Pages
-import CreatorProfilePage from './pages/Creator/CreatorProfilePage';
-import CreatorMessagesPage from './pages/Creator/CreatorMessagesPage';
-import CreatorEarningsPage from './pages/Creator/CreatorEarningsPage';
-import CreatorSubscribersPage from './pages/Creator/CreatorSubscribersPage';
-import CreatorNotificationsPage from './pages/Creator/CreatorNotificationsPage';
-import CreatorPostEditPage from './pages/Creator/CreatorPostEditPage';
-import CreatorSettingsPage from './pages/Creator/creatorSettingsPage.jsx';
-import CreatorAnalyticsPage from './pages/Creator/CreatorAnalyticsPage';
-
-import AuthDebugger from './pages/AuthDebugger';
-import MessagesPage from './pages/subscriber/MessagesPage.jsx';
-
-
-import { AuthProvider } from './contexts/AuthContext';
-import { SocketProvider } from './contexts/SocketContext';
+// Launchpad Pages
+import CreateTokenPage from './pages/CreateTokenPage';
+import TokenDetailPage from './pages/TokenDetailPage';
+import MyPortfolioPage from './pages/MyPortfolioPage';
+import CreatorDashboard from './pages/CreatorDashboard';
+import AdminDashboard from './pages/AdminDashboard';
 
 function App() {
-  const [isVerified, setIsVerified] = useState(false);
-
-  useEffect(() => {
-    const verified = localStorage.getItem('adultVerified') === 'true';
-    setIsVerified(verified);
-  }, []);
-
-  if (!isVerified) {
-    return <AgeGate onVerify={() => setIsVerified(true)} />;
-  }
-
   return (
-    <Router>
+    <Router
+      future={{
+        v7_startTransition: true,
+        v7_relativeSplatPath: true,
+      }}
+    >
       <div className="App">
         <Routes>
-          {/* Debug Route */}
-          <Route path="/debug" element={<AuthDebugger />} />
-
           {/* Public Routes */}
           <Route path="/" element={<HomePage />} />
-          <Route path="/product/:id" element={<ProductPage />} />
-          <Route path="/creator/:id" element={<CreatorPage />} />
-          <Route path="/post/:postId" element={<PostView />} />
 
-          {/* Authentication */}
-          <Route path="/login" element={<LoginPage />} />
-          <Route path="/register" element={<RegisterPage />} />
-          <Route path="/forgot-password" element={<ForgotPasswordPage />} />
-          <Route path="/creator-register" element={<CreatorRegisterPage />} />
+              {/* ========================================
+              LAUNCHPAD ROUTES
+              ======================================== */}
+              <Route path="/launch" element={<CreateTokenPage />} />
+              <Route path="/token/:tokenAddress" element={<TokenDetailPage />} />
+              <Route
+                path="/portfolio"
+                element={
+                  <ProtectedRoute>
+                    <MyPortfolioPage />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/creator"
+                element={
+                  <ProtectedRoute>
+                    <CreatorDashboard />
+                  </ProtectedRoute>
+                }
+              />
 
-          {/* ========================================
-          REDIRECTS - Old Routes to New Routes
-          ======================================== */}
-          <Route path="/creator-dashboard" element={<Navigate to="/creator/dashboard" replace />} />
-          <Route path="/creator-posts" element={<Navigate to="/creator/posts" replace />} />
-          <Route path="/creator-upload" element={<Navigate to="/creator/upload" replace />} />
-          <Route path="/creator-earnings" element={<Navigate to="/creator/earnings" replace />} />
-          <Route path="/creator-subscribers" element={<Navigate to="/creator/subscribers" replace />} />
-          <Route path="/creator-analytics" element={<Navigate to="/creator/analytics" replace />} />
-          <Route path="/creator-notifications" element={<Navigate to="/creator/notifications" replace />} />
-          <Route path="/creator-settings" element={<Navigate to="/creator/settings" replace />} />
-          <Route path="/creator-profile" element={<Navigate to="/creator/profile" replace />} />
+              {/* ========================================
+              PUBLIC PAGES
+              ======================================== */}
+              <Route path="/trending" element={<TrendingPage />} />
+              <Route path="/explore" element={<ExplorePage />} />
 
-          {/* ========================================
-          CREATOR ROUTES - Protected
-          ======================================== */}
-          <Route
-            path="/creator/dashboard"
-            element={
-              <ProtectedRoute requireCreator>
-                <CreatorDashboardPage />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/creator/posts"
-            element={
-              <ProtectedRoute requireCreator>
-                <CreatorPostsPage />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/creator/posts/:id/edit"
-            element={
-              <ProtectedRoute requireCreator>
-                <CreatorPostEditPage />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/creator/upload"
-            element={
-              <ProtectedRoute requireCreator>
-                <UploadContentPage />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/creator/earnings"
-            element={
-              <ProtectedRoute requireCreator>
-                <CreatorEarningsPage />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/creator/messages"
-            element={
-              <ProtectedRoute requireCreator>
-                <CreatorMessagesPage />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/creator/subscribers"
-            element={
-              <ProtectedRoute requireCreator>
-                <CreatorSubscribersPage />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/creator/analytics"
-            element={
-              <ProtectedRoute requireCreator>
-                <CreatorAnalyticsPage />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/creator/notifications"
-            element={
-              <ProtectedRoute requireCreator>
-                <CreatorNotificationsPage />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/creator/profile"
-            element={
-              <ProtectedRoute requireCreator>
-                <CreatorProfilePage />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/creator/settings"
-            element={
-              <ProtectedRoute requireCreator>
-                <CreatorSettingsPage />
-              </ProtectedRoute>
-            }
-          />
+              <Route path="/admin" element={<AdminDashboard />} />
 
-          {/* ========================================
-          SUBSCRIBER ROUTES - Protected
-          ======================================== */}
-          <Route
-            path="/profile"
-            element={
-              <ProtectedRoute>
-                <Profile /> {/* ALTERE AQUI */}
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/messages"
-            element={
-              <ProtectedRoute>
-                <MessagesPage />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/settings"
-            element={
-              <ProtectedRoute>
-                <Settings /> {/* ALTERE AQUI */}
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/notifications"
-            element={
-              <ProtectedRoute>
-                <Notifications /> {/* ALTERE AQUI */}
-              </ProtectedRoute>
-            }
-          />
-
-          {/* ========================================
-          PUBLIC PAGES
-          ======================================== */}
-          <Route path="/trending" element={<TrendingPage />} />
-          <Route path="/explore" element={<ExplorePage />} />
-          <Route path="/favorites" element={<FavoritesPage />} />
-          <Route path="/my-subscriptions" element={<MySubscriptionsPage />} />
-
-          {/* ========================================
-          STATIC / LEGAL PAGES
-          ======================================== */}
-          <Route path="/terms" element={<TermsPage />} />
-          <Route path="/privacy" element={<PrivacyPage />} />
-          <Route path="/support" element={<SupportPage />} />
-          <Route path="/help" element={<HelpPage />} />
-          <Route path="/safety" element={<SafetyPage />} />
+              {/* ========================================
+              STATIC / LEGAL PAGES
+              ======================================== */}
+              <Route path="/terms" element={<TermsPage />} />
+              <Route path="/privacy" element={<PrivacyPage />} />
+              <Route path="/support" element={<SupportPage />} />
+              <Route path="/help" element={<HelpPage />} />
+              <Route path="/safety" element={<SafetyPage />} />
         </Routes>
+        
+        {/* Mobile Bottom Navigation */}
+        <MobileBottomNav />
       </div>
     </Router>
   );

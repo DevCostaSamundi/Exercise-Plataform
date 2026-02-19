@@ -4,8 +4,33 @@ export default {
     "./index.html",
     "./src/**/*.{js,jsx,ts,tsx}",
   ],
+  darkMode: 'class',
   theme: {
     extend: {
+      spacing: {
+        'safe': 'env(safe-area-inset-bottom)',
+      },
+      colors: {
+        // Dark theme (default)
+        dark: {
+          bg: '#000000',
+          surface: '#1a1a1a',
+          border: '#2a2a2a',
+          text: '#ffffff',
+          muted: '#9ca3af',
+        },
+        // Light theme
+        light: {
+          bg: '#ffffff',
+          surface: '#f8f8f8',
+          border: '#e5e5e5',
+          text: '#000000',
+          muted: '#6b7280',
+        },
+        // Brand colors (work in both themes)
+        primary: '#facc15', // yellow-400
+        secondary: '#f59e0b', // amber-500
+      },
       animation: {
         'like-bounce': 'like-bounce 0.6s ease-in-out',
         'fade-in': 'fade-in 0.3s ease-in',

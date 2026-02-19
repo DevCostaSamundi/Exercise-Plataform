@@ -1,50 +1,31 @@
 import { Navigate, useLocation } from 'react-router-dom';
+import { useAccount } from 'wagmi';
 
-export default function ProtectedRoute({ children, requireCreator = false }) {
+/**
+ * ProtectedRoute - Web3 Pure
+ * Só precisa verificar se a carteira está conectada
+ */
+export default function ProtectedRoute({ children }) {
   const location = useLocation();
-  
-  // Pegar token e usuário do localStorage
-  const authToken = localStorage.getItem('authToken');
-  const userStr = localStorage.getItem('user');
-  
-  // Debug
-  console.log('🔐 ProtectedRoute - Token existe? ', !!authToken);
-  console. log('🔐 ProtectedRoute - User string:', userStr);
-  
-  // Se não tem token OU não tem dados de usuário, redireciona para login
-  if (!authToken || !userStr) {
-    console.warn('❌ Sem autenticação - redirecionando para /login');
-    return <Navigate to="/login" state={{ from: location }} replace />;
+  const { isConnected, isConnecting } = useAccount();
+
+  // Aguardar conexão (evitar flash)
+  if (isConnecting) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600 mx-auto mb-4"></div>
+          <p className="text-slate-600 dark:text-slate-400">Verificando carteira...</p>
+        </div>
+      </div>
+    );
   }
-  
-  let user = null;
-  try {
-    user = JSON.parse(userStr);
-    console.log('👤 ProtectedRoute - User parsed:', user);
-  } catch (error) {
-    console. error('❌ Erro ao parsear user do localStorage:', error);
-    // Se falhar ao parsear, limpa e redireciona
-    localStorage. removeItem('authToken');
-    localStorage.removeItem('user');
-    return <Navigate to="/login" state={{ from: location }} replace />;
+
+  // Se não conectado, redireciona para home (onde pode conectar)
+  if (!isConnected) {
+    console.warn('❌ Carteira não conectada - redirecionando para home');
+    return <Navigate to="/" state={{ from: location, connectWallet: true }} replace />;
   }
-  
-  // Se a rota requer criador, verifica se é criador
-  if (requireCreator) {
-    const isCreator = 
-      user?.role?. toLowerCase() === 'creator' || 
-      user?.isCreator === true;
-    
-    console.log('🎭 ProtectedRoute - Requer criador?', requireCreator);
-    console.log('🎭 ProtectedRoute - É criador?', isCreator);
-    console.log('🎭 ProtectedRoute - Role:', user?.role);
-    
-    if (!isCreator) {
-      console.warn('❌ Não é criador - redirecionando para /');
-      return <Navigate to="/" replace />;
-    }
-  }
-  
-  console.log('✅ ProtectedRoute - Autorizado!  Renderizando children');
+
   return children;
 }

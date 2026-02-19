@@ -1,561 +1,380 @@
 /**
- * Application Constants
- * Centralized configuration values used throughout the application
+ * Launchpad 2.0 - Application Constants
+ * Centralized configuration for the token launchpad on Base Network
  */
 
-// API Configuration
-export const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+// ========== App Info ==========
+export const APP_NAME = 'Launchpad 2.0';
+export const APP_DESCRIPTION = 'Launch memecoins on Base Network with bonding curves and yield distribution';
+export const APP_VERSION = '1.0.0';
 
-// Socket URL
+// ========== Network Configuration ==========
+export const NETWORK_CONFIG = {
+  // Testnet (Base Sepolia)
+  testnet: {
+    chainId: 84532,
+    name: 'Base Sepolia',
+    rpcUrl: 'https://sepolia.base.org',
+    blockExplorer: 'https://sepolia.basescan.org',
+    nativeCurrency: {
+      name: 'Ethereum',
+      symbol: 'ETH',
+      decimals: 18,
+    },
+  },
+  // Mainnet (Base)
+  mainnet: {
+    chainId: 8453,
+    name: 'Base',
+    rpcUrl: 'https://mainnet.base.org',
+    blockExplorer: 'https://basescan.org',
+    nativeCurrency: {
+      name: 'Ethereum',
+      symbol: 'ETH',
+      decimals: 18,
+    },
+  },
+};
+
+// Current network (change to 'mainnet' for production)
+export const CURRENT_NETWORK = 'testnet';
+export const NETWORK = NETWORK_CONFIG[CURRENT_NETWORK];
+
+// ========== Smart Contract Addresses ==========
+// TODO: Update after deploying to Base Sepolia
+export const CONTRACTS = {
+  TOKEN_FACTORY: '0x0000000000000000000000000000000000000000',
+  BONDING_CURVE: '0x0000000000000000000000000000000000000000',
+  LIQUIDITY_LOCKER: '0x0000000000000000000000000000000000000000',
+  YIELD_DISTRIBUTOR: '0x0000000000000000000000000000000000000000',
+  CREATOR_REGISTRY: '0x0000000000000000000000000000000000000000',
+  FEE_COLLECTOR: '0x0000000000000000000000000000000000000000',
+};
+
+// ========== API Configuration ==========
+export const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
 export const SOCKET_URL = import.meta.env.VITE_SOCKET_URL || 'http://localhost:5000';
 
 export const API = {
   BASE_URL: API_BASE_URL,
-  TIMEOUT: 15000, // 15 seconds
+  TIMEOUT: 15000,
   VERSION: 'v1',
+  ENDPOINTS: {
+    TOKENS: '/api/tokens',
+    CREATORS: '/api/creators',
+    TRADES: '/api/trades',
+    STATS: '/api/stats',
+  },
 };
 
-// Currency Configuration
-export const CURRENCY = {
-  USD_TO_BRL: 5.5,
-  USD_SYMBOL: '$',
+// ========== UI Theme ==========
+export const COLORS = {
+  // Primary colors (Amarelo Base/Bitcoin)
+  primary: {
+    50: '#fefce8',
+    100: '#fef9c3',
+    200: '#fef08a',
+    300: '#fde047',
+    400: '#facc15',
+    500: '#eab308', // Main - Amarelo vibrante
+    600: '#ca8a04',
+    700: '#a16207',
+    800: '#854d0e',
+    900: '#713f12',
+  },
+  // Secondary colors (Laranja energia)
+  secondary: {
+    50: '#fff7ed',
+    100: '#ffedd5',
+    200: '#fed7aa',
+    300: '#fdba74',
+    400: '#fb923c',
+    500: '#f97316',
+    600: '#ea580c', // Main - Laranja vibrante
+    700: '#c2410c',
+    800: '#9a3412',
+    900: '#7c2d12',
+  },
+  // Accent colors (Azul elétrico)
+  accent: {
+    50: '#eff6ff',
+    100: '#dbeafe',
+    200: '#bfdbfe',
+    300: '#93c5fd',
+    400: '#60a5fa',
+    500: '#3b82f6',
+    600: '#2563eb', // Main - Azul elétrico
+    700: '#1d4ed8',
+    800: '#1e40af',
+    900: '#1e3a8a',
+  },
+  // Status colors
+  success: '#10b981',
+  danger: '#ef4444',
+  warning: '#f59e0b',
+  info: '#3b82f6',
+  // Grayscale
+  gray: {
+    50: '#f9fafb',
+    100: '#f3f4f6',
+    200: '#e5e7eb',
+    300: '#d1d5db',
+    400: '#9ca3af',
+    500: '#6b7280',
+    600: '#4b5563',
+    700: '#374151',
+    800: '#1f2937',
+    900: '#111827',
+  },
 };
 
-// Upload limits
-export const MAX_IMAGE_SIZE_MB = 5;
-export const MAX_VIDEO_SIZE_MB = 100;
-export const MAX_IMAGES_PER_POST = 10;
-
-// File Upload
-export const UPLOAD = {
-  MAX_FILE_SIZE_MB: 50,
-  ALLOWED_IMAGE_TYPES: ['image/jpeg', 'image/png', 'image/gif', 'image/webp'],
-  ALLOWED_VIDEO_TYPES: ['video/mp4', 'video/webm', 'video/quicktime'],
+// ========== Routes ==========
+export const ROUTES = {
+  HOME: '/',
+  EXPLORE: '/explore',
+  TRENDING: '/trending',
+  CREATE: '/launch',
+  PORTFOLIO: '/portfolio',
+  TOKEN: '/token/:address',
+  CREATOR: '/creator/:address',
+  HELP: '/help',
+  SAFETY: '/safety',
+  // Web3 routes
+  DEPOSIT: '/deposit',
+  PAYMENT_STATUS: '/payment-status',
 };
 
-// Tipos de conteúdo
-export const CONTENT_TYPES = {
-  ALL: 'all',
-  PHOTOS: 'photos',
-  VIDEOS: 'videos',
-  LIVES: 'lives',
+// ========== Token Configuration ==========
+export const TOKEN_CONFIG = {
+  // Limits
+  MIN_NAME_LENGTH: 3,
+  MAX_NAME_LENGTH: 50,
+  MIN_SYMBOL_LENGTH: 2,
+  MAX_SYMBOL_LENGTH: 10,
+  MIN_SUPPLY: 1_000_000, // 1M
+  MAX_SUPPLY: 1_000_000_000, // 1B
+  
+  // Fees
+  LAUNCH_FEE_ETH: '0.001', // 0.001 ETH
+  TRADING_FEE_PERCENT: 1, // 1%
+  
+  // Bonding Curve
+  BASE_PRICE: '0.000001', // Starting price
+  SLIPPAGE_TOLERANCE: 5, // 5%
+  MAX_SLIPPAGE: 15, // 15%
 };
 
-// Status de pagamento
-export const PAYMENT_STATUS = {
-  PENDING: 'pending',
-  COMPLETED: 'completed',
-  FAILED: 'failed',
-  REFUNDED: 'refunded',
-  CANCELLED: 'cancelled',
+// ========== Creator Configuration ==========
+export const CREATOR_CONFIG = {
+  MAX_NAME_LENGTH: 50,
+  MAX_BIO_LENGTH: 500,
+  MAX_WEBSITE_LENGTH: 100,
+  MAX_TWITTER_LENGTH: 50,
+  MAX_TELEGRAM_LENGTH: 50,
+  
+  // Ratings
+  MIN_RATING: 1,
+  MAX_RATING: 5,
 };
 
-// Métodos de pagamento
-export const PAYMENT_METHODS = {
-  CRYPTO: 'crypto',
-};
-
-// Tipos de transação
-export const TRANSACTION_TYPES = {
-  SUBSCRIPTION: 'subscription',
-  PPV_POST: 'ppv_post',
-  PPV_MESSAGE: 'ppv_message',
-  TIP: 'tip',
-};
-
-// Status de assinatura
-export const SUBSCRIPTION_STATUS = {
-  ACTIVE: 'active',
-  CANCELLED: 'cancelled',
-  EXPIRED: 'expired',
-  PAUSED: 'paused',
-};
-
-// Tipos de notificação
-export const NOTIFICATION_TYPES = {
-  NEW_POST: 'new_post',
-  NEW_PPV: 'new_ppv',
-  NEW_MESSAGE: 'new_message',
-  COMMENT_REPLY: 'comment_reply',
-  COMMENT_LIKE: 'comment_like',
-  SUBSCRIPTION_RENEWAL: 'subscription_renewal',
-  SUBSCRIPTION_RENEWED: 'subscription_renewed',
-  PAYMENT_FAILED: 'payment_failed',
-  LIVE_STARTED: 'live_started',
-};
-
-// Períodos de trending
-export const TRENDING_PERIODS = {
-  DAY: '24h',
-  WEEK: '7d',
-  MONTH: '30d',
-};
-
-// Ordenação
-export const SORT_OPTIONS = {
-  RECENT: 'recent',
-  POPULAR: 'popular',
-  ALPHABETICAL: 'alphabetical',
-  PRICE_LOW: 'price_low',
-  PRICE_HIGH: 'price_high',
-};
-
-// Breakpoints responsivos
-export const BREAKPOINTS = {
-  MOBILE: 768,
-  TABLET: 1024,
-  DESKTOP: 1280,
-};
-
-// Pagination
+// ========== Pagination ==========
 export const PAGINATION = {
-  DEFAULT_PAGE_SIZE: 20,
-  MAX_PAGE_SIZE: 100,
+  TOKENS_PER_PAGE: 20,
+  CREATORS_PER_PAGE: 12,
+  TRADES_PER_PAGE: 50,
+  INFINITE_SCROLL_THRESHOLD: 0.8, // Load more at 80% scroll
 };
 
-// Paginação
-export const PAGE_SIZE = 20;
-export const INFINITE_SCROLL_THRESHOLD = 0.8;
-
-// Limites de texto
-export const TEXT_LIMITS = {
-  BIO: 500,
-  POST_CAPTION: 2000,
-  COMMENT: 500,
-  MESSAGE: 1000,
-  USERNAME: 20,
+// ========== Time Formats ==========
+export const TIME_FORMATS = {
+  FULL_DATE: 'MMM DD, YYYY HH:mm',
+  SHORT_DATE: 'MMM DD, YYYY',
+  TIME_ONLY: 'HH:mm:ss',
+  RELATIVE: 'relative', // "2 hours ago"
 };
 
-// Regex patterns
-export const PATTERNS = {
-  USERNAME: /^[a-zA-Z0-9_]+$/,
-  HASHTAG: /#[\w\u0080-\uFFFF]+/g,
-  MENTION: /@[\w\u0080-\uFFFF]+/g,
-  URL: /(https?:\/\/[^\s]+)/g,
-};
-
-// Cores de status
-export const STATUS_COLORS = {
-  success: 'text-green-600 bg-green-100',
-  warning: 'text-yellow-600 bg-yellow-100',
-  error: 'text-red-600 bg-red-100',
-  info: 'text-blue-600 bg-blue-100',
-  pending: 'text-gray-600 bg-gray-100',
-};
-
-// Ícones de notificação (React Icons)
-export const NOTIFICATION_ICONS = {
-  new_post: 'FiImage',
-  new_ppv: 'FiLock',
-  new_message: 'FiMail',
-  comment_reply: 'FiMessageCircle',
-  comment_like: 'FiHeart',
-  subscription_renewal: 'FiClock',
-  subscription_renewed: 'FiCheckCircle',
-  payment_failed: 'FiAlertCircle',
-  live_started: 'FiVideo',
-};
-
-// Minimum withdrawal amount in USD
-export const MIN_WITHDRAWAL_AMOUNT = 100;
-
-// Platform fee percentage
-export const PLATFORM_FEE_PERCENTAGE = 20;
-
-// Error Messages
-export const ERROR_MESSAGES = {
-  NETWORK_ERROR: 'Não foi possível conectar ao servidor. Verifique sua conexão.',
-  GENERIC_ERROR: 'Ocorreu um erro inesperado. Por favor, tente novamente.',
-  UNAUTHORIZED: 'Sua sessão expirou. Faça login novamente.',
-  FORBIDDEN: 'Você não tem permissão para acessar este recurso.',
-  NOT_FOUND: 'Recurso não encontrado.',
-  SERVER_ERROR: 'Erro no servidor. Tente novamente mais tarde.',
-  VALIDATION_ERROR: 'Dados inválidos. Verifique os campos.',
-};
-
-// Mensagens de sucesso padrão
-export const SUCCESS_MESSAGES = {
-  POST_LIKED: 'Post curtido! ',
-  POST_UNLIKED: 'Curtida removida.',
-  COMMENT_POSTED: 'Comentário publicado! ',
-  SUBSCRIBED: 'Assinatura realizada com sucesso!',
-  UNSUBSCRIBED: 'Assinatura cancelada.',
-  MESSAGE_SENT: 'Mensagem enviada! ',
-  PROFILE_UPDATED: 'Perfil atualizado! ',
-  SETTINGS_SAVED: 'Configurações salvas!',
-  PPV_UNLOCKED: 'Conteúdo desbloqueado!',
-};
-
-// Date Formats
-export const DATE_FORMATS = {
-  SHORT: 'DD/MM/YYYY',
-  LONG: 'DD de MMMM de YYYY',
-  WITH_TIME: 'DD/MM/YYYY HH:mm',
-};
-
-// Tempos de cache (em milissegundos)
-export const CACHE_TIMES = {
-  FEED: 5 * 60 * 1000, // 5 minutos
-  PROFILE: 10 * 60 * 1000, // 10 minutos
-  NOTIFICATIONS: 1 * 60 * 1000, // 1 minuto
-};
-
-// Debounce times (em milissegundos)
-export const DEBOUNCE_TIMES = {
-  SEARCH: 500,
-  INPUT: 300,
-  SCROLL: 200,
-};
-
-// LocalStorage keys
-export const STORAGE_KEYS = {
-  AUTH_TOKEN: 'pride_connect_token',
-  USER_DATA: 'pride_connect_user',
-  THEME: 'pride_connect_theme',
-  LANGUAGE: 'pride_connect_lang',
-};
-
-// Temas
-export const THEMES = {
-  LIGHT: 'light',
-  DARK: 'dark',
-};
-
-// Idiomas suportados
-export const LANGUAGES = {
-  PT_BR: 'pt-BR',
-  EN_US: 'en-US',
-  ES_ES: 'es-ES',
-};
-
-// App Metadata
-export const APP_INFO = {
-  NAME: import.meta.env.VITE_APP_NAME || 'PrideConnect',
-  VERSION: import.meta.env.VITE_APP_VERSION || '1.0.0',
-  LAST_UPDATED: new Date().toISOString().split('T')[0],
-};
-
-// ============================================
-// ✅ UTILITY FUNCTIONS
-// ============================================
-
-/**
- * Currency Formatter
- * Formats amounts with proper currency symbol and formatting
- * @param {number} amount - Amount to format
- * @param {string} currency - Currency code ('USD' or 'BRL')
- * @returns {string} Formatted currency string
- */
-export const formatCurrency = (amount, currency = 'USD') => {
-  if (typeof amount !== 'number') {
-    amount = parseFloat(amount) || 0;
-  }
-
-  if (currency === 'BRL') {
-    const brlAmount = amount * CURRENCY.USD_TO_BRL;
-    return new Intl.NumberFormat('pt-BR', {
-      style: 'currency',
-      currency: 'BRL',
-    }).format(brlAmount);
-  }
-
-  // Default to USD
-  return new Intl.NumberFormat('en-US', {
+// ========== Number Formats ==========
+export const NUMBER_FORMATS = {
+  // Format large numbers (1.5K, 2.3M, 1.2B)
+  COMPACT: {
+    notation: 'compact',
+    compactDisplay: 'short',
+  },
+  // Currency format
+  CURRENCY: {
     style: 'currency',
     currency: 'USD',
-  }).format(amount);
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 6,
+  },
+  // Percentage
+  PERCENT: {
+    style: 'percent',
+    minimumFractionDigits: 1,
+    maximumFractionDigits: 2,
+  },
+  // Token amount
+  TOKEN: {
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 2,
+  },
 };
 
-/**
- * Date Formatter
- * Formats date to Brazilian locale
- * @param {string|Date} dateString - Date to format
- * @param {string} format - Optional format ('short', 'long', 'time')
- * @returns {string} Formatted date string
- */
-export const formatDate = (dateString, format = 'short') => {
-  if (!dateString) return '';
-
-  const date = new Date(dateString);
-
-  if (format === 'long') {
-    return new Intl.DateTimeFormat('pt-BR', {
-      day: '2-digit',
-      month: 'long',
-      year: 'numeric',
-    }).format(date);
-  }
-
-  if (format === 'time') {
-    return new Intl.DateTimeFormat('pt-BR', {
-      hour: '2-digit',
-      minute: '2-digit',
-    }).format(date);
-  }
-
-  // Default:  short format
-  return new Intl.DateTimeFormat('pt-BR', {
-    day: '2-digit',
-    month: '2-digit',
-    year: 'numeric',
-  }).format(date);
+// ========== Local Storage Keys ==========
+export const STORAGE_KEYS = {
+  WALLET_ADDRESS: 'wallet_address',
+  THEME: 'theme',
+  LANGUAGE: 'language',
+  RECENT_TOKENS: 'recent_tokens',
+  FAVORITES: 'favorites',
+  SLIPPAGE_TOLERANCE: 'slippage_tolerance',
 };
 
-/**
- * Format date with time
- * @param {string|Date} dateString - Date to format
- * @returns {string} Formatted date string with time
- */
-export const formatDateTime = (dateString) => {
-  if (!dateString) return '';
-
-  return new Intl.DateTimeFormat('pt-BR', {
-    day: '2-digit',
-    month: 'long',
-    year: 'numeric',
-    hour: '2-digit',
-    minute: '2-digit',
-  }).format(new Date(dateString));
+// ========== WebSocket Events ==========
+export const SOCKET_EVENTS = {
+  // Token events
+  TOKEN_CREATED: 'token:created',
+  TOKEN_TRADED: 'token:traded',
+  PRICE_UPDATED: 'price:updated',
+  
+  // Creator events
+  CREATOR_REGISTERED: 'creator:registered',
+  CREATOR_RATED: 'creator:rated',
+  
+  // Yield events
+  YIELD_DISTRIBUTED: 'yield:distributed',
+  YIELD_CLAIMED: 'yield:claimed',
+  
+  // System events
+  CONNECT: 'connect',
+  DISCONNECT: 'disconnect',
+  ERROR: 'error',
 };
 
-/**
- * Format date only (no time)
- * @param {string|Date} dateString - Date to format
- * @returns {string} Formatted date string
- */
-export const formatDateOnly = (dateString) => {
-  if (!dateString) return '';
-
-  return new Intl.DateTimeFormat('pt-BR', {
-    day: '2-digit',
-    month: '2-digit',
-    year: 'numeric',
-  }).format(new Date(dateString));
+// ========== Transaction States ==========
+export const TX_STATUS = {
+  IDLE: 'idle',
+  PENDING: 'pending',
+  CONFIRMING: 'confirming',
+  SUCCESS: 'success',
+  FAILED: 'failed',
 };
 
-/**
- * Format relative time (e.g., "2 hours ago")
- * @param {string|Date} dateString - Date to format
- * @returns {string} Relative time string
- */
-export const formatRelativeTime = (dateString) => {
-  if (!dateString) return '';
-
-  const date = new Date(dateString);
-  const now = new Date();
-  const diffMs = now - date;
-  const diffSec = Math.floor(diffMs / 1000);
-  const diffMin = Math.floor(diffSec / 60);
-  const diffHour = Math.floor(diffMin / 60);
-  const diffDay = Math.floor(diffHour / 24);
-
-  if (diffSec < 60) return 'agora';
-  if (diffMin < 60) return `${diffMin}m atrás`;
-  if (diffHour < 24) return `${diffHour}h atrás`;
-  if (diffDay < 7) return `${diffDay}d atrás`;
-
-  return formatDate(dateString);
+// ========== UI Constants ==========
+export const UI = {
+  // Breakpoints (Tailwind defaults)
+  BREAKPOINTS: {
+    sm: 640,
+    md: 768,
+    lg: 1024,
+    xl: 1280,
+    '2xl': 1536,
+  },
+  
+  // Animation durations (ms)
+  ANIMATION: {
+    FAST: 150,
+    NORMAL: 300,
+    SLOW: 500,
+  },
+  
+  // Toast notification duration (ms)
+  TOAST_DURATION: 5000,
+  
+  // Debounce delays (ms)
+  DEBOUNCE: {
+    SEARCH: 300,
+    INPUT: 500,
+    SCROLL: 100,
+  },
 };
 
-/**
- * Format number with K/M suffixes
- * @param {number} num - Number to format
- * @returns {string} Formatted number string
- */
-export const formatNumber = (num) => {
-  if (typeof num !== 'number') {
-    num = parseFloat(num) || 0;
-  }
-
-  if (num >= 1000000) {
-    return (num / 1000000).toFixed(1).replace(/\.0$/, '') + 'M';
-  }
-  if (num >= 1000) {
-    return (num / 1000).toFixed(1).replace(/\.0$/, '') + 'K';
-  }
-  return num.toString();
+// ========== Error Messages ==========
+export const ERROR_MESSAGES = {
+  WALLET_NOT_CONNECTED: 'Please connect your wallet',
+  WRONG_NETWORK: `Please switch to ${NETWORK.name}`,
+  INSUFFICIENT_BALANCE: 'Insufficient balance',
+  TRANSACTION_REJECTED: 'Transaction rejected by user',
+  TRANSACTION_FAILED: 'Transaction failed',
+  INVALID_INPUT: 'Invalid input',
+  TOKEN_NOT_FOUND: 'Token not found',
+  CREATOR_NOT_FOUND: 'Creator not found',
+  NETWORK_ERROR: 'Network error. Please try again',
 };
 
-/**
- * Truncate text with ellipsis
- * @param {string} text - Text to truncate
- * @param {number} maxLength - Maximum length
- * @returns {string} Truncated text
- */
-export const truncateText = (text, maxLength = 100) => {
-  if (!text || text.length <= maxLength) return text;
-  return text.substring(0, maxLength).trim() + '...';
+// ========== Success Messages ==========
+export const SUCCESS_MESSAGES = {
+  TOKEN_CREATED: 'Token created successfully!',
+  TRADE_COMPLETED: 'Trade completed successfully!',
+  YIELD_CLAIMED: 'Yield claimed successfully!',
+  CREATOR_REGISTERED: 'Creator profile registered!',
+  PROFILE_UPDATED: 'Profile updated successfully!',
+  RATING_SUBMITTED: 'Rating submitted successfully!',
 };
 
-/**
- * Validate email format
- * @param {string} email - Email to validate
- * @returns {boolean} Is valid email
- */
-export const isValidEmail = (email) => {
-  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-  return emailRegex.test(email);
+// ========== Feature Flags ==========
+export const FEATURES = {
+  ENABLE_SOCIAL_LOGIN: true,
+  ENABLE_WALLET_CONNECT: true,
+  ENABLE_NOTIFICATIONS: true,
+  ENABLE_ANALYTICS: false, // Disable for MVP
+  ENABLE_CHARTS: true,
+  ENABLE_DARK_MODE_TOGGLE: false, // Only dark mode for MVP
 };
 
-/**
- * Validate username format
- * @param {string} username - Username to validate
- * @returns {boolean} Is valid username
- */
-export const isValidUsername = (username) => {
-  return PATTERNS.USERNAME.test(username);
+// ========== External Links ==========
+export const EXTERNAL_LINKS = {
+  DOCS: 'https://docs.launchpad2.xyz',
+  TWITTER: 'https://twitter.com/launchpad2',
+  TELEGRAM: 'https://t.me/launchpad2',
+  DISCORD: 'https://discord.gg/launchpad2',
+  GITHUB: 'https://github.com/launchpad2',
+  BASE_BRIDGE: 'https://bridge.base.org',
+  BASE_FAUCET: 'https://www.coinbase.com/faucets/base-ethereum-goerli-faucet',
 };
 
-/**
- * Get file extension
- * @param {string} filename - Filename
- * @returns {string} File extension
- */
-export const getFileExtension = (filename) => {
-  if (!filename) return '';
-  return filename.split('.').pop().toLowerCase();
+// ========== Chart Configuration ==========
+export const CHART_CONFIG = {
+  DEFAULT_TIMEFRAME: '24h',
+  TIMEFRAMES: ['1h', '6h', '24h', '7d', '30d', 'all'],
+  COLORS: {
+    up: COLORS.success,
+    down: COLORS.danger,
+    volume: COLORS.primary[500],
+  },
+  HEIGHT: {
+    MOBILE: 300,
+    DESKTOP: 400,
+  },
 };
 
-/**
- * Check if file is an image
- * @param {File|string} file - File object or filename
- * @returns {boolean} Is image
- */
-export const isImageFile = (file) => {
-  const ext = typeof file === 'string' ? getFileExtension(file) : file.type;
-  const imageExts = ['jpg', 'jpeg', 'png', 'gif', 'webp', 'svg'];
-  return imageExts.some(e => ext.includes(e));
+// ========== Social Media Patterns ==========
+export const SOCIAL_PATTERNS = {
+  TWITTER: /^@?[a-zA-Z0-9_]{1,15}$/,
+  TELEGRAM: /^@?[a-zA-Z0-9_]{5,32}$/,
+  WEBSITE: /^https?:\/\/.+\..+$/,
 };
 
-/**
- * Check if file is a video
- * @param {File|string} file - File object or filename
- * @returns {boolean} Is video
- */
-export const isVideoFile = (file) => {
-  const ext = typeof file === 'string' ? getFileExtension(file) : file.type;
-  const videoExts = ['mp4', 'webm', 'mov', 'avi'];
-  return videoExts.some(e => ext.includes(e));
-};
-
-/**
- * Format file size
- * @param {number} bytes - File size in bytes
- * @returns {string} Formatted file size
- */
-export const formatFileSize = (bytes) => {
-  if (bytes === 0) return '0 Bytes';
-
-  const k = 1024;
-  const sizes = ['Bytes', 'KB', 'MB', 'GB'];
-  const i = Math.floor(Math.log(bytes) / Math.log(k));
-
-  return Math.round(bytes / Math.pow(k, i) * 100) / 100 + ' ' + sizes[i];
-};
-
-/**
- * Generate unique ID
- * @returns {string} Unique ID
- */
-export const generateId = () => {
-  return `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
-};
-
-/**
- * Sleep/delay function
- * @param {number} ms - Milliseconds to sleep
- * @returns {Promise} Promise that resolves after delay
- */
-export const sleep = (ms) => {
-  return new Promise(resolve => setTimeout(resolve, ms));
-};
-
-/**
- * Copy text to clipboard
- * @param {string} text - Text to copy
- * @returns {Promise<boolean>} Success status
- */
-export const copyToClipboard = async (text) => {
-  try {
-    await navigator.clipboard.writeText(text);
-    return true;
-  } catch (error) {
-    console.error('Failed to copy:', error);
-    return false;
-  }
-};
-
-/**
- * Get initials from name
- * @param {string} name - Full name
- * @returns {string} Initials
- */
-export const getInitials = (name) => {
-  if (!name) return '';
-  return name
-    .split(' ')
-    .map(n => n[0])
-    .join('')
-    .toUpperCase()
-    .substring(0, 2);
-};
-
-// ============================================
-// ✅ DEFAULT EXPORT
-// ============================================
-
+// ========== Export all for convenience ==========
 export default {
-  API_BASE_URL,
-  SOCKET_URL,
+  APP_NAME,
+  APP_DESCRIPTION,
+  NETWORK,
+  CONTRACTS,
   API,
-  CURRENCY,
-  MAX_IMAGE_SIZE_MB,
-  MAX_VIDEO_SIZE_MB,
-  MAX_IMAGES_PER_POST,
-  UPLOAD,
-  CONTENT_TYPES,
-  PAYMENT_STATUS,
-  PAYMENT_METHODS,
-  TRANSACTION_TYPES,
-  SUBSCRIPTION_STATUS,
-  NOTIFICATION_TYPES,
-  TRENDING_PERIODS,
-  SORT_OPTIONS,
-  BREAKPOINTS,
+  COLORS,
+  ROUTES,
+  TOKEN_CONFIG,
+  CREATOR_CONFIG,
   PAGINATION,
-  PAGE_SIZE,
-  INFINITE_SCROLL_THRESHOLD,
-  TEXT_LIMITS,
-  PATTERNS,
-  STATUS_COLORS,
-  NOTIFICATION_ICONS,
-  MIN_WITHDRAWAL_AMOUNT,
-  PLATFORM_FEE_PERCENTAGE,
+  STORAGE_KEYS,
+  SOCKET_EVENTS,
+  TX_STATUS,
+  UI,
   ERROR_MESSAGES,
   SUCCESS_MESSAGES,
-  DATE_FORMATS,
-  CACHE_TIMES,
-  DEBOUNCE_TIMES,
-  STORAGE_KEYS,
-  THEMES,
-  LANGUAGES,
-  APP_INFO,
-  // Utility Functions
-  formatCurrency,
-  formatDate,
-  formatDateTime,
-  formatDateOnly,
-  formatRelativeTime,
-  formatNumber,
-  truncateText,
-  isValidEmail,
-  isValidUsername,
-  getFileExtension,
-  isImageFile,
-  isVideoFile,
-  formatFileSize,
-  generateId,
-  sleep,
-  copyToClipboard,
-  getInitials,
+  FEATURES,
+  EXTERNAL_LINKS,
+  CHART_CONFIG,
+  SOCIAL_PATTERNS,
 };
