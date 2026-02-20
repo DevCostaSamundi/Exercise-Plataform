@@ -1,4 +1,7 @@
-// Prisma Schema for PrideConnect Platform
+// ============================================
+// Prisma Schema for Launchpad 2.0
+// Clean version - Token Trading Platform on Base
+// ============================================
 
 generator client {
   provider = "prisma-client-js"
@@ -9,54 +12,49 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-// User model - Base user account
+// ============================================
+// USER & AUTH
+// ============================================
+
 model User {
   id            String    @id @default(uuid())
-  email         String    @unique
+  email         String?   @unique
   username      String    @unique
-  password      String
-  firstName     String? 
-  lastName      String?
+  password      String?
   displayName   String?
+  firstName     String?
+  lastName      String?
   birthDate     DateTime?
-  genderIdentity String?
-  orientation   String?
-  avatar        String?
+  avatarUrl     String?   @map("avatar")
   bio           String?
   isVerified    Boolean   @default(false)
   isActive      Boolean   @default(true)
   role          UserRole  @default(USER)
   
-  // Web3 fields
+  // Password reset
+  resetPasswordToken   String?
+  resetPasswordExpires DateTime?
+  
+  // Web3 fields (primary auth)
   web3Wallet    String?   @unique
-  web3Provider  String?   // 'web3auth', 'metamask', 'walletconnect', 'coinbase', 'trustwallet', 'binance', 'okx', 'ledger', 'trezor', 'phantom', 'solflare', 'brave', 'opera', 'edge', 'firefox', 'chrome', 'safari', 'other'
+  web3Provider  String?
   web3Verified  Boolean   @default(false)
   web3VerifiedAt DateTime?
 
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
   
-  payments      Payment[] @relation("UserPayments")
-  wallet        UserWallet? 
-
+  // Relations
+  wallets       UserWallet[]
+  payments      Payment[]
+  notifications Notification[]
   
-  // Relations originais
-  creator       Creator?  
-  subscriptions Subscription[]
-  orders        Order[]
-  reviews       Review[]
-  
-  // Relações de mensagens
-  creatorConversations     Conversation[] @relation("CreatorConversations")
-  subscriberConversations  Conversation[] @relation("SubscriberConversations")
-  sentMessages             Message[]      @relation("SentMessages")
-  receivedMessages         Message[]      @relation("ReceivedMessages")
-  
-  // Relações de comentários e likes
-  comments                 Comment[]
-  likes                    Like[]
-
-  notifications            Notification[]
+  // Launchpad relations
+  createdTokens Token[]        @relation("TokenCreator")
+  trades        Trade[]
+  tokenHoldings TokenHolder[]
+  yieldClaims   YieldClaim[]
+  ratingsGiven  CreatorRating[]
 
   @@index([web3Wallet])  
   @@map("users")
@@ -68,681 +66,86 @@ enum UserRole {
   ADMIN
 }
 
-// Creator model - Extended profile for content creators
-model Creator {
+model UserWallet {
   id              String    @id @default(uuid())
-  userId          String    @unique
-  displayName     String
-  coverImage      String?
-  description     String?
-  
-  // Verification & KYC
-  isVerified      Boolean   @default(false)
-  featured        Boolean   @default(false)
-  kycStatus       KYCStatus @default(PENDING)
-  kycDocuments    Json? 
-  
-  // Monetization
-  subscriptionPrice Decimal @default(0) @db.Decimal(10, 2)
-  earnings          Decimal @default(0) @db.Decimal(10, 2)
-  
-  // Settings fields
-  location              String?
-  website               String?
-  category              String?
-  socialLinks           Json?
-
-  postsCount      Int       @default(0)
-  
-  // Subscription settings
-  discounts             Json?           @default("{\"threeMonths\": 10, \"sixMonths\": 15, \"twelveMonths\": 20}")
-  promoActive           Boolean         @default(false)
-  promoDiscount         Int?
-  promoDuration         Int?
-  promoExpiry           String?
-  trialEnabled          Boolean         @default(false)
-  trialDays             Int?
-  
-  // Payment settings
-  withdrawMethod        String          @default("web3")
-  
-  // Web3 wallet for receiving USDC
-  payoutWallet          String?         // Wallet address for USDC payouts
-  walletVerified        Boolean         @default(false)
-  autoWithdraw          Boolean         @default(false)
-  autoWithdrawMin       Int             @default(100)
-  
-  // Notification settings
-  emailNotifications    Json?
-  pushNotifications     Json?
-  marketingEmails       Boolean         @default(true)
-  newsletter            Boolean         @default(true)
-  
-  // Privacy settings
-  publicProfile         Boolean         @default(true)
-  showActivity          Boolean         @default(true)
-  showSubscriberCount   Boolean         @default(true)
-  messagePermission     String          @default("subscribers")
-  allowTips             Boolean         @default(true)
-  watermark             Boolean         @default(true)
-  disableScreenshots    Boolean         @default(false)
-  hideFromSearch        Boolean         @default(false)
-  blockedCountries      String[]        @default([])
-  
-  // Content settings
-  defaultPPV            Boolean         @default(false)
-  autoPublish           Boolean         @default(true)
-  commentsEnabled       Boolean         @default(true)
-  defaultPPVPrice       Float           @default(9.99)
-  imageQuality          String          @default("high")
-  videoQuality          String          @default("1080p")
-  
-  // Blocking
-  blockedUsers          String[]        @default([])
-  blockedWords          String[]        @default([])
-  
-  createdAt       DateTime  @default(now())
-  updatedAt       DateTime  @updatedAt
-  
-  // Relations
+  userId          String    
   user            User      @relation(fields: [userId], references: [id], onDelete: Cascade)
-  posts           Post[]
-  products        Product[]
-  subscriptions   Subscription[]
-
-  receivedPayments  Payment[]   @relation("CreatorPayments")
-  balance           CreatorBalance? 
-  withdrawals       Withdrawal[]
+  walletAddress   String    @unique
+  isPrimary       Boolean   @default(false)
   
-  @@map("creators")
-}
-
-enum KYCStatus {
-  PENDING
-  APPROVED
-  REJECTED
-  RESUBMIT
-}
-
-// Post model - Content posts from creators
-model Post {
-  id          String      @id @default(uuid())
-  creatorId   String
-  title       String? 
-  content     String?
-  mediaUrls   Json?       // Array of media URLs
-  mediaType   MediaType   @default(IMAGE)
-  isPublic    Boolean     @default(false) // false = subscribers only
-  isPPV       Boolean     @default(false) // Pay-per-view
-  ppvPrice    Decimal?    @db.Decimal(10, 2)
-  
-  // NOVOS CAMPOS ADICIONADOS
-  tags        String[]    @default([])    // Array de tags
-  scheduledFor  DateTime?                 // Data de Agendamento
-  status      PostStatus  @default(PUBLISHED) // Status do Post
-
-  // Engagement
-  likesCount  Int         @default(0)
-  commentsCount Int       @default(0)
-  viewsCount  Int         @default(0)
-  
-  createdAt   DateTime    @default(now())
-  updatedAt   DateTime    @updatedAt
-  
-  // Relations
-  creator     Creator     @relation(fields: [creatorId], references: [id], onDelete: Cascade)
-  comments    Comment[]
-  likes       Like[]
-  
-  @@map("posts")
-}
-
-enum PostStatus {
-  DRAFT
-  PUBLISHED
-  SCHEDULED
-  ARCHIVED
-}
-
-enum MediaType {
-  IMAGE
-  VIDEO
-  AUDIO
-  DOCUMENT
-}
-
-// Subscription model - User subscriptions to creators
-model Subscription {
-  id              String    @id @default(uuid())
-  userId          String
-  creatorId       String
-  
-  status          SubscriptionStatus @default(ACTIVE)
-  startDate       DateTime  @default(now())
-  endDate         DateTime?
-  autoRenew       Boolean   @default(true)
-  
-  // Payment
-  amount          Decimal   @db.Decimal(10, 2)
-  paymentMethod   String?
+  balanceUSD      Decimal   @db.Decimal(10, 2) @default(0)
+  totalDeposited  Decimal   @db.Decimal(10, 2) @default(0)
+  totalSpent      Decimal   @db.Decimal(10, 2) @default(0)
   
   createdAt       DateTime  @default(now())
   updatedAt       DateTime  @updatedAt
   
-  // Relations
-  user            User      @relation(fields: [userId], references: [id], onDelete: Cascade)
-  creator         Creator   @relation(fields: [creatorId], references: [id], onDelete: Cascade)
-  
-  @@unique([userId, creatorId])
-  @@map("subscriptions")
-}
-
-enum SubscriptionStatus {
-  ACTIVE
-  EXPIRED
-  CANCELLED
-}
-
-// Product model - Marketplace products
-model Product {
-  id              String    @id @default(uuid())
-  creatorId       String
-  
-  name            String
-  description     String
-  category        ProductCategory
-  type            ProductType
-  
-  // Pricing
-  price           Decimal   @db.Decimal(10, 2)
-  
-  // Images
-  images          Json?     // Array of image URLs
-  
-  // Inventory (for physical products)
-  stock           Int? 
-  isUnlimited     Boolean   @default(false)
-  
-  // Digital product
-  digitalFileUrl  String?
-  
-  // Status
-  isActive        Boolean   @default(true)
-  
-  // Stats
-  soldCount       Int       @default(0)
-  viewsCount      Int       @default(0)
-  
-  createdAt       DateTime  @default(now())
-  updatedAt       DateTime  @updatedAt
-  
-  // Relations
-  creator         Creator   @relation(fields: [creatorId], references: [id], onDelete: Cascade)
-  orderItems      OrderItem[]
-  reviews         Review[]
-  
-  @@map("products")
-}
-
-enum ProductCategory {
-  PHYSICAL_ITEM
-  DIGITAL_CONTENT
-  EXPERIENCE
-  MERCHANDISE
-  ART
-  OTHER
-}
-
-enum ProductType {
-  PHYSICAL
-  DIGITAL
-  HYBRID
-}
-
-// Order model - Marketplace orders
-model Order {
-  id              String      @id @default(uuid())
-  userId          String
-  orderNumber     String      @unique
-  
-  // Status
-  status          OrderStatus @default(PENDING)
-  
-  // Pricing
-  subtotal        Decimal     @db.Decimal(10, 2)
-  shippingCost    Decimal     @default(0) @db.Decimal(10, 2)
-  tax             Decimal     @default(0) @db.Decimal(10, 2)
-  total           Decimal     @db.Decimal(10, 2)
-  
-  // Payment - ⚠️ RENOMEADO para OrderPaymentStatus
-  paymentStatus   OrderPaymentStatus @default(ORDER_PENDING)
-  paymentMethod   String?
-  transactionId   String?
-  
-  // Shipping
-  shippingAddress Json?
-  trackingNumber  String?
-  
-  createdAt       DateTime    @default(now())
-  updatedAt       DateTime    @updatedAt
-  
-  // Relations
-  user            User        @relation(fields: [userId], references: [id], onDelete: Cascade)
-  items           OrderItem[]
-  
-  @@map("orders")
-}
-
-enum OrderStatus {
-  PENDING
-  CONFIRMED
-  PROCESSING
-  SHIPPED
-  DELIVERED
-  CANCELLED
-  REFUNDED
-}
-
-// ⚠️ ENUM RENOMEADO para evitar conflito com PaymentStatus
-enum OrderPaymentStatus {
-  ORDER_PENDING
-  ORDER_COMPLETED
-  ORDER_FAILED
-  ORDER_REFUNDED
-}
-
-// OrderItem model - Items in an order
-model OrderItem {
-  id          String    @id @default(uuid())
-  orderId     String
-  productId   String
-  
-  quantity    Int       @default(1)
-  price       Decimal   @db.Decimal(10, 2)
-  
-  createdAt   DateTime  @default(now())
-  
-  // Relations
-  order       Order     @relation(fields: [orderId], references: [id], onDelete: Cascade)
-  product     Product   @relation(fields: [productId], references: [id])
-  
-  @@map("order_items")
-}
-
-// Review model - Product reviews
-model Review {
-  id          String    @id @default(uuid())
-  userId      String
-  productId   String
-  
-  rating      Int       // 1-5
-  comment     String?
-  images      Json?     // Array of image URLs
-  
-  // Moderation
-  isApproved  Boolean   @default(false)
-  
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
-  
-  // Relations
-  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
-  product     Product   @relation(fields: [productId], references: [id], onDelete: Cascade)
-  
-  @@unique([userId, productId])
-  @@map("reviews")
+  @@index([userId])
+  @@map("user_wallets")
 }
 
 // ============================================
-// SISTEMA DE MENSAGENS
-// ============================================
-
-model Conversation {
-  id        String   @id @default(uuid())
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  // Participantes
-  creatorId    String
-  creator      User   @relation("CreatorConversations", fields: [creatorId], references: [id], onDelete: Cascade)
-  
-  subscriberId String
-  subscriber   User   @relation("SubscriberConversations", fields: [subscriberId], references: [id], onDelete: Cascade)
-
-  // Última mensagem
-  lastMessageText      String?
-  lastMessageSenderId  String?
-  lastMessageTimestamp DateTime?
-
-  // Contadores de não lidas
-  unreadCountCreator    Int @default(0)
-  unreadCountSubscriber Int @default(0)
-
-  // Status
-  status String @default("active") // active, archived, blocked
-  isVIP  Boolean @default(false)
-
-  // Relações
-  messages Message[]
-
-  @@unique([creatorId, subscriberId])
-  @@index([creatorId, status])
-  @@index([subscriberId, status])
-  @@index([lastMessageTimestamp])
-  @@map("conversations")
-}
-
-model Message {
-  id        String   @id @default(uuid())
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  // Relação com conversa
-  conversationId String
-  conversation   Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
-
-  // Remetente e destinatário
-  senderId    String
-  sender      User   @relation("SentMessages", fields: [senderId], references: [id], onDelete: Cascade)
-  
-  recipientId String
-  recipient   User   @relation("ReceivedMessages", fields: [recipientId], references: [id], onDelete: Cascade)
-
-  // Tipo e conteúdo
-  type String @default("text") // text, image, video, paid
-
-  // Conteúdo
-  contentText     String?
-  contentMediaUrl String[] // Array de URLs
-  contentPrice    Float?
-  contentIsPaid   Boolean  @default(false)
-
-  // Status
-  status String @default("sent") // sent, delivered, read, failed
-  readAt DateTime?
-
-  // Metadados
-  metadataIpAddress       String?
-  metadataUserAgent       String?
-  metadataFlagged         Boolean @default(false)
-  metadataModerationAction String?  
-
-  deletedAt DateTime?
-
-  @@index([conversationId, createdAt])
-  @@index([senderId, createdAt])
-  @@index([status])
-  @@map("messages")
-}
-
-// ============================================
-// SISTEMA DE PAGAMENTOS
+// PAYMENTS
 // ============================================
 
 model Payment {
   id              String        @id @default(uuid())
-  
-  // Relacionamentos
   userId          String
-  user            User          @relation("UserPayments", fields: [userId], references: [id], onDelete: Cascade)
+  user            User          @relation(fields: [userId], references: [id], onDelete: Cascade)
   
-  creatorId       String?  
-  creator         Creator?      @relation("CreatorPayments", fields: [creatorId], references: [id])
-  
-  // Tipo de pagamento
   type            PaymentType
-  
-  // Referências
-  subscriptionId  String?
-  postId          String?
-  messageId       String?
-  
-  // Valores em FIAT
   amountUSD       Decimal       @db.Decimal(10, 2)
-  amountBRL       Decimal?      @db.Decimal(10, 2)
-  currency        String        @default("USD")
+  amountETH       Decimal?      @db.Decimal(28, 18)
   
-  // Valores em Cripto
-  cryptoCurrency  String?       // BTC, ETH, USDT_TRC20, etc
-  cryptoAmount    String?       // Quantidade exata em cripto
-  cryptoAddress   String?       // Endereço de recebimento gerado
-  expectedAmount  String?       // Quantidade esperada
-  actuallyPaid    String?       // Quantidade realmente paga
-  
-  // Blockchain
-  txHash          String?       @unique // Transaction hash
+  txHash          String?       @unique
+  blockNumber     Int?
   confirmations   Int           @default(0)
-  networkFee      String?       // Taxa de rede paga
-  
-  // Web3 specific
-  web3TxHash         String?   @unique  // On-chain transaction hash
-  web3BlockNumber    Int?                // Block number
-  web3Confirmations  Int       @default(0)
-  web3ContractAddress String?            // Smart contract used
-  
-  
-  // Status
   status          PaymentStatus @default(PENDING)
-  
-  // Gateway usado
-  gateway         PaymentGateway
-  gatewayOrderId  String?       @unique // ID externo do gateway
-  gatewayData     Json?         // Dados extras do gateway
-  
-  // Taxas da plataforma
-  platformFee     Decimal       @db.Decimal(10, 2) @default(0) // 10%
-  gatewayFee      Decimal       @db.Decimal(10, 2) @default(0) // Taxa do gateway
-  netAmount       Decimal       @db.Decimal(10, 2) // Valor líquido para o criador
-  
-  // Timestamps
-  paidAt          DateTime?  
-  confirmedAt     DateTime?
-  expiresAt       DateTime?
-  
-  // Metadados
-  ipAddress       String?
-  userAgent       String?
+  tokenAddress    String?
   metadata        Json?
   
   createdAt       DateTime      @default(now())
   updatedAt       DateTime      @updatedAt
   
   @@index([userId])
-  @@index([creatorId])
   @@index([status])
-  @@index([gateway])
   @@index([txHash])
-  @@index([gatewayOrderId])
-  @@index([type])
   @@map("payments")
 }
 
-model CreatorBalance {
-  id              String        @id @default(uuid())
-  creatorId       String        @unique
-  creator         Creator       @relation(fields: [creatorId], references: [id], onDelete: Cascade)
-  
-  // Saldo disponível
-  availableUSD    Decimal       @db.Decimal(10, 2) @default(0)
-  
-  // Saldo pendente (aguardando confirmação)
-  pendingUSD      Decimal       @db.Decimal(10, 2) @default(0)
-  
-  // Total de ganhos
-  lifetimeEarnings Decimal      @db.Decimal(10, 2) @default(0)
-  
-  // Saques
-  totalWithdrawn  Decimal       @db.Decimal(10, 2) @default(0)
-  
-  // Estatísticas
-  lastPaymentAt   DateTime?
-  lastWithdrawalAt DateTime?
-  
-  updatedAt       DateTime      @updatedAt
-  
-  @@map("creator_balances")
-}
-
-model Withdrawal {
-  id              String           @id @default(uuid())
-  creatorId       String
-  creator         Creator          @relation(fields: [creatorId], references: [id], onDelete: Cascade)
-  
-  // Valores
-  amountUSD       Decimal          @db.Decimal(10, 2)
-  
-  // Destino Cripto
-  cryptoCurrency  String           // BTC, ETH, USDT_TRC20, etc
-  cryptoAmount    String
-  destinationAddress String
-  
-  // Blockchain
-  txHash          String?
-  networkFee      Decimal?         @db.Decimal(10, 2)
-  
-  // Status
-  status          WithdrawalStatus @default(PENDING)
-  
-  // Taxas
-  platformFee     Decimal          @db.Decimal(10, 2) @default(2) // Taxa fixa $2
-  netAmount       Decimal          @db.Decimal(10, 2) // Valor líquido enviado
-  
-  // Gateway
-  gateway         PaymentGateway? 
-  gatewayTxId     String? 
-  
-  // Aprovação (se necessário)
-  approvedBy      String?
-  approvedAt      DateTime?
-  rejectedReason  String? 
-  
-  // Timestamps
-  processedAt     DateTime? 
-  completedAt     DateTime? 
-  
-  createdAt       DateTime         @default(now())
-  updatedAt       DateTime         @updatedAt
-  
-  @@index([creatorId])
-  @@index([status])
-  @@map("withdrawals")
-}
-
-model UserWallet {
-  id              String        @id @default(uuid())
-  userId          String        @unique
-  user            User          @relation(fields: [userId], references: [id], onDelete: Cascade)
-  
-  // Saldo depositado (sistema de carteira interna)
-  balanceUSD      Decimal       @db.Decimal(10, 2) @default(0)
-  
-  // Histórico
-  totalDeposited  Decimal       @db.Decimal(10, 2) @default(0)
-  totalSpent      Decimal       @db.Decimal(10, 2) @default(0)
-  
-  // Auto-renovação
-  autoRenewEnabled Boolean      @default(false)
-  lowBalanceAlert  Boolean      @default(true)
-  alertThreshold   Decimal      @db.Decimal(10, 2) @default(20)
-  
-  createdAt       DateTime      @default(now())
-  updatedAt       DateTime      @updatedAt
-  
-  @@map("user_wallets")
-}
-
-// Enums
 enum PaymentType {
-  SUBSCRIPTION
-  SUBSCRIPTION_RENEWAL
-  PPV_MESSAGE
-  PPV_POST
-  TIP
-  WALLET_DEPOSIT
-  GIFT
+  TOKEN_CREATION
+  TOKEN_PURCHASE
+  TOKEN_SALE
+  YIELD_CLAIM
+  PLATFORM_FEE
 }
 
 enum PaymentStatus {
-  PENDING          // Aguardando pagamento
-  WAITING          // Pagamento detectado, aguardando confirmações
-  CONFIRMING       // Confirmando no blockchain
-  COMPLETED        // Confirmado e processado
-  FAILED           // Falhou
-  EXPIRED          // Expirou (15 min)
-  PARTIALLY_PAID   // Pagou menos que o esperado
-  REFUNDED         // Reembolsado
-  CANCELLED        // Cancelado pelo usuário
-}
-
-enum PaymentGateway {
-  WEB3_DIRECT      // Direct wallet payment
-  CRYPTO_DIRECT    // Direct crypto payment via smart contract
-  BALANCE          // Internal wallet balance
-  MANUAL           // Manual transfer
-}
-
-enum WithdrawalStatus {
-  PENDING          // Solicitado
-  APPROVED         // Aprovado (se necessário)
-  PROCESSING       // Processando
-  COMPLETED        // Enviado
-  FAILED           // Falhou
-  CANCELLED        // Cancelado
-  REJECTED         // Rejeitado (fraude)
+  PENDING
+  CONFIRMING
+  COMPLETED
+  FAILED
+  REFUNDED
 }
 
 // ============================================
-// SISTEMA DE COMENTÁRIOS E LIKES
+// NOTIFICATIONS
 // ============================================
-
-model Comment {
-  id        String   @id @default(uuid())
-  postId    String
-  userId    String
-  content   String
-  
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  
-  // Relations
-  post      Post     @relation(fields: [postId], references: [id], onDelete: Cascade)
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  
-  @@index([postId])
-  @@index([userId])
-  @@map("comments")
-}
-
-model Like {
-  id        String   @id @default(uuid())
-  postId    String
-  userId    String
-  
-  createdAt DateTime @default(now())
-  
-  // Relations
-  post      Post     @relation(fields: [postId], references: [id], onDelete: Cascade)
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  
-  @@unique([postId, userId])
-  @@index([postId])
-  @@index([userId])
-  @@map("likes")
-}
 
 model Notification {
   id        String   @id @default(cuid())
   userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
   type      NotificationType
   title     String
   message   String
-  metadata  Json?    // Dados extras (ex: postId, subscriberId, etc)
+  metadata  Json?
   actionUrl String?
   unread    Boolean  @default(true)
+  
   createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId, unread])
   @@index([userId, createdAt])
@@ -750,13 +153,251 @@ model Notification {
 }
 
 enum NotificationType {
-  SUBSCRIBER
-  COMMENT
-  TIP
-  LIKE
-  MESSAGE
-  PAYMENT
+  TOKEN_CREATED
+  TOKEN_GRADUATED
+  TRADE_EXECUTED
+  YIELD_AVAILABLE
+  YIELD_CLAIMED
+  PRICE_ALERT
   MILESTONE
   SYSTEM
-  WARNING
+}
+
+// ============================================
+// AI MARKETING (Admin)
+// ============================================
+
+model MarketingStrategy {
+  id          String   @id @default(uuid())
+  type        String
+  content     String
+  reasoning   String
+  metrics     Json
+  posted      Boolean  @default(false)
+  postedAt    DateTime?
+  engagement  Json?
+  
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  @@index([type])
+  @@index([posted])
+  @@map("marketing_strategies")
+}
+
+model PlatformAnalytics {
+  id              String   @id @default(uuid())
+  date            DateTime @default(now()) @unique
+  
+  totalVolume     Decimal  @default(0) @db.Decimal(28, 2)
+  volumeChange    Decimal  @default(0) @db.Decimal(5, 2)
+  newTokens       Int      @default(0)
+  activeTokens    Int      @default(0)
+  graduatedTokens Int      @default(0)
+  totalUsers      Int      @default(0)
+  activeUsers     Int      @default(0)
+  newUsers        Int      @default(0)
+  totalTrades     Int      @default(0)
+  uniqueTraders   Int      @default(0)
+  metadata        Json?
+  
+  @@index([date])
+  @@map("platform_analytics")
+}
+
+model SentimentData {
+  id          String   @id @default(uuid())
+  source      String
+  sentiment   String
+  score       Decimal  @db.Decimal(3, 2)
+  content     String
+  author      String?
+  mentions    Int      @default(1)
+  
+  createdAt   DateTime @default(now())
+  
+  @@index([source, createdAt])
+  @@map("sentiment_data")
+}
+
+model GrowthTactic {
+  id              String   @id @default(uuid())
+  name            String
+  description     String
+  category        String
+  effort          String
+  cost            Decimal  @db.Decimal(10, 2)
+  expectedImpact  String
+  tested          Boolean  @default(false)
+  testedAt        DateTime?
+  actualImpact    Json?
+  success         Boolean?
+  aiScore         Decimal? @db.Decimal(3, 2)
+  aiReasoning     String?
+  
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  
+  @@index([category])
+  @@map("growth_tactics")
+}
+
+// ============================================
+// LAUNCHPAD - TOKEN MODELS
+// ============================================
+
+model Token {
+  id              String    @id @default(uuid())
+  address         String    @unique
+  name            String
+  symbol          String
+  totalSupply     String
+  
+  creatorAddress  String
+  creatorId       String?
+  creator         User?     @relation("TokenCreator", fields: [creatorId], references: [id])
+  
+  description     String?
+  logo            String?
+  website         String?
+  twitter         String?
+  telegram        String?
+  discord         String?
+  
+  currentPrice    Decimal   @default(0) @db.Decimal(28, 18)
+  marketCap       Decimal   @default(0) @db.Decimal(28, 2)
+  totalVolume     Decimal   @default(0) @db.Decimal(28, 2)
+  volume24h       Decimal   @default(0) @db.Decimal(28, 2)
+  priceChange24h  Decimal   @default(0) @db.Decimal(10, 2)
+  holderCount     Int       @default(0)
+  tradeCount      Int       @default(0)
+  
+  bondingCurveAddress String?
+  liquidityLocked     Boolean   @default(false)
+  isGraduated     Boolean   @default(false)
+  graduatedAt     DateTime?
+  dexPoolAddress  String?
+  
+  blockNumber     Int?
+  txHash          String?
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+  
+  trades          Trade[]
+  holders         TokenHolder[]
+  yieldClaims     YieldClaim[]
+  
+  @@index([creatorAddress])
+  @@index([isGraduated])
+  @@index([volume24h])
+  @@index([createdAt])
+  @@map("tokens")
+}
+
+model Trade {
+  id              String    @id @default(uuid())
+  
+  tokenAddress    String
+  token           Token     @relation(fields: [tokenAddress], references: [address])
+  
+  traderAddress   String
+  traderId        String?
+  trader          User?     @relation(fields: [traderId], references: [id])
+  
+  type            TradeType
+  ethAmount       Decimal   @db.Decimal(28, 18)
+  tokenAmount     Decimal   @db.Decimal(28, 18)
+  price           Decimal   @db.Decimal(28, 18)
+  platformFee     Decimal   @default(0) @db.Decimal(28, 18)
+  creatorFee      Decimal   @default(0) @db.Decimal(28, 18)
+  
+  txHash          String    @unique
+  blockNumber     Int
+  logIndex        Int
+  timestamp       DateTime  @default(now())
+  
+  @@index([tokenAddress])
+  @@index([traderAddress])
+  @@index([timestamp])
+  @@map("trades")
+}
+
+enum TradeType {
+  BUY
+  SELL
+}
+
+model TokenHolder {
+  id              String    @id @default(uuid())
+  
+  tokenAddress    String
+  token           Token     @relation(fields: [tokenAddress], references: [address])
+  
+  holderAddress   String
+  holderId        String?
+  holder          User?     @relation(fields: [holderId], references: [id])
+  
+  balance         Decimal   @db.Decimal(28, 18)
+  percentage      Decimal   @default(0) @db.Decimal(10, 4)
+  firstBuyAt      DateTime?
+  lastTradeAt     DateTime?
+  totalBought     Decimal   @default(0) @db.Decimal(28, 18)
+  totalSold       Decimal   @default(0) @db.Decimal(28, 18)
+  realizedPnl     Decimal   @default(0) @db.Decimal(28, 18)
+  
+  updatedAt       DateTime  @updatedAt
+  
+  @@unique([tokenAddress, holderAddress])
+  @@index([tokenAddress])
+  @@index([holderAddress])
+  @@map("token_holders")
+}
+
+model YieldClaim {
+  id              String    @id @default(uuid())
+  
+  tokenAddress    String
+  token           Token     @relation(fields: [tokenAddress], references: [address])
+  
+  claimerAddress  String
+  claimerId       String?
+  claimer         User?     @relation(fields: [claimerId], references: [id])
+  
+  amount          Decimal   @db.Decimal(28, 18)
+  txHash          String    @unique
+  blockNumber     Int
+  timestamp       DateTime  @default(now())
+  
+  @@index([tokenAddress])
+  @@index([claimerAddress])
+  @@map("yield_claims")
+}
+
+model CreatorRating {
+  id              String    @id @default(uuid())
+  
+  creatorAddress  String
+  raterAddress    String
+  raterId         String?
+  rater           User?     @relation(fields: [raterId], references: [id])
+  
+  rating          Int
+  txHash          String    @unique
+  blockNumber     Int
+  timestamp       DateTime  @default(now())
+  
+  @@unique([creatorAddress, raterAddress])
+  @@index([creatorAddress])
+  @@map("creator_ratings")
+}
+
+model SyncStatus {
+  id              String    @id @default(uuid())
+  contractName    String    @unique
+  contractAddress String
+  lastSyncedBlock Int       @default(0)
+  lastSyncedAt    DateTime?
+  isActive        Boolean   @default(true)
+  
+  @@map("sync_status")
 }

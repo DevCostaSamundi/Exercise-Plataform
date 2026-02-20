@@ -1,7 +1,6 @@
 import { Server } from 'socket.io';
 import jwt from 'jsonwebtoken';
 import logger from '../utils/logger.js';
-import { setupMessageSocket } from './messageSocket.js';
 
 // JWT authentication middleware for Socket.IO
 const authenticateSocket = (socket, next) => {
@@ -57,17 +56,18 @@ const initSocket = (server) => {
   // ✅ Aplicar autenticação no namespace principal
   io.use(authenticateSocket);
 
-  // Setup de namespaces
-  const messageNamespace = setupMessageSocket(io);
-  
-  // ✅ Aplicar autenticação também no namespace de mensagens
-  messageNamespace.use(authenticateSocket);
+  // Namespace para eventos de launchpad (trades, tokens, yields)
+  const launchpadNamespace = io.of('/launchpad');
+  launchpadNamespace.use(authenticateSocket);
 
   io.on('connection', (socket) => {
     logger.info(`✅ Socket connected: ${socket.id} (User: ${socket.userId})`);
 
     // Emitir evento de conexão bem-sucedida
     socket.emit('authenticated', { userId: socket.userId });
+
+    // Subscrever em sala de usuário para notificações personalizadas
+    socket.join(`user:${socket.userId}`);
 
     socket.on('disconnect', (reason) => {
       logger.info(`❌ Socket disconnected: ${socket.id} - Reason: ${reason}`);
@@ -78,7 +78,23 @@ const initSocket = (server) => {
     });
   });
 
-  logger.info('✅ Socket.IO initialized with JWT authentication');
+  // Launchpad namespace para atualizações em tempo real
+  launchpadNamespace.on('connection', (socket) => {
+    logger.info(`✅ Launchpad socket connected: ${socket.id}`);
+
+    // Subscrever em tokens específicos
+    socket.on('subscribe:token', (tokenAddress) => {
+      socket.join(`token:${tokenAddress}`);
+      logger.info(`Socket ${socket.id} subscribed to token: ${tokenAddress}`);
+    });
+
+    socket.on('unsubscribe:token', (tokenAddress) => {
+      socket.leave(`token:${tokenAddress}`);
+      logger.info(`Socket ${socket.id} unsubscribed from token: ${tokenAddress}`);
+    });
+  });
+
+  logger.info('✅ Socket.IO initialized with JWT authentication (Launchpad mode)');
   return io;
 };
 

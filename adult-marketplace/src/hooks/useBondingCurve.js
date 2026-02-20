@@ -3,150 +3,164 @@ import { useAccount, useWriteContract, useReadContract } from 'wagmi';
 import { parseEther, formatEther } from 'viem';
 import { toast } from 'sonner';
 import { CONTRACTS } from '../config/constants';
+import { BondingCurveABI } from '../config/contractABIs';
 
 export function useBondingCurve(tokenAddress) {
   const { address } = useAccount();
   const [isTrading, setIsTrading] = useState(false);
-  const [currentPrice, setCurrentPrice] = useState('0');
   const { writeContractAsync } = useWriteContract();
 
-  // Read current price from bonding curve
-  const { data: priceData } = useReadContract({
+  // Read market info
+  const { data: marketInfo, refetch: refetchMarket } = useReadContract({
     address: CONTRACTS.BONDING_CURVE,
-    abi: [
-      {
-        name: 'calculateBuyPrice',
-        type: 'function',
-        stateMutability: 'view',
-        inputs: [
-          { name: 'tokenAddress', type: 'address' },
-          { name: 'amount', type: 'uint256' }
-        ],
-        outputs: [{ name: 'price', type: 'uint256' }]
-      }
-    ],
-    functionName: 'calculateBuyPrice',
-    args: [tokenAddress, parseEther('1')],
+    abi: BondingCurveABI,
+    functionName: 'getMarketInfo',
+    args: tokenAddress ? [tokenAddress] : undefined,
     watch: true
   });
 
-  useEffect(() => {
-    if (priceData) {
-      setCurrentPrice(formatEther(priceData));
-    }
-  }, [priceData]);
-
-  const buyTokens = async (amount) => {
-    if (!address) {
-      toast.error('Wallet not connected');
-      throw new Error('Wallet not connected');
+  const buyTokens = async (amount, maxSlippage = 5) => {
+    if (!address || !tokenAddress) {
+      toast.error('Wallet not connected or invalid token');
+      throw new Error('Invalid parameters');
     }
     
     setIsTrading(true);
     const toastId = toast.loading(`Buying ${amount} tokens...`);
     
     try {
+      // Calculate expected price with slippage protection
+      const buyPrice = await calculateBuyPrice(amount);
+      const maxPrice = parseEther((parseFloat(buyPrice) * (1 + maxSlippage / 100)).toString());
+      
       const tx = await writeContractAsync({
         address: CONTRACTS.BONDING_CURVE,
-        abi: [
-          {
-            name: 'buy',
-            type: 'function',
-            stateMutability: 'payable',
-            inputs: [
-              { name: 'tokenAddress', type: 'address' },
-              { name: 'amount', type: 'uint256' }
-            ],
-            outputs: []
-          }
-        ],
+        abi: BondingCurveABI,
         functionName: 'buy',
-        args: [tokenAddress, parseEther(amount)],
-        value: parseEther((parseFloat(amount) * parseFloat(currentPrice)).toString())
+        args: [tokenAddress, parseEther(amount.toString()), maxPrice],
+        value: parseEther(buyPrice)
       });
 
+      await refetchMarket();
       toast.success(`Bought ${amount} tokens successfully!`, { id: toastId });
       return tx;
     } catch (error) {
       console.error('Buy failed:', error);
-      toast.error('Purchase failed', { id: toastId });
+      toast.error(error.message || 'Purchase failed', { id: toastId });
       throw error;
     } finally {
       setIsTrading(false);
     }
   };
 
-  const sellTokens = async (amount) => {
-    if (!address) {
-      toast.error('Wallet not connected');
-      throw new Error('Wallet not connected');
+  const sellTokens = async (amount, maxSlippage = 5) => {
+    if (!address || !tokenAddress) {
+      toast.error('Wallet not connected or invalid token');
+      throw new Error('Invalid parameters');
     }
     
     setIsTrading(true);
     const toastId = toast.loading(`Selling ${amount} tokens...`);
     
     try {
+      // Calculate expected price with slippage protection
+      const sellPrice = await calculateSellPrice(amount);
+      const minPrice = parseEther((parseFloat(sellPrice) * (1 - maxSlippage / 100)).toString());
+      
       const tx = await writeContractAsync({
         address: CONTRACTS.BONDING_CURVE,
-        abi: [
-          {
-            name: 'sell',
-            type: 'function',
-            stateMutability: 'nonpayable',
-            inputs: [
-              { name: 'tokenAddress', type: 'address' },
-              { name: 'amount', type: 'uint256' }
-            ],
-            outputs: []
-          }
-        ],
+        abi: BondingCurveABI,
         functionName: 'sell',
-        args: [tokenAddress, parseEther(amount)]
+        args: [tokenAddress, parseEther(amount.toString()), minPrice]
       });
 
+      await refetchMarket();
       toast.success(`Sold ${amount} tokens successfully!`, { id: toastId });
       return tx;
     } catch (error) {
       console.error('Sell failed:', error);
-      toast.error('Sale failed', { id: toastId });
+      toast.error(error.message || 'Sale failed', { id: toastId });
       throw error;
     } finally {
       setIsTrading(false);
     }
   };
 
-  const calculatePrice = async (amount, isBuy = true) => {
+  const calculateBuyPrice = async (amount) => {
+    if (!tokenAddress) return '0';
+    
     try {
-      const result = await useReadContract({
+      const { data: price } = await useReadContract({
         address: CONTRACTS.BONDING_CURVE,
-        abi: [
-          {
-            name: isBuy ? 'calculateBuyPrice' : 'calculateSellPrice',
-            type: 'function',
-            stateMutability: 'view',
-            inputs: [
-              { name: 'tokenAddress', type: 'address' },
-              { name: 'amount', type: 'uint256' }
-            ],
-            outputs: [{ name: 'price', type: 'uint256' }]
-          }
-        ],
-        functionName: isBuy ? 'calculateBuyPrice' : 'calculateSellPrice',
-        args: [tokenAddress, parseEther(amount)]
+        abi: BondingCurveABI,
+        functionName: 'calculateBuyPrice',
+        args: [tokenAddress, parseEther(amount.toString())]
       });
 
-      return formatEther(result);
+      return price ? formatEther(price) : '0';
     } catch (error) {
-      console.error('Price calculation failed:', error);
+      console.error('Buy price calculation failed:', error);
       return '0';
+    }
+  };
+  
+  const calculateSellPrice = async (amount) => {
+    if (!tokenAddress) return '0';
+    
+    try {
+      const { data: price } = await useReadContract({
+        address: CONTRACTS.BONDING_CURVE,
+        abi: BondingCurveABI,
+        functionName: 'calculateSellPrice',
+        args: [tokenAddress, parseEther(amount.toString())]
+      });
+
+      return price ? formatEther(price) : '0';
+    } catch (error) {
+      console.error('Sell price calculation failed:', error);
+      return '0';
+    }
+  };
+  
+  const createMarket = async () => {
+    if (!address || !tokenAddress) {
+      toast.error('Invalid parameters');
+      throw new Error('Invalid parameters');
+    }
+    
+    const toastId = toast.loading('Creating market...');
+    
+    try {
+      const tx = await writeContractAsync({
+        address: CONTRACTS.BONDING_CURVE,
+        abi: BondingCurveABI,
+        functionName: 'createMarket',
+        args: [tokenAddress]
+      });
+
+      await refetchMarket();
+      toast.success('Market created successfully!', { id: toastId });
+      return tx;
+    } catch (error) {
+      console.error('Market creation failed:', error);
+      toast.error(error.message || 'Market creation failed', { id: toastId });
+      throw error;
     }
   };
 
   return {
     buyTokens,
     sellTokens,
-    calculatePrice,
-    currentPrice,
-    isTrading
+    calculateBuyPrice,
+    calculateSellPrice,
+    createMarket,
+    marketInfo: marketInfo || {
+      isActive: false,
+      currentSupply: 0n,
+      reserveBalance: 0n,
+      totalVolume: 0n
+    },
+    isTrading,
+    refetchMarket
   };
 }

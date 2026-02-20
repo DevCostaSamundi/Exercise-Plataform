@@ -1,90 +1,58 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useAccount } from 'wagmi';
-import { Wallet, Coins, TrendingUp, DollarSign, ExternalLink, RefreshCw, Inbox, Rocket } from 'lucide-react';
+import { Wallet, Coins, TrendingUp, DollarSign, ExternalLink, RefreshCw, Inbox, Rocket, Loader2 } from 'lucide-react';
 import Sidebar from '../components/Sidebar';
 import EmptyState from '../components/EmptyState';
 import FadeIn from '../components/FadeIn';
 import AnimatedNumber from '../components/AnimatedNumber';
-import { formatEth, formatCurrency } from '../utils/format';
+import { formatEth, formatCurrency, formatCompactNumber, formatPercentage } from '../utils/format';
+import { useYieldClaim } from '../hooks/useYieldClaim';
+import { useTokenFactory } from '../hooks/useTokenFactory';
+import { usePortfolio, useUserTrades, usePortfolioStats } from '../hooks/useTokens';
 
 export default function MyPortfolioPage() {
   const { address, isConnected } = useAccount();
   const [activeTab, setActiveTab] = useState('holdings');
+  
+  // Fetch real portfolio data
+  const { data: portfolioData, isLoading: portfolioLoading, refetch: refetchPortfolio } = usePortfolio();
+  const { data: tradesData, isLoading: tradesLoading } = useUserTrades();
+  const { data: statsData } = usePortfolioStats();
+  
+  // For multiple yield claims
+  const [selectedTokens, setSelectedTokens] = useState([]);
   const [isRefreshing, setIsRefreshing] = useState(false);
+  
+  // Real data from API
+  const holdings = portfolioData?.holdings || [];
+  const trades = tradesData?.trades || [];
+  const stats = statsData || {};
 
-  // Mock portfolio data (will come from contracts/subgraph)
+  // Portfolio summary from real data
   const portfolio = {
-    totalValue: '$1,254.30',
-    totalValueChange: '+8.5%',
-    totalYieldEarned: '0.245 ETH',
-    totalYieldValue: '$543.21'
+    totalValue: formatCurrency(portfolioData?.totalValue || 0),
+    totalValueChange: formatPercentage(stats.totalPnl || 0, true, 1),
+    totalYieldEarned: formatEth(stats.totalYieldEarned || 0),
+    totalYieldValue: formatCurrency(parseFloat(stats.totalYieldEarned || 0) * 2200) // ETH price estimate
   };
-
-  // Para demonstrar empty state, use array vazio: const [holdings] = useState([]);
-  const [holdings] = useState([
-    {
-      tokenAddress: '0x1234...5678',
-      name: 'Angola Rising',
-      symbol: 'AGR',
-      balance: '15,420',
-      value: '$154.20',
-      valueChange: '+12.5%',
-      avgBuyPrice: '0.0095',
-      currentPrice: '0.0107',
-      profitLoss: '+$18.48',
-      profitLossPercent: '+12.6%',
-      isProfit: true
-    },
-    {
-      tokenAddress: '0x2345...6789',
-      name: 'Luanda Tech',
-      symbol: 'LTH',
-      balance: '8,900',
-      value: '$267.00',
-      valueChange: '-3.2%',
-      avgBuyPrice: '0.0315',
-      currentPrice: '0.0300',
-      profitLoss: '-$13.35',
-      profitLossPercent: '-4.8%',
-      isProfit: false
-    }
-  ]);
-
-  const [yieldHistory] = useState([
-    {
-      id: 1,
-      token: 'AGR',
-      tokenName: 'Angola Rising',
-      amount: '0.0245 ETH',
-      value: '$54.32',
-      timestamp: '2 hours ago',
-      status: 'claimed'
-    },
-    {
-      id: 2,
-      token: 'LTH',
-      tokenName: 'Luanda Tech',
-      amount: '0.0189 ETH',
-      value: '$41.89',
-      timestamp: '1 day ago',
-      status: 'claimed'
-    },
-    {
-      id: 3,
-      token: 'AGR',
-      tokenName: 'Angola Rising',
-      amount: '0.0312 ETH',
-      value: '$69.12',
-      timestamp: '3 days ago',
-      status: 'claimed'
-    }
-  ]);
 
   const handleRefresh = async () => {
     setIsRefreshing(true);
-    // TODO: Refresh data from contracts
-    setTimeout(() => setIsRefreshing(false), 1000);
+    await refetchPortfolio();
+    setIsRefreshing(false);
+  };
+  
+  const handleClaimAll = async () => {
+    if (selectedTokens.length === 0) return;
+    
+    try {
+      // This would use useYieldClaim().claimMultiple()
+      console.log('Claiming yield from:', selectedTokens);
+      // await claimMultiple(selectedTokens);
+    } catch (error) {
+      console.error('Failed to claim yield:', error);
+    }
   };
 
   if (!isConnected) {

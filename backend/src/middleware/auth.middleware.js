@@ -34,11 +34,7 @@ export const authenticate = async (req, res, next) => {
         role: true,
         isActive: true,
         isVerified: true,
-        creator: {
-          select: {
-            id: true,
-          },
-        },
+        web3Wallet: true,
       },
     });
 

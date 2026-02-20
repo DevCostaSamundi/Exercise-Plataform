@@ -1,73 +1,81 @@
 import { useState } from 'react';
-import { useAccount, useReadContract } from 'wagmi';
-import { CONTRACTS } from '../config/constants';
+import { useAccount, useWriteContract, useReadContract } from 'wagmi';
 import { toast } from 'sonner';
+import { CONTRACTS } from '../config/constants';
+import { CreatorRegistryABI } from '../config/contractABIs';
 
 export function useCreatorProfile(creatorAddress) {
   const { address } = useAccount();
   const [isUpdating, setIsUpdating] = useState(false);
+  const [isRating, setIsRating] = useState(false);
+  const { writeContractAsync } = useWriteContract();
 
-  // Read creator profile from CreatorRegistry
-  const { data: profileData, refetch } = useReadContract({
+  // Read creator profile
+  const { data: profileData, refetch: refetchProfile } = useReadContract({
     address: CONTRACTS.CREATOR_REGISTRY,
-    abi: [
-      {
-        name: 'getCreator',
-        type: 'function',
-        stateMutability: 'view',
-        inputs: [{ name: 'creator', type: 'address' }],
-        outputs: [
-          { name: 'name', type: 'string' },
-          { name: 'bio', type: 'string' },
-          { name: 'twitter', type: 'string' },
-          { name: 'telegram', type: 'string' },
-          { name: 'website', type: 'string' },
-          { name: 'isVerified', type: 'bool' },
-          { name: 'isBanned', type: 'bool' },
-          { name: 'rating', type: 'uint256' },
-          { name: 'totalTokens', type: 'uint256' },
-          { name: 'totalVolume', type: 'uint256' }
-        ]
-      }
-    ],
-    functionName: 'getCreator',
+    abi: CreatorRegistryABI,
+    functionName: 'getCreatorProfile',
     args: creatorAddress ? [creatorAddress] : undefined,
     watch: true
   });
 
-  // Read creator tokens
-  const { data: tokensData } = useReadContract({
+  // Read creator stats
+  const { data: statsData, refetch: refetchStats } = useReadContract({
     address: CONTRACTS.CREATOR_REGISTRY,
-    abi: [
-      {
-        name: 'getCreatorTokens',
-        type: 'function',
-        stateMutability: 'view',
-        inputs: [{ name: 'creator', type: 'address' }],
-        outputs: [{ name: 'tokens', type: 'address[]' }]
-      }
-    ],
-    functionName: 'getCreatorTokens',
+    abi: CreatorRegistryABI,
+    functionName: 'getCreatorStats',
     args: creatorAddress ? [creatorAddress] : undefined,
     watch: true
   });
 
-  const profile = profileData ? {
-    name: profileData[0],
-    bio: profileData[1],
-    twitter: profileData[2],
-    telegram: profileData[3],
-    website: profileData[4],
-    isVerified: profileData[5],
-    isBanned: profileData[6],
-    rating: Number(profileData[7]) / 100, // Convert from uint to decimal (4.5 = 450)
-    totalTokens: Number(profileData[8]),
-    totalVolume: profileData[9]
-  } : null;
+  const profile = profileData || {
+    name: '',
+    bio: '',
+    socialLinks: [],
+    isRegistered: false,
+    isVerified: false,
+    isBanned: false,
+    registeredAt: 0n
+  };
 
-  const tokens = tokensData || [];
+  const stats = statsData || {
+    tokensCreated: 0n,
+    totalVolume: 0n,
+    averageRating: 0n,
+    totalRatings: 0n,
+    flagsReceived: 0n
+  };
 
-  const updateProfile = async ({ name, bio, twitter, telegram, website }) => {
+  const registerCreator = async ({ name, bio, socialLinks }) => {
+    if (!address) {
+      toast.error('Wallet not connected');
+      throw new Error('Wallet not connected');
+    }
+
+    setIsUpdating(true);
+    const toastId = toast.loading('Registering creator profile...');
+
+    try {
+      const tx = await writeContractAsync({
+        address: CONTRACTS.CREATOR_REGISTRY,
+        abi: CreatorRegistryABI,
+        functionName: 'registerCreator',
+        args: [name, bio, socialLinks || []]
+      });
+
+      await Promise.all([refetchProfile(), refetchStats()]);
+      toast.success('Creator profile registered successfully!', { id: toastId });
+      return tx;
+    } catch (error) {
+      console.error('Registration failed:', error);
+      toast.error(error.message || 'Registration failed', { id: toastId });
+      throw error;
+    } finally {
+      setIsUpdating(false);
+    }
+  };
+
+  const updateProfile = async ({ name, bio, socialLinks }) => {
     if (!address) {
       toast.error('Wallet not connected');
       throw new Error('Wallet not connected');
@@ -77,21 +85,26 @@ export function useCreatorProfile(creatorAddress) {
     const toastId = toast.loading('Updating profile...');
 
     try {
-      // TODO: Implement contract call to update profile
-      // This would call CreatorRegistry.updateProfile()
-      
-      await refetch();
+      const tx = await writeContractAsync({
+        address: CONTRACTS.CREATOR_REGISTRY,
+        abi: CreatorRegistryABI,
+        functionName: 'updateProfile',
+        args: [name, bio, socialLinks || []]
+      });
+
+      await refetchProfile();
       toast.success('Profile updated successfully!', { id: toastId });
+      return tx;
     } catch (error) {
       console.error('Profile update failed:', error);
-      toast.error('Profile update failed', { id: toastId });
+      toast.error(error.message || 'Update failed', { id: toastId });
       throw error;
     } finally {
       setIsUpdating(false);
     }
   };
 
-  const rateCreator = async (rating) => {
+  const rateCreator = async (creatorAddr, rating) => {
     if (!address) {
       toast.error('Wallet not connected');
       throw new Error('Wallet not connected');
@@ -102,41 +115,74 @@ export function useCreatorProfile(creatorAddress) {
       throw new Error('Invalid rating');
     }
 
-    const toastId = toast.loading('Submitting rating...');
+    setIsRating(true);
+    const toastId = toast.loading(`Rating creator ${rating}/5...`);
 
     try {
-      // TODO: Implement contract call
-      // This would call CreatorRegistry.rateCreator(creatorAddress, rating)
-      
-      await refetch();
-      toast.success('Rating submitted!', { id: toastId });
+      const tx = await writeContractAsync({
+        address: CONTRACTS.CREATOR_REGISTRY,
+        abi: CreatorRegistryABI,
+        functionName: 'rateCreator',
+        args: [creatorAddr, rating]
+      });
+
+      await refetchStats();
+      toast.success(`Rated ${rating}/5 successfully!`, { id: toastId });
+      return tx;
     } catch (error) {
       console.error('Rating failed:', error);
-      toast.error('Rating failed', { id: toastId });
+      toast.error(error.message || 'Rating failed', { id: toastId });
+      throw error;
+    } finally {
+      setIsRating(false);
+    }
+  };
+
+  const flagCreator = async (creatorAddr, reason) => {
+    if (!address) {
+      toast.error('Wallet not connected');
+      throw new Error('Wallet not connected');
+    }
+
+    if (!reason || reason.trim() === '') {
+      toast.error('Please provide a reason');
+      throw new Error('Reason required');
+    }
+
+    const toastId = toast.loading('Flagging creator...');
+
+    try {
+      const tx = await writeContractAsync({
+        address: CONTRACTS.CREATOR_REGISTRY,
+        abi: CreatorRegistryABI,
+        functionName: 'flagCreator',
+        args: [creatorAddr, reason]
+      });
+
+      await refetchStats();
+      toast.success('Creator flagged successfully', { id: toastId });
+      return tx;
+    } catch (error) {
+      console.error('Flag failed:', error);
+      toast.error(error.message || 'Flag failed', { id: toastId });
       throw error;
     }
   };
 
-  const getCreatorStats = async () => {
-    // TODO: Aggregate stats from multiple tokens
-    // This would query all tokens created by creator
-    // and sum up holders, volume, etc.
-    
-    return {
-      totalHolders: 0,
-      totalVolume: '0',
-      totalRevenue: '0',
-      averageRating: profile?.rating || 0
-    };
-  };
-
   return {
     profile,
-    tokens,
+    stats,
+    registerCreator,
     updateProfile,
     rateCreator,
-    getCreatorStats,
+    flagCreator,
     isUpdating,
-    refetchProfile: refetch
+    isRating,
+    isRegistered: profile.isRegistered,
+    isVerified: profile.isVerified,
+    isBanned: profile.isBanned,
+    averageRating: stats.averageRating ? Number(stats.averageRating) / 100 : 0, // Convert 450 -> 4.5
+    refetchProfile,
+    refetchStats
   };
 }

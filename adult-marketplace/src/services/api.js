@@ -1,9 +1,5 @@
 import axios from 'axios';
-import { API } from '../config/constants';
-
-// API Configuration
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
-const API_VERSION = import.meta.env.VITE_API_VERSION || API.VERSION;
+import { API, API_BASE_URL } from '../config/constants';
 
 /**
  * Axios instance - SIMPLIFIED for Web3
@@ -11,7 +7,7 @@ const API_VERSION = import.meta.env.VITE_API_VERSION || API.VERSION;
  * Backend only for off-chain data (if needed)
  */
 const api = axios.create({
-  baseURL: `${API_URL}/api/${API_VERSION}`,
+  baseURL: API_BASE_URL,
   timeout: API.TIMEOUT,
   headers: {
     'Content-Type': 'application/json',

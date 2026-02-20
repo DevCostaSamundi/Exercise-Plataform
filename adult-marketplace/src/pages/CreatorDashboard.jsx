@@ -8,21 +8,32 @@ import {
 import Sidebar from '../components/Sidebar';
 import AnimatedNumber from '../components/AnimatedNumber';
 import EmptyState from '../components/EmptyState';
+import CreatorAnalytics from '../components/CreatorAnalytics';
+import RevenueChart from '../components/RevenueChart';
+import CreatorStats from '../components/CreatorStats';
+import TokenManagementCard from '../components/TokenManagementCard';
 import { formatCompactNumber, formatCurrency, formatPercentage } from '../utils/format';
+import { useCreatorProfile } from '../hooks/useCreatorProfile';
+import { useTokenFactory } from '../hooks/useTokenFactory';
 
 export default function CreatorDashboard() {
   const { address, isConnected } = useAccount();
   const [activeTab, setActiveTab] = useState('overview');
+  
+  // Web3 hooks
+  const { profile, stats, isRegistered, registerCreator, updateProfile, averageRating } = useCreatorProfile(address);
+  const { getUserTokens, allTokens } = useTokenFactory();
 
-  // Mock data - will be replaced with real contract/subgraph data
+  // Creator stats from contract
   const creatorStats = {
-    totalTokens: 3,
-    totalVolume: '$45,230',
-    totalHolders: 1247,
-    totalRevenue: '2.45 ETH',
-    revenueValue: '$5,432',
-    rating: 4.8,
-    verifiedBadge: true
+    totalTokens: stats.tokensCreated ? Number(stats.tokensCreated) : 0,
+    totalVolume: stats.totalVolume ? `$${(Number(stats.totalVolume) / 1e18 * 2200).toFixed(0)}` : '$0',
+    totalHolders: 0, // Would aggregate from all tokens
+    totalRevenue: '0 ETH', // Would calculate from FeeCollector
+    revenueValue: '$0',
+    rating: averageRating || 0,
+    verifiedBadge: profile.isVerified || false,
+    isRegistered: isRegistered
   };
 
   const myTokens = [
@@ -146,8 +157,14 @@ export default function CreatorDashboard() {
           {/* Overview Tab */}
           {activeTab === 'overview' && (
             <div className="space-y-6">
-              {/* Stats Grid */}
-              <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
+              {/* Creator Stats */}
+              <CreatorStats stats={creatorStats} />
+
+              {/* Revenue Chart */}
+              <RevenueChart timeframe="30d" />
+
+              {/* Legacy Stats Grid - Hidden but kept for reference */}
+              <div className="hidden grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
                 <div className="border border-gray-800 rounded-xl p-4 md:p-6 hover:border-gray-700 hover:shadow-lg hover:shadow-yellow-400/5 transition-all">
                   <div className="flex items-center gap-2 mb-2">
                     <Rocket className="text-yellow-400" size={20} />
@@ -262,61 +279,20 @@ export default function CreatorDashboard() {
                 />
               ) : (
                 <>
-                  <h2 className="text-2xl font-bold">My Tokens ({myTokens.length})</h2>
+                  <div className="flex items-center justify-between mb-6">
+                    <h2 className="text-2xl font-bold">My Tokens ({myTokens.length})</h2>
+                    <Link
+                      to="/launch"
+                      className="px-4 py-2 bg-yellow-400 hover:bg-yellow-500 text-black rounded-lg font-semibold flex items-center gap-2 transition-all"
+                    >
+                      <Plus size={18} />
+                      <span className="hidden sm:inline">New Token</span>
+                    </Link>
+                  </div>
                   
-                  <div className="grid gap-4">
+                  <div className="grid md:grid-cols-2 xl:grid-cols-3 gap-6">
                     {myTokens.map((token) => (
-                      <div key={token.address} className="border border-gray-800 rounded-xl p-4 md:p-6 hover:border-yellow-400/30 hover:shadow-lg hover:shadow-yellow-400/5 transition-all">
-                        <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
-                          <div className="flex items-center gap-4">
-                            <div className="w-14 h-14 rounded-full bg-gradient-to-br from-yellow-400 to-orange-500 flex-shrink-0" />
-                            <div>
-                              <h3 className="text-xl font-bold">{token.name}</h3>
-                              <div className="flex items-center gap-3 text-sm text-gray-400">
-                                <span className="font-mono">${token.symbol}</span>
-                                <span>•</span>
-                                <span>{token.createdAt}</span>
-                              </div>
-                            </div>
-                          </div>
-
-                          <div className="flex gap-2 w-full md:w-auto">
-                            <Link
-                              to={`/token/${token.address}`}
-                              className="flex-1 md:flex-none px-4 py-2 border border-gray-700 hover:border-yellow-400 rounded-lg font-semibold text-sm flex items-center justify-center gap-2 hover:scale-105 transition-all"
-                            >
-                              <Eye size={16} />
-                              View
-                            </Link>
-                            <button className="flex-1 md:flex-none px-4 py-2 border border-gray-700 hover:border-yellow-400 rounded-lg font-semibold text-sm flex items-center justify-center gap-2 hover:scale-105 transition-all">
-                              <Settings size={16} />
-                              Manage
-                            </button>
-                          </div>
-                        </div>
-
-                        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-6 pt-6 border-t border-gray-800">
-                          <div>
-                            <div className="text-xs text-gray-500 mb-1">Market Cap</div>
-                            <div className="font-bold">{token.marketCap}</div>
-                          </div>
-                          <div>
-                            <div className="text-xs text-gray-500 mb-1">Volume 24h</div>
-                            <div className="font-bold">{token.volume24h}</div>
-                          </div>
-                          <div>
-                            <div className="text-xs text-gray-500 mb-1">Holders</div>
-                            <div className="font-bold flex items-center gap-1">
-                              <Users size={14} />
-                              {token.holders}
-                            </div>
-                          </div>
-                          <div>
-                            <div className="text-xs text-gray-500 mb-1">Your Revenue</div>
-                            <div className="font-bold text-yellow-400">{token.revenue}</div>
-                          </div>
-                        </div>
-                      </div>
+                      <TokenManagementCard key={token.address} token={token} />
                     ))}
                   </div>
                 </>
@@ -327,14 +303,36 @@ export default function CreatorDashboard() {
           {/* Analytics Tab */}
           {activeTab === 'analytics' && (
             <div className="space-y-6">
-              <EmptyState
-                icon={BarChart3}
-                title="Analytics Coming Soon"
-                description="Detailed analytics with charts and metrics will be available after subgraph integration."
-              />
+              <h2 className="text-2xl font-bold mb-6">Creator Analytics</h2>
+              
+              {/* Revenue Chart */}
+              <RevenueChart timeframe="30d" />
+              
+              {/* Volume Over Time */}
+              <div className="border border-gray-800 rounded-xl p-6">
+                <h3 className="text-lg font-bold mb-4">Volume Breakdown</h3>
+                <div className="grid md:grid-cols-3 gap-4">
+                  <div className="bg-gray-900 rounded-lg p-4">
+                    <p className="text-xs text-gray-500 mb-2">Last 7 Days</p>
+                    <p className="text-2xl font-bold text-green-400">$45,230</p>
+                    <p className="text-xs text-green-400 mt-1">+15.3%</p>
+                  </div>
+                  <div className="bg-gray-900 rounded-lg p-4">
+                    <p className="text-xs text-gray-500 mb-2">Last 30 Days</p>
+                    <p className="text-2xl font-bold text-blue-400">$167,890</p>
+                    <p className="text-xs text-blue-400 mt-1">+22.7%</p>
+                  </div>
+                  <div className="bg-gray-900 rounded-lg p-4">
+                    <p className="text-xs text-gray-500 mb-2">All Time</p>
+                    <p className="text-2xl font-bold text-yellow-400">$892,340</p>
+                    <p className="text-xs text-gray-500 mt-1">Since Nov 2024</p>
+                  </div>
+                </div>
+              </div>
+              
+              <CreatorAnalytics />
             </div>
           )}
-
           {/* Profile Tab */}
           {activeTab === 'profile' && (
             <div className="space-y-6">

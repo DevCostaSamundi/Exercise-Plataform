@@ -15,6 +15,7 @@ import AnimatedNumber from '../components/AnimatedNumber';
 import { formatCompactNumber, formatCurrency, formatPercentage } from '../utils/format';
 import { useBondingCurve } from '../hooks/useBondingCurve';
 import { useYieldClaim } from '../hooks/useYieldClaim';
+import { useToken } from '../hooks/useTokens';
 
 export default function TokenDetailPage() {
   const { tokenAddress } = useParams();
@@ -22,26 +23,52 @@ export default function TokenDetailPage() {
   const [activeTab, setActiveTab] = useState('buy');
   const [amount, setAmount] = useState('');
 
-  const { buyTokens, sellTokens, currentPrice, isTrading } = useBondingCurve(tokenAddress);
-  const { pendingYield, claimYield, isClaiming } = useYieldClaim(tokenAddress);
+  // Fetch token data from API
+  const { data: tokenData, isLoading: tokenLoading, error: tokenError } = useToken(tokenAddress);
 
-  // Mock token data (will come from contract/subgraph)
-  const token = {
-    name: 'Angola Rising',
-    symbol: 'AGR',
-    creator: '0x1234...5678',
-    description: 'The first community token celebrating Angolan innovation and entrepreneurship on Base Network.',
+  const { buyTokens, sellTokens, marketInfo, isTrading, calculateBuyPrice, calculateSellPrice } = useBondingCurve(tokenAddress);
+  const { pendingYield, claimYield, isClaiming, poolInfo } = useYieldClaim(tokenAddress);
+
+  // Token data - combines API data with on-chain data
+  const token = tokenData ? {
+    name: tokenData.name,
+    symbol: tokenData.symbol,
+    creator: tokenData.creatorAddress,
+    creatorName: tokenData.creator?.username || tokenData.creatorAddress?.slice(0, 8) + '...',
+    description: tokenData.description || 'A community token on Base Network.',
+    imageUrl: tokenData.logo || '',
+    price: tokenData.currentPrice || '0',
+    priceChange24h: tokenData.priceChange24h || 0,
+    volume24h: tokenData.volume24h || 0,
+    holders: tokenData._count?.holders || tokenData.holdersCount || 0,
+    marketCap: tokenData.marketCap || 0,
+    totalSupply: tokenData.totalSupply || '0',
+    isActive: tokenData.isActive !== false,
+    twitter: tokenData.twitter,
+    telegram: tokenData.telegram,
+    website: tokenData.website,
+    discord: tokenData.discord
+  } : {
+    // Fallback while loading
+    name: 'Loading...',
+    symbol: '...',
+    creator: tokenAddress,
+    creatorName: 'Loading...',
+    description: '',
     imageUrl: '',
-    price: currentPrice || '0.001',
-    priceChange24h: '+12.5',
-    volume24h: '$125,430',
-    holders: 2847,
-    marketCap: '$1,254,300',
-    totalSupply: '10,000,000',
-    twitter: 'https://twitter.com/angorising',
-    telegram: 'https://t.me/angorising',
-    website: 'https://angorising.xyz'
+    price: '0',
+    priceChange24h: 0,
+    volume24h: 0,
+    holders: 0,
+    marketCap: 0,
+    totalSupply: '0',
+    isActive: true
   };
+
+  // Calculate current price from on-chain data if available
+  const currentPrice = marketInfo?.currentPrice 
+    ? parseFloat(marketInfo.currentPrice) / 1e18 
+    : parseFloat(token.price);
 
   const handleTrade = async () => {
     if (!amount || parseFloat(amount) <= 0) return;
@@ -65,6 +92,34 @@ export default function TokenDetailPage() {
       console.error('Claim failed:', error);
     }
   };
+
+  // Loading state
+  if (tokenLoading) {
+    return (
+      <div className="flex min-h-screen bg-black">
+        <Sidebar />
+        <div className="flex-1 text-white p-4 md:p-8 flex items-center justify-center">
+          <Loader2 className="animate-spin w-12 h-12 text-yellow-400" />
+        </div>
+      </div>
+    );
+  }
+
+  // Error state
+  if (tokenError) {
+    return (
+      <div className="flex min-h-screen bg-black">
+        <Sidebar />
+        <div className="flex-1 text-white p-4 md:p-8 flex flex-col items-center justify-center">
+          <h2 className="text-2xl font-bold mb-4">Token Not Found</h2>
+          <p className="text-gray-400 mb-6">The token at {tokenAddress} could not be found.</p>
+          <Link to="/" className="bg-yellow-400 text-black px-6 py-3 rounded-lg font-bold">
+            Back to Home
+          </Link>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="flex min-h-screen bg-black">

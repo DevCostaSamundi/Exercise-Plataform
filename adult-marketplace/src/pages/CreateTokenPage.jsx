@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useAccount } from 'wagmi';
-import { Rocket, ArrowRight, ArrowLeft, CheckCircle, Upload, Loader2 } from 'lucide-react';
+import { useAccount, useConnect } from 'wagmi';
+import { Rocket, ArrowRight, ArrowLeft, CheckCircle, Upload, Loader2, Wallet } from 'lucide-react';
 import Sidebar from '../components/Sidebar';
 import FadeIn from '../components/FadeIn';
 import { useTokenFactory } from '../hooks/useTokenFactory';
@@ -9,7 +9,8 @@ import { useTokenFactory } from '../hooks/useTokenFactory';
 export default function CreateTokenPage() {
   const navigate = useNavigate();
   const { isConnected } = useAccount();
-  const { createToken, isCreating } = useTokenFactory();
+  const { connect, connectors, isPending } = useConnect();
+  const { createToken, isCreating, launchFee } = useTokenFactory();
   
   const [step, setStep] = useState(1);
   const [formData, setFormData] = useState({
@@ -56,11 +57,15 @@ export default function CreateTokenPage() {
     if (!validateStep(3)) return;
     
     try {
-      const tx = await createToken(formData);
-      navigate(`/payment-status?tx=${tx}`);
+      await createToken({
+        name: formData.name,
+        symbol: formData.symbol,
+        initialSupply: formData.initialSupply
+      });
+      // Navigate to success page or token detail
+      navigate('/my-portfolio?success=true');
     } catch (error) {
       console.error('Failed to create token:', error);
-      alert('Failed to create token. Please try again.');
     }
   };
 
@@ -77,10 +82,31 @@ export default function CreateTokenPage() {
         <Sidebar />
         <div className="flex-1 min-h-screen bg-black text-white flex items-center justify-center p-4">
           <div className="text-center max-w-md">
-            <Rocket className="text-yellow-400 mx-auto mb-4" size={64} />
-            <h2 className="text-3xl font-bold mb-2">Connect Wallet</h2>
-            <p className="text-gray-400">
+            <Rocket className="text-yellow-400 mx-auto mb-6" size={64} />
+            <h2 className="text-3xl font-bold mb-3">Connect Wallet</h2>
+            <p className="text-gray-400 mb-8">
               Please connect your wallet to create a token
+            </p>
+            
+            {/* Connect Buttons */}
+            <div className="space-y-3">
+              {connectors.map((connector) => (
+                <button
+                  key={connector.id}
+                  onClick={() => connect({ connector })}
+                  disabled={isPending}
+                  className="w-full flex items-center justify-center gap-3 bg-yellow-400 hover:bg-yellow-500 text-black font-bold py-4 px-6 rounded-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  <Wallet size={20} />
+                  <span>
+                    {isPending ? 'Connecting...' : `Connect with ${connector.name}`}
+                  </span>
+                </button>
+              ))}
+            </div>
+            
+            <p className="text-xs text-gray-600 mt-6">
+              By connecting, you agree to our Terms of Service
             </p>
           </div>
         </div>
@@ -274,11 +300,13 @@ export default function CreateTokenPage() {
                   </div>
                   <div className="flex justify-between">
                     <span className="text-gray-400">Creation Fee:</span>
-                    <span className="font-semibold text-yellow-400">~0.001 ETH</span>
+                    <span className="font-semibold text-yellow-400">
+                      {launchFee ? `${(parseFloat(launchFee) / 1e18).toFixed(4)} ETH` : '~0.01 ETH'}
+                    </span>
                   </div>
                 </div>
               </div>
-            </div>
+            </FadeIn>
           )}
 
           {/* Navigation Buttons */}

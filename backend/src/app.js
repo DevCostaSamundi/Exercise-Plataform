@@ -1,32 +1,26 @@
 // src/app.js
+// Launchpad 2.0 - Token Trading Platform on Base
 import express from 'express';
 import cors from 'cors';
 import helmet from 'helmet';
 import rateLimit from 'express-rate-limit';
 import cookieParser from 'cookie-parser';
 
-// Import routes
+// Import routes - Core Platform
 import authRoutes from './routes/auth.routes.js';
 import userRoutes from './routes/user.routes.js';
-import creatorRoutes from './routes/creator.routes.js';
-import postRoutes from './routes/post.routes.js';
-import chatRoutes from './routes/chat.routes.js';
-import liveRoutes from './routes/live.routes.js';
-import creatorPostRoutes from './routes/creatorPost.routes.js';
-import messageRoutes from './routes/message.routes.js';
-import creatorDashboardRoutes from './routes/creatorDashboard.routes.js';
-import commentRoutes from './routes/comment.routes.js';
-import likeRoutes from './routes/like.routes.js';
-import favoriteRoutes from './routes/favorite.routes.js';
-import trendingRoutes from './routes/trending.routes.js';
-import transactionRoutes from './routes/transaction.routes.js';
-import uploadRoutes from './routes/upload.routes.js';
-import creatorSubscribersRoutes from './routes/creatorSubscribers.routes.js';
-import notificationRoutes from './routes/notification.routes.js';
-import creatorSettingsRoutes from './routes/creatorSettings.routes.js';
-import subscriptionRoutes from './routes/subscription.routes.js';
 import web3authRoutes from './routes/web3auth.routes.js';
+import notificationRoutes from './routes/notification.routes.js';
+
+// Import routes - Launchpad (Token Trading)
+import tokenRoutes from './routes/token.routes.js';
+import portfolioRoutes from './routes/portfolio.routes.js';
 import cryptoPaymentRoutes from './routes/crypto-payment.routes.js';
+import transactionRoutes from './routes/transaction.routes.js';
+import trendingRoutes from './routes/trending.routes.js';
+
+// Import routes - AI Marketing (Admin)
+import aiRoutes from './routes/ai.routes.js';
 
 import errorMiddleware from './middleware/error.middleware.js';
 import logger from './utils/logger.js';
@@ -98,31 +92,18 @@ app.get('/health', (req, res) => {
 const API_VERSION = process.env.API_VERSION || 'v1';
 
 // ============================================
-// ORDEM IMPORTANTE: Rotas mais específicas PRIMEIRO
+// API Routes - Launchpad 2.0
 // ============================================
 
 // Auth routes (públicas)
 app.use(`/api/${API_VERSION}/auth`, authRoutes);
 
-// ✅ CRÍTICO:  Rotas de GERENCIAMENTO do criador (mais específicas)
-// Estas devem vir ANTES de /creators para evitar conflito
-app.use(`/api/${API_VERSION}/creator/settings`, creatorSettingsRoutes);
-app.use(`/api/${API_VERSION}/creator-dashboard`, creatorDashboardRoutes);
-app.use(`/api/${API_VERSION}/creator/posts`, creatorPostRoutes);
-app.use(`/api/${API_VERSION}/creator/subscribers`, creatorSubscribersRoutes);
+// Token routes (Launchpad Core)
+app.use(`/api/${API_VERSION}/tokens`, tokenRoutes);
+app.use(`/api/${API_VERSION}/portfolio`, portfolioRoutes);
 
-// ✅ Rotas PÚBLICAS de criadores (menos específicas)
-// Esta deve vir DEPOIS das rotas de gerenciamento
-app.use(`/api/${API_VERSION}/creators`, creatorRoutes);
-
-// User routes (protegidas)
+// User routes
 app.use(`/api/${API_VERSION}/user`, userRoutes);
-
-// ✅ Subscription routes (ASSINANTE gerencia suas assinaturas)
-app.use(`/api/${API_VERSION}/subscriptions`, subscriptionRoutes);
-
-// Favorites routes
-app.use(`/api/${API_VERSION}/favorites`, favoriteRoutes);
 
 // Trending routes
 app.use(`/api/${API_VERSION}/trending`, trendingRoutes);
@@ -130,38 +111,17 @@ app.use(`/api/${API_VERSION}/trending`, trendingRoutes);
 // Wallet and transaction routes
 app.use(`/api/${API_VERSION}`, transactionRoutes);
 
-// Post routes (públicos)
-app.use(`/api/${API_VERSION}/posts`, postRoutes);
-
-// Comment routes
-app.use(`/api/${API_VERSION}`, commentRoutes);
-
-// Like routes
-app.use(`/api/${API_VERSION}`, likeRoutes);
-
-// Live routes
-app.use(`/api/${API_VERSION}/lives`, liveRoutes);
-
-// Message routes
-app.use(`/api/${API_VERSION}/messages`, messageRoutes);
-
-// Chat routes
-app.use(`/api/${API_VERSION}/chat`, chatRoutes);
-
-// Upload routes
-app.use(`/api/${API_VERSION}/upload`, uploadRoutes);
-
 // Notification routes
 app.use(`/api/${API_VERSION}/notifications`, notificationRoutes);
-
-
-
-// Web3 Upload routes
 
 // Web3 Auth routes
 app.use(`/api/${API_VERSION}/web3-auth`, web3authRoutes);
 
+// Crypto Payment routes
 app.use(`/api/${API_VERSION}/crypto-payment`, cryptoPaymentRoutes);
+
+// AI Marketing routes (admin-only)
+app.use(`/api/${API_VERSION}/ai`, aiRoutes);
 
 // ------------------- 404 handler -------------------
 app.use('/api', (req, res) => {

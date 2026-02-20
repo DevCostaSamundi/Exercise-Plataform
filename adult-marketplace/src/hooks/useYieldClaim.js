@@ -3,6 +3,7 @@ import { useAccount, useWriteContract, useReadContract } from 'wagmi';
 import { formatEther } from 'viem';
 import { toast } from 'sonner';
 import { CONTRACTS } from '../config/constants';
+import { YieldDistributorABI } from '../config/contractABIs';
 
 export function useYieldClaim(tokenAddress) {
   const { address } = useAccount();
@@ -11,20 +12,18 @@ export function useYieldClaim(tokenAddress) {
   // Read pending yield
   const { data: pendingYieldData, refetch } = useReadContract({
     address: CONTRACTS.YIELD_DISTRIBUTOR,
-    abi: [
-      {
-        name: 'getPendingYield',
-        type: 'function',
-        stateMutability: 'view',
-        inputs: [
-          { name: 'tokenAddress', type: 'address' },
-          { name: 'holder', type: 'address' }
-        ],
-        outputs: [{ name: 'amount', type: 'uint256' }]
-      }
-    ],
+    abi: YieldDistributorABI,
     functionName: 'getPendingYield',
     args: tokenAddress && address ? [tokenAddress, address] : undefined,
+    watch: true
+  });
+  
+  // Read pool info
+  const { data: poolInfo } = useReadContract({
+    address: CONTRACTS.YIELD_DISTRIBUTOR,
+    abi: YieldDistributorABI,
+    functionName: 'getPoolInfo',
+    args: tokenAddress ? [tokenAddress] : undefined,
     watch: true
   });
 
@@ -44,17 +43,7 @@ export function useYieldClaim(tokenAddress) {
     try {
       const tx = await writeContractAsync({
         address: CONTRACTS.YIELD_DISTRIBUTOR,
-        abi: [
-          {
-            name: 'claimYield',
-            type: 'function',
-            stateMutability: 'nonpayable',
-            inputs: [
-              { name: 'tokenAddress', type: 'address' }
-            ],
-            outputs: []
-          }
-        ],
+        abi: YieldDistributorABI,
         functionName: 'claimYield',
         args: [tokenAddress]
       });
@@ -64,7 +53,36 @@ export function useYieldClaim(tokenAddress) {
       return tx;
     } catch (error) {
       console.error('Claim failed:', error);
-      toast.error('Claim failed', { id: toastId });
+      toast.error(error.message || 'Claim failed', { id: toastId });
+      throw error;
+    } finally {
+      setIsClaiming(false);
+    }
+  };
+  
+  const claimMultiple = async (tokenAddresses) => {
+    if (!address || !tokenAddresses || tokenAddresses.length === 0) {
+      toast.error('Invalid parameters');
+      throw new Error('Invalid parameters');
+    }
+    
+    setIsClaiming(true);
+    const toastId = toast.loading(`Claiming yield from ${tokenAddresses.length} tokens...`);
+    
+    try {
+      const tx = await writeContractAsync({
+        address: CONTRACTS.YIELD_DISTRIBUTOR,
+        abi: YieldDistributorABI,
+        functionName: 'claimMultiple',
+        args: [tokenAddresses]
+      });
+
+      await refetch();
+      toast.success(`Claimed yield from ${tokenAddresses.length} tokens!`, { id: toastId });
+      return tx;
+    } catch (error) {
+      console.error('Multiple claim failed:', error);
+      toast.error(error.message || 'Claim failed', { id: toastId });
       throw error;
     } finally {
       setIsClaiming(false);
@@ -74,7 +92,14 @@ export function useYieldClaim(tokenAddress) {
   return {
     pendingYield,
     claimYield,
+    claimMultiple,
     isClaiming,
+    poolInfo: poolInfo || {
+      isActive: false,
+      totalYield: 0n,
+      totalClaimed: 0n,
+      lastDistribution: 0n
+    },
     refetchYield: refetch
   };
 }

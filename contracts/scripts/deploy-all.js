@@ -43,8 +43,11 @@ async function main() {
   // ========== 2. FeeCollector ==========
   console.log("\n2️⃣  Deploying FeeCollector...");
   
+  // FeeCollector precisa de YieldDistributor, então deploy placeholder primeiro
+  const TEMP_YIELD_DISTRIBUTOR = FEE_RECEIVER; // Temporário, será atualizado depois
+  
   const FeeCollector = await hre.ethers.getContractFactory("FeeCollector");
-  const feeCollector = await FeeCollector.deploy(FEE_RECEIVER);
+  const feeCollector = await FeeCollector.deploy(FEE_RECEIVER, TEMP_YIELD_DISTRIBUTOR);
   await feeCollector.waitForDeployment();
   
   const feeCollectorAddress = await feeCollector.getAddress();
@@ -56,7 +59,7 @@ async function main() {
   console.log("\n3️⃣  Deploying YieldDistributor...");
   
   const YieldDistributor = await hre.ethers.getContractFactory("YieldDistributor");
-  const yieldDistributor = await YieldDistributor.deploy(feeCollectorAddress);
+  const yieldDistributor = await YieldDistributor.deploy(); // Sem argumentos!
   await yieldDistributor.waitForDeployment();
   
   const yieldDistributorAddress = await yieldDistributor.getAddress();
@@ -95,13 +98,12 @@ async function main() {
   console.log("\n6️⃣  Deploying CreatorRegistry...");
   
   const CreatorRegistry = await hre.ethers.getContractFactory("CreatorRegistry");
-  const creatorRegistry = await CreatorRegistry.deploy(tokenFactoryAddress);
+  const creatorRegistry = await CreatorRegistry.deploy(); // Sem argumentos!
   await creatorRegistry.waitForDeployment();
   
   const creatorRegistryAddress = await creatorRegistry.getAddress();
   deployedContracts.CreatorRegistry = creatorRegistryAddress;
   console.log("   ✅ CreatorRegistry:", creatorRegistryAddress);
-  console.log("      Token Factory:", tokenFactoryAddress);
 
   // ========== Configuration ==========
   console.log("\n" + "─".repeat(70));
@@ -161,11 +163,11 @@ async function main() {
   console.log("\nRun these commands to verify on BaseScan:\n");
   
   console.log(`npx hardhat verify --network ${hre.network.name} ${tokenFactoryAddress} "${FEE_RECEIVER}" "${LAUNCH_FEE}"`);
-  console.log(`npx hardhat verify --network ${hre.network.name} ${feeCollectorAddress} "${FEE_RECEIVER}"`);
-  console.log(`npx hardhat verify --network ${hre.network.name} ${yieldDistributorAddress} "${feeCollectorAddress}"`);
+  console.log(`npx hardhat verify --network ${hre.network.name} ${feeCollectorAddress} "${FEE_RECEIVER}" "${TEMP_YIELD_DISTRIBUTOR}"`);
+  console.log(`npx hardhat verify --network ${hre.network.name} ${yieldDistributorAddress}`);
   console.log(`npx hardhat verify --network ${hre.network.name} ${bondingCurveAddress} "${tokenFactoryAddress}" "${feeCollectorAddress}"`);
   console.log(`npx hardhat verify --network ${hre.network.name} ${liquidityLockerAddress} "${FEE_RECEIVER}"`);
-  console.log(`npx hardhat verify --network ${hre.network.name} ${creatorRegistryAddress} "${tokenFactoryAddress}"`);
+  console.log(`npx hardhat verify --network ${hre.network.name} ${creatorRegistryAddress}`);
 
   // Next steps
   console.log("\n" + "=".repeat(70));

@@ -1,13 +1,21 @@
 import { Link } from 'react-router-dom';
 import { useAccount } from 'wagmi';
-import { Rocket, TrendingUp, Coins, Shield, Activity } from 'lucide-react';
+import { Rocket, TrendingUp, Coins, Shield, Activity, Loader2 } from 'lucide-react';
 import Sidebar from '../components/Sidebar';
 import ActivityFeed from '../components/ActivityFeed';
 import FadeIn from '../components/FadeIn';
 import { StaggerContainer, StaggerItem } from '../components/StaggerChildren';
+import { useTrendingTokens, usePlatformStats } from '../hooks/useTokens';
+import { formatCompactNumber, formatCurrency, formatPercentage } from '../utils/format';
 
 export default function HomePage() {
   const { isConnected } = useAccount();
+  
+  // Fetch real data
+  const { data: trendingData, isLoading: trendingLoading } = useTrendingTokens(4);
+  const { data: statsData } = usePlatformStats();
+  
+  const trendingTokens = trendingData?.tokens || [];
 
   return (
     <div className="flex min-h-screen bg-black">
@@ -114,29 +122,68 @@ export default function HomePage() {
                   View all →
                 </Link>
               </div>
-              <div className="grid sm:grid-cols-2 gap-6">
-                {[1, 2, 3, 4].map((i) => (
-                  <div key={i} className="border border-gray-800 hover:border-gray-700 rounded-xl p-6 transition-all">
-                    <div className="flex items-center gap-4 mb-6">
-                      <div className="w-12 h-12 rounded-full bg-gradient-to-br from-yellow-400 to-orange-500" />
-                      <div>
-                        <h4 className="font-bold">TOKEN {i}</h4>
-                        <p className="text-sm text-gray-500">Coming soon</p>
+              
+              {trendingLoading ? (
+                <div className="flex items-center justify-center py-12">
+                  <Loader2 className="animate-spin w-8 h-8 text-yellow-400" />
+                </div>
+              ) : trendingTokens.length > 0 ? (
+                <div className="grid sm:grid-cols-2 gap-6">
+                  {trendingTokens.map((token) => (
+                    <Link key={token.address} to={`/token/${token.address}`}>
+                      <div className="border border-gray-800 hover:border-yellow-400/30 rounded-xl p-6 transition-all hover:scale-[1.02]">
+                        <div className="flex items-center gap-4 mb-6">
+                          {token.logo ? (
+                            <img 
+                              src={token.logo} 
+                              alt={token.name}
+                              className="w-12 h-12 rounded-full object-cover"
+                            />
+                          ) : (
+                            <div className="w-12 h-12 rounded-full bg-gradient-to-br from-yellow-400 to-orange-500 flex items-center justify-center text-lg font-bold text-black">
+                              {token.symbol?.charAt(0) || '?'}
+                            </div>
+                          )}
+                          <div>
+                            <h4 className="font-bold">{token.name}</h4>
+                            <p className="text-sm text-gray-500">${token.symbol}</p>
+                          </div>
+                        </div>
+                        <div className="space-y-2 text-sm">
+                          <div className="flex justify-between">
+                            <span className="text-gray-500">Price:</span>
+                            <span className="font-semibold">
+                              {formatCurrency(parseFloat(token.currentPrice || 0))}
+                            </span>
+                          </div>
+                          <div className="flex justify-between">
+                            <span className="text-gray-500">24h:</span>
+                            <span className={parseFloat(token.priceChange24h || 0) >= 0 ? 'text-green-500' : 'text-red-500'}>
+                              {formatPercentage(parseFloat(token.priceChange24h || 0), true, 1)}
+                            </span>
+                          </div>
+                          <div className="flex justify-between">
+                            <span className="text-gray-500">Volume:</span>
+                            <span className="text-yellow-400 font-semibold">
+                              {formatCurrency(parseFloat(token.volume24h || 0))}
+                            </span>
+                          </div>
+                        </div>
                       </div>
-                    </div>
-                    <div className="space-y-2 text-sm">
-                      <div className="flex justify-between">
-                        <span className="text-gray-500">Price:</span>
-                        <span className="font-semibold">--</span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span className="text-gray-500">24h:</span>
-                        <span className="text-green-500">--</span>
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
+                    </Link>
+                  ))}
+                </div>
+              ) : (
+                <div className="border border-gray-800 rounded-xl p-8 text-center">
+                  <p className="text-gray-400 mb-4">No tokens yet</p>
+                  <Link 
+                    to="/launch"
+                    className="text-yellow-400 hover:text-yellow-500 font-semibold"
+                  >
+                    Be the first to launch →
+                  </Link>
+                </div>
+              )}
             </div>
 
             {/* Recent Activity */}

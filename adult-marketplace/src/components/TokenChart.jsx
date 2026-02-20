@@ -1,6 +1,8 @@
 import { useEffect, useRef, useState } from 'react';
 import { createChart } from 'lightweight-charts';
-import { Clock } from 'lucide-react';
+import { Clock, TrendingUp, Loader2 } from 'lucide-react';
+import { useBondingCurve } from '../hooks/useBondingCurve';
+import { formatEther } from 'viem';
 
 export default function TokenChart({ tokenAddress }) {
   const chartContainerRef = useRef();
@@ -8,53 +10,58 @@ export default function TokenChart({ tokenAddress }) {
   const candlestickSeriesRef = useRef();
   const volumeSeriesRef = useRef();
   const [timeframe, setTimeframe] = useState('1D');
+  const [isLoading, setIsLoading] = useState(true);
+  
+  const { marketInfo } = useBondingCurve(tokenAddress);
 
   const timeframes = [
-    { label: '1H', value: '1H' },
-    { label: '4H', value: '4H' },
-    { label: '1D', value: '1D' },
-    { label: '1W', value: '1W' },
+    { label: '1H', value: '1H', seconds: 3600, points: 60 },
+    { label: '4H', value: '4H', seconds: 14400, points: 48 },
+    { label: '1D', value: '1D', seconds: 86400, points: 96 },
+    { label: '1W', value: '1W', seconds: 604800, points: 168 },
   ];
 
-  // Generate mock OHLCV data (replace with real data from subgraph/API)
-  const generateMockData = (interval = '1D') => {
+  // Generate simulated price history based on current market price
+  // TODO: Replace with actual blockchain events (TokenPurchased/TokenSold) or subgraph data
+  const generatePriceHistory = () => {
     const data = [];
     const volumeData = [];
     const now = Math.floor(Date.now() / 1000);
-    const intervals = {
-      '1H': 3600,
-      '4H': 14400,
-      '1D': 86400,
-      '1W': 604800,
-    };
-    const interval_seconds = intervals[interval];
-    const points = 100;
-
-    let price = 0.001;
-
-    for (let i = points; i >= 0; i--) {
-      const time = now - i * interval_seconds;
+    const config = timeframes.find(tf => tf.value === timeframe);
+    
+    // Use real market price or default
+    const currentPrice = marketInfo?.currentPrice 
+      ? parseFloat(formatEther(marketInfo.currentPrice))
+      : 0.001;
+    
+    for (let i = config.points; i >= 0; i--) {
+      const time = now - (i * (config.seconds / config.points));
       
-      const change = (Math.random() - 0.48) * 0.0001;
-      price = Math.max(0.0001, price + change);
+      // Simulate price evolution with upward trend
+      const progressRatio = (config.points - i) / config.points;
+      const trendFactor = progressRatio * 0.2; // 20% growth over period
+      const volatility = (Math.random() - 0.5) * 0.08; // ±8% random
       
-      const open = price;
-      const close = price + (Math.random() - 0.5) * 0.00005;
-      const high = Math.max(open, close) + Math.random() * 0.00003;
-      const low = Math.min(open, close) - Math.random() * 0.00003;
+      const basePrice = currentPrice * (0.8 + trendFactor); // Start 20% lower
+      const price = basePrice * (1 + volatility);
+      
+      const open = price * (0.99 + Math.random() * 0.02);
+      const close = price * (0.99 + Math.random() * 0.02);
+      const high = Math.max(open, close) * (1 + Math.random() * 0.015);
+      const low = Math.min(open, close) * (1 - Math.random() * 0.015);
       
       data.push({
         time,
-        open: parseFloat(open.toFixed(6)),
-        high: parseFloat(high.toFixed(6)),
-        low: parseFloat(low.toFixed(6)),
-        close: parseFloat(close.toFixed(6)),
+        open: parseFloat(open.toFixed(8)),
+        high: parseFloat(high.toFixed(8)),
+        low: parseFloat(low.toFixed(8)),
+        close: parseFloat(close.toFixed(8)),
       });
 
       volumeData.push({
         time,
-        value: Math.random() * 100000,
-        color: close > open ? '#10b98180' : '#ef444480',
+        value: Math.random() * 50 + 5, // Random volume 5-55 ETH
+        color: close >= open ? 'rgba(16, 185, 129, 0.6)' : 'rgba(239, 68, 68, 0.6)',
       });
     }
 
@@ -64,37 +71,43 @@ export default function TokenChart({ tokenAddress }) {
   useEffect(() => {
     if (!chartContainerRef.current) return;
 
+    setIsLoading(true);
+
     const chart = createChart(chartContainerRef.current, {
       layout: {
         background: { color: '#000000' },
         textColor: '#9ca3af',
       },
       grid: {
-        vertLines: { color: '#1a1a1a' },
-        horzLines: { color: '#1a1a1a' },
+        vertLines: { color: '#1f1f1f' },
+        horzLines: { color: '#1f1f1f' },
       },
       width: chartContainerRef.current.clientWidth,
       height: 500,
       timeScale: {
-        borderColor: '#1a1a1a',
+        borderColor: '#1f1f1f',
         timeVisible: true,
         secondsVisible: false,
       },
       rightPriceScale: {
-        borderColor: '#1a1a1a',
+        borderColor: '#1f1f1f',
+        scaleMargins: {
+          top: 0.1,
+          bottom: 0.3,
+        },
       },
       crosshair: {
         mode: 1,
         vertLine: {
           color: '#facc15',
           width: 1,
-          style: 3,
+          style: 2,
           labelBackgroundColor: '#facc15',
         },
         horzLine: {
           color: '#facc15',
           width: 1,
-          style: 3,
+          style: 2,
           labelBackgroundColor: '#facc15',
         },
       },
@@ -102,6 +115,7 @@ export default function TokenChart({ tokenAddress }) {
 
     chartRef.current = chart;
 
+    // Candlestick series
     const candlestickSeries = chart.addCandlestickSeries({
       upColor: '#10b981',
       downColor: '#ef4444',
@@ -113,29 +127,37 @@ export default function TokenChart({ tokenAddress }) {
 
     candlestickSeriesRef.current = candlestickSeries;
 
+    // Volume series
     const volumeSeries = chart.addHistogramSeries({
       color: '#26a69a',
       priceFormat: {
         type: 'volume',
       },
       priceScaleId: '',
+    });
+
+    volumeSeries.priceScale().applyOptions({
       scaleMargins: {
-        top: 0.8,
+        top: 0.7,
         bottom: 0,
       },
     });
 
     volumeSeriesRef.current = volumeSeries;
 
-    const { data, volumeData } = generateMockData(timeframe);
+    // Load data
+    const { data, volumeData } = generatePriceHistory();
     candlestickSeries.setData(data);
     volumeSeries.setData(volumeData);
 
     chart.timeScale().fitContent();
+    
+    setIsLoading(false);
 
+    // Handle resize
     const handleResize = () => {
-      if (chartContainerRef.current) {
-        chart.applyOptions({
+      if (chartContainerRef.current && chartRef.current) {
+        chartRef.current.applyOptions({
           width: chartContainerRef.current.clientWidth,
         });
       }
@@ -147,34 +169,31 @@ export default function TokenChart({ tokenAddress }) {
       window.removeEventListener('resize', handleResize);
       chart.remove();
     };
-  }, []);
+  }, [timeframe, marketInfo]);
 
-  useEffect(() => {
-    if (!candlestickSeriesRef.current || !volumeSeriesRef.current) return;
-
-    const { data, volumeData } = generateMockData(timeframe);
-    candlestickSeriesRef.current.setData(data);
-    volumeSeriesRef.current.setData(volumeData);
-    chartRef.current?.timeScale().fitContent();
-  }, [timeframe]);
+  const handleTimeframeChange = (newTimeframe) => {
+    setTimeframe(newTimeframe);
+  };
 
   return (
-    <div className="border border-gray-800 rounded-xl p-6 bg-black">
-      <div className="flex items-center justify-between mb-6">
+    <div className="border border-gray-800 rounded-xl p-4 md:p-6">
+      {/* Header */}
+      <div className="flex items-center justify-between mb-4">
         <div className="flex items-center gap-2">
-          <Clock className="text-yellow-400" size={20} />
-          <h3 className="text-xl font-bold">Price Chart</h3>
+          <TrendingUp className="text-yellow-400" size={20} />
+          <h3 className="text-lg font-bold">Price Chart</h3>
         </div>
-
-        <div className="flex gap-2">
+        
+        {/* Timeframe Selector */}
+        <div className="flex gap-1 bg-gray-900 rounded-lg p-1">
           {timeframes.map((tf) => (
             <button
               key={tf.value}
-              onClick={() => setTimeframe(tf.value)}
-              className={`px-4 py-2 rounded-lg font-semibold transition-all ${
+              onClick={() => handleTimeframeChange(tf.value)}
+              className={`px-3 py-1.5 rounded-md text-sm font-semibold transition-all ${
                 timeframe === tf.value
                   ? 'bg-yellow-400 text-black'
-                  : 'border border-gray-800 text-gray-400 hover:border-gray-700'
+                  : 'text-gray-400 hover:text-white'
               }`}
             >
               {tf.label}
@@ -183,21 +202,22 @@ export default function TokenChart({ tokenAddress }) {
         </div>
       </div>
 
-      <div ref={chartContainerRef} className="w-full" />
+      {/* Chart Container */}
+      <div className="relative">
+        {isLoading && (
+          <div className="absolute inset-0 flex items-center justify-center bg-black/50 z-10 rounded-lg">
+            <Loader2 className="animate-spin text-yellow-400" size={40} />
+          </div>
+        )}
+        <div ref={chartContainerRef} className="rounded-lg overflow-hidden" />
+      </div>
 
-      <div className="flex items-center gap-6 mt-4 text-sm text-gray-400">
-        <div className="flex items-center gap-2">
-          <div className="w-3 h-3 bg-green-500 rounded-sm" />
-          <span>Bullish</span>
-        </div>
-        <div className="flex items-center gap-2">
-          <div className="w-3 h-3 bg-red-500 rounded-sm" />
-          <span>Bearish</span>
-        </div>
-        <div className="flex items-center gap-2">
-          <div className="w-3 h-1 bg-yellow-400" />
-          <span>Crosshair</span>
-        </div>
+      {/* Info */}
+      <div className="mt-4 flex items-center gap-2 text-xs text-gray-500">
+        <Clock size={14} />
+        <span>
+          Simulated price history based on current bonding curve. Real-time data will be available after contract deployment.
+        </span>
       </div>
     </div>
   );

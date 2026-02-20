@@ -1,13 +1,13 @@
+/**
+ * Auth Controller (Launchpad 2.0)
+ * Simplified authentication - no email/cloudinary dependencies
+ */
+
 import bcrypt from 'bcryptjs';
-import fs from 'fs';
-import path from 'path';
 import prisma from '../config/database.js';
 import JwtService from '../services/jwt.service.js';
-import emailService from '../services/email.service.js';
 import ApiResponse from '../utils/response.js';
-import cloudinaryService from '../services/cloudinary.service.js';
 import logger from '../utils/logger.js';
-
 import { ConflictError, UnauthorizedError } from '../utils/errors.js';
 
 class AuthController {
@@ -24,8 +24,6 @@ class AuthController {
         password,
         displayName,
         birthDate,
-        genderIdentity,
-        orientation,
         firstName,
         lastName
       } = req.body;
@@ -62,10 +60,8 @@ class AuthController {
           email: normalizedEmail,
           username: normalizedUsername,
           password: hashedPassword,
-          displayName,
+          displayName: displayName || normalizedUsername,
           birthDate: birthDate ? new Date(birthDate) : null,
-          genderIdentity,
-          orientation,
           firstName,
           lastName,
         },
@@ -75,8 +71,6 @@ class AuthController {
           username: true,
           displayName: true,
           birthDate: true,
-          genderIdentity: true,
-          orientation: true,
           firstName: true,
           lastName: true,
           role: true,
@@ -89,11 +83,6 @@ class AuthController {
 
       // Generate tokens
       const tokens = JwtService.generateTokens(user.id, user.role);
-
-      // Send welcome email (don't wait for it)
-      emailService.sendWelcomeEmail(user.email, user.displayName || user.username).catch((err) => {
-        logger.error('Failed to send welcome email:', err);
-      });
 
       return ApiResponse.success(
         res,
@@ -108,198 +97,43 @@ class AuthController {
   }
 
   /**
-   * Register a new creator (handles multipart/form-data with files)
-   */
-  async creatorRegister(req, res, next) {
-    const uploadedFiles = [];
-
-    try {
-      const {
-        email,
-        username,
-        password,
-        confirmPassword,
-        displayName,
-        birthDate,
-        genderIdentity,
-        orientation,
-        location,
-        bio,
-        subscriptionPrice,
-        fullName,
-        cpf,
-        agreeTerms,
-        ageConfirm,
-        contentOwnership
-      } = req.body;
-
-      const normalizedEmail = email?.trim().toLowerCase();
-      const normalizedUsername = username?.trim().toLowerCase();
-
-      let contentTypes = [];
-      let aesthetic = [];
-      try {
-        if (req.body.contentTypes) contentTypes = JSON.parse(req.body.contentTypes);
-        if (req.body.aesthetic) aesthetic = JSON.parse(req.body.aesthetic);
-      } catch (err) {
-        logger.warn('creatorRegister: could not parse array fields', err);
-      }
-
-      const agree = String(agreeTerms) === 'true';
-      const age = String(ageConfirm) === 'true';
-      const contentOwn = String(contentOwnership) === 'true';
-
-      if (!normalizedEmail || !normalizedUsername || !password || !confirmPassword) {
-        return ApiResponse.error(res, 'Missing required fields', 400);
-      }
-      if (password !== confirmPassword) {
-        return ApiResponse.error(res, 'Passwords do not match', 400);
-      }
-      if (!agree || !age || !contentOwn) {
-        return ApiResponse.error(res, 'You must confirm terms, age and ownership', 400);
-      }
-      if (!bio || bio.length < 50) {
-        return ApiResponse.error(res, 'Bio must have at least 50 characters', 400);
-      }
-
-      const existingUser = await prisma.user.findFirst({
-        where: { OR: [{ email: normalizedEmail }, { username: normalizedUsername }] }
-      });
-
-      if (existingUser) {
-        return ApiResponse.error(res, 'Email or username already registered', 409);
-      }
-
-      const kycDocs = {};
-      if (req.files) {
-        if (req.files.idDocument && req.files.idDocument[0]) {
-          const file = req.files.idDocument[0];
-          const result = await cloudinaryService.uploadBufferToCloudinary(file.buffer, { folder: 'kyc/id_documents', resource_type: 'image' });
-          kycDocs.idDocument = { url: result.secure_url, public_id: result.public_id };
-        }
-        if (req.files.selfieWithId && req.files.selfieWithId[0]) {
-          const file = req.files.selfieWithId[0];
-          const result = await cloudinaryService.uploadBufferToCloudinary(file.buffer, { folder: 'kyc/selfies', resource_type: 'image' });
-          kycDocs.selfieWithId = { url: result.secure_url, public_id: result.public_id };
-        }
-      }
-
-      const hashedPassword = await bcrypt.hash(password, 10);
-      const subscriptionValue = subscriptionPrice ? parseFloat(subscriptionPrice) : 0;
-
-      const [user, creator] = await prisma.$transaction(async (tx) => {
-        const u = await tx.user.create({
-          data: {
-            email: normalizedEmail,
-            username: normalizedUsername,
-            password: hashedPassword,
-            displayName,
-            birthDate: birthDate ? new Date(birthDate) : null,
-            genderIdentity,
-            orientation,
-            role: 'CREATOR'
-          }
-        });
-
-        const c = await tx.creator.create({
-          data: {
-            userId: u.id,
-            displayName: displayName || u.displayName || u.username,
-            description: bio || null,
-            subscriptionPrice: subscriptionValue,
-            kycDocuments: Object.keys(kycDocs).length ? kycDocs : null,
-            socialLinks: null,
-            isVerified: false,
-            kycStatus: 'PENDING',
-          }
-        });
-
-        return [u, c];
-      });
-
-      const tokens = JwtService.generateTokens(user.id, user.role);
-
-      res.cookie('refreshToken', tokens.refreshToken, {
-        httpOnly: true,
-        secure: process.env.NODE_ENV === 'production',
-        sameSite: 'lax',
-        maxAge: 1000 * 60 * 60 * 24 * 30
-      });
-
-      return ApiResponse.success(
-        res,
-        {
-          user: {
-            id: user.id,
-            email: user.email,
-            username: user.username,
-            displayName: user.displayName,
-            isCreator: true,
-          },
-          accessToken: tokens.accessToken
-        },
-        'Creator registration submitted',
-        201
-      );
-    } catch (error) {
-      logger.error('creatorRegister error', error);
-
-      try {
-        if (Array.isArray(uploadedFiles) && uploadedFiles.length) {
-          uploadedFiles.forEach((p) => {
-            fs.unlink(p, (err) => {
-              if (err) logger.warn('Failed to remove uploaded file', p, err);
-            });
-          });
-        }
-      } catch (cleanupErr) {
-        logger.warn('Error during file cleanup', cleanupErr);
-      }
-
-      next(error);
-    }
-  }
-
-  /**
-   * Login user - ✅ CORRIGIDO
+   * Login user
    */
   async login(req, res, next) {
     try {
       const { email, password } = req.body;
 
-      logger.info('🔐 Login attempt:', { email });
+      const normalizedEmail = email?.trim().toLowerCase();
 
-      // ✅ Buscar por email OU username
-      const user = await prisma.user.findFirst({
-        where: {
-          OR: [
-            { email: email.toLowerCase() },
-            { username: email.toLowerCase() },
-          ],
+      // Find user
+      const user = await prisma.user.findUnique({
+        where: { email: normalizedEmail },
+        select: {
+          id: true,
+          email: true,
+          username: true,
+          displayName: true,
+          password: true,
+          role: true,
+          isActive: true,
+          isVerified: true,
+          avatarUrl: true,
         },
       });
 
       if (!user) {
-        logger.warn('❌ User not found:', email);
         throw new UnauthorizedError('Invalid credentials');
       }
 
-      logger.info('✅ User found:', { id: user.id, email: user.email });
-
-      // Check password
-      const isPasswordValid = await bcrypt.compare(password, user.password);
-
-      if (!isPasswordValid) {
-        logger.warn('❌ Invalid password for:', email);
-        throw new UnauthorizedError('Invalid credentials');
-      }
-
-      logger.info('✅ Password valid');
-
-      // Check if user is active
       if (!user.isActive) {
-        logger.warn('❌ Inactive account:', email);
-        throw new UnauthorizedError('Account is inactive');
+        throw new UnauthorizedError('Account is disabled');
+      }
+
+      // Verify password
+      const isValidPassword = await bcrypt.compare(password, user.password);
+
+      if (!isValidPassword) {
+        throw new UnauthorizedError('Invalid credentials');
       }
 
       // Generate tokens
@@ -308,7 +142,7 @@ class AuthController {
       // Remove password from response
       const { password: _, ...userWithoutPassword } = user;
 
-      logger.info('✅ Login successful:', { id: user.id });
+      logger.info('✅ User logged in:', { id: user.id, email: user.email });
 
       return ApiResponse.success(
         res,
@@ -316,7 +150,7 @@ class AuthController {
         'Login successful'
       );
     } catch (error) {
-      logger.error('Login error:', error);
+      logger.error('❌ Login error:', error);
       next(error);
     }
   }
@@ -326,24 +160,21 @@ class AuthController {
    */
   async refresh(req, res, next) {
     try {
-      const refreshToken = req.body.refreshToken || req.cookies?.refreshToken;
-      if (!refreshToken) throw new UnauthorizedError('Refresh token required');
+      const { refreshToken } = req.body;
 
-      const decoded = JwtService.verifyRefreshToken(refreshToken);
-
-      const user = await prisma.user.findUnique({
-        where: { id: decoded.userId },
-        select: { id: true, role: true, isActive: true },
-      });
-
-      if (!user || !user.isActive) {
-        throw new UnauthorizedError('Invalid refresh token');
+      if (!refreshToken) {
+        throw new UnauthorizedError('Refresh token required');
       }
 
-      const accessToken = JwtService.generateAccessToken(user.id, user.role);
+      const tokens = JwtService.refreshAccessToken(refreshToken);
 
-      return ApiResponse.success(res, { accessToken }, 'Token refreshed');
+      return ApiResponse.success(
+        res,
+        tokens,
+        'Token refreshed successfully'
+      );
     } catch (error) {
+      logger.error('❌ Refresh token error:', error);
       next(error);
     }
   }
@@ -353,39 +184,34 @@ class AuthController {
    */
   async logout(req, res, next) {
     try {
-      return ApiResponse.success(res, null, 'Logout successful');
+      // For JWT, client just needs to delete the token
+      // We could add token blacklisting here if needed
+
+      return ApiResponse.success(
+        res,
+        null,
+        'Logout successful'
+      );
     } catch (error) {
       next(error);
     }
   }
 
   /**
-   * Request password reset
+   * Request password reset (simplified - no email)
    */
   async forgotPassword(req, res, next) {
     try {
       const { email } = req.body;
-
-      const user = await prisma.user.findUnique({
-        where: { email },
-      });
-
-      if (!user) {
-        return ApiResponse.success(
-          res,
-          null,
-          'If email exists, password reset instructions have been sent'
-        );
-      }
-
-      const resetToken = JwtService.generateAccessToken(user.id, user.role);
-
-      await emailService.sendPasswordResetEmail(user.email, resetToken);
+      
+      // In production, this would send an email
+      // For Launchpad 2.0 MVP, we'll just return success
+      logger.info('Password reset requested for:', email);
 
       return ApiResponse.success(
         res,
         null,
-        'If email exists, password reset instructions have been sent'
+        'If this email exists, a reset link will be sent'
       );
     } catch (error) {
       next(error);
@@ -397,18 +223,80 @@ class AuthController {
    */
   async resetPassword(req, res, next) {
     try {
-      const { token, password } = req.body;
+      const { token, newPassword } = req.body;
 
-      const decoded = JwtService.verifyAccessToken(token);
-
-      const hashedPassword = await bcrypt.hash(password, 10);
-
-      await prisma.user.update({
-        where: { id: decoded.userId },
-        data: { password: hashedPassword },
+      // Find user with valid reset token
+      const user = await prisma.user.findFirst({
+        where: {
+          resetPasswordToken: token,
+          resetPasswordExpires: {
+            gt: new Date(),
+          },
+        },
       });
 
-      return ApiResponse.success(res, null, 'Password reset successful');
+      if (!user) {
+        throw new UnauthorizedError('Invalid or expired reset token');
+      }
+
+      // Hash new password
+      const hashedPassword = await bcrypt.hash(newPassword, 10);
+
+      // Update user
+      await prisma.user.update({
+        where: { id: user.id },
+        data: {
+          password: hashedPassword,
+          resetPasswordToken: null,
+          resetPasswordExpires: null,
+        },
+      });
+
+      logger.info('✅ Password reset successful for:', user.email);
+
+      return ApiResponse.success(
+        res,
+        null,
+        'Password reset successful'
+      );
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  /**
+   * Get current user profile
+   */
+  async getProfile(req, res, next) {
+    try {
+      const user = await prisma.user.findUnique({
+        where: { id: req.user.id },
+        select: {
+          id: true,
+          email: true,
+          username: true,
+          displayName: true,
+          firstName: true,
+          lastName: true,
+          avatarUrl: true,
+          role: true,
+          isVerified: true,
+          createdAt: true,
+          wallets: {
+            select: {
+              id: true,
+              walletAddress: true,
+              isPrimary: true,
+            }
+          }
+        },
+      });
+
+      if (!user) {
+        throw new UnauthorizedError('User not found');
+      }
+
+      return ApiResponse.success(res, user);
     } catch (error) {
       next(error);
     }
