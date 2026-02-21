@@ -154,9 +154,18 @@ export function useBondingCurve(tokenAddress) {
     calculateBuyPrice,
     calculateSellPrice,
     createMarket,
-    marketInfo: marketInfo || {
+    marketInfo: marketInfo ? {
+      isActive: marketInfo.isActive || false,
+      currentSupply: marketInfo.currentSupply || 0n,
+      totalSupply: marketInfo.totalSupply || 0n,
+      currentPrice: marketInfo.currentPrice || 0n,
+      reserveBalance: marketInfo.reserveBalance || 0n,
+      totalVolume: marketInfo.totalVolume || 0n
+    } : {
       isActive: false,
       currentSupply: 0n,
+      totalSupply: 0n,
+      currentPrice: 0n,
       reserveBalance: 0n,
       totalVolume: 0n
     },

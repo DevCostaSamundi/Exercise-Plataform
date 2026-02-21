@@ -8,6 +8,7 @@ import { StaggerContainer, StaggerItem } from '../components/StaggerChildren';
 import { formatCompactNumber, formatCurrency, formatPercentage } from '../utils/format';
 import { useTokenList } from '../hooks/useTokens';
 import { useDebounce } from '../hooks/useDebounce';
+import { getImageUrl } from '../utils/imageUrl';
 
 export default function ExplorePage() {
   const [searchTerm, setSearchTerm] = useState('');
@@ -131,7 +132,7 @@ export default function ExplorePage() {
                         <div className="flex items-center gap-4 mb-6">
                           {token.logo ? (
                             <img 
-                              src={token.logo} 
+                              src={getImageUrl(token.logo)} 
                               alt={token.name}
                               className="w-16 h-16 rounded-full object-cover group-hover:scale-110 transition-transform"
                             />

@@ -4,6 +4,7 @@ import { formatDistanceToNow } from 'date-fns';
 import { useWatchContractEvent, usePublicClient } from 'wagmi';
 import { formatEther } from 'viem';
 import { BondingCurveABI } from '../config/contractABIs';
+import { CONTRACTS } from '../config/constants';
 
 export default function RecentTrades({ tokenAddress, limit = 20 }) {
   const [trades, setTrades] = useState([]);
@@ -12,7 +13,7 @@ export default function RecentTrades({ tokenAddress, limit = 20 }) {
 
   // Watch for new buy events
   useWatchContractEvent({
-    address: tokenAddress,
+    address: CONTRACTS.BONDING_CURVE,
     abi: BondingCurveABI,
     eventName: 'TokenPurchased',
     onLogs(logs) {
@@ -34,7 +35,7 @@ export default function RecentTrades({ tokenAddress, limit = 20 }) {
 
   // Watch for new sell events
   useWatchContractEvent({
-    address: tokenAddress,
+    address: CONTRACTS.BONDING_CURVE,
     abi: BondingCurveABI,
     eventName: 'TokenSold',
     onLogs(logs) {
@@ -69,7 +70,7 @@ export default function RecentTrades({ tokenAddress, limit = 20 }) {
 
         // Get buy events
         const buyLogs = await publicClient.getLogs({
-          address: tokenAddress,
+          address: CONTRACTS.BONDING_CURVE,
           event: {
             type: 'event',
             name: 'TokenPurchased',
@@ -85,7 +86,7 @@ export default function RecentTrades({ tokenAddress, limit = 20 }) {
 
         // Get sell events
         const sellLogs = await publicClient.getLogs({
-          address: tokenAddress,
+          address: CONTRACTS.BONDING_CURVE,
           event: {
             type: 'event',
             name: 'TokenSold',

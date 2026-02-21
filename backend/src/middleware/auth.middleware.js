@@ -189,6 +189,69 @@ export const authorizeCreator = async (req, res, next) => {
 };
 
 /**
+ * Authenticate by wallet address (Web3-only mode)
+ * Accepts X-Wallet-Address header
+ */
+export const authenticateByWallet = async (req, res, next) => {
+  try {
+    const walletAddress = req.headers['x-wallet-address'];
+
+    if (!walletAddress) {
+      return res.status(401).json({
+        success: false,
+        message: 'Wallet address not provided',
+      });
+    }
+
+    // Find or create user with this wallet
+    let user = await prisma.user.findUnique({
+      where: { web3Wallet: walletAddress.toLowerCase() },
+      select: {
+        id: true,
+        email: true,
+        username: true,
+        role: true,
+        isActive: true,
+        isVerified: true,
+        web3Wallet: true,
+      },
+    });
+
+    // If user doesn't exist, create a minimal user record
+    if (!user) {
+      user = await prisma.user.create({
+        data: {
+          web3Wallet: walletAddress.toLowerCase(),
+          username: `user_${walletAddress.slice(2, 10)}`,
+          web3Verified: true,
+          web3VerifiedAt: new Date(),
+          role: 'USER',
+          isActive: true,
+        },
+        select: {
+          id: true,
+          email: true,
+          username: true,
+          role: true,
+          isActive: true,
+          isVerified: true,
+          web3Wallet: true,
+        },
+      });
+    }
+
+    req.user = user;
+    next();
+  } catch (error) {
+    logger.error('Wallet authentication error:', error);
+    return res.status(500).json({
+      success: false,
+      message: 'Authentication failed',
+    });
+  }
+};
+
+/**
  * Verificar se é admin
  */
 export const authorizeAdmin = (req, res, next) => {
@@ -217,6 +280,7 @@ export const authorizeAdmin = (req, res, next) => {
 export default {
   authenticate,
   optionalAuth,
+  authenticateByWallet,
   requireCreator,
   authorizeCreator,
   authorizeAdmin,

@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import { useAccount } from 'wagmi';
 import { 
   Rocket, TrendingUp, Users, DollarSign, BarChart3, 
-  Plus, ExternalLink, Eye, Settings, Award
+  Plus, ExternalLink, Eye, Settings, Award, Loader2
 } from 'lucide-react';
 import Sidebar from '../components/Sidebar';
 import AnimatedNumber from '../components/AnimatedNumber';
@@ -13,8 +13,10 @@ import RevenueChart from '../components/RevenueChart';
 import CreatorStats from '../components/CreatorStats';
 import TokenManagementCard from '../components/TokenManagementCard';
 import { formatCompactNumber, formatCurrency, formatPercentage } from '../utils/format';
+import { getImageUrl } from '../utils/imageUrl';
 import { useCreatorProfile } from '../hooks/useCreatorProfile';
 import { useTokenFactory } from '../hooks/useTokenFactory';
+import { useCreatorTokens, useRecentTrades } from '../hooks/useTokens';
 
 export default function CreatorDashboard() {
   const { address, isConnected } = useAccount();
@@ -24,66 +26,35 @@ export default function CreatorDashboard() {
   const { profile, stats, isRegistered, registerCreator, updateProfile, averageRating } = useCreatorProfile(address);
   const { getUserTokens, allTokens } = useTokenFactory();
 
+  // API hooks - real data
+  const { data: creatorTokensData, isLoading: tokensLoading } = useCreatorTokens(address);
+  const { data: recentTradesData } = useRecentTrades({ limit: 10 });
+  
+  const myTokens = creatorTokensData?.tokens || creatorTokensData?.data || [];
+
   // Creator stats from contract
   const creatorStats = {
-    totalTokens: stats.tokensCreated ? Number(stats.tokensCreated) : 0,
-    totalVolume: stats.totalVolume ? `$${(Number(stats.totalVolume) / 1e18 * 2200).toFixed(0)}` : '$0',
-    totalHolders: 0, // Would aggregate from all tokens
-    totalRevenue: '0 ETH', // Would calculate from FeeCollector
+    totalTokens: myTokens.length || (stats.tokensCreated ? Number(stats.tokensCreated) : 0),
+    totalVolume: myTokens.reduce((sum, t) => sum + parseFloat(t.volume24h || t.volume || 0), 0),
+    totalHolders: myTokens.reduce((sum, t) => sum + (t.holdersCount || t.holders || 0), 0),
+    totalRevenue: '0 ETH',
     revenueValue: '$0',
     rating: averageRating || 0,
     verifiedBadge: profile.isVerified || false,
     isRegistered: isRegistered
   };
 
-  const myTokens = [
-    {
-      address: '0x1234...5678',
-      name: 'Angola Rising',
-      symbol: 'AGR',
-      holders: 847,
-      volume24h: '$12,430',
-      price: '0.00105',
-      priceChange: '+12.5%',
-      isProfit: true,
-      marketCap: '$892,340',
-      createdAt: '2 weeks ago',
-      revenue: '0.85 ETH'
-    },
-    {
-      address: '0x2345...6789',
-      name: 'Luanda Tech',
-      symbol: 'LTH',
-      holders: 234,
-      volume24h: '$8,900',
-      price: '0.00089',
-      priceChange: '-3.2%',
-      isProfit: false,
-      marketCap: '$234,120',
-      createdAt: '1 week ago',
-      revenue: '0.34 ETH'
-    },
-    {
-      address: '0x3456...7890',
-      name: 'Kizomba Coin',
-      symbol: 'KZB',
-      holders: 166,
-      volume24h: '$23,900',
-      price: '0.00124',
-      priceChange: '+8.7%',
-      isProfit: true,
-      marketCap: '$445,980',
-      createdAt: '3 days ago',
-      revenue: '1.26 ETH'
-    }
-  ];
-
-  const recentActivity = [
-    { type: 'created', token: 'KZB', time: '3 days ago' },
-    { type: 'milestone', token: 'AGR', detail: '500 holders reached', time: '5 days ago' },
-    { type: 'revenue', token: 'LTH', detail: '0.15 ETH earned', time: '1 week ago' },
-    { type: 'created', token: 'LTH', time: '1 week ago' },
-  ];
+  // Build recent activity from real trades
+  const recentActivity = (recentTradesData?.trades || [])
+    .filter(trade => trade.userAddress?.toLowerCase() === address?.toLowerCase() || 
+                     trade.tokenCreator?.toLowerCase() === address?.toLowerCase())
+    .slice(0, 5)
+    .map(trade => ({
+      type: trade.type === 'buy' ? 'buy' : trade.type === 'sell' ? 'sell' : 'trade',
+      token: trade.tokenSymbol || trade.symbol || '???',
+      detail: `${trade.type} ${parseFloat(trade.amount || 0).toFixed(4)} ETH`,
+      time: trade.createdAt ? new Date(trade.createdAt).toLocaleDateString() : 'recently'
+    }));
 
   if (!isConnected) {
     return (
@@ -210,57 +181,96 @@ export default function CreatorDashboard() {
                 {/* Top Performing Tokens */}
                 <div className="border border-gray-800 rounded-xl p-6">
                   <h3 className="text-xl font-bold mb-4">Top Performing Tokens</h3>
-                  <div className="space-y-3">
-                    {myTokens.slice(0, 3).map((token) => (
-                      <Link
-                        key={token.address}
-                        to={`/token/${token.address}`}
-                        className="flex items-center justify-between p-3 bg-gray-900 rounded-lg hover:bg-gray-800 hover:scale-[1.01] hover:shadow-md transition-all"
-                      >
-                        <div className="flex items-center gap-3">
-                          <div className="w-10 h-10 rounded-full bg-gradient-to-br from-yellow-400 to-orange-500" />
-                          <div>
-                            <div className="font-bold text-sm">{token.symbol}</div>
-                            <div className="text-xs text-gray-500">{token.holders} holders</div>
-                          </div>
-                        </div>
-                        <div className="text-right">
-                          <div className="text-sm font-semibold">{token.price} ETH</div>
-                          <div className={`text-xs ${token.isProfit ? 'text-green-500' : 'text-red-500'}`}>
-                            {token.priceChange}
-                          </div>
-                        </div>
-                      </Link>
-                    ))}
-                  </div>
+                  {tokensLoading ? (
+                    <div className="flex items-center justify-center py-8">
+                      <Loader2 className="animate-spin text-yellow-400" size={24} />
+                    </div>
+                  ) : myTokens.length === 0 ? (
+                    <div className="text-center py-8 text-gray-500">
+                      <Rocket className="mx-auto mb-2 text-gray-700" size={32} />
+                      <p className="text-sm">No tokens created yet</p>
+                    </div>
+                  ) : (
+                    <div className="space-y-3">
+                      {myTokens.slice(0, 3).map((token) => {
+                        const priceChange = parseFloat(token.priceChange24h || token.priceChange || 0);
+                        const isProfit = priceChange >= 0;
+                        const price = parseFloat(token.currentPrice || token.price || 0);
+                        
+                        return (
+                          <Link
+                            key={token.address || token.id}
+                            to={`/token/${token.address}`}
+                            className="flex items-center justify-between p-3 bg-gray-900 rounded-lg hover:bg-gray-800 hover:scale-[1.01] hover:shadow-md transition-all"
+                          >
+                            <div className="flex items-center gap-3">
+                              {token.logo ? (
+                                <img 
+                                  src={getImageUrl(token.logo)}
+                                  alt={token.name}
+                                  className="w-10 h-10 rounded-full object-cover flex-shrink-0"
+                                  onError={(e) => {
+                                    e.target.onerror = null;
+                                    e.target.style.display = 'none';
+                                    const fallback = e.target.parentElement.querySelector('.fallback-icon');
+                                    if (fallback) fallback.style.display = 'flex';
+                                  }}
+                                />
+                              ) : null}
+                              <div className="fallback-icon w-10 h-10 rounded-full bg-gradient-to-br from-yellow-400 to-orange-500 flex items-center justify-center text-black font-bold" style={{display: token.logo ? 'none' : 'flex'}}>
+                                {(token.symbol || '?')[0]}
+                              </div>
+                              <div>
+                                <div className="font-bold text-sm">{token.symbol || token.name}</div>
+                                <div className="text-xs text-gray-500">{token.holdersCount || token.holders || 0} holders</div>
+                              </div>
+                            </div>
+                            <div className="text-right">
+                              <div className="text-sm font-semibold">
+                                {price < 0.01 ? price.toFixed(6) : price.toFixed(4)} ETH
+                              </div>
+                              <div className={`text-xs ${isProfit ? 'text-green-500' : 'text-red-500'}`}>
+                                {isProfit ? '+' : ''}{priceChange.toFixed(1)}%
+                              </div>
+                            </div>
+                          </Link>
+                        );
+                      })}
+                    </div>
+                  )}
                 </div>
 
                 {/* Recent Activity */}
                 <div className="border border-gray-800 rounded-xl p-6">
                   <h3 className="text-xl font-bold mb-4">Recent Activity</h3>
-                  <div className="space-y-3">
-                    {recentActivity.map((activity, i) => (
-                      <div key={i} className="flex items-start gap-3 p-3 bg-gray-900 rounded-lg">
-                        <div className={`p-2 rounded-lg ${
-                          activity.type === 'created' ? 'bg-yellow-500/10 text-yellow-400' :
-                          activity.type === 'milestone' ? 'bg-green-500/10 text-green-400' :
-                          'bg-blue-500/10 text-blue-400'
-                        }`}>
-                          {activity.type === 'created' ? <Plus size={16} /> :
-                           activity.type === 'milestone' ? <TrendingUp size={16} /> :
-                           <DollarSign size={16} />}
-                        </div>
-                        <div className="flex-1">
-                          <div className="text-sm font-semibold">
-                            {activity.type === 'created' && `Created ${activity.token}`}
-                            {activity.type === 'milestone' && `${activity.token}: ${activity.detail}`}
-                            {activity.type === 'revenue' && `${activity.token}: ${activity.detail}`}
+                  {recentActivity.length === 0 ? (
+                    <div className="text-center py-8 text-gray-500">
+                      <TrendingUp className="mx-auto mb-2 text-gray-700" size={32} />
+                      <p className="text-sm">No recent activity</p>
+                    </div>
+                  ) : (
+                    <div className="space-y-3">
+                      {recentActivity.map((activity, i) => (
+                        <div key={i} className="flex items-start gap-3 p-3 bg-gray-900 rounded-lg">
+                          <div className={`p-2 rounded-lg ${
+                            activity.type === 'buy' ? 'bg-green-500/10 text-green-400' :
+                            activity.type === 'sell' ? 'bg-red-500/10 text-red-400' :
+                            'bg-yellow-500/10 text-yellow-400'
+                          }`}>
+                            {activity.type === 'buy' ? <TrendingUp size={16} /> :
+                             activity.type === 'sell' ? <TrendingUp size={16} className="rotate-180" /> :
+                             <DollarSign size={16} />}
                           </div>
-                          <div className="text-xs text-gray-500">{activity.time}</div>
+                          <div className="flex-1">
+                            <div className="text-sm font-semibold">
+                              {activity.token}: {activity.detail}
+                            </div>
+                            <div className="text-xs text-gray-500">{activity.time}</div>
+                          </div>
                         </div>
-                      </div>
-                    ))}
-                  </div>
+                      ))}
+                    </div>
+                  )}
                 </div>
               </div>
             </div>
@@ -269,7 +279,12 @@ export default function CreatorDashboard() {
           {/* My Tokens Tab */}
           {activeTab === 'tokens' && (
             <div className="space-y-4">
-              {myTokens.length === 0 ? (
+              {tokensLoading ? (
+                <div className="flex items-center justify-center py-20">
+                  <Loader2 className="animate-spin text-yellow-400" size={32} />
+                  <span className="ml-3 text-gray-400">Loading your tokens...</span>
+                </div>
+              ) : myTokens.length === 0 ? (
                 <EmptyState
                   icon={Rocket}
                   title="No Tokens Created Yet"
@@ -313,19 +328,20 @@ export default function CreatorDashboard() {
                 <h3 className="text-lg font-bold mb-4">Volume Breakdown</h3>
                 <div className="grid md:grid-cols-3 gap-4">
                   <div className="bg-gray-900 rounded-lg p-4">
-                    <p className="text-xs text-gray-500 mb-2">Last 7 Days</p>
-                    <p className="text-2xl font-bold text-green-400">$45,230</p>
-                    <p className="text-xs text-green-400 mt-1">+15.3%</p>
+                    <p className="text-xs text-gray-500 mb-2">Tokens Created</p>
+                    <p className="text-2xl font-bold text-green-400">{myTokens.length}</p>
                   </div>
                   <div className="bg-gray-900 rounded-lg p-4">
-                    <p className="text-xs text-gray-500 mb-2">Last 30 Days</p>
-                    <p className="text-2xl font-bold text-blue-400">$167,890</p>
-                    <p className="text-xs text-blue-400 mt-1">+22.7%</p>
+                    <p className="text-xs text-gray-500 mb-2">Total Holders</p>
+                    <p className="text-2xl font-bold text-blue-400">{creatorStats.totalHolders}</p>
                   </div>
                   <div className="bg-gray-900 rounded-lg p-4">
-                    <p className="text-xs text-gray-500 mb-2">All Time</p>
-                    <p className="text-2xl font-bold text-yellow-400">$892,340</p>
-                    <p className="text-xs text-gray-500 mt-1">Since Nov 2024</p>
+                    <p className="text-xs text-gray-500 mb-2">Total Volume</p>
+                    <p className="text-2xl font-bold text-yellow-400">
+                      ${creatorStats.totalVolume >= 1000 
+                        ? `${(creatorStats.totalVolume / 1000).toFixed(1)}K` 
+                        : creatorStats.totalVolume.toFixed(0)}
+                    </p>
                   </div>
                 </div>
               </div>

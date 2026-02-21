@@ -3,11 +3,13 @@ import { useState } from 'react';
 import { useAccount, useDisconnect } from 'wagmi';
 import { Home, Search, TrendingUp, Rocket, Wallet, HelpCircle, LogOut, Menu, X, Sun, Moon, Shield, BarChart3 } from 'lucide-react';
 import { useTheme } from '../contexts/ThemeContext';
+import { useAuth } from '../contexts/AuthContext';
 
 export default function Sidebar() {
   const { address, isConnected } = useAccount();
   const { disconnect } = useDisconnect();
   const { theme, toggleTheme } = useTheme();
+  const { isOwner } = useAuth();
   const [isCollapsed, setIsCollapsed] = useState(false);
 
   const handleDisconnect = () => {
@@ -102,8 +104,8 @@ export default function Sidebar() {
               </NavLink>
             )}
 
-            {/* Admin Dashboard (only show link, verification happens in page) */}
-            {isConnected && (
+            {/* Admin Dashboard - só aparece se for o OWNER */}
+            {isOwner && (
               <NavLink
                 to="/admin"
                 className={({ isActive }) => `${linkBase} ${isActive ? linkActive : linkInactive}`}

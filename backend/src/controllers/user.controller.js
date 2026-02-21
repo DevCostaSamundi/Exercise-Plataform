@@ -19,7 +19,7 @@ class UserController {
           displayName: true,
           firstName: true,
           lastName: true,
-          avatar: true,
+          avatarUrl: true,
           bio: true,
           role: true,
           isVerified: true,
@@ -69,7 +69,7 @@ class UserController {
           displayName: true,
           firstName: true,
           lastName: true,
-          avatar: true,
+          avatarUrl: true,
           bio: true,
           role: true,
         },
@@ -130,7 +130,7 @@ class UserController {
           username: true,
           displayName: true,
           bio: true,
-          avatar: true,
+          avatarUrl: true,
           // Adicionar campos de configuração quando existirem no schema
           // notificationSettings: true,
           // privacySettings: true,
@@ -187,7 +187,7 @@ class UserController {
           username: true,
           displayName: true,
           bio: true,
-          avatar: true,
+          avatarUrl: true,
         },
       });
 

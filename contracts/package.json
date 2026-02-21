@@ -1,7 +1,7 @@
 {
-  "name": "prideconnect-contracts",
+  "name": "launchpad-contracts",
   "version": "1.0.0",
-  "description": "Smart contracts for PrideConnect Web3 payment system",
+  "description": "Smart contracts for Launchpad token trading platform",
   "scripts": {
     "test": "hardhat test",
     "compile": "hardhat compile",

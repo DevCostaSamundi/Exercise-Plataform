@@ -1,10 +1,18 @@
 import { useState } from 'react';
-import { ExternalLink, Copy, Check, TrendingUp, Users, DollarSign, BarChart3 } from 'lucide-react';
+import { ExternalLink, Copy, Check, TrendingUp, Users, DollarSign, BarChart3, Coins } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { toast } from 'sonner';
+import { getImageUrl } from '../utils/imageUrl';
 
 export default function TokenManagementCard({ token }) {
   const [copied, setCopied] = useState(false);
+
+  // Check if address is valid (Ethereum address is 42 chars: "0x" + 40 hex)
+  const isValidAddress = token.address && token.address.length === 42;
+  
+  if (!isValidAddress) {
+    console.warn('Invalid token address:', token.address, 'for token:', token.name);
+  }
 
   const copyAddress = () => {
     navigator.clipboard.writeText(token.address);
@@ -24,11 +32,32 @@ export default function TokenManagementCard({ token }) {
       {/* Header */}
       <div className="flex items-start justify-between mb-6">
         <div className="flex items-center gap-4">
-          <div className="w-14 h-14 bg-gradient-to-br from-yellow-400 to-orange-500 rounded-full flex items-center justify-center">
-            <span className="text-black font-bold text-lg">
-              {token.symbol.slice(0, 2)}
-            </span>
+          {/* Token Image */}
+          <div className="relative w-14 h-14 flex-shrink-0">
+            {token.logo ? (
+              <>
+                <img 
+                  src={getImageUrl(token.logo)}
+                  alt={token.name}
+                  className="w-full h-full rounded-full object-cover"
+                  onError={(e) => {
+                    e.target.onerror = null;
+                    e.target.style.display = 'none';
+                    const fallback = e.target.parentElement.querySelector('.fallback-icon');
+                    if (fallback) fallback.style.display = 'flex';
+                  }}
+                />
+                <div className="fallback-icon hidden w-full h-full bg-gradient-to-br from-yellow-400 to-orange-500 rounded-full items-center justify-center">
+                  <Coins className="text-black" size={24} />
+                </div>
+              </>
+            ) : (
+              <div className="w-full h-full bg-gradient-to-br from-yellow-400 to-orange-500 rounded-full flex items-center justify-center">
+                <Coins className="text-black" size={24} />
+              </div>
+            )}
           </div>
+          
           <div>
             <h3 className="text-xl font-bold group-hover:text-yellow-400 transition-colors">
               {token.name}
@@ -102,15 +131,23 @@ export default function TokenManagementCard({ token }) {
 
       {/* Actions */}
       <div className="mt-6 flex gap-3">
-        <Link
-          to={`/token/${token.address}`}
-          className="flex-1 bg-yellow-400 hover:bg-yellow-500 text-black font-bold py-3 rounded-lg text-center transition-all"
-        >
-          Manage
-        </Link>
-        <button className="px-6 bg-gray-800 hover:bg-gray-700 text-white font-semibold py-3 rounded-lg transition-all">
-          Share
-        </button>
+        {isValidAddress ? (
+          <>
+            <Link
+              to={`/token/${token.address}`}
+              className="flex-1 bg-yellow-400 hover:bg-yellow-500 text-black font-bold py-3 rounded-lg text-center transition-all"
+            >
+              Manage
+            </Link>
+            <button className="px-6 bg-gray-800 hover:bg-gray-700 text-white font-semibold py-3 rounded-lg transition-all">
+              Share
+            </button>
+          </>
+        ) : (
+          <div className="flex-1 bg-red-900/20 border border-red-500 text-red-400 font-semibold py-3 rounded-lg text-center">
+            Invalid Token Data - Contact Support
+          </div>
+        )}
       </div>
     </div>
   );

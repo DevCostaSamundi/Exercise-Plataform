@@ -11,10 +11,10 @@ async function main() {
 
   // Create demo users
   const user1 = await prisma.user.upsert({
-    where: { email: 'user@prideconnect.com' },
+    where: { email: 'user@launchpad.com' },
     update: {},
     create: {
-      email: 'user@prideconnect.com',
+      email: 'user@launchpad.com',
       username: 'demouser',
       password: hashedPassword,
       firstName: 'Demo',
@@ -25,10 +25,10 @@ async function main() {
   });
 
   const user2 = await prisma.user.upsert({
-    where: { email: 'creator@prideconnect.com' },
+    where: { email: 'creator@launchpad.com' },
     update: {},
     create: {
-      email: 'creator@prideconnect.com',
+      email: 'creator@launchpad.com',
       username: 'democreator',
       password: hashedPassword,
       firstName: 'Demo',
@@ -39,10 +39,10 @@ async function main() {
   });
 
   const admin = await prisma.user.upsert({
-    where: { email: 'admin@prideconnect.com' },
+    where: { email: 'admin@launchpad.com' },
     update: {},
     create: {
-      email: 'admin@prideconnect.com',
+      email: 'admin@launchpad.com',
       username: 'admin',
       password: hashedPassword,
       firstName: 'Admin',
@@ -61,7 +61,7 @@ async function main() {
     create: {
       userId: user2.id,
       displayName: 'Demo Creator',
-      description: 'This is a demo creator account for PrideConnect platform',
+      description: 'This is a demo creator account for Launchpad platform',
       isVerified: true,
       featured: true,
       kycStatus: 'APPROVED',
@@ -80,7 +80,7 @@ async function main() {
     data: {
       creatorId: creator.id,
       title: 'Welcome to my page!',
-      content: 'This is my first post on PrideConnect. Stay tuned for exclusive content!',
+      content: 'This is my first post on Launchpad. Stay tuned for exclusive content!',
       mediaType: 'IMAGE',
       isPublic: true,
       isPPV: false,

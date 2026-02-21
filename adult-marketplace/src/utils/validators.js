@@ -1,5 +1,5 @@
 /**
- * Funções de validação para a plataforma PrideConnect
+ * Funções de validação para a plataforma Launchpad
  */
 
 /**

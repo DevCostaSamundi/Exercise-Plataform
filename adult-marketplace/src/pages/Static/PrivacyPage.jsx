@@ -69,7 +69,7 @@ function TitleSection() {
       </h1>
 
       <p className="text-slate-600 dark:text-slate-400 mb-2">
-        PrideConnect — Plataforma de Conteúdo para a Comunidade LGBT+
+        Launchpad — Plataforma de Conteúdo para a Comunidade LGBT+
       </p>
 
       <p className="text-sm text-slate-500 dark:text-slate-500">
@@ -92,7 +92,7 @@ function AlertBanner() {
           </h3>
           <p className="text-sm text-amber-800 dark:text-amber-300 leading-relaxed">
             Esta política descreve como coletamos, usamos e protegemos seus dados pessoais 
-            no PrideConnect. Por ser uma plataforma de conteúdo adulto, aplicamos medidas 
+            no Launchpad. Por ser uma plataforma de conteúdo adulto, aplicamos medidas 
             adicionais de segurança, privacidade e verificação de idade.  Este documento 
             tem caráter informativo e não constitui aconselhamento jurídico.
           </p>
@@ -196,7 +196,7 @@ function FooterNote() {
     <footer className="mt-12 pt-8 border-t border-slate-200 dark:border-slate-800">
       <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
         <p className="text-sm text-slate-500 dark:text-slate-400 text-center sm:text-left">
-          🏳️‍🌈 PrideConnect — Comprometido com a privacidade, inclusão e 
+          🏳️‍🌈 Launchpad — Comprometido com a privacidade, inclusão e 
           segurança da comunidade LGBT+. 
         </p>
 
@@ -233,7 +233,7 @@ export default function PrivacyPage() {
           {/* 1. Introdução */}
           <Section id="introducao" icon="📋" title="1. Introdução e Escopo">
             <p>
-              O <strong>PrideConnect</strong> é uma plataforma que conecta criadores e 
+              O <strong>Launchpad</strong> é uma plataforma que conecta criadores e 
               assinantes de conteúdo adulto de forma segura, inclusiva e respeitosa. 
               Nossa missão é proporcionar um espaço onde a comunidade LGBT+ possa se 
               expressar livremente enquanto mantém total controle sobre sua privacidade.
@@ -241,7 +241,7 @@ export default function PrivacyPage() {
             
             <p>
               Esta Política de Privacidade se aplica ao website, aplicativos móveis, 
-              APIs e todos os serviços relacionados ao PrideConnect.  Ao utilizar nossa 
+              APIs e todos os serviços relacionados ao Launchpad.  Ao utilizar nossa 
               plataforma, você concorda com as práticas descritas neste documento.
             </p>
 
@@ -544,7 +544,7 @@ export default function PrivacyPage() {
           {/* 10. Conteúdo Adulto */}
           <Section id="conteudo-adulto" icon="🔞" title="10. Conteúdo Adulto e Proteção de Menores">
             <p>
-              O PrideConnect é uma plataforma exclusivamente para maiores de 18 anos. 
+              O Launchpad é uma plataforma exclusivamente para maiores de 18 anos. 
               Implementamos medidas rigorosas para proteger menores:
             </p>
 
@@ -624,7 +624,7 @@ export default function PrivacyPage() {
             <SubSection title="12.2 Privacidade em Pagamentos">
               <BulletList
                 items={[
-                  'Extratos bancários mostram nomes genéricos, não "PrideConnect"',
+                  'Extratos bancários mostram nomes genéricos, não "Launchpad"',
                   'Criptomoedas oferecem maior nível de privacidade',
                   'Monero (XMR) disponível para máxima privacidade',
                   'Não compartilhamos dados de pagamento com terceiros desnecessários',

@@ -5,12 +5,12 @@
 
 import express from 'express';
 import tokenService from '../services/tokenService.js';
-import { authenticate } from '../middleware/auth.middleware.js';
+import { authenticate, authenticateByWallet } from '../middleware/auth.middleware.js';
 
 const router = express.Router();
 
-// All routes require authentication
-router.use(authenticate);
+// All routes require wallet authentication
+router.use(authenticateByWallet);
 
 /**
  * GET /api/portfolio

@@ -1,18 +1,23 @@
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAccount, useConnect } from 'wagmi';
-import { Rocket, ArrowRight, ArrowLeft, CheckCircle, Upload, Loader2, Wallet } from 'lucide-react';
+import { Rocket, ArrowRight, ArrowLeft, CheckCircle, Upload, Loader2, Wallet, X, Image } from 'lucide-react';
 import Sidebar from '../components/Sidebar';
 import FadeIn from '../components/FadeIn';
 import { useTokenFactory } from '../hooks/useTokenFactory';
+
+const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:5000/api/v1';
 
 export default function CreateTokenPage() {
   const navigate = useNavigate();
   const { isConnected } = useAccount();
   const { connect, connectors, isPending } = useConnect();
   const { createToken, isCreating, launchFee } = useTokenFactory();
+  const fileInputRef = useRef(null);
   
   const [step, setStep] = useState(1);
+  const [isUploading, setIsUploading] = useState(false);
+  const [imagePreview, setImagePreview] = useState(null);
   const [formData, setFormData] = useState({
     name: '',
     symbol: '',
@@ -57,16 +62,119 @@ export default function CreateTokenPage() {
     if (!validateStep(3)) return;
     
     try {
-      await createToken({
+      const tx = await createToken({
         name: formData.name,
         symbol: formData.symbol,
         initialSupply: formData.initialSupply
       });
-      // Navigate to success page or token detail
-      navigate('/my-portfolio?success=true');
+      
+      // After successful on-chain creation, save token to backend database
+      // The token address comes from the transaction receipt
+      try {
+        const walletAddress = window.ethereum?.selectedAddress || address;
+        const response = await fetch(`${API_BASE}/tokens`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'X-Wallet-Address': walletAddress,
+          },
+          body: JSON.stringify({
+            address: tx,
+            name: formData.name,
+            symbol: formData.symbol,
+            initialSupply: formData.initialSupply,
+            description: formData.description || '',
+            logo: formData.imageUrl || '',
+            website: formData.website || '',
+            twitter: formData.twitter || '',
+            telegram: formData.telegram || '',
+          })
+        });
+
+        if (!response.ok) {
+          const errorData = await response.json();
+          console.error('Backend error:', errorData);
+          throw new Error(errorData.error || 'Failed to save token to database');
+        }
+
+        const savedToken = await response.json();
+        console.log('Token saved to database:', savedToken);
+      } catch (dbErr) {
+        console.error('Failed to save token to database (token was created on-chain):', dbErr);
+        // Still navigate to portfolio even if DB save fails
+      }
+
+      navigate('/portfolio?success=true');
     } catch (error) {
       console.error('Failed to create token:', error);
     }
+  };
+
+  const handleImageUpload = async (file) => {
+    if (!file) return;
+    
+    // Validate file
+    const maxSize = 5 * 1024 * 1024; // 5MB
+    if (file.size > maxSize) {
+      setErrors({ ...errors, image: 'File too large. Maximum size is 5MB.' });
+      return;
+    }
+    
+    const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp'];
+    if (!allowedTypes.includes(file.type)) {
+      setErrors({ ...errors, image: 'Invalid file type. Use JPEG, PNG, GIF, or WebP.' });
+      return;
+    }
+
+    // Show local preview immediately
+    const reader = new FileReader();
+    reader.onloadend = () => setImagePreview(reader.result);
+    reader.readAsDataURL(file);
+
+    // Upload to backend
+    setIsUploading(true);
+    setErrors({ ...errors, image: null });
+    
+    try {
+      const uploadData = new FormData();
+      uploadData.append('image', file);
+      
+      const response = await fetch(`${API_BASE}/upload/image`, {
+        method: 'POST',
+        body: uploadData,
+      });
+      
+      if (!response.ok) {
+        const errData = await response.json().catch(() => ({}));
+        throw new Error(errData.error || 'Upload failed');
+      }
+      
+      const result = await response.json();
+      handleChange('imageUrl', result.url);
+    } catch (err) {
+      console.error('Image upload failed:', err);
+      setErrors({ ...errors, image: err.message || 'Upload failed. Try again.' });
+      setImagePreview(null);
+    } finally {
+      setIsUploading(false);
+    }
+  };
+
+  const handleFileSelect = (e) => {
+    const file = e.target.files?.[0];
+    if (file) handleImageUpload(file);
+  };
+
+  const handleDrop = (e) => {
+    e.preventDefault();
+    const file = e.dataTransfer.files?.[0];
+    if (file) handleImageUpload(file);
+  };
+
+  const removeImage = () => {
+    setImagePreview(null);
+    handleChange('imageUrl', '');
+    if (fileInputRef.current) fileInputRef.current.value = '';
   };
 
   const handleChange = (field, value) => {
@@ -213,34 +321,82 @@ export default function CreateTokenPage() {
               </div>
 
               <div>
-                <label className="block text-sm font-semibold mb-2">Token Image URL</label>
-                <div className="flex flex-col sm:flex-row gap-3">
+                <label className="block text-sm font-semibold mb-2">Token Image</label>
+                
+                {/* Hidden file input */}
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept="image/jpeg,image/jpg,image/png,image/gif,image/webp"
+                  onChange={handleFileSelect}
+                  className="hidden"
+                />
+                
+                {/* Preview or Upload Area */}
+                {(imagePreview || formData.imageUrl) ? (
+                  <div className="relative inline-block">
+                    <img 
+                      src={imagePreview || formData.imageUrl} 
+                      alt="Token preview" 
+                      className="w-32 h-32 rounded-2xl object-cover border-2 border-yellow-400"
+                    />
+                    <button
+                      onClick={removeImage}
+                      className="absolute -top-2 -right-2 w-7 h-7 bg-red-500 hover:bg-red-600 rounded-full flex items-center justify-center transition-colors"
+                    >
+                      <X size={14} />
+                    </button>
+                    <p className="text-xs text-green-400 mt-2 flex items-center gap-1">
+                      <CheckCircle size={12} /> Image uploaded
+                    </p>
+                  </div>
+                ) : (
+                  <div
+                    onClick={() => fileInputRef.current?.click()}
+                    onDrop={handleDrop}
+                    onDragOver={(e) => e.preventDefault()}
+                    className="border-2 border-dashed border-gray-700 hover:border-yellow-400/50 rounded-xl p-8 text-center cursor-pointer transition-all hover:bg-gray-900/50"
+                  >
+                    {isUploading ? (
+                      <div className="flex flex-col items-center gap-3">
+                        <Loader2 className="animate-spin text-yellow-400" size={32} />
+                        <p className="text-sm text-gray-400">Uploading...</p>
+                      </div>
+                    ) : (
+                      <div className="flex flex-col items-center gap-3">
+                        <div className="w-16 h-16 rounded-full bg-gray-800 flex items-center justify-center">
+                          <Image className="text-gray-500" size={28} />
+                        </div>
+                        <div>
+                          <p className="text-sm font-semibold text-gray-300">
+                            Click to upload or drag and drop
+                          </p>
+                          <p className="text-xs text-gray-500 mt-1">
+                            PNG, JPG, GIF or WebP (max 5MB, recommended 512×512px)
+                          </p>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                )}
+                
+                {errors.image && <p className="text-red-400 text-sm mt-2">{errors.image}</p>}
+                
+                {/* Or paste URL */}
+                <div className="mt-3">
+                  <p className="text-xs text-gray-500 mb-1">Or paste image URL:</p>
                   <input
                     type="url"
                     value={formData.imageUrl}
-                    onChange={(e) => handleChange('imageUrl', e.target.value)}
+                    onChange={(e) => {
+                      handleChange('imageUrl', e.target.value);
+                      setImagePreview(null);
+                    }}
                     placeholder="https://..."
-                    className="flex-1 bg-gray-900 border border-gray-800 rounded-lg px-4 py-3 focus:border-yellow-400 focus:outline-none transition-colors"
+                    className="w-full bg-gray-900 border border-gray-800 rounded-lg px-4 py-2 text-sm focus:border-yellow-400 focus:outline-none transition-colors"
                   />
-                  <button className="px-6 py-3 border border-gray-800 hover:border-gray-700 hover:scale-105 rounded-lg flex items-center justify-center gap-2 whitespace-nowrap transition-all">
-                    <Upload size={18} />
-                    <span className="hidden sm:inline">Upload</span>
-                  </button>
                 </div>
-                <p className="text-gray-500 text-sm mt-1">PNG, JPG or GIF (recommended 512x512px)</p>
               </div>
-
-              {formData.imageUrl && (
-                <div className="border border-gray-800 rounded-lg p-4 hover:border-gray-700 transition-colors">
-                  <p className="text-sm font-semibold mb-2">Preview:</p>
-                  <img 
-                    src={formData.imageUrl} 
-                    alt="Token preview" 
-                    className="w-24 h-24 rounded-full object-cover border-2 border-yellow-400 hover:scale-110 transition-transform"
-                    onError={(e) => e.target.style.display = 'none'}
-                  />
-                </div>
-              )}
             </FadeIn>
           )}
 
@@ -285,6 +441,18 @@ export default function CreateTokenPage() {
               {/* Review Summary */}
               <div className="border border-gray-800 rounded-lg p-6 bg-gray-900 mt-8">
                 <h3 className="font-bold text-xl mb-4">Review Your Token</h3>
+                
+                {/* Image Preview in review */}
+                {(imagePreview || formData.imageUrl) && (
+                  <div className="flex justify-center mb-4">
+                    <img 
+                      src={imagePreview || formData.imageUrl} 
+                      alt="Token" 
+                      className="w-20 h-20 rounded-full object-cover border-2 border-yellow-400"
+                    />
+                  </div>
+                )}
+                
                 <div className="space-y-3 text-sm">
                   <div className="flex justify-between">
                     <span className="text-gray-400">Name:</span>

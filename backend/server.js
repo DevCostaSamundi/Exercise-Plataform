@@ -20,7 +20,7 @@ app.get('/', (req, res) => {
 app.get(`/api/${process.env.API_VERSION || 'v1'}`, (req, res) => {
   res.json({
     status: 'OK',
-    message: 'PrideConnect API - v1',
+    message: 'Launchpad API - v1',
     version: process.env.API_VERSION || 'v1',
     environment: process.env.NODE_ENV || 'development',
     endpoints: {

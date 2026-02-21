@@ -83,14 +83,14 @@ class TokenService {
   }
 
   /**
-   * Get trending tokens (by volume24h)
+   * Get trending tokens (by volume24h or recent if no volume)
    */
   async getTrendingTokens(limit = 10) {
     return prisma.token.findMany({
-      where: {
-        volume24h: { gt: 0 }
-      },
-      orderBy: { volume24h: 'desc' },
+      orderBy: [
+        { volume24h: 'desc' },
+        { createdAt: 'desc' }
+      ],
       take: limit,
       include: {
         creator: {
@@ -491,6 +491,96 @@ class TokenService {
       uniqueTraders,
       volume24h: volume24h._sum.volume24h || 0
     };
+  }
+
+  /**
+   * Create new token in database
+   */
+  async createToken(tokenData) {
+    const {
+      address,
+      name,
+      symbol,
+      creatorAddress,
+      initialSupply,
+      description,
+      logo,
+      website,
+      twitter,
+      telegram,
+      discord
+    } = tokenData;
+
+    // Create token and initial holder record in a transaction
+    return prisma.$transaction(async (tx) => {
+      // Create the token
+      const token = await tx.token.create({
+        data: {
+          address: address.toLowerCase(),
+          name,
+          symbol,
+          totalSupply: initialSupply.toString(),
+          creatorAddress: creatorAddress.toLowerCase(),
+          currentPrice: 0,
+          marketCap: 0,
+          totalVolume: 0,
+          volume24h: 0,
+          priceChange24h: 0,
+          holderCount: 1,
+          tradeCount: 0,
+          description: description || '',
+          logo: logo || '',
+          website: website || '',
+          twitter: twitter || '',
+          telegram: telegram || '',
+          discord: discord || '',
+          isGraduated: false,
+          liquidityLocked: false
+        }
+      });
+
+      // Create initial holder record (creator gets the initial supply)
+      await tx.tokenHolder.create({
+        data: {
+          tokenAddress: address.toLowerCase(),
+          holderAddress: creatorAddress.toLowerCase(),
+          balance: initialSupply.toString(),
+          totalBought: initialSupply.toString(),
+          totalSold: 0,
+          realizedPnl: 0,
+          firstBuyAt: new Date()
+        }
+      });
+
+      return token;
+    });
+  }
+
+  /**
+   * Get recent trades across all tokens or for a specific token
+   */
+  async getRecentTrades({ tokenAddress, limit = 10 } = {}) {
+    const where = tokenAddress 
+      ? { tokenAddress: tokenAddress.toLowerCase() }
+      : {};
+
+    const trades = await prisma.trade.findMany({
+      where,
+      take: limit,
+      orderBy: { timestamp: 'desc' },
+      include: {
+        token: {
+          select: {
+            name: true,
+            symbol: true,
+            logo: true,
+            address: true
+          }
+        }
+      }
+    });
+
+    return { trades };
   }
 
   /**

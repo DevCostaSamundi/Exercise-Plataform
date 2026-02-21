@@ -7,6 +7,7 @@ import EmptyState from '../components/EmptyState';
 import FadeIn from '../components/FadeIn';
 import AnimatedNumber from '../components/AnimatedNumber';
 import { formatEth, formatCurrency, formatCompactNumber, formatPercentage } from '../utils/format';
+import { getImageUrl } from '../utils/imageUrl';
 import { useYieldClaim } from '../hooks/useYieldClaim';
 import { useTokenFactory } from '../hooks/useTokenFactory';
 import { usePortfolio, useUserTrades, usePortfolioStats } from '../hooks/useTokens';
@@ -28,6 +29,7 @@ export default function MyPortfolioPage() {
   const holdings = portfolioData?.holdings || [];
   const trades = tradesData?.trades || [];
   const stats = statsData || {};
+  const yieldHistory = statsData?.yieldHistory || [];
 
   // Portfolio summary from real data
   const portfolio = {
@@ -185,7 +187,22 @@ export default function MyPortfolioPage() {
                 <div key={holding.tokenAddress} className="border border-gray-800 rounded-xl p-4 md:p-6 hover:border-gray-700 transition-colors">
                   <div className="flex flex-col md:flex-row items-start md:items-center gap-4 md:gap-0 md:justify-between">
                     <div className="flex items-center gap-3 md:gap-4 w-full md:w-auto">
-                      <div className="w-12 h-12 md:w-16 md:h-16 rounded-full bg-gradient-to-br from-yellow-400 to-orange-500 flex-shrink-0" />
+                      {holding.logo ? (
+                        <img 
+                          src={getImageUrl(holding.logo)}
+                          alt={holding.name}
+                          className="w-12 h-12 md:w-16 md:h-16 rounded-full object-cover flex-shrink-0"
+                          onError={(e) => {
+                            e.target.onerror = null;
+                            e.target.style.display = 'none';
+                            const fallback = e.target.parentElement.querySelector('.fallback-icon');
+                            if (fallback) fallback.style.display = 'flex';
+                          }}
+                        />
+                      ) : null}
+                      <div className="fallback-icon w-12 h-12 md:w-16 md:h-16 rounded-full bg-gradient-to-br from-yellow-400 to-orange-500 flex-shrink-0 flex items-center justify-center text-black font-bold text-xl" style={{display: holding.logo ? 'none' : 'flex'}}>
+                        {(holding.symbol || '?')[0]}
+                      </div>
                       <div className="flex-1 md:flex-initial">
                         <div className="flex flex-wrap items-center gap-2 md:gap-3 mb-1">
                           <h3 className="text-lg md:text-xl font-bold">{holding.name}</h3>

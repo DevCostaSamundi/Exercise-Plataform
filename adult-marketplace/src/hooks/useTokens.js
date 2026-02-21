@@ -13,16 +13,17 @@ import { TokenFactoryABI } from '../config/contractABIs';
 const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:5000/api/v1';
 
 /**
- * Fetch wrapper with auth
+ * Fetch wrapper with wallet auth
  */
 async function apiFetch(endpoint, options = {}) {
-  const token = localStorage.getItem('authToken');
+  // Get connected wallet address for Web3 authentication
+  const walletAddress = window.ethereum?.selectedAddress;
   
   const response = await fetch(`${API_BASE}${endpoint}`, {
     ...options,
     headers: {
       'Content-Type': 'application/json',
-      ...(token && { Authorization: `Bearer ${token}` }),
+      ...(walletAddress && { 'X-Wallet-Address': walletAddress }),
       ...options.headers,
     },
   });
@@ -37,7 +38,7 @@ async function apiFetch(endpoint, options = {}) {
 /**
  * Get all tokens with pagination and filters
  */
-export function useTokenList({ page = 1, limit = 20, sortBy = 'createdAt', sortOrder = 'desc', search = '', creator = '' } = {}) {
+export function useTokenList({ page = 1, limit = 20, sortBy = 'createdAt', sortOrder = 'desc', search = '', creator = '' } = {}, options = {}) {
   const queryParams = new URLSearchParams({
     page: page.toString(),
     limit: limit.toString(),
@@ -51,31 +52,31 @@ export function useTokenList({ page = 1, limit = 20, sortBy = 'createdAt', sortO
     queryKey: ['tokens', 'list', page, limit, sortBy, sortOrder, search, creator],
     queryFn: () => apiFetch(`/tokens?${queryParams}`),
     staleTime: 30000, // 30 seconds
-    refetchInterval: 60000 // 1 minute auto-refresh
+    ...options
   });
 }
 
 /**
  * Get trending tokens
  */
-export function useTrendingTokens(limit = 10) {
+export function useTrendingTokens(limit = 10, options = {}) {
   return useQuery({
     queryKey: ['tokens', 'trending', limit],
     queryFn: () => apiFetch(`/tokens/trending?limit=${limit}`),
     staleTime: 60000, // 1 minute
-    refetchInterval: 120000 // 2 minute auto-refresh
+    ...options
   });
 }
 
 /**
  * Get recent tokens
  */
-export function useRecentTokens(limit = 10) {
+export function useRecentTokens(limit = 10, options = {}) {
   return useQuery({
     queryKey: ['tokens', 'recent', limit],
     queryFn: () => apiFetch(`/tokens/recent?limit=${limit}`),
     staleTime: 30000,
-    refetchInterval: 60000
+    ...options
   });
 }
 
@@ -134,8 +135,7 @@ export function usePlatformStats() {
   return useQuery({
     queryKey: ['platform', 'stats'],
     queryFn: () => apiFetch('/tokens/stats'),
-    staleTime: 60000,
-    refetchInterval: 120000
+    staleTime: 60000
   });
 }
 
@@ -287,6 +287,36 @@ export function useTokenWithFallback(address) {
   };
 }
 
+/**
+ * Hook: useRecentTrades
+ * Get recent trades across all tokens or for a specific token
+ */
+export function useRecentTrades({ tokenAddress, limit = 10 } = {}) {
+  const endpoint = tokenAddress 
+    ? `/trades?tokenAddress=${tokenAddress}&limit=${limit}`
+    : `/trades?limit=${limit}`;
+    
+  return useQuery({
+    queryKey: ['recent-trades', tokenAddress, limit],
+    queryFn: () => apiFetch(endpoint),
+    refetchInterval: 10000, // Refetch every 10s
+  });
+}
+
+/**
+ * Hook: useCreatorTokens
+ * Get tokens created by a specific wallet address (public, no auth needed)
+ */
+export function useCreatorTokens(creatorAddress, { page = 1, limit = 20 } = {}) {
+  return useQuery({
+    queryKey: ['tokens', 'creator', creatorAddress, page, limit],
+    queryFn: () => apiFetch(`/tokens/creator/${creatorAddress}?page=${page}&limit=${limit}`),
+    enabled: !!creatorAddress,
+    staleTime: 30000,
+    refetchInterval: 60000,
+  });
+}
+
 export default {
   useTokenList,
   useTrendingTokens,
@@ -301,5 +331,7 @@ export default {
   useCreatedTokens,
   usePortfolioStats,
   useTokenUpdates,
-  useTokenWithFallback
+  useTokenWithFallback,
+  useRecentTrades,
+  useCreatorTokens
 };

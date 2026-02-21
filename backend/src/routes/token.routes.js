@@ -5,9 +5,69 @@
 
 import express from 'express';
 import tokenService from '../services/tokenService.js';
-import { authenticate, optionalAuth } from '../middleware/auth.middleware.js';
+import { authenticate, optionalAuth, authenticateByWallet } from '../middleware/auth.middleware.js';
 
 const router = express.Router();
+
+/**
+ * POST /api/tokens
+ * Create new token in database (after on-chain deployment)
+ */
+router.post('/', authenticateByWallet, async (req, res) => {
+  try {
+    const {
+      address,
+      name,
+      symbol,
+      initialSupply,
+      description,
+      logo,
+      website,
+      twitter,
+      telegram,
+      discord
+    } = req.body;
+
+    // Validate required fields
+    if (!address || !name || !symbol || !initialSupply) {
+      return res.status(400).json({ 
+        error: 'Missing required fields: address, name, symbol, initialSupply' 
+      });
+    }
+
+    // Get creator address from authenticated user
+    const creatorAddress = req.user.web3Wallet;
+    if (!creatorAddress) {
+      return res.status(400).json({ error: 'User wallet address not found' });
+    }
+
+    // Check if token already exists
+    const existing = await tokenService.getTokenByAddress(address);
+    if (existing) {
+      return res.status(409).json({ error: 'Token already exists in database' });
+    }
+
+    // Create token
+    const token = await tokenService.createToken({
+      address,
+      name,
+      symbol,
+      creatorAddress,
+      initialSupply,
+      description,
+      logo,
+      website,
+      twitter,
+      telegram,
+      discord
+    });
+
+    res.status(201).json(token);
+  } catch (error) {
+    console.error('Error creating token:', error);
+    res.status(500).json({ error: 'Failed to create token' });
+  }
+});
 
 /**
  * GET /api/tokens
@@ -156,6 +216,34 @@ router.get('/:address/chart', async (req, res) => {
   } catch (error) {
     console.error('Error fetching price history:', error);
     res.status(500).json({ error: 'Failed to fetch chart data' });
+  }
+});
+
+/**
+ * GET /api/tokens/:address/metadata
+ * Get token metadata
+ */
+router.get('/:address/metadata', async (req, res) => {
+  try {
+    const { address } = req.params;
+    const token = await tokenService.getTokenByAddress(address);
+    
+    if (!token) {
+      return res.status(404).json({ error: 'Token not found' });
+    }
+    
+    // Return metadata fields
+    res.json({
+      description: token.description || '',
+      logo: token.logo || '',
+      website: token.website || '',
+      twitter: token.twitter || '',
+      telegram: token.telegram || '',
+      discord: token.discord || ''
+    });
+  } catch (error) {
+    console.error('Error fetching token metadata:', error);
+    res.status(500).json({ error: 'Failed to fetch metadata' });
   }
 });
 

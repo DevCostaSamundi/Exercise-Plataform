@@ -7,6 +7,7 @@ import FadeIn from '../components/FadeIn';
 import { StaggerContainer, StaggerItem } from '../components/StaggerChildren';
 import { useTrendingTokens, usePlatformStats } from '../hooks/useTokens';
 import { formatCompactNumber, formatCurrency, formatPercentage } from '../utils/format';
+import { getImageUrl } from '../utils/imageUrl';
 
 export default function HomePage() {
   const { isConnected } = useAccount();
@@ -135,7 +136,7 @@ export default function HomePage() {
                         <div className="flex items-center gap-4 mb-6">
                           {token.logo ? (
                             <img 
-                              src={token.logo} 
+                              src={getImageUrl(token.logo)} 
                               alt={token.name}
                               className="w-12 h-12 rounded-full object-cover"
                             />

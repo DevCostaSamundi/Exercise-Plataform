@@ -18,9 +18,13 @@ import portfolioRoutes from './routes/portfolio.routes.js';
 import cryptoPaymentRoutes from './routes/crypto-payment.routes.js';
 import transactionRoutes from './routes/transaction.routes.js';
 import trendingRoutes from './routes/trending.routes.js';
+import tradeRoutes from './routes/trade.routes.js';
 
 // Import routes - AI Marketing (Admin)
 import aiRoutes from './routes/ai.routes.js';
+
+// Import routes - Uploads
+import uploadRoutes from './routes/upload.routes.js';
 
 import errorMiddleware from './middleware/error.middleware.js';
 import logger from './utils/logger.js';
@@ -43,7 +47,7 @@ const corsOptions = {
     if (allowedOrigins.some(o => origin.startsWith(o))) {
       return callback(null, true);
     }
-    if (process.env.NODE_ENV !== 'production' && origin. includes('localhost')) {
+    if (process.env.NODE_ENV !== 'production' && origin.includes('localhost')) {
       return callback(null, true);
     }
     console.warn(`Blocked CORS request from origin: ${origin}`);
@@ -51,7 +55,7 @@ const corsOptions = {
   },
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH'],
-  allowedHeaders:  ['Content-Type', 'Authorization', 'X-Requested-With'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'X-Wallet-Address'],
   exposedHeaders: ['Content-Range', 'X-Content-Range'],
   maxAge: 600,
 };
@@ -79,6 +83,27 @@ app.use((req, res, next) => {
   next();
 });
 
+// ------------------- Static Files (uploads) -------------------
+import { fileURLToPath } from 'url';
+import path from 'path';
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+const uploadsPath = path.join(__dirname, '..', 'uploads');
+
+// CORS middleware for uploads
+const uploadsCorsMiddleware = (req, res, next) => {
+  res.header('Access-Control-Allow-Origin', '*');
+  res.header('Access-Control-Allow-Methods', 'GET');
+  res.header('Access-Control-Allow-Headers', 'Content-Type');
+  res.header('Cross-Origin-Resource-Policy', 'cross-origin');
+  next();
+};
+
+// Serve uploads from both /uploads and /api/v1/uploads
+app.use('/uploads', uploadsCorsMiddleware, express.static(uploadsPath));
+app.use('/api/v1/uploads', uploadsCorsMiddleware, express.static(uploadsPath));
+
 // ------------------- Health Check -------------------
 app.get('/health', (req, res) => {
   res.status(200).json({
@@ -100,6 +125,7 @@ app.use(`/api/${API_VERSION}/auth`, authRoutes);
 
 // Token routes (Launchpad Core)
 app.use(`/api/${API_VERSION}/tokens`, tokenRoutes);
+app.use(`/api/${API_VERSION}/trades`, tradeRoutes);
 app.use(`/api/${API_VERSION}/portfolio`, portfolioRoutes);
 
 // User routes
@@ -107,6 +133,9 @@ app.use(`/api/${API_VERSION}/user`, userRoutes);
 
 // Trending routes
 app.use(`/api/${API_VERSION}/trending`, trendingRoutes);
+
+// Upload routes (before transaction routes - they must be public)
+app.use(`/api/${API_VERSION}/upload`, uploadRoutes);
 
 // Wallet and transaction routes
 app.use(`/api/${API_VERSION}`, transactionRoutes);

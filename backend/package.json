@@ -1,7 +1,7 @@
 {
-  "name": "prideconnect-backend",
+  "name": "launchpad-backend",
   "version": "1.0.0",
-  "description": "Backend API for PrideConnect - LGBT+ Adult Content Platform",
+  "description": "Backend API for Launchpad - Token Trading Platform",
   "main": "server.js",
   "type": "module",
   "scripts": {

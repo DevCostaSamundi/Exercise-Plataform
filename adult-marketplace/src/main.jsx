@@ -5,6 +5,7 @@ import { WagmiProvider } from 'wagmi';
 import { Toaster } from 'sonner';
 import { wagmiConfig } from './config/wagmi.config.js';
 import { ThemeProvider } from './contexts/ThemeContext';
+import { AuthProvider } from './contexts/AuthContext';
 import App from './App';
 import './index.css';
 
@@ -22,10 +23,12 @@ ReactDOM.createRoot(document.getElementById('root')).render(
   <React.StrictMode>
     <QueryClientProvider client={queryClient}>
       <WagmiProvider config={wagmiConfig}>
-        <ThemeProvider>
-          <Toaster position="top-right" richColors closeButton />
-          <App />
-        </ThemeProvider>
+        <AuthProvider>
+          <ThemeProvider>
+            <Toaster position="top-right" richColors closeButton />
+            <App />
+          </ThemeProvider>
+        </AuthProvider>
       </WagmiProvider>
     </QueryClientProvider>
   </React.StrictMode>

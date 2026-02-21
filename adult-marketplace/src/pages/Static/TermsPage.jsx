@@ -76,7 +76,7 @@ function TitleSection() {
       </h1>
 
       <p className="text-slate-600 dark:text-slate-400 mb-2">
-        PrideConnect — Plataforma de Conteúdo para a Comunidade LGBT+
+        Launchpad — Plataforma de Conteúdo para a Comunidade LGBT+
       </p>
 
       <div className="flex flex-col sm:flex-row items-center justify-center gap-2 sm:gap-6 text-sm text-slate-500 dark:text-slate-500">
@@ -104,7 +104,7 @@ function AlertBanner() {
             Leia com Atenção
           </h3>
           <p className="text-sm text-red-800 dark:text-red-300 leading-relaxed">
-            Ao acessar ou usar o PrideConnect, você concorda com estes Termos de Uso.  
+            Ao acessar ou usar o Launchpad, você concorda com estes Termos de Uso.  
             Esta plataforma contém <strong>conteúdo adulto</strong> e é destinada 
             exclusivamente a pessoas com <strong>18 anos ou mais</strong>. Se você não 
             concorda com estes termos ou não possui a idade mínima, não utilize a plataforma.
@@ -310,7 +310,7 @@ function FooterNote() {
     <footer className="mt-12 pt-8 border-t border-slate-200 dark:border-slate-800">
       <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
         <p className="text-sm text-slate-500 dark:text-slate-400 text-center sm:text-left">
-          🏳️‍🌈 PrideConnect — Construindo um espaço seguro e inclusivo para a 
+          🏳️‍🌈 Launchpad — Construindo um espaço seguro e inclusivo para a 
           comunidade LGBT+. 
         </p>
 
@@ -347,14 +347,14 @@ export default function TermsPage() {
           {/* 1. Aceitação */}
           <Section id="aceitacao" icon="✅" title="1. Aceitação dos Termos">
             <p>
-              Ao acessar, navegar ou utilizar o PrideConnect ("Plataforma", "Serviço", 
+              Ao acessar, navegar ou utilizar o Launchpad ("Plataforma", "Serviço", 
               "nós", "nosso"), você ("Usuário", "você") declara que leu, compreendeu 
               e concorda em ficar vinculado a estes Termos de Uso ("Termos"). 
             </p>
 
             <p>
               Estes Termos constituem um acordo legal vinculante entre você e o 
-              PrideConnect.  Se você não concorda com qualquer parte destes Termos, 
+              Launchpad.  Se você não concorda com qualquer parte destes Termos, 
               não deve acessar ou usar a Plataforma.
             </p>
 
@@ -377,7 +377,7 @@ export default function TermsPage() {
                 {
                   icon: '🌐',
                   term: 'Plataforma',
-                  definition: 'O website, aplicativos, APIs e todos os serviços relacionados ao PrideConnect.',
+                  definition: 'O website, aplicativos, APIs e todos os serviços relacionados ao Launchpad.',
                 },
                 {
                   icon: '👤',
@@ -416,7 +416,7 @@ export default function TermsPage() {
           {/* 3.  Elegibilidade */}
           <Section id="elegibilidade" icon="🔞" title="3. Elegibilidade e Verificação de Idade">
             <p>
-              Para usar o PrideConnect, você deve atender aos seguintes requisitos:
+              Para usar o Launchpad, você deve atender aos seguintes requisitos:
             </p>
 
             <BulletList
@@ -493,7 +493,7 @@ export default function TermsPage() {
           {/* 5. Assinantes */}
           <Section id="assinantes" icon="⭐" title="5.  Regras para Assinantes">
             <p>
-              Como Assinante do PrideConnect, você concorda com as seguintes regras:
+              Como Assinante do Launchpad, você concorda com as seguintes regras:
             </p>
 
             <SubSection title="5.1 Direitos do Assinante">
@@ -530,7 +530,7 @@ export default function TermsPage() {
           {/* 6. Criadores */}
           <Section id="criadores" icon="🎨" title="6. Regras para Criadores">
             <p>
-              Como Criador no PrideConnect, você possui direitos e responsabilidades 
+              Como Criador no Launchpad, você possui direitos e responsabilidades 
               adicionais:
             </p>
 
@@ -570,7 +570,7 @@ export default function TermsPage() {
             </SubSection>
 
             <HighlightBox type="success" title="Proteção ao Criador">
-              O PrideConnect oferece ferramentas de proteção incluindo: marca 
+              O Launchpad oferece ferramentas de proteção incluindo: marca 
               d'água automática, detecção de vazamentos, sistema DMCA, bloqueio 
               por região e moderação de comentários. 
             </HighlightBox>
@@ -745,7 +745,7 @@ export default function TermsPage() {
           <Section id="propriedade" icon="©️" title="11. Propriedade Intelectual">
             <SubSection title="11.1 Conteúdo da Plataforma">
               <p>
-                O PrideConnect e todo o seu conteúdo original (design, código, 
+                O Launchpad e todo o seu conteúdo original (design, código, 
                 logotipos, textos) são propriedade exclusiva da empresa e protegidos 
                 por leis de propriedade intelectual.
               </p>
@@ -754,7 +754,7 @@ export default function TermsPage() {
             <SubSection title="11.2 Conteúdo do Criador">
               <p>
                 Criadores mantêm todos os direitos autorais sobre seu conteúdo.  Ao 
-                publicar na Plataforma, você concede ao PrideConnect:
+                publicar na Plataforma, você concede ao Launchpad:
               </p>
               <BulletList
                 items={[
@@ -838,7 +838,7 @@ export default function TermsPage() {
           {/* 14.  Conduta */}
           <Section id="conduta" icon="🤝" title="14. Código de Conduta">
             <p>
-              O PrideConnect é um espaço inclusivo para a comunidade LGBT+. Esperamos 
+              O Launchpad é um espaço inclusivo para a comunidade LGBT+. Esperamos 
               que todos os usuários mantenham um ambiente respeitoso:
             </p>
 
@@ -868,7 +868,7 @@ export default function TermsPage() {
             </SubSection>
 
             <HighlightBox type="success" title="Comunidade Segura">
-              Nosso objetivo é manter o PrideConnect como um espaço seguro e 
+              Nosso objetivo é manter o Launchpad como um espaço seguro e 
               acolhedor.  Violações do código de conduta serão tratadas com 
               seriedade e podem resultar em ação imediata.
             </HighlightBox>
@@ -939,7 +939,7 @@ export default function TermsPage() {
           {/* 17. Responsabilidade */}
           <Section id="responsabilidade" icon="⚠️" title="17. Limitação de Responsabilidade">
             <p>
-              NA MÁXIMA EXTENSÃO PERMITIDA POR LEI, O PRIDECONNECT NÃO SERÁ 
+              NA MÁXIMA EXTENSÃO PERMITIDA POR LEI, O LAUNCHPAD NÃO SERÁ 
               RESPONSÁVEL POR DANOS INDIRETOS, INCIDENTAIS, ESPECIAIS, 
               CONSEQUENCIAIS OU PUNITIVOS, INCLUINDO:
             </p>
@@ -963,7 +963,7 @@ export default function TermsPage() {
           {/* 18. Indenização */}
           <Section id="indenizacao" icon="🛡️" title="18.  Indenização">
             <p>
-              Você concorda em indenizar, defender e isentar o PrideConnect, seus 
+              Você concorda em indenizar, defender e isentar o Launchpad, seus 
               diretores, funcionários, agentes e parceiros de quaisquer 
               reivindicações, danos, perdas, custos e despesas (incluindo 
               honorários advocatícios) decorrentes de:
@@ -1098,7 +1098,7 @@ export default function TermsPage() {
                 ✅ Declaração de Aceitação
               </h3>
               <p className="text-slate-600 dark:text-slate-400 max-w-2xl mx-auto">
-                Ao criar uma conta, acessar ou usar o PrideConnect, você confirma 
+                Ao criar uma conta, acessar ou usar o Launchpad, você confirma 
                 que leu, compreendeu e concorda com estes Termos de Uso em sua 
                 totalidade.  Se você não concorda, não utilize a Plataforma.
               </p>

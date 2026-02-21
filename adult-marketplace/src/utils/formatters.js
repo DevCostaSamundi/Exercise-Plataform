@@ -1,5 +1,5 @@
 /**
- * Utilitários de formatação para a plataforma PrideConnect
+ * Utilitários de formatação para a plataforma Launchpad
  */
 
 import { formatDistanceToNow, format } from 'date-fns';

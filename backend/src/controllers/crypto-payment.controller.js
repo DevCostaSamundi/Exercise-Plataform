@@ -293,7 +293,7 @@ export const getCryptoPaymentStatus = async (req, res) => {
                         user: {
                             select: {
                                 username: true,
-                                avatar: true,
+                                avatarUrl: true,
                             },
                         },
                     },

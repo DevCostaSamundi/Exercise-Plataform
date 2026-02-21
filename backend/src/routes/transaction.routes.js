@@ -8,16 +8,13 @@ import {
 
 const router = express.Router();
 
-// Todas as rotas requerem autenticação
-router.use(authenticate);
+// GET /api/v1/wallet - Obter dados da carteira (requer autenticação)
+router.get('/wallet', authenticate, getWallet);
 
-// GET /api/v1/wallet - Obter dados da carteira
-router.get('/wallet', getWallet);
+// GET /api/v1/transactions - Listar transações (requer autenticação)
+router.get('/transactions', authenticate, getTransactions);
 
-// GET /api/v1/transactions - Listar transações
-router.get('/transactions', getTransactions);
-
-// GET /api/v1/transactions/export - Exportar para CSV
-router.get('/transactions/export', exportTransactions);
+// GET /api/v1/transactions/export - Exportar para CSV (requer autenticação)
+router.get('/transactions/export', authenticate, exportTransactions);
 
 export default router;

@@ -4,19 +4,64 @@ import { formatEther, parseEther } from 'viem';
 import { toast } from 'sonner';
 import { 
   Shield, DollarSign, Coins, Users, TrendingUp, 
-  Settings, Pause, Play, Download, AlertCircle
+  Settings, Pause, Play, Download, AlertCircle,
+  Sparkles, Brain, Rocket, Clock, Target, Zap, Loader2, RefreshCw
 } from 'lucide-react';
 import Sidebar from '../components/Sidebar';
 import { CONTRACTS } from '../config/constants';
+import { usePlatformStats } from '../hooks/useTokens';
+
+const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:5000/api/v1';
 
 export default function AdminDashboard() {
   const { address } = useAccount();
   const [selectedContract, setSelectedContract] = useState('factory');
+  const [activeTab, setActiveTab] = useState('overview');
   const { writeContractAsync } = useWriteContract();
 
-  // Check if user is owner (you need to set your wallet address here)
-  const OWNER_ADDRESS = import.meta.env.VITE_OWNER_ADDRESS || '0x0000000000000000000000000000000000000000';
-  const isOwner = address?.toLowerCase() === OWNER_ADDRESS.toLowerCase();
+  // AI Marketing state
+  const [aiLoading, setAiLoading] = useState({});
+  const [aiData, setAiData] = useState({
+    marketingStrategy: null,
+    tokenAdvice: null,
+    buyerStrategies: null,
+    viralContent: null,
+    optimalTiming: null,
+    competitors: null
+  });
+
+  // Fetch AI data
+  const fetchAiEndpoint = async (endpoint, key) => {
+    setAiLoading(prev => ({ ...prev, [key]: true }));
+    try {
+      const token = localStorage.getItem('authToken');
+      const response = await fetch(`${API_BASE}/ai/${endpoint}`, {
+        headers: {
+          'Content-Type': 'application/json',
+          'X-Wallet-Address': address || '',
+          ...(token && { Authorization: `Bearer ${token}` }),
+        }
+      });
+      
+      if (!response.ok) {
+        const errData = await response.json().catch(() => ({}));
+        throw new Error(errData.message || errData.error || `Failed to fetch ${endpoint}`);
+      }
+      
+      const data = await response.json();
+      setAiData(prev => ({ ...prev, [key]: data }));
+      toast.success(`AI ${key} generated!`);
+    } catch (error) {
+      console.error(`AI ${endpoint} error:`, error);
+      toast.error(error.message || `Failed to get ${key}`);
+    } finally {
+      setAiLoading(prev => ({ ...prev, [key]: false }));
+    }
+  };
+
+  // Verifica se a wallet conectada é do OWNER
+  const OWNER_WALLET = import.meta.env.VITE_OWNER_WALLET || '';
+  const isOwner = address?.toLowerCase() === OWNER_WALLET.toLowerCase();
 
   // Read contract metrics
   const { data: totalTokens } = useReadContract({
@@ -58,12 +103,13 @@ export default function AdminDashboard() {
     enabled: isOwner,
   });
 
-  // Mock data (replace with real subgraph data)
-  const metrics = {
-    totalVolume: '1,250.45 ETH',
-    uniqueUsers: '2,847',
-    avgTokenPrice: '0.0015 ETH',
-    totalYieldDistributed: '125.30 ETH',
+  // Fetch real platform stats
+  const { data: statsData } = usePlatformStats();
+  const metrics = statsData || {
+    totalVolume: '0 ETH',
+    uniqueUsers: '0',
+    avgTokenPrice: '0 ETH',
+    totalYieldDistributed: '0 ETH',
   };
 
   const handleWithdrawFees = async () => {
@@ -150,10 +196,38 @@ export default function AdminDashboard() {
               <h1 className="text-3xl md:text-4xl font-black">Admin Dashboard</h1>
             </div>
             <p className="text-gray-400 text-sm md:text-base">Platform metrics and controls</p>
+            
+            {/* Tabs */}
+            <div className="flex gap-2 mt-4 overflow-x-auto pb-2">
+              <button
+                onClick={() => setActiveTab('overview')}
+                className={`px-4 py-2 rounded-lg font-semibold whitespace-nowrap transition-all ${
+                  activeTab === 'overview'
+                    ? 'bg-yellow-400 text-black'
+                    : 'bg-gray-900 text-gray-400 hover:text-white'
+                }`}
+              >
+                Overview
+              </button>
+              <button
+                onClick={() => setActiveTab('ai')}
+                className={`px-4 py-2 rounded-lg font-semibold whitespace-nowrap transition-all flex items-center gap-2 ${
+                  activeTab === 'ai'
+                    ? 'bg-yellow-400 text-black'
+                    : 'bg-gray-900 text-gray-400 hover:text-white'
+                }`}
+              >
+                <Sparkles size={16} />
+                AI Marketing
+              </button>
+            </div>
           </div>
 
-          {/* Key Metrics */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6 mb-6 md:mb-8">
+          {/* Overview Tab */}
+          {activeTab === 'overview' && (
+            <>
+              {/* Key Metrics */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6 mb-6 md:mb-8">
             <div className="border border-gray-800 rounded-xl p-6 bg-gradient-to-br from-yellow-950/20 to-transparent">
               <div className="flex items-center gap-3 mb-3">
                 <div className="p-2 bg-yellow-400/10 rounded-lg">
@@ -288,6 +362,242 @@ export default function AdminDashboard() {
               </div>
             </div>
           </div>
+            </>
+          )}
+
+          {/* AI Marketing Tab */}
+          {activeTab === 'ai' && (
+            <div className="space-y-6">
+              {/* AI Header */}
+              <div className="border border-purple-900/50 rounded-xl p-6 bg-gradient-to-br from-purple-950/30 to-transparent">
+                <div className="flex items-center gap-3 mb-3">
+                  <div className="p-3 bg-purple-500/20 rounded-lg">
+                    <Brain className="text-purple-400" size={28} />
+                  </div>
+                  <div>
+                    <h2 className="text-2xl font-bold">AI Marketing Intelligence</h2>
+                    <p className="text-gray-400 text-sm">Powered by GPT-4 Mini</p>
+                  </div>
+                </div>
+                <p className="text-gray-400">
+                  Use AI to generate marketing strategies, detect viral trends, and optimize your token launches.
+                </p>
+              </div>
+
+              {/* AI Cards Grid */}
+              <div className="grid lg:grid-cols-2 gap-6">
+                
+                {/* Marketing Strategy */}
+                <div className="border border-gray-800 rounded-xl p-6">
+                  <div className="flex items-center justify-between mb-4">
+                    <h3 className="text-lg font-bold flex items-center gap-2">
+                      <Target className="text-yellow-400" size={20} />
+                      Marketing Strategy
+                    </h3>
+                    <button
+                      onClick={() => fetchAiEndpoint('marketing-strategy', 'marketingStrategy')}
+                      disabled={aiLoading.marketingStrategy}
+                      className="px-3 py-1.5 bg-purple-600 hover:bg-purple-700 rounded-lg text-sm font-semibold flex items-center gap-2 disabled:opacity-50"
+                    >
+                      {aiLoading.marketingStrategy ? <Loader2 className="animate-spin" size={14} /> : <Sparkles size={14} />}
+                      Generate
+                    </button>
+                  </div>
+                  
+                  {aiData.marketingStrategy ? (
+                    <div className="bg-gray-900 rounded-lg p-4 text-sm space-y-3">
+                      <div>
+                        <span className="text-purple-400 font-semibold">Strategy:</span>
+                        <p className="text-gray-300 mt-1">{aiData.marketingStrategy.strategy || aiData.marketingStrategy.message || JSON.stringify(aiData.marketingStrategy)}</p>
+                      </div>
+                      {aiData.marketingStrategy.tips && (
+                        <div>
+                          <span className="text-purple-400 font-semibold">Tips:</span>
+                          <ul className="list-disc list-inside text-gray-300 mt-1">
+                            {(Array.isArray(aiData.marketingStrategy.tips) ? aiData.marketingStrategy.tips : [aiData.marketingStrategy.tips]).map((tip, i) => (
+                              <li key={i}>{tip}</li>
+                            ))}
+                          </ul>
+                        </div>
+                      )}
+                    </div>
+                  ) : (
+                    <div className="bg-gray-900 rounded-lg p-8 text-center text-gray-500">
+                      <Target className="mx-auto mb-2 text-gray-700" size={32} />
+                      <p className="text-sm">Click "Generate" to get AI marketing strategy</p>
+                    </div>
+                  )}
+                </div>
+
+                {/* Token Launch Advice */}
+                <div className="border border-gray-800 rounded-xl p-6">
+                  <div className="flex items-center justify-between mb-4">
+                    <h3 className="text-lg font-bold flex items-center gap-2">
+                      <Rocket className="text-orange-400" size={20} />
+                      Token Launch Advice
+                    </h3>
+                    <button
+                      onClick={() => fetchAiEndpoint('token-launch-advice', 'tokenAdvice')}
+                      disabled={aiLoading.tokenAdvice}
+                      className="px-3 py-1.5 bg-purple-600 hover:bg-purple-700 rounded-lg text-sm font-semibold flex items-center gap-2 disabled:opacity-50"
+                    >
+                      {aiLoading.tokenAdvice ? <Loader2 className="animate-spin" size={14} /> : <Sparkles size={14} />}
+                      Generate
+                    </button>
+                  </div>
+                  
+                  {aiData.tokenAdvice ? (
+                    <div className="bg-gray-900 rounded-lg p-4 text-sm">
+                      <p className="text-gray-300">{aiData.tokenAdvice.advice || aiData.tokenAdvice.message || JSON.stringify(aiData.tokenAdvice)}</p>
+                    </div>
+                  ) : (
+                    <div className="bg-gray-900 rounded-lg p-8 text-center text-gray-500">
+                      <Rocket className="mx-auto mb-2 text-gray-700" size={32} />
+                      <p className="text-sm">Get AI suggestions for token launches</p>
+                    </div>
+                  )}
+                </div>
+
+                {/* Buyer Strategies */}
+                <div className="border border-gray-800 rounded-xl p-6">
+                  <div className="flex items-center justify-between mb-4">
+                    <h3 className="text-lg font-bold flex items-center gap-2">
+                      <Users className="text-green-400" size={20} />
+                      Buyer Attraction
+                    </h3>
+                    <button
+                      onClick={() => fetchAiEndpoint('buyer-strategies', 'buyerStrategies')}
+                      disabled={aiLoading.buyerStrategies}
+                      className="px-3 py-1.5 bg-purple-600 hover:bg-purple-700 rounded-lg text-sm font-semibold flex items-center gap-2 disabled:opacity-50"
+                    >
+                      {aiLoading.buyerStrategies ? <Loader2 className="animate-spin" size={14} /> : <Sparkles size={14} />}
+                      Generate
+                    </button>
+                  </div>
+                  
+                  {aiData.buyerStrategies ? (
+                    <div className="bg-gray-900 rounded-lg p-4 text-sm">
+                      <p className="text-gray-300">{aiData.buyerStrategies.strategies || aiData.buyerStrategies.message || JSON.stringify(aiData.buyerStrategies)}</p>
+                    </div>
+                  ) : (
+                    <div className="bg-gray-900 rounded-lg p-8 text-center text-gray-500">
+                      <Users className="mx-auto mb-2 text-gray-700" size={32} />
+                      <p className="text-sm">Strategies to attract more buyers</p>
+                    </div>
+                  )}
+                </div>
+
+                {/* Viral Content */}
+                <div className="border border-gray-800 rounded-xl p-6">
+                  <div className="flex items-center justify-between mb-4">
+                    <h3 className="text-lg font-bold flex items-center gap-2">
+                      <Zap className="text-pink-400" size={20} />
+                      Viral Content Ideas
+                    </h3>
+                    <button
+                      onClick={() => fetchAiEndpoint('viral-content', 'viralContent')}
+                      disabled={aiLoading.viralContent}
+                      className="px-3 py-1.5 bg-purple-600 hover:bg-purple-700 rounded-lg text-sm font-semibold flex items-center gap-2 disabled:opacity-50"
+                    >
+                      {aiLoading.viralContent ? <Loader2 className="animate-spin" size={14} /> : <Sparkles size={14} />}
+                      Generate
+                    </button>
+                  </div>
+                  
+                  {aiData.viralContent ? (
+                    <div className="bg-gray-900 rounded-lg p-4 text-sm">
+                      <p className="text-gray-300">{aiData.viralContent.content || aiData.viralContent.message || JSON.stringify(aiData.viralContent)}</p>
+                    </div>
+                  ) : (
+                    <div className="bg-gray-900 rounded-lg p-8 text-center text-gray-500">
+                      <Zap className="mx-auto mb-2 text-gray-700" size={32} />
+                      <p className="text-sm">Detect and adapt viral crypto trends</p>
+                    </div>
+                  )}
+                </div>
+
+                {/* Optimal Timing */}
+                <div className="border border-gray-800 rounded-xl p-6">
+                  <div className="flex items-center justify-between mb-4">
+                    <h3 className="text-lg font-bold flex items-center gap-2">
+                      <Clock className="text-blue-400" size={20} />
+                      Optimal Posting Times
+                    </h3>
+                    <button
+                      onClick={() => fetchAiEndpoint('optimal-timing', 'optimalTiming')}
+                      disabled={aiLoading.optimalTiming}
+                      className="px-3 py-1.5 bg-purple-600 hover:bg-purple-700 rounded-lg text-sm font-semibold flex items-center gap-2 disabled:opacity-50"
+                    >
+                      {aiLoading.optimalTiming ? <Loader2 className="animate-spin" size={14} /> : <Sparkles size={14} />}
+                      Generate
+                    </button>
+                  </div>
+                  
+                  {aiData.optimalTiming ? (
+                    <div className="bg-gray-900 rounded-lg p-4 text-sm">
+                      <p className="text-gray-300">{aiData.optimalTiming.timing || aiData.optimalTiming.message || JSON.stringify(aiData.optimalTiming)}</p>
+                    </div>
+                  ) : (
+                    <div className="bg-gray-900 rounded-lg p-8 text-center text-gray-500">
+                      <Clock className="mx-auto mb-2 text-gray-700" size={32} />
+                      <p className="text-sm">Best times to post for engagement</p>
+                    </div>
+                  )}
+                </div>
+
+                {/* Competitor Analysis */}
+                <div className="border border-gray-800 rounded-xl p-6">
+                  <div className="flex items-center justify-between mb-4">
+                    <h3 className="text-lg font-bold flex items-center gap-2">
+                      <TrendingUp className="text-cyan-400" size={20} />
+                      Competitor Insights
+                    </h3>
+                    <button
+                      onClick={() => fetchAiEndpoint('competitors', 'competitors')}
+                      disabled={aiLoading.competitors}
+                      className="px-3 py-1.5 bg-purple-600 hover:bg-purple-700 rounded-lg text-sm font-semibold flex items-center gap-2 disabled:opacity-50"
+                    >
+                      {aiLoading.competitors ? <Loader2 className="animate-spin" size={14} /> : <Sparkles size={14} />}
+                      Generate
+                    </button>
+                  </div>
+                  
+                  {aiData.competitors ? (
+                    <div className="bg-gray-900 rounded-lg p-4 text-sm">
+                      <p className="text-gray-300">{aiData.competitors.insights || aiData.competitors.message || JSON.stringify(aiData.competitors)}</p>
+                    </div>
+                  ) : (
+                    <div className="bg-gray-900 rounded-lg p-8 text-center text-gray-500">
+                      <TrendingUp className="mx-auto mb-2 text-gray-700" size={32} />
+                      <p className="text-sm">Analyze competitor strategies</p>
+                    </div>
+                  )}
+                </div>
+
+              </div>
+
+              {/* Generate All Button */}
+              <div className="text-center">
+                <button
+                  onClick={() => {
+                    fetchAiEndpoint('marketing-strategy', 'marketingStrategy');
+                    fetchAiEndpoint('token-launch-advice', 'tokenAdvice');
+                    fetchAiEndpoint('buyer-strategies', 'buyerStrategies');
+                    fetchAiEndpoint('viral-content', 'viralContent');
+                    fetchAiEndpoint('optimal-timing', 'optimalTiming');
+                    fetchAiEndpoint('competitors', 'competitors');
+                  }}
+                  className="px-8 py-3 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 rounded-lg font-bold flex items-center gap-2 mx-auto"
+                >
+                  <Brain size={20} />
+                  Generate All AI Insights
+                </button>
+                <p className="text-xs text-gray-500 mt-2">
+                  This will make 6 API calls to OpenAI
+                </p>
+              </div>
+            </div>
+          )}
 
         </div>
       </div>

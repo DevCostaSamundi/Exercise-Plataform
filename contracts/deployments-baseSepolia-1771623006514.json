@@ -1,0 +1,15 @@
+{
+  "network": "baseSepolia",
+  "deployer": "0x7a2645A0C5FA3A17e531B204ec89Fd813eb6f3f2",
+  "timestamp": "2026-02-20T21:30:06.514Z",
+  "contracts": {
+    "TokenFactory": "0x29aE7Be42F6a164E8A6aeFb82cCeD4BBDEdc232f",
+    "BondingCurve": "0xa32136188893cbCF26E629165aceF048f95a2734",
+    "LiquidityLocker": "0xEeB9e5Cb6056a77dc34dF557ce07f0a69ED36a6b"
+  },
+  "config": {
+    "launchFee": "10000000000000000",
+    "feeReceiver": "0x7a2645A0C5FA3A17e531B204ec89Fd813eb6f3f2",
+    "penaltyReceiver": "0x7a2645A0C5FA3A17e531B204ec89Fd813eb6f3f2"
+  }
+}

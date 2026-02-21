@@ -29,7 +29,7 @@ module.exports = {
       chainId: 8453,
       gasPrice: 1000000000, // 1 gwei
     },
-    // Polygon Networks (PrideConnect - archived)
+    // Polygon Networks (Launchpad - archived)
     polygon: {
       url: process.env.POLYGON_RPC_URL || "https://polygon-rpc.com",
       accounts: process.env.DEPLOYER_PRIVATE_KEY ? [process.env.DEPLOYER_PRIVATE_KEY] : [],

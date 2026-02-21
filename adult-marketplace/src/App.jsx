@@ -2,6 +2,7 @@ import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import MobileBottomNav from './components/MobileBottomNav';
 import HomePage from './pages/HomePage';
 import ProtectedRoute from './components/ProtectedRoute';
+import OwnerRoute from './components/OwnerRoute';
 
 // Static Pages
 import TermsPage from './pages/Static/TermsPage';
@@ -62,7 +63,11 @@ function App() {
               <Route path="/trending" element={<TrendingPage />} />
               <Route path="/explore" element={<ExplorePage />} />
 
-              <Route path="/admin" element={<AdminDashboard />} />
+              <Route path="/admin" element={
+                <OwnerRoute>
+                  <AdminDashboard />
+                </OwnerRoute>
+              } />
 
               {/* ========================================
               STATIC / LEGAL PAGES

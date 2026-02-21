@@ -86,7 +86,7 @@ class Web3AuthService {
      * Generate message for wallet ownership verification
      */
     generateVerificationMessage(userId, nonce) {
-        return `PrideConnect Wallet Verification\n\nUser ID: ${userId}\nNonce: ${nonce}\nTimestamp: ${Date.now()}\n\nSign this message to prove you own this wallet.`;
+        return `Launchpad Wallet Verification\n\nUser ID: ${userId}\nNonce: ${nonce}\nTimestamp: ${Date.now()}\n\nSign this message to prove you own this wallet.`;
     }
 
     /**

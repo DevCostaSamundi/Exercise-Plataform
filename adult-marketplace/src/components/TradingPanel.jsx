@@ -177,7 +177,7 @@ export default function TradingPanel({
           <div className="flex items-center gap-2">
             <TrendingUp className="text-green-500" size={16} />
             <span className="font-bold text-lg">
-              {marketInfo ? formatEther(marketInfo.currentPrice) : '0.00'} ETH
+              {marketInfo?.currentPrice ? formatEther(marketInfo.currentPrice) : '0.00'} ETH
             </span>
           </div>
         </div>
@@ -186,11 +186,11 @@ export default function TradingPanel({
           <div className="flex justify-between text-xs text-gray-500 mt-2 pt-2 border-t border-gray-800">
             <div>
               <span className="block text-gray-400">Total Supply</span>
-              <span>{formatEther(marketInfo.totalSupply)}</span>
+              <span>{marketInfo.totalSupply ? formatEther(marketInfo.totalSupply) : '0'}</span>
             </div>
             <div className="text-right">
               <span className="block text-gray-400">Reserve</span>
-              <span>{formatEther(marketInfo.reserveBalance)} ETH</span>
+              <span>{marketInfo.reserveBalance ? formatEther(marketInfo.reserveBalance) : '0'} ETH</span>
             </div>
           </div>
         )}

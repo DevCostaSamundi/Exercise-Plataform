@@ -42,7 +42,7 @@ export const getTrendingPosts = async (req, res) => {
                 id: true,
                 username:  true,
                 displayName: true,
-                avatar: true,
+                avatarUrl: true,
               },
             },
           },
@@ -135,7 +135,7 @@ export const getTrendingCreators = async (req, res) => {
             id: true,
             username: true,
             displayName: true,
-            avatar: true,
+            avatarUrl: true,
           },
         },
         _count: {

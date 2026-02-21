@@ -13,6 +13,7 @@ import Badge from '../components/Badge';
 import FadeIn from '../components/FadeIn';
 import AnimatedNumber from '../components/AnimatedNumber';
 import { formatCompactNumber, formatCurrency, formatPercentage } from '../utils/format';
+import { getImageUrl } from '../utils/imageUrl';
 import { useBondingCurve } from '../hooks/useBondingCurve';
 import { useYieldClaim } from '../hooks/useYieldClaim';
 import { useToken } from '../hooks/useTokens';
@@ -131,7 +132,22 @@ export default function TokenDetailPage() {
           <div className="border border-gray-800 rounded-xl p-4 md:p-8 mb-6 md:mb-8">
             <div className="flex flex-col md:flex-row items-start justify-between gap-4 md:gap-0">
               <div className="flex items-center gap-4 md:gap-6 w-full md:w-auto">
-                <div className="w-16 h-16 md:w-24 md:h-24 rounded-full bg-gradient-to-br from-yellow-400 to-orange-500 flex-shrink-0" />
+                {token.imageUrl ? (
+                  <img 
+                    src={getImageUrl(token.imageUrl)}
+                    alt={token.name}
+                    className="w-16 h-16 md:w-24 md:h-24 rounded-full object-cover flex-shrink-0"
+                    onError={(e) => {
+                      e.target.onerror = null;
+                      e.target.style.display = 'none';
+                      const fallback = e.target.parentElement.querySelector('.fallback-icon');
+                      if (fallback) fallback.style.display = 'flex';
+                    }}
+                  />
+                ) : null}
+                <div className="fallback-icon w-16 h-16 md:w-24 md:h-24 rounded-full bg-gradient-to-br from-yellow-400 to-orange-500 flex-shrink-0 flex items-center justify-center text-black font-bold text-2xl" style={{display: token.imageUrl ? 'none' : 'flex'}}>
+                  {(token.symbol || '?')[0]}
+                </div>
                 <div className="flex-1">
                   <h1 className="text-2xl md:text-4xl font-black mb-2">{token.name}</h1>
                   <div className="flex flex-wrap items-center gap-2 md:gap-4 text-gray-400 text-sm md:text-base">

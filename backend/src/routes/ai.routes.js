@@ -5,14 +5,13 @@
 
 import express from 'express';
 import aiMarketingService from '../services/aiMarketingService.js';
-import { authenticate } from '../middleware/auth.middleware.js';
-import { isAdmin } from '../middleware/admin.js';
+import { isAdminByWallet } from '../middleware/admin.js';
 
 const router = express.Router();
 
-// All routes require authentication + admin role
-router.use(authenticate);
-router.use(isAdmin);
+// All routes require admin (owner wallet) verification
+// Uses X-Wallet-Address header for verification
+router.use(isAdminByWallet);
 
 /**
  * GET /api/ai/marketing-strategy

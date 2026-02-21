@@ -125,7 +125,7 @@ export const getTransactions = async (req, res) => {
                 select: {
                   username: true,
                   displayName: true,
-                  avatar: true,
+                  avatarUrl: true,
                 },
               },
             },
