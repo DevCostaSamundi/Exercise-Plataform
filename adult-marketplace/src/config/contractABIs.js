@@ -46,7 +46,7 @@ export const TokenFactoryABI = [
   },
   {
     type: "function",
-    name: "getTokensBy Creator",
+    name: "getTokensByCreator",
     inputs: [{ name: "creator", type: "address" }],
     outputs: [{ name: "", type: "address[]" }],
     stateMutability: "view"

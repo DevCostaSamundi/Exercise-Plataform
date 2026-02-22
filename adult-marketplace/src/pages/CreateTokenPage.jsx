@@ -10,11 +10,11 @@ const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:5000/api/v1';
 
 export default function CreateTokenPage() {
   const navigate = useNavigate();
-  const { isConnected } = useAccount();
+  const { isConnected, address } = useAccount();
   const { connect, connectors, isPending } = useConnect();
   const { createToken, isCreating, launchFee } = useTokenFactory();
   const fileInputRef = useRef(null);
-  
+
   const [step, setStep] = useState(1);
   const [isUploading, setIsUploading] = useState(false);
   const [imagePreview, setImagePreview] = useState(null);
@@ -32,14 +32,14 @@ export default function CreateTokenPage() {
 
   const validateStep = (currentStep) => {
     const newErrors = {};
-    
+
     if (currentStep === 1) {
       if (!formData.name.trim()) newErrors.name = 'Token name is required';
       if (!formData.symbol.trim()) newErrors.symbol = 'Symbol is required';
       if (formData.symbol.length > 10) newErrors.symbol = 'Symbol too long (max 10 chars)';
       if (!formData.description.trim()) newErrors.description = 'Description is required';
     }
-    
+
     if (currentStep === 2) {
       if (!formData.initialSupply || parseFloat(formData.initialSupply) <= 0) {
         newErrors.initialSupply = 'Initial supply must be positive';
@@ -59,27 +59,30 @@ export default function CreateTokenPage() {
   const prevStep = () => setStep(step - 1);
 
   const handleSubmit = async () => {
-    if (!validateStep(3)) return;
-    
+    if (!validateStep(3)) {
+      console.log('[CreateTokenPage] Form validation failed:', errors);
+      return;
+    }
+
     try {
-      const tx = await createToken({
+      console.log('[CreateTokenPage] Starting token creation...');
+      console.log('[CreateTokenPage] Form data:', formData);
+      // createToken returns the real contract address (42 chars) if receipt was found,
+      // or the tx hash (66 chars) as fallback if receipt timed out
+      const tokenAddress = await createToken({
         name: formData.name,
         symbol: formData.symbol,
         initialSupply: formData.initialSupply
       });
-      
-      // After successful on-chain creation, save token to backend database
-      // The token address comes from the transaction receipt
-      try {
-        const walletAddress = window.ethereum?.selectedAddress || address;
-        const response = await fetch(`${API_BASE}/tokens`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'X-Wallet-Address': walletAddress,
-          },
-          body: JSON.stringify({
-            address: tx,
+
+      console.log('[CreateTokenPage] createToken result:', tokenAddress);
+      // Only save to backend if we got a real contract address (not a tx hash fallback)
+      const isRealAddress = tokenAddress && tokenAddress.length === 42;
+      if (isRealAddress) {
+        try {
+          const walletAddress = address || window.ethereum?.selectedAddress;
+          console.log('[CreateTokenPage] Saving token to backend:', {
+            address: tokenAddress,
             name: formData.name,
             symbol: formData.symbol,
             initialSupply: formData.initialSupply,
@@ -88,20 +91,39 @@ export default function CreateTokenPage() {
             website: formData.website || '',
             twitter: formData.twitter || '',
             telegram: formData.telegram || '',
-          })
-        });
+          });
+          const response = await fetch(`${API_BASE}/tokens`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'X-Wallet-Address': walletAddress,
+            },
+            body: JSON.stringify({
+              address: tokenAddress,
+              name: formData.name,
+              symbol: formData.symbol,
+              initialSupply: formData.initialSupply,
+              description: formData.description || '',
+              logo: formData.imageUrl || '',
+              website: formData.website || '',
+              twitter: formData.twitter || '',
+              telegram: formData.telegram || '',
+            })
+          });
 
-        if (!response.ok) {
-          const errorData = await response.json();
-          console.error('Backend error:', errorData);
-          throw new Error(errorData.error || 'Failed to save token to database');
+          if (!response.ok) {
+            const errorData = await response.json();
+            console.error('[CreateTokenPage] Backend error:', errorData);
+          } else {
+            console.log('[CreateTokenPage] Token saved successfully!');
+            const savedToken = await response.json();
+            console.log('Token saved to database:', savedToken);
+          }
+        } catch (dbErr) {
+          console.error('Failed to save token to database (token was created on-chain):', dbErr);
         }
-
-        const savedToken = await response.json();
-        console.log('Token saved to database:', savedToken);
-      } catch (dbErr) {
-        console.error('Failed to save token to database (token was created on-chain):', dbErr);
-        // Still navigate to portfolio even if DB save fails
+      } else {
+        console.warn('Token created on-chain but address not confirmed yet — skipping DB save');
       }
 
       navigate('/portfolio?success=true');
@@ -112,14 +134,14 @@ export default function CreateTokenPage() {
 
   const handleImageUpload = async (file) => {
     if (!file) return;
-    
+
     // Validate file
     const maxSize = 5 * 1024 * 1024; // 5MB
     if (file.size > maxSize) {
       setErrors({ ...errors, image: 'File too large. Maximum size is 5MB.' });
       return;
     }
-    
+
     const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp'];
     if (!allowedTypes.includes(file.type)) {
       setErrors({ ...errors, image: 'Invalid file type. Use JPEG, PNG, GIF, or WebP.' });
@@ -134,21 +156,21 @@ export default function CreateTokenPage() {
     // Upload to backend
     setIsUploading(true);
     setErrors({ ...errors, image: null });
-    
+
     try {
       const uploadData = new FormData();
       uploadData.append('image', file);
-      
+
       const response = await fetch(`${API_BASE}/upload/image`, {
         method: 'POST',
         body: uploadData,
       });
-      
+
       if (!response.ok) {
         const errData = await response.json().catch(() => ({}));
         throw new Error(errData.error || 'Upload failed');
       }
-      
+
       const result = await response.json();
       handleChange('imageUrl', result.url);
     } catch (err) {
@@ -195,7 +217,7 @@ export default function CreateTokenPage() {
             <p className="text-gray-400 mb-8">
               Please connect your wallet to create a token
             </p>
-            
+
             {/* Connect Buttons */}
             <div className="space-y-3">
               {connectors.map((connector) => (
@@ -212,7 +234,7 @@ export default function CreateTokenPage() {
                 </button>
               ))}
             </div>
-            
+
             <p className="text-xs text-gray-600 mt-6">
               By connecting, you agree to our Terms of Service
             </p>
@@ -227,7 +249,7 @@ export default function CreateTokenPage() {
       <Sidebar />
       <div className="flex-1 text-white p-4 md:p-8 pb-20 md:pb-8 overflow-x-hidden w-full md:w-auto">
         <div className="max-w-3xl mx-auto w-full">
-          
+
           {/* Header */}
           <div className="mb-8 md:mb-12">
             <h1 className="text-3xl md:text-5xl font-black mb-3 flex items-center gap-2 md:gap-3">
@@ -243,15 +265,13 @@ export default function CreateTokenPage() {
           <div className="flex items-center justify-between mb-8 md:mb-12">
             {[1, 2, 3].map((s) => (
               <div key={s} className="flex items-center flex-1">
-                <div className={`flex items-center justify-center w-10 h-10 md:w-12 md:h-12 text-sm md:text-base rounded-full font-bold transition-all duration-300 ${
-                  step >= s ? 'bg-yellow-400 text-black scale-110' : 'border-2 border-gray-800 text-gray-600'
-                } ${step === s ? 'ring-4 ring-yellow-400/30' : ''}`}>
+                <div className={`flex items-center justify-center w-10 h-10 md:w-12 md:h-12 text-sm md:text-base rounded-full font-bold transition-all duration-300 ${step >= s ? 'bg-yellow-400 text-black scale-110' : 'border-2 border-gray-800 text-gray-600'
+                  } ${step === s ? 'ring-4 ring-yellow-400/30' : ''}`}>
                   {step > s ? <CheckCircle size={20} className="md:w-6 md:h-6" /> : s}
                 </div>
                 {s < 3 && (
-                  <div className={`flex-1 h-1 mx-2 md:mx-4 transition-all duration-500 ${
-                    step > s ? 'bg-yellow-400' : 'bg-gray-800'
-                  }`} />
+                  <div className={`flex-1 h-1 mx-2 md:mx-4 transition-all duration-500 ${step > s ? 'bg-yellow-400' : 'bg-gray-800'
+                    }`} />
                 )}
               </div>
             ))}
@@ -261,7 +281,7 @@ export default function CreateTokenPage() {
           {step === 1 && (
             <FadeIn className="space-y-6">
               <h2 className="text-2xl font-bold mb-6">Basic Information</h2>
-              
+
               <div>
                 <label className="block text-sm font-semibold mb-2">Token Name *</label>
                 <input
@@ -306,7 +326,7 @@ export default function CreateTokenPage() {
           {step === 2 && (
             <FadeIn className="space-y-6">
               <h2 className="text-2xl font-bold mb-6">Token Supply & Image</h2>
-              
+
               <div>
                 <label className="block text-sm font-semibold mb-2">Initial Supply *</label>
                 <input
@@ -322,7 +342,7 @@ export default function CreateTokenPage() {
 
               <div>
                 <label className="block text-sm font-semibold mb-2">Token Image</label>
-                
+
                 {/* Hidden file input */}
                 <input
                   ref={fileInputRef}
@@ -331,13 +351,13 @@ export default function CreateTokenPage() {
                   onChange={handleFileSelect}
                   className="hidden"
                 />
-                
+
                 {/* Preview or Upload Area */}
                 {(imagePreview || formData.imageUrl) ? (
                   <div className="relative inline-block">
-                    <img 
-                      src={imagePreview || formData.imageUrl} 
-                      alt="Token preview" 
+                    <img
+                      src={imagePreview || formData.imageUrl}
+                      alt="Token preview"
                       className="w-32 h-32 rounded-2xl object-cover border-2 border-yellow-400"
                     />
                     <button
@@ -379,9 +399,9 @@ export default function CreateTokenPage() {
                     )}
                   </div>
                 )}
-                
+
                 {errors.image && <p className="text-red-400 text-sm mt-2">{errors.image}</p>}
-                
+
                 {/* Or paste URL */}
                 <div className="mt-3">
                   <p className="text-xs text-gray-500 mb-1">Or paste image URL:</p>
@@ -404,7 +424,7 @@ export default function CreateTokenPage() {
           {step === 3 && (
             <FadeIn className="space-y-6">
               <h2 className="text-2xl font-bold mb-6">Social Links & Review</h2>
-              
+
               <div>
                 <label className="block text-sm font-semibold mb-2">Twitter (Optional)</label>
                 <input
@@ -441,18 +461,18 @@ export default function CreateTokenPage() {
               {/* Review Summary */}
               <div className="border border-gray-800 rounded-lg p-6 bg-gray-900 mt-8">
                 <h3 className="font-bold text-xl mb-4">Review Your Token</h3>
-                
+
                 {/* Image Preview in review */}
                 {(imagePreview || formData.imageUrl) && (
                   <div className="flex justify-center mb-4">
-                    <img 
-                      src={imagePreview || formData.imageUrl} 
-                      alt="Token" 
+                    <img
+                      src={imagePreview || formData.imageUrl}
+                      alt="Token"
                       className="w-20 h-20 rounded-full object-cover border-2 border-yellow-400"
                     />
                   </div>
                 )}
-                
+
                 <div className="space-y-3 text-sm">
                   <div className="flex justify-between">
                     <span className="text-gray-400">Name:</span>
@@ -489,7 +509,7 @@ export default function CreateTokenPage() {
                 Back
               </button>
             )}
-            
+
             <div className="ml-auto">
               {step < 3 ? (
                 <button

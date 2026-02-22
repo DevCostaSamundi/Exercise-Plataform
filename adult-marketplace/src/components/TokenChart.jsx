@@ -1,200 +1,460 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState, useCallback } from 'react';
 import { createChart } from 'lightweight-charts';
-import { Clock, TrendingUp, Loader2 } from 'lucide-react';
+import { TrendingUp, TrendingDown, Loader2, Radio } from 'lucide-react';
 import { useBondingCurve } from '../hooks/useBondingCurve';
+import { useTokenChart } from '../hooks/useTokens';
 import { formatEther } from 'viem';
 
+const styles = `
+  @import url('https://fonts.googleapis.com/css2?family=DM+Mono:ital,wght@0,400;0,500;1,400&family=Bebas+Neue&family=Outfit:wght@300;400;500;600;700&display=swap');
+
+  .tc-root {
+    --ink: #08080f;
+    --ink-2: #0f0f1c;
+    --ink-3: #161626;
+    --ink-4: #1f1f35;
+    --ink-5: #2a2a44;
+    --muted: #42426a;
+    --muted-2: #6060a0;
+    --ghost: #9898cc;
+    --soft: #c8c8ee;
+    --bright: #e8e8ff;
+    --accent: #7b61ff;
+    --green: #00e090;
+    --green-dim: rgba(0,224,144,0.12);
+    --green-border: rgba(0,224,144,0.2);
+    --red: #ff4f72;
+    --red-dim: rgba(255,79,114,0.12);
+    --red-border: rgba(255,79,114,0.2);
+    --gold: #f5c842;
+
+    font-family: 'Outfit', sans-serif;
+    background: var(--ink-2);
+    border: 1px solid var(--ink-4);
+    border-radius: 16px;
+    overflow: hidden;
+  }
+
+  /* ── TOP BAR ── */
+  .tc-topbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 16px 20px;
+    border-bottom: 1px solid var(--ink-3);
+    gap: 12px;
+    flex-wrap: wrap;
+    background: var(--ink-2);
+  }
+
+  .tc-left {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    flex-wrap: wrap;
+  }
+
+  .tc-title {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .tc-title-text {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 22px;
+    letter-spacing: 0.06em;
+    color: var(--bright);
+    line-height: 1;
+  }
+
+  /* Live dot */
+  .tc-live {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.12em;
+    color: var(--green);
+    background: var(--green-dim);
+    border: 1px solid var(--green-border);
+    border-radius: 20px;
+    padding: 3px 9px;
+  }
+
+  .tc-live-dot {
+    width: 5px; height: 5px;
+    border-radius: 50%;
+    background: var(--green);
+    animation: tc-pulse 1.8s ease-in-out infinite;
+  }
+
+  @keyframes tc-pulse {
+    0%, 100% { opacity: 1; transform: scale(1); }
+    50% { opacity: 0.4; transform: scale(0.7); }
+  }
+
+  /* OHLC strip */
+  .tc-ohlc {
+    display: flex;
+    gap: 14px;
+    flex-wrap: wrap;
+  }
+
+  .tc-ohlc-item {
+    display: flex;
+    flex-direction: column;
+    gap: 1px;
+  }
+
+  .tc-ohlc-key {
+    font-size: 9px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--muted);
+    font-weight: 600;
+  }
+
+  .tc-ohlc-val {
+    font-family: 'DM Mono', monospace;
+    font-size: 12px;
+    color: var(--soft);
+  }
+
+  .tc-ohlc-val.up { color: var(--green); }
+  .tc-ohlc-val.down { color: var(--red); }
+
+  /* Timeframe buttons */
+  .tc-tf-group {
+    display: flex;
+    background: var(--ink-3);
+    border: 1px solid var(--ink-4);
+    border-radius: 10px;
+    padding: 3px;
+    gap: 2px;
+  }
+
+  .tc-tf-btn {
+    background: none;
+    border: none;
+    padding: 5px 12px;
+    border-radius: 7px;
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    font-weight: 500;
+    letter-spacing: 0.06em;
+    color: var(--muted);
+    cursor: pointer;
+    transition: all 0.18s;
+  }
+
+  .tc-tf-btn:hover { color: var(--ghost); }
+
+  .tc-tf-btn.active {
+    background: var(--accent);
+    color: #fff;
+    box-shadow: 0 2px 10px rgba(123,97,255,0.3);
+  }
+
+  /* ── CHART WRAP ── */
+  .tc-chart-wrap {
+    position: relative;
+    background: var(--ink);
+  }
+
+  .tc-loader {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(8,8,15,0.7);
+    z-index: 10;
+    backdrop-filter: blur(2px);
+  }
+
+  @keyframes tc-spin { to { transform: rotate(360deg); } }
+  .tc-spinner { animation: tc-spin 0.9s linear infinite; color: var(--accent); }
+
+  /* ── BOTTOM BAR ── */
+  .tc-bottom {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px 20px;
+    border-top: 1px solid var(--ink-3);
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+
+  .tc-legend {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+  }
+
+  .tc-legend-item {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.08em;
+    color: var(--muted);
+    text-transform: uppercase;
+  }
+
+  .tc-legend-swatch {
+    width: 10px; height: 10px;
+    border-radius: 2px;
+  }
+
+  .tc-legend-line {
+    width: 14px; height: 1px;
+    border-top: 1px dashed;
+  }
+
+  .tc-disclaimer {
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    color: var(--muted);
+    letter-spacing: 0.04em;
+    font-style: italic;
+  }
+
+  /* Price change badge */
+  .tc-change-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    font-weight: 500;
+    padding: 3px 9px;
+    border-radius: 20px;
+    letter-spacing: 0.04em;
+  }
+
+  .tc-change-badge.up {
+    color: var(--green);
+    background: var(--green-dim);
+    border: 1px solid var(--green-border);
+  }
+
+  .tc-change-badge.down {
+    color: var(--red);
+    background: var(--red-dim);
+    border: 1px solid var(--red-border);
+  }
+`;
+
+const TIMEFRAMES = [
+  { label: '1H', value: '1H', seconds: 3600,   points: 60,  apiTf: '1h'  },
+  { label: '4H', value: '4H', seconds: 14400,  points: 48,  apiTf: '4h'  },
+  { label: '1D', value: '1D', seconds: 86400,  points: 96,  apiTf: '24h' },
+  { label: '1W', value: '1W', seconds: 604800, points: 168, apiTf: '7d'  },
+];
+
+function generateMockData(timeframe, currentPrice = 0.001) {
+  const cfg = TIMEFRAMES.find(t => t.value === timeframe);
+  const now = Math.floor(Date.now() / 1000);
+  const step = cfg.seconds / cfg.points;
+  const data = [], volumeData = [];
+
+  for (let i = cfg.points; i >= 0; i--) {
+    const time = Math.floor(now - i * step);
+    const progress = (cfg.points - i) / cfg.points;
+    const trend = currentPrice * (0.78 + progress * 0.22);
+    const noise = (Math.random() - 0.48) * 0.06;
+    const base = trend * (1 + noise);
+    const open  = base * (0.995 + Math.random() * 0.01);
+    const close = base * (0.995 + Math.random() * 0.01);
+    const high  = Math.max(open, close) * (1 + Math.random() * 0.012);
+    const low   = Math.min(open, close) * (1 - Math.random() * 0.012);
+
+    data.push({ time, open: +open.toFixed(8), high: +high.toFixed(8), low: +low.toFixed(8), close: +close.toFixed(8) });
+    volumeData.push({
+      time,
+      value: Math.random() * 45 + 5,
+      color: close >= open ? 'rgba(0,224,144,0.45)' : 'rgba(255,79,114,0.45)',
+    });
+  }
+  return { data, volumeData };
+}
+
 export default function TokenChart({ tokenAddress }) {
-  const chartContainerRef = useRef();
-  const chartRef = useRef();
-  const candlestickSeriesRef = useRef();
-  const volumeSeriesRef = useRef();
-  const [timeframe, setTimeframe] = useState('1D');
-  const [isLoading, setIsLoading] = useState(true);
-  
+  const containerRef = useRef();
+  const chartRef     = useRef();
+  const candleRef    = useRef();
+  const volRef       = useRef();
+
+  const [timeframe, setTimeframe]   = useState('1D');
+  const [isLoading, setIsLoading]   = useState(true);
+  const [ohlc, setOhlc]             = useState(null); // { o, h, l, c, change }
+
   const { marketInfo } = useBondingCurve(tokenAddress);
+  const { data: chartData } = useTokenChart(tokenAddress, TIMEFRAMES.find(t => t.value === timeframe)?.apiTf);
 
-  const timeframes = [
-    { label: '1H', value: '1H', seconds: 3600, points: 60 },
-    { label: '4H', value: '4H', seconds: 14400, points: 48 },
-    { label: '1D', value: '1D', seconds: 86400, points: 96 },
-    { label: '1W', value: '1W', seconds: 604800, points: 168 },
-  ];
+  // Current price from on-chain or mock
+  const currentPrice = marketInfo?.currentPrice
+    ? parseFloat(formatEther(marketInfo.currentPrice))
+    : 0.001;
 
-  // Generate simulated price history based on current market price
-  // TODO: Replace with actual blockchain events (TokenPurchased/TokenSold) or subgraph data
-  const generatePriceHistory = () => {
-    const data = [];
-    const volumeData = [];
-    const now = Math.floor(Date.now() / 1000);
-    const config = timeframes.find(tf => tf.value === timeframe);
-    
-    // Use real market price or default
-    const currentPrice = marketInfo?.currentPrice 
-      ? parseFloat(formatEther(marketInfo.currentPrice))
-      : 0.001;
-    
-    for (let i = config.points; i >= 0; i--) {
-      const time = now - (i * (config.seconds / config.points));
-      
-      // Simulate price evolution with upward trend
-      const progressRatio = (config.points - i) / config.points;
-      const trendFactor = progressRatio * 0.2; // 20% growth over period
-      const volatility = (Math.random() - 0.5) * 0.08; // ±8% random
-      
-      const basePrice = currentPrice * (0.8 + trendFactor); // Start 20% lower
-      const price = basePrice * (1 + volatility);
-      
-      const open = price * (0.99 + Math.random() * 0.02);
-      const close = price * (0.99 + Math.random() * 0.02);
-      const high = Math.max(open, close) * (1 + Math.random() * 0.015);
-      const low = Math.min(open, close) * (1 - Math.random() * 0.015);
-      
-      data.push({
-        time,
-        open: parseFloat(open.toFixed(8)),
-        high: parseFloat(high.toFixed(8)),
-        low: parseFloat(low.toFixed(8)),
-        close: parseFloat(close.toFixed(8)),
-      });
-
-      volumeData.push({
-        time,
-        value: Math.random() * 50 + 5, // Random volume 5-55 ETH
-        color: close >= open ? 'rgba(16, 185, 129, 0.6)' : 'rgba(239, 68, 68, 0.6)',
-      });
-    }
-
-    return { data, volumeData };
-  };
-
-  useEffect(() => {
-    if (!chartContainerRef.current) return;
-
+  // Build & load data
+  const loadData = useCallback(() => {
+    if (!candleRef.current || !volRef.current) return;
     setIsLoading(true);
 
-    const chart = createChart(chartContainerRef.current, {
+    let candles, volumes;
+
+    if (chartData?.candles?.length) {
+      candles = chartData.candles;
+      volumes = chartData.volumes || [];
+    } else {
+      const mock = generateMockData(timeframe, currentPrice);
+      candles = mock.data;
+      volumes = mock.volumeData;
+    }
+
+    candleRef.current.setData(candles);
+    volRef.current.setData(volumes);
+    chartRef.current?.timeScale().fitContent();
+
+    // Set OHLC display from last candle
+    const last = candles[candles.length - 1];
+    const prev = candles[candles.length - 2];
+    if (last) {
+      const pct = prev ? ((last.close - prev.close) / prev.close * 100).toFixed(2) : '0.00';
+      setOhlc({ o: last.open, h: last.high, l: last.low, c: last.close, pct });
+    }
+
+    setTimeout(() => setIsLoading(false), 200);
+  }, [timeframe, chartData, currentPrice]);
+
+  // Init chart once
+  useEffect(() => {
+    if (!containerRef.current) return;
+
+    const chart = createChart(containerRef.current, {
       layout: {
-        background: { color: '#000000' },
-        textColor: '#9ca3af',
+        background: { color: '#08080f' },
+        textColor: '#6060a0',
+        fontFamily: "'DM Mono', monospace",
+        fontSize: 11,
       },
       grid: {
-        vertLines: { color: '#1f1f1f' },
-        horzLines: { color: '#1f1f1f' },
+        vertLines: { color: '#161626' },
+        horzLines: { color: '#161626' },
       },
-      width: chartContainerRef.current.clientWidth,
-      height: 500,
+      width: containerRef.current.clientWidth,
+      height: 420,
       timeScale: {
-        borderColor: '#1f1f1f',
+        borderColor: '#1f1f35',
         timeVisible: true,
         secondsVisible: false,
+        tickMarkFormatter: (time) => {
+          const d = new Date(time * 1000);
+          return `${d.getHours().toString().padStart(2,'0')}:${d.getMinutes().toString().padStart(2,'0')}`;
+        },
       },
       rightPriceScale: {
-        borderColor: '#1f1f1f',
-        scaleMargins: {
-          top: 0.1,
-          bottom: 0.3,
-        },
+        borderColor: '#1f1f35',
+        scaleMargins: { top: 0.08, bottom: 0.28 },
+        textColor: '#6060a0',
       },
       crosshair: {
         mode: 1,
-        vertLine: {
-          color: '#facc15',
-          width: 1,
-          style: 2,
-          labelBackgroundColor: '#facc15',
-        },
-        horzLine: {
-          color: '#facc15',
-          width: 1,
-          style: 2,
-          labelBackgroundColor: '#facc15',
-        },
+        vertLine: { color: '#7b61ff', width: 1, style: 2, labelBackgroundColor: '#7b61ff' },
+        horzLine: { color: '#7b61ff', width: 1, style: 2, labelBackgroundColor: '#7b61ff' },
       },
+      handleScroll: { mouseWheel: true, pressedMouseMove: true },
+      handleScale: { mouseWheel: true, pinch: true },
     });
 
     chartRef.current = chart;
 
-    // Candlestick series
-    const candlestickSeries = chart.addCandlestickSeries({
-      upColor: '#10b981',
-      downColor: '#ef4444',
-      borderUpColor: '#10b981',
-      borderDownColor: '#ef4444',
-      wickUpColor: '#10b981',
-      wickDownColor: '#ef4444',
+    // Candle series
+    candleRef.current = chart.addCandlestickSeries({
+      upColor:        '#00e090',
+      downColor:      '#ff4f72',
+      borderUpColor:  '#00e090',
+      borderDownColor:'#ff4f72',
+      wickUpColor:    'rgba(0,224,144,0.6)',
+      wickDownColor:  'rgba(255,79,114,0.6)',
     });
-
-    candlestickSeriesRef.current = candlestickSeries;
 
     // Volume series
-    const volumeSeries = chart.addHistogramSeries({
-      color: '#26a69a',
-      priceFormat: {
-        type: 'volume',
-      },
-      priceScaleId: '',
+    const vol = chart.addHistogramSeries({
+      priceFormat: { type: 'volume' },
+      priceScaleId: 'vol',
     });
+    vol.priceScale().applyOptions({ scaleMargins: { top: 0.78, bottom: 0 }, borderVisible: false });
+    volRef.current = vol;
 
-    volumeSeries.priceScale().applyOptions({
-      scaleMargins: {
-        top: 0.7,
-        bottom: 0,
-      },
-    });
-
-    volumeSeriesRef.current = volumeSeries;
-
-    // Load data
-    const { data, volumeData } = generatePriceHistory();
-    candlestickSeries.setData(data);
-    volumeSeries.setData(volumeData);
-
-    chart.timeScale().fitContent();
-    
-    setIsLoading(false);
-
-    // Handle resize
     const handleResize = () => {
-      if (chartContainerRef.current && chartRef.current) {
-        chartRef.current.applyOptions({
-          width: chartContainerRef.current.clientWidth,
-        });
+      if (containerRef.current) {
+        chart.applyOptions({ width: containerRef.current.clientWidth });
       }
     };
-
     window.addEventListener('resize', handleResize);
 
     return () => {
       window.removeEventListener('resize', handleResize);
       chart.remove();
     };
-  }, [timeframe, marketInfo]);
+  }, []);
 
-  const handleTimeframeChange = (newTimeframe) => {
-    setTimeframe(newTimeframe);
-  };
+  // Reload when timeframe / data changes
+  useEffect(() => { loadData(); }, [loadData]);
+
+  const isUp = ohlc ? parseFloat(ohlc.pct) >= 0 : true;
 
   return (
-    <div className="border border-gray-800 rounded-xl p-4 md:p-6">
-      {/* Header */}
-      <div className="flex items-center justify-between mb-4">
-        <div className="flex items-center gap-2">
-          <TrendingUp className="text-yellow-400" size={20} />
-          <h3 className="text-lg font-bold">Price Chart</h3>
+    <div className="tc-root">
+      <style>{styles}</style>
+
+      {/* ── TOP BAR ── */}
+      <div className="tc-topbar">
+        <div className="tc-left">
+          <div className="tc-title">
+            <TrendingUp size={16} color="#7b61ff" />
+            <span className="tc-title-text">Price Chart</span>
+            <span className="tc-live"><span className="tc-live-dot" />LIVE</span>
+          </div>
+
+          {/* OHLC */}
+          {ohlc && (
+            <div className="tc-ohlc">
+              {[
+                { k: 'O', v: ohlc.o.toFixed(6) },
+                { k: 'H', v: ohlc.h.toFixed(6), cls: 'up' },
+                { k: 'L', v: ohlc.l.toFixed(6), cls: 'down' },
+                { k: 'C', v: ohlc.c.toFixed(6) },
+              ].map(({ k, v, cls }) => (
+                <div className="tc-ohlc-item" key={k}>
+                  <span className="tc-ohlc-key">{k}</span>
+                  <span className={`tc-ohlc-val ${cls || ''}`}>{v}</span>
+                </div>
+              ))}
+              <div className="tc-ohlc-item" style={{ justifyContent: 'flex-end' }}>
+                <span className="tc-ohlc-key">CHG</span>
+                <span className={`tc-change-badge ${isUp ? 'up' : 'down'}`}>
+                  {isUp ? <TrendingUp size={10} /> : <TrendingDown size={10} />}
+                  {isUp ? '+' : ''}{ohlc.pct}%
+                </span>
+              </div>
+            </div>
+          )}
         </div>
-        
-        {/* Timeframe Selector */}
-        <div className="flex gap-1 bg-gray-900 rounded-lg p-1">
-          {timeframes.map((tf) => (
+
+        {/* Timeframe */}
+        <div className="tc-tf-group">
+          {TIMEFRAMES.map(tf => (
             <button
               key={tf.value}
-              onClick={() => handleTimeframeChange(tf.value)}
-              className={`px-3 py-1.5 rounded-md text-sm font-semibold transition-all ${
-                timeframe === tf.value
-                  ? 'bg-yellow-400 text-black'
-                  : 'text-gray-400 hover:text-white'
-              }`}
+              onClick={() => setTimeframe(tf.value)}
+              className={`tc-tf-btn ${timeframe === tf.value ? 'active' : ''}`}
             >
               {tf.label}
             </button>
@@ -202,21 +462,34 @@ export default function TokenChart({ tokenAddress }) {
         </div>
       </div>
 
-      {/* Chart Container */}
-      <div className="relative">
+      {/* ── CHART ── */}
+      <div className="tc-chart-wrap">
         {isLoading && (
-          <div className="absolute inset-0 flex items-center justify-center bg-black/50 z-10 rounded-lg">
-            <Loader2 className="animate-spin text-yellow-400" size={40} />
+          <div className="tc-loader">
+            <Loader2 size={32} className="tc-spinner" />
           </div>
         )}
-        <div ref={chartContainerRef} className="rounded-lg overflow-hidden" />
+        <div ref={containerRef} />
       </div>
 
-      {/* Info */}
-      <div className="mt-4 flex items-center gap-2 text-xs text-gray-500">
-        <Clock size={14} />
-        <span>
-          Simulated price history based on current bonding curve. Real-time data will be available after contract deployment.
+      {/* ── BOTTOM BAR ── */}
+      <div className="tc-bottom">
+        <div className="tc-legend">
+          <div className="tc-legend-item">
+            <div className="tc-legend-swatch" style={{ background: '#00e090' }} />
+            Bullish
+          </div>
+          <div className="tc-legend-item">
+            <div className="tc-legend-swatch" style={{ background: '#ff4f72' }} />
+            Bearish
+          </div>
+          <div className="tc-legend-item">
+            <div className="tc-legend-line" style={{ borderColor: '#7b61ff' }} />
+            Crosshair
+          </div>
+        </div>
+        <span className="tc-disclaimer">
+          {chartData?.candles ? 'Live data' : 'Simulated · real data post-deployment'}
         </span>
       </div>
     </div>

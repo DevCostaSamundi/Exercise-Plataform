@@ -1,181 +1,192 @@
 /**
  * Script to fix invalid token addresses in database
- * 
- * Problem: Some tokens have 32-byte transaction hashes in the 'address' field
- * instead of 20-byte contract addresses
- * 
+ *
+ * Problem: Tokens have 66-char transaction hashes stored as 'address'
+ * instead of the actual 42-char deployed contract addresses.
+ *
  * This script:
- * 1. Identifies tokens with invalid addresses (length !== 42)
- * 2. Attempts to fetch the correct token address from transaction receipt
- * 3. Updates the database with the correct address
+ * 1. Finds all tokens where address.length !== 42
+ * 2. Treats the stored address AS the tx hash (since that's what was saved)
+ * 3. Fetches the transaction receipt and parses the TokenCreated event
+ * 4. Updates the token with the correct address
+ * 5. If a lookup fails (no receipt / no event), deletes the invalid token
  */
 
 import { PrismaClient } from '@prisma/client';
-import { createPublicClient, http } from 'viem';
-import { baseSepolia } from 'viem/chains';
+import { createPublicClient, http, decodeEventLog } from 'viem';
+import { baseSepolia, base } from 'viem/chains';
 import 'dotenv/config';
 
 const prisma = new PrismaClient();
 
-// Create viem client for Base Sepolia
+const isMainnet = process.env.NODE_ENV === 'production';
+const chain = isMainnet ? base : baseSepolia;
+const rpcUrl = process.env.RPC_URL || process.env.BASE_SEPOLIA_RPC || 'https://sepolia.base.org';
+
 const client = createPublicClient({
-  chain: baseSepolia,
-  transport: http(process.env.BASE_SEPOLIA_RPC || 'https://sepolia.base.org')
+  chain,
+  transport: http(rpcUrl)
 });
 
+// TokenFactory ABI — only the TokenCreated event is needed
+const TOKEN_FACTORY_ABI = [
+  {
+    type: 'event',
+    name: 'TokenCreated',
+    inputs: [
+      { name: 'tokenAddress', type: 'address', indexed: true },
+      { name: 'creator', type: 'address', indexed: true },
+      { name: 'name', type: 'string', indexed: false },
+      { name: 'symbol', type: 'string', indexed: false },
+      { name: 'initialSupply', type: 'uint256', indexed: false },
+      { name: 'timestamp', type: 'uint256', indexed: false }
+    ]
+  }
+];
+
 async function findInvalidTokens() {
-  console.log('🔍 Searching for tokens with invalid addresses...\n');
-  
   const allTokens = await prisma.token.findMany({
     select: {
       id: true,
       address: true,
       name: true,
       symbol: true,
-      txHash: true,
+      creatorAddress: true,
       createdAt: true
     }
   });
 
-  const invalidTokens = allTokens.filter(token => {
-    // Valid Ethereum address is 42 characters: "0x" + 40 hex chars
-    return !token.address || token.address.length !== 42;
-  });
-
-  console.log(`Found ${invalidTokens.length} tokens with invalid addresses:\n`);
-  
-  invalidTokens.forEach((token, index) => {
-    console.log(`${index + 1}. ${token.name} (${token.symbol})`);
-    console.log(`   Current address: ${token.address}`);
-    console.log(`   Length: ${token.address?.length || 0} chars (should be 42)`);
-    console.log(`   TX Hash: ${token.txHash || 'N/A'}`);
-    console.log(`   Created: ${token.createdAt}`);
-    console.log('');
-  });
-
-  return invalidTokens;
+  return allTokens.filter(t => !t.address || t.address.length !== 42);
 }
 
-async function getTokenAddressFromTx(txHash) {
+async function getRealTokenAddressFromTxHash(txHash) {
   if (!txHash || txHash.length !== 66) {
-    console.log(`   ⚠️  Invalid transaction hash: ${txHash}`);
     return null;
   }
 
   try {
-    console.log(`   📡 Fetching transaction receipt for ${txHash}...`);
     const receipt = await client.getTransactionReceipt({ hash: txHash });
-    
-    // The TokenFactory emits a TokenCreated event with the token address
-    // Look for the first contract creation in the logs
-    const tokenCreatedLog = receipt.logs.find(log => {
-      // TokenCreated event signature
-      return log.topics[0] === '0x...'; // Add actual event signature if known
-    });
 
-    if (tokenCreatedLog) {
-      // Extract token address from log
-      const tokenAddress = tokenCreatedLog.address;
-      console.log(`   ✅ Found token address: ${tokenAddress}`);
-      return tokenAddress;
+    for (const log of receipt.logs) {
+      try {
+        const decoded = decodeEventLog({
+          abi: TOKEN_FACTORY_ABI,
+          data: log.data,
+          topics: log.topics,
+        });
+        if (decoded.eventName === 'TokenCreated' && decoded.args?.tokenAddress) {
+          return decoded.args.tokenAddress;
+        }
+      } catch {
+        // Skip logs that don't match
+      }
     }
 
-    // Fallback: use contractAddress from receipt if it's a contract creation
-    if (receipt.contractAddress) {
-      console.log(`   ✅ Found contract address: ${receipt.contractAddress}`);
-      return receipt.contractAddress;
-    }
-
-    console.log(`   ❌ Could not find token address in transaction`);
     return null;
-  } catch (error) {
-    console.log(`   ❌ Error fetching transaction: ${error.message}`);
+  } catch (err) {
+    console.log(`   ⚠  Could not fetch receipt: ${err.message}`);
     return null;
   }
 }
 
-async function fixInvalidToken(token) {
-  console.log(`\n🔧 Attempting to fix: ${token.name} (${token.symbol})`);
-  
-  if (!token.txHash) {
-    console.log(`   ⚠️  No transaction hash available - cannot fix automatically`);
-    return false;
-  }
+async function deleteInvalidToken(token) {
+  console.log(`   🗑  Deleting "${token.name}" (no correct address found)...`);
 
-  const correctAddress = await getTokenAddressFromTx(token.txHash);
-  
-  if (!correctAddress) {
-    console.log(`   ❌ Could not determine correct address`);
-    return false;
-  }
+  // Delete related data first
+  await prisma.tokenHolder.deleteMany({ where: { tokenAddress: token.address } });
+  await prisma.trade.deleteMany({ where: { tokenAddress: token.address } });
+  await prisma.token.delete({ where: { id: token.id } });
 
-  // Check if the correct address already exists
-  const existing = await prisma.token.findUnique({
-    where: { address: correctAddress.toLowerCase() }
-  });
-
-  if (existing && existing.id !== token.id) {
-    console.log(`   ⚠️  Correct address already exists for another token - this might be a duplicate`);
-    return false;
-  }
-
-  // Update the token with the correct address
-  try {
-    await prisma.token.update({
-      where: { id: token.id },
-      data: { address: correctAddress.toLowerCase() }
-    });
-    console.log(`   ✅ Successfully updated address to: ${correctAddress}`);
-    return true;
-  } catch (error) {
-    console.log(`   ❌ Failed to update: ${error.message}`);
-    return false;
-  }
+  console.log(`   ✅ Deleted "${token.name}"`);
 }
 
 async function main() {
-  console.log('=====================================');
-  console.log('Token Address Fixer');
+  console.log('\n=====================================');
+  console.log('Token Address Fixer v2');
+  console.log(`Chain: ${chain.name} | RPC: ${rpcUrl}`);
   console.log('=====================================\n');
 
   const invalidTokens = await findInvalidTokens();
 
   if (invalidTokens.length === 0) {
-    console.log('✅ All tokens have valid addresses!');
+    console.log('✅ All tokens have valid addresses! Nothing to fix.\n');
     await prisma.$disconnect();
     return;
   }
 
-  console.log('=====================================');
-  console.log('Attempting to fix invalid addresses...');
-  console.log('=====================================');
+  console.log(`❌ Found ${invalidTokens.length} token(s) with invalid addresses:\n`);
+  invalidTokens.forEach((t, i) => {
+    console.log(`  ${i + 1}. ${t.name} (${t.symbol})`);
+    console.log(`     Stored address (${t.address?.length || 0} chars): ${t.address}`);
+  });
+
+  console.log('\n--- Attempting to fix ---\n');
 
   let fixed = 0;
-  let failed = 0;
+  let deleted = 0;
+  let manual = 0;
 
   for (const token of invalidTokens) {
-    const success = await fixInvalidToken(token);
-    if (success) {
-      fixed++;
+    console.log(`\n🔧 Processing: ${token.name} (${token.symbol})`);
+
+    // The stored 'address' is actually the tx hash (it's 66 chars)
+    const txHash = token.address;
+    const realAddress = await getRealTokenAddressFromTxHash(txHash);
+
+    if (realAddress) {
+      // Check for duplicates
+      const duplicate = await prisma.token.findUnique({
+        where: { address: realAddress.toLowerCase() }
+      });
+
+      if (duplicate && duplicate.id !== token.id) {
+        console.log(`   ⚠  Real address already exists for another token — deleting this duplicate`);
+        await deleteInvalidToken(token);
+        deleted++;
+        continue;
+      }
+
+      // Update with real address
+      try {
+        await prisma.token.update({
+          where: { id: token.id },
+          data: { address: realAddress.toLowerCase() }
+        });
+        // Also update related records
+        await prisma.tokenHolder.updateMany({
+          where: { tokenAddress: txHash.toLowerCase() },
+          data: { tokenAddress: realAddress.toLowerCase() }
+        });
+        await prisma.trade.updateMany({
+          where: { tokenAddress: txHash.toLowerCase() },
+          data: { tokenAddress: realAddress.toLowerCase() }
+        });
+
+        console.log(`   ✅ Fixed! New address: ${realAddress}`);
+        fixed++;
+      } catch (err) {
+        console.log(`   ❌ DB update failed: ${err.message}`);
+        manual++;
+      }
     } else {
-      failed++;
+      // No receipt found — delete the token (it's a test or failed deployment)
+      await deleteInvalidToken(token);
+      deleted++;
     }
   }
 
   console.log('\n=====================================');
   console.log('Summary');
   console.log('=====================================');
-  console.log(`Total invalid tokens: ${invalidTokens.length}`);
-  console.log(`Successfully fixed: ${fixed}`);
-  console.log(`Failed to fix: ${failed}`);
+  console.log(`Fixed:   ${fixed}`);
+  console.log(`Deleted: ${deleted}`);
+  console.log(`Manual:  ${manual}`);
   console.log('=====================================\n');
 
   await prisma.$disconnect();
 }
 
-// Run the script
-main()
-  .catch((error) => {
-    console.error('Fatal error:', error);
-    process.exit(1);
-  });
+main().catch(err => {
+  console.error('Fatal error:', err);
+  process.exit(1);
+});
