@@ -47,7 +47,7 @@ export default function CreatorRegisterPage() {
 
   const genderOptions = ['Homem Cis', 'Mulher Cis', 'Homem Trans', 'Mulher Trans', 'Não-binário', 'Queer', 'Gênero fluido'];
   const orientationOptions = ['Gay', 'Lésbica', 'Bissexual', 'Pansexual', 'Assexual', 'Heterossexual', 'Queer'];
-  const contentTypeOptions = ['Fotos artísticas', 'Vídeos curtos', 'Lives interativas', 'Chat personalizado', 'Áudio sensual', 'Conteúdo educativo'];
+  const contentTypeOptions = ['Fotos artísticas', 'Vídeos curtos', 'Chat personalizado', 'Áudio sensual', 'Conteúdo educativo'];
   const aestheticOptions = ['Sensual', 'Fetichista', 'Natural', 'Drag/Performance', 'Fitness', 'Adorável', 'Dominante', 'Submisso'];
 
   // Opções de criptomoedas expandidas para suporte global descentralizado

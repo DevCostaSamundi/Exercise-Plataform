@@ -30,22 +30,46 @@ export default function CreatorPage() {
   const fetchCreatorData = async () => {
     setLoading(true);
     try {
-      // Buscar perfil do criador
-      const profileResponse = await creatorService.getCreatorProfile(id);
+      // ✅ TENTAR BUSCAR POR ID PRIMEIRO
+      console.log(`🔍 Buscando perfil do criador: ${id}`);
+      let profileResponse;
+      try {
+        profileResponse = await creatorService.getCreatorProfile(id);
+      } catch (err) {
+        console.warn('ID lookup failed, falling back to username');
+        profileResponse = { success: false };
+      }
 
-      if (profileResponse.success) {
+      // ✅ SE NÃO ENCONTRAR OU SE FOR UM USERNAME (neoadr), TENTAR POR USERNAME
+      if (!profileResponse?.success || (typeof id === 'string' && !id.includes('-'))) {
+        console.log(`💡 Tentando busca por username: ${id}`);
+        profileResponse = await creatorService.getCreatorProfileByUsername(id);
+      }
+
+      if (profileResponse?.success) {
         setCreator(profileResponse.data);
 
-        // Buscar posts
-        const postsResponse = await creatorService.getCreatorPosts(id, { limit: 20 });
+        // ✅ BUSCAR POSTS
+        let postsResponse;
+        try {
+          postsResponse = await creatorService.getCreatorPosts(profileResponse.data.id, { limit: 20 });
+        } catch (err) {
+          postsResponse = { success: false };
+        }
 
-        if (postsResponse.success) {
+        if (!postsResponse?.success) {
+          postsResponse = await creatorService.getCreatorPostsByUsername(profileResponse.data.username, { limit: 20 });
+        }
+
+        if (postsResponse?.success) {
           setPosts(postsResponse.data);
           setIsSubscribed(postsResponse.isSubscribed || false);
         }
+      } else {
+        throw new Error('Creator not found');
       }
     } catch (error) {
-      console.error('Error fetching creator:', error);
+      console.error('❌ Error fetching creator:', error);
       setCreator(null);
     } finally {
       setLoading(false);
@@ -54,7 +78,7 @@ export default function CreatorPage() {
 
   const handleSubscribe = () => {
     if (!currentUser || !currentUser.id) {
-      alert('Você precisa estar logado para assinar! ');
+      alert('Você precisa estar logado para assinar!');
       navigate('/login');
       return;
     }
@@ -70,18 +94,11 @@ export default function CreatorPage() {
   const handleSendMessage = async (creatorId) => {
     try {
       setLoading(true);
-
-      // ✅ Criar ou buscar conversa
       const response = await messageService.getOrCreateConversation(creatorId);
-
-      console.log('✅ Conversation created/found:', response);
-
-      // ✅ Redirecionar para mensagens com o ID da conversa
-      navigate(`/messages? conversation=${response.data.id}`);
-
+      navigate(`/messages?conversation=${response.data.id}`);
     } catch (error) {
       console.error('❌ Error creating conversation:', error);
-      alert('Erro ao iniciar conversa:  ' + error.message);
+      alert('Erro ao iniciar conversa: ' + error.message);
     } finally {
       setLoading(false);
     }
@@ -93,7 +110,6 @@ export default function CreatorPage() {
       navigate('/login');
       return;
     }
-
     setShowTipModal(true);
   };
 
@@ -103,7 +119,6 @@ export default function CreatorPage() {
       navigate('/login');
       return;
     }
-
     setSelectedPost(post);
     setPaymentData({
       creatorId: creator.id,
@@ -116,7 +131,6 @@ export default function CreatorPage() {
 
   const handleShareProfile = () => {
     if (!creator) return;
-
     const url = window.location.href;
     if (navigator.share) {
       navigator.share({
@@ -128,6 +142,7 @@ export default function CreatorPage() {
       alert('Link copiado para a área de transferência!');
     }
   };
+
 
   const formatPrice = (price, currency = 'USD') => {
     return new Intl.NumberFormat('en-US', {

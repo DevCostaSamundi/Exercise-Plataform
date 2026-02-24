@@ -589,7 +589,6 @@ export default function TermsPage() {
                   'Conteúdo artístico, sensual e erótico;',
                   'Nudez adulta consensual;',
                   'Conteúdo fetichista legal entre adultos;',
-                  'Lives e transmissões ao vivo (seguindo regras específicas);',
                   'Mensagens e interações respeitosas.',
                 ]}
               />

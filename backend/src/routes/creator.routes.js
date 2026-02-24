@@ -15,10 +15,10 @@ const router = express.Router();
 router.get('/', optionalAuth, listCreators);
 
 // GET /api/v1/creators/username/:username - Perfil por username
-router.get('/username/: username', optionalAuth, getCreatorByUsername);
+router.get('/username/:username', optionalAuth, getCreatorByUsername);
 
 // GET /api/v1/creators/username/:username/posts - Posts por username
-router.get('/username/: username/posts', optionalAuth, getCreatorPostsByUsername);
+router.get('/username/:username/posts', optionalAuth, getCreatorPostsByUsername);
 
 // GET /api/v1/creators/:creatorId - Perfil por ID
 router.get('/:creatorId', optionalAuth, getCreatorProfile);

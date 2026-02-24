@@ -11,7 +11,6 @@ import userRoutes from './routes/user.routes.js';
 import creatorRoutes from './routes/creator.routes.js';
 import postRoutes from './routes/post.routes.js';
 import chatRoutes from './routes/chat.routes.js';
-import liveRoutes from './routes/live.routes.js';
 import creatorPostRoutes from './routes/creatorPost.routes.js';
 import messageRoutes from './routes/message.routes.js';
 import creatorDashboardRoutes from './routes/creatorDashboard.routes.js';
@@ -49,7 +48,7 @@ const corsOptions = {
     if (allowedOrigins.some(o => origin.startsWith(o))) {
       return callback(null, true);
     }
-    if (process.env.NODE_ENV !== 'production' && origin. includes('localhost')) {
+    if (process.env.NODE_ENV !== 'production' && origin.includes('localhost')) {
       return callback(null, true);
     }
     console.warn(`Blocked CORS request from origin: ${origin}`);
@@ -57,7 +56,7 @@ const corsOptions = {
   },
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH'],
-  allowedHeaders:  ['Content-Type', 'Authorization', 'X-Requested-With'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
   exposedHeaders: ['Content-Range', 'X-Content-Range'],
   maxAge: 600,
 };
@@ -139,8 +138,6 @@ app.use(`/api/${API_VERSION}`, commentRoutes);
 // Like routes
 app.use(`/api/${API_VERSION}`, likeRoutes);
 
-// Live routes
-app.use(`/api/${API_VERSION}/lives`, liveRoutes);
 
 // Message routes
 app.use(`/api/${API_VERSION}/messages`, messageRoutes);

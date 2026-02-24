@@ -45,7 +45,6 @@ export const CONTENT_TYPES = {
   ALL: 'all',
   PHOTOS: 'photos',
   VIDEOS: 'videos',
-  LIVES: 'lives',
 };
 
 // Notification types

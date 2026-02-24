@@ -41,7 +41,6 @@ const FILTER_CATEGORIES = {
     options: [
       'Fotos artísticas',
       'Vídeos curtos',
-      'Lives interativas',
       'Chat personalizado',
       'Voz / áudio sensual',
       'Conteúdo educativo',
@@ -496,7 +495,6 @@ function HomePage() {
               {[
                 { key: 'creators', label: 'Criadores' },
                 { key: 'feed', label: 'Feed' },
-                { key: 'lives', label: 'Lives' },
               ].map((tab) => (
                 <button
                   key={tab.key}

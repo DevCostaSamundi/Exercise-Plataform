@@ -25,7 +25,56 @@ class PostController {
 
   /**
    * Get all posts
-   */
+   *//**
+* Get feed (public posts from all creators)
+*/
+  async getFeed(req, res, next) {
+    try {
+      const { page = 1, limit = 10 } = req.query;
+      const pageNum = parseInt(page, 10);
+      const limitNum = parseInt(limit, 10);
+      const skip = (pageNum - 1) * limitNum;
+
+      const where = {
+        isPublic: true,
+        status: 'PUBLISHED',
+      };
+
+      const [posts, total] = await Promise.all([
+        prisma.post.findMany({
+          where,
+          skip,
+          take: limitNum,
+          orderBy: { createdAt: 'desc' },
+          include: {
+            creator: {
+              include: {
+                user: {
+                  select: {
+                    username: true,
+                    displayName: true,
+                    avatar: true,
+                  },
+                },
+              },
+            },
+          },
+        }),
+        prisma.post.count({ where }),
+      ]);
+
+      return ApiResponse.paginated(
+        res,
+        posts,
+        { page: pageNum, limit: limitNum, total },
+        'Feed retrieved successfully'
+      );
+    } catch (error) {
+      next(error);
+    }
+  }
+
+
   async getPosts(req, res, next) {
     try {
       const { page = 1, limit = 20, creatorId, mediaType, isPublic } = req.query;
