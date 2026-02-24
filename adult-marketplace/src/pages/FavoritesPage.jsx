@@ -9,7 +9,7 @@ export default function FavoritesPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [favorites, setFavorites] = useState([]);
-
+//nao commites
   useEffect(() => {
     fetchFavorites();
   }, []);
