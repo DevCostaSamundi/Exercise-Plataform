@@ -1,10 +1,13 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
-import authAPI from '../services/authAPI'; // ← ADICIONE ISSO
+import authAPI from '../services/authAPI';
+import { useWeb3Auth } from '../hooks/useWeb3Auth';
 
 export default function LoginPage() {
   const navigate = useNavigate();
   const location = useLocation();
+  const { login: web3AuthLogin, isConnected, isInitialized, loading: web3AuthLoading } = useWeb3Auth();
+
   const [formData, setFormData] = useState({
     email: '',
     password: '',
@@ -13,6 +16,21 @@ export default function LoginPage() {
   const [errors, setErrors] = useState({});
   const [isLoading, setIsLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
+
+  // Redirect if already connected via Web3Auth
+  useEffect(() => {
+    if (isConnected && !isLoading) {
+      const storedUser = localStorage.getItem('user');
+      if (storedUser) {
+        const user = JSON.parse(storedUser);
+        if (user.role === 'CREATOR' || user.isCreator) {
+          navigate('/creator/dashboard');
+        } else {
+          navigate('/');
+        }
+      }
+    }
+  }, [isConnected, navigate, isLoading]);
 
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
@@ -100,9 +118,31 @@ export default function LoginPage() {
   };
 
   // ... resto do código continua igual
-  const handleSocialLogin = (provider) => {
-    // TODO: Implementar OAuth (Google, Facebook, etc)
-    alert(`Login com ${provider} será implementado em breve!`);
+  const handleSocialLogin = async (provider) => {
+    if (!isInitialized) {
+      alert('Autenticação Web3 ainda está inicializando. Por favor, aguarde um momento.');
+      return;
+    }
+
+    setIsLoading(true);
+    setErrors({});
+
+    try {
+      console.log(`Iniciando login social com ${provider}...`);
+
+      // O hook useWeb3Auth já cuida do modal e do login no backend
+      const result = await web3AuthLogin();
+
+      if (result) {
+        console.log('Login social bem-sucedido!');
+        // O redirecionamento será tratado pelo useEffect acima
+      }
+    } catch (error) {
+      console.error('Erro no login social:', error);
+      setErrors({ submit: `Erro ao entrar com ${provider}. Tente novamente.` });
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -111,10 +151,10 @@ export default function LoginPage() {
         {/* Logo */}
         <div className="text-center mb-8">
           <Link to="/" className="inline-flex items-center space-x-3 mb-2">
-            <div className="w-12 h-12 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-xl flex items-center justify-center">
+            <div className="w-12 h-12 bg-black dark:bg-slate-800 rounded-xl flex items-center justify-center">
               <span className="text-white font-black text-2xl">P</span>
             </div>
-            <h1 className="text-2xl font-bold text-slate-900 dark:text-white">PrideConnect</h1>
+            <h1 className="text-2xl font-bold text-slate-900 dark:text-white">FlowConnect</h1>
           </Link>
           <p className="text-slate-600 dark:text-slate-400 text-sm">
             Entre para acessar conteúdo exclusivo
@@ -129,14 +169,14 @@ export default function LoginPage() {
 
           {/* Mensagem de sucesso do registro */}
           {location.state?.message && (
-            <div className="bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 text-green-700 dark:text-green-400 px-4 py-3 rounded-lg mb-6 text-sm">
+            <div className="bg-slate-800 dark:bg-slate-800/20 border border-green-200 dark:border-green-800 text-slate-800 dark:text-slate-800 px-4 py-3 rounded-lg mb-6 text-sm">
               {location.state.message}
             </div>
           )}
 
           {/* Mensagem de erro */}
           {errors.submit && (
-            <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 text-red-600 dark:text-red-400 px-4 py-3 rounded-lg mb-6 text-sm">
+            <div className="bg-slate-900 dark:bg-slate-900/20 border border-red-200 dark:border-red-800 text-slate-900 dark:text-slate-900 px-4 py-3 rounded-lg mb-6 text-sm">
               {errors.submit}
             </div>
           )}
@@ -155,13 +195,13 @@ export default function LoginPage() {
                 onChange={handleChange}
                 autoComplete="email"
                 className={`w-full px-4 py-3 bg-slate-50 dark:bg-slate-800 border ${errors.email
-                    ? 'border-red-300 dark:border-red-700'
-                    : 'border-slate-200 dark:border-slate-700'
-                  } rounded-lg text-slate-900 dark:text-white placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all`}
+                  ? 'border-red-300 dark:border-red-700'
+                  : 'border-slate-200 dark:border-slate-700'
+                  } rounded-lg text-slate-900 dark:text-white placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-black dark:focus:ring-white focus:border-transparent transition-all`}
                 placeholder="seu@email.com"
               />
               {errors.email && (
-                <p className="mt-1 text-sm text-red-600 dark:text-red-400">{errors.email}</p>
+                <p className="mt-1 text-sm text-slate-900 dark:text-slate-900">{errors.email}</p>
               )}
             </div>
 
@@ -179,9 +219,9 @@ export default function LoginPage() {
                   onChange={handleChange}
                   autoComplete="current-password"
                   className={`w-full px-4 py-3 pr-12 bg-slate-50 dark:bg-slate-800 border ${errors.password
-                      ? 'border-red-300 dark:border-red-700'
-                      : 'border-slate-200 dark:border-slate-700'
-                    } rounded-lg text-slate-900 dark:text-white placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all`}
+                    ? 'border-red-300 dark:border-red-700'
+                    : 'border-slate-200 dark:border-slate-700'
+                    } rounded-lg text-slate-900 dark:text-white placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-black dark:focus:ring-white focus:border-transparent transition-all`}
                   placeholder="••••••••"
                 />
                 <button
@@ -203,7 +243,7 @@ export default function LoginPage() {
                 </button>
               </div>
               {errors.password && (
-                <p className="mt-1 text-sm text-red-600 dark:text-red-400">{errors.password}</p>
+                <p className="mt-1 text-sm text-slate-900 dark:text-slate-900">{errors.password}</p>
               )}
             </div>
 
@@ -215,11 +255,11 @@ export default function LoginPage() {
                   name="rememberMe"
                   checked={formData.rememberMe}
                   onChange={handleChange}
-                  className="w-4 h-4 text-indigo-600 bg-slate-100 dark:bg-slate-800 border-slate-300 dark:border-slate-600 rounded focus:ring-2 focus:ring-indigo-500"
+                  className="w-4 h-4 text-black bg-slate-100 dark:bg-slate-800 border-slate-300 dark:border-slate-600 rounded focus:ring-2 focus:ring-black dark:focus:ring-white"
                 />
                 <span className="text-sm text-slate-600 dark:text-slate-400">Lembrar de mim</span>
               </label>
-              <Link to="/forgot-password" className="text-sm text-indigo-600 dark:text-indigo-400 hover:text-indigo-700 dark:hover:text-indigo-300 font-medium">
+              <Link to="/forgot-password" className="text-sm text-black dark:text-black hover:text-black dark:hover:text-black font-medium">
                 Esqueceu a senha?
               </Link>
             </div>
@@ -228,7 +268,7 @@ export default function LoginPage() {
             <button
               type="submit"
               disabled={isLoading}
-              className="w-full bg-indigo-600 hover:bg-indigo-700 disabled:bg-indigo-400 disabled:cursor-not-allowed text-white font-bold py-3 px-4 rounded-lg transition-colors flex items-center justify-center space-x-2"
+              className="w-full bg-black hover:bg-black disabled:bg-black disabled:cursor-not-allowed text-white font-bold py-3 px-4 rounded-lg transition-colors flex items-center justify-center space-x-2"
             >
               {isLoading ? (
                 <>
@@ -283,7 +323,7 @@ export default function LoginPage() {
           {/* Register Link */}
           <p className="mt-6 text-center text-sm text-slate-600 dark:text-slate-400">
             Não tem uma conta?{' '}
-            <Link to="/register" className="font-medium text-indigo-600 dark:text-indigo-400 hover:text-indigo-700 dark:hover:text-indigo-300">
+            <Link to="/register" className="font-medium text-black dark:text-black hover:text-black dark:hover:text-black">
               Criar conta
             </Link>
           </p>
@@ -292,7 +332,7 @@ export default function LoginPage() {
           <div className="mt-4 pt-4 border-t border-slate-200 dark:border-slate-800">
             <p className="text-center text-sm text-slate-600 dark:text-slate-400">
               Quer se tornar um criador?{' '}
-              <Link to="/creator-register" className="font-medium text-purple-600 dark:text-purple-400 hover:text-purple-700 dark:hover:text-purple-300">
+              <Link to="/creator-register" className="font-medium text-black dark:text-black hover:text-black dark:hover:text-black">
                 Comece a ganhar dinheiro 💰
               </Link>
             </p>

@@ -13,15 +13,15 @@ const ENABLE_LOGGING = import.meta.env.VITE_ENABLE_LOGGING === 'true';
  */
 export const getAuthToken = () => {
   // Try multiple token keys in order of preference
-  const tokenKeys = ['authToken', 'accessToken', 'pride_connect_token'];
-  
+  const tokenKeys = ['authToken', 'accessToken', 'flow_connect_token'];
+
   for (const key of tokenKeys) {
     const token = localStorage.getItem(key);
     if (token) {
       return token;
     }
   }
-  
+
   return null;
 };
 
@@ -42,7 +42,7 @@ api.interceptors.request.use(
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }
-    
+
     // Log request in development mode
     if (ENABLE_LOGGING) {
       console.log('🚀 API Request:', {
@@ -51,7 +51,7 @@ api.interceptors.request.use(
         params: config.params,
       });
     }
-    
+
     return config;
   },
   (error) => {
@@ -88,16 +88,16 @@ api.interceptors.response.use(
     // Handle specific HTTP status codes
     if (error.response) {
       const { status, data } = error.response;
-      
+
       switch (status) {
         case 401: {
           // Unauthorized - Clear auth data and redirect to login
-          const tokenKeys = ['authToken', 'accessToken', 'pride_connect_token'];
+          const tokenKeys = ['flow_connect_token', 'authToken', 'accessToken'];
           tokenKeys.forEach(key => localStorage.removeItem(key));
           localStorage.removeItem('refreshToken');
           localStorage.removeItem('userType');
           localStorage.removeItem('user');
-          
+
           // Only redirect if not already on login page
           if (window.location.pathname !== '/login') {
             // Preserve current location as redirect parameter
@@ -106,24 +106,24 @@ api.interceptors.response.use(
           }
           break;
         }
-          
+
         case 403:
           // Forbidden - User doesn't have permission
           console.error('Access forbidden:', data?.message);
           break;
-          
+
         case 404:
           // Not found
           console.error('Resource not found:', error.config?.url);
           break;
-          
+
         case 500:
         case 502:
         case 503:
           // Server errors
           console.error('Server error:', data?.message || 'Internal server error');
           break;
-          
+
         default:
           console.error('API Error:', data?.message || error.message);
       }
@@ -135,7 +135,7 @@ api.interceptors.response.use(
       // Request setup error
       console.error('Request error:', error.message);
     }
-    
+
     return Promise.reject(error);
   }
 );

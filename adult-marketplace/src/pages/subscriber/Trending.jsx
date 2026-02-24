@@ -7,7 +7,7 @@ import CreatorCard from '../../components/subscriber/CreatorCard';
 import { FiTrendingUp, FiHash } from 'react-icons/fi';
 
 const Trending = () => {
-  const [period, setPeriod] = useState(TRENDING_PERIODS. DAY);
+  const [period, setPeriod] = useState(TRENDING_PERIODS.DAY);
   const [trendingPosts, setTrendingPosts] = useState([]);
   const [trendingCreators, setTrendingCreators] = useState([]);
   const [trendingTags, setTrendingTags] = useState([]);
@@ -56,7 +56,7 @@ const Trending = () => {
       {/* Header */}
       <div className="mb-6">
         <div className="flex items-center gap-2 mb-4">
-          <FiTrendingUp className="text-3xl text-purple-600" />
+          <FiTrendingUp className="text-3xl text-black" />
           <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
             Em Alta
           </h1>
@@ -65,18 +65,17 @@ const Trending = () => {
         {/* Period Selection */}
         <div className="flex gap-2 mb-4">
           {[
-            { value:  TRENDING_PERIODS.DAY, label: 'Hoje' },
-            { value:  TRENDING_PERIODS.WEEK, label: 'Esta Semana' },
+            { value: TRENDING_PERIODS.DAY, label: 'Hoje' },
+            { value: TRENDING_PERIODS.WEEK, label: 'Esta Semana' },
             { value: TRENDING_PERIODS.MONTH, label: 'Este Mês' },
           ].map((option) => (
             <button
               key={option.value}
               onClick={() => setPeriod(option.value)}
-              className={`px-4 py-2 rounded-lg font-semibold transition-all ${
-                period === option.value
-                  ? 'bg-purple-600 text-white'
+              className={`px-4 py-2 rounded-lg font-semibold transition-all ${period === option.value
+                  ? 'bg-black text-white'
                   : 'bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-300 dark:hover:bg-gray-600'
-              }`}
+                }`}
             >
               {option.label}
             </button>
@@ -88,27 +87,26 @@ const Trending = () => {
           {[
             { value: 'posts', label: 'Posts' },
             { value: 'creators', label: 'Criadores' },
-            { value:  'tags', label: 'Tags' },
+            { value: 'tags', label: 'Tags' },
           ].map((tab) => (
             <button
               key={tab.value}
               onClick={() => setActiveTab(tab.value)}
-              className={`px-4 py-2 rounded-lg font-semibold transition-all ${
-                activeTab === tab.value
-                  ? 'bg-indigo-600 text-white'
+              className={`px-4 py-2 rounded-lg font-semibold transition-all ${activeTab === tab.value
+                  ? 'bg-black text-white'
                   : 'bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700'
-              }`}
+                }`}
             >
-              {tab. label}
+              {tab.label}
             </button>
           ))}
         </div>
       </div>
 
       {/* Loading */}
-      {loading ?  (
+      {loading ? (
         <div className="flex justify-center py-12">
-          <div className="animate-spin rounded-full h-12 w-12 border-4 border-purple-600 border-t-transparent"></div>
+          <div className="animate-spin rounded-full h-12 w-12 border-4 border-black dark:border-white border-t-transparent"></div>
         </div>
       ) : (
         <>
@@ -133,7 +131,7 @@ const Trending = () => {
           {/* Creators Tab */}
           {activeTab === 'creators' && (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {trendingCreators. map((creator) => (
+              {trendingCreators.map((creator) => (
                 <CreatorCard key={creator.id} creator={creator} />
               ))}
               {trendingCreators.length === 0 && (

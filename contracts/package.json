@@ -10,7 +10,12 @@
     "verify:testnet": "hardhat verify --network mumbai",
     "verify:mainnet": "hardhat verify --network polygon"
   },
-  "keywords": ["solidity", "ethereum", "polygon", "smart-contracts"],
+  "keywords": [
+    "solidity",
+    "ethereum",
+    "polygon",
+    "smart-contracts"
+  ],
   "author": "",
   "license": "MIT",
   "devDependencies": {
@@ -18,6 +23,6 @@
     "hardhat": "^2.19.4"
   },
   "dependencies": {
-    "@openzeppelin/contracts": "^5.0.1"
+    "@openzeppelin/contracts": "^5.4.0"
   }
 }

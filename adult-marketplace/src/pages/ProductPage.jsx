@@ -31,7 +31,7 @@ export default function ProductPage() {
     return (
       <div className="min-h-screen bg-gray-900 text-white flex items-center justify-center">
         <div className="text-center">
-          <div className="w-12 h-12 border-4 border-purple-600 border-t-transparent rounded-full animate-spin mx-auto mb-4" />
+          <div className="w-12 h-12 border-4 border-black dark:border-white border-t-transparent rounded-full animate-spin mx-auto mb-4" />
           <p>Carregando criador...</p>
         </div>
       </div>
@@ -43,7 +43,7 @@ export default function ProductPage() {
       <div className="min-h-screen bg-gray-900 text-white flex items-center justify-center">
         <div className="text-center">
           <h2 className="text-2xl font-bold mb-4">{error || 'Criador não encontrado'}</h2>
-          <Link to="/" className="text-purple-400 hover:underline">Voltar para a página inicial</Link>
+          <Link to="/" className="text-black hover:underline">Voltar para a página inicial</Link>
         </div>
       </div>
     );
@@ -52,7 +52,7 @@ export default function ProductPage() {
   return (
     <div className="min-h-screen bg-gray-900 text-white">
       <header className="p-4 border-b border-gray-800">
-        <Link to="/" className="text-purple-400 hover:underline">← Voltar</Link>
+        <Link to="/" className="text-black hover:underline">← Voltar</Link>
       </header>
 
       <main className="p-6 max-w-4xl mx-auto">
@@ -65,7 +65,7 @@ export default function ProductPage() {
             />
             <h1 className="text-3xl font-bold mb-2">{creator.displayName || creator.name}</h1>
             <p className="text-gray-400 mb-1">{creator.category || creator.categories?.[0]?.name || 'Criador'}</p>
-            <p className="text-2xl text-purple-400 font-semibold">
+            <p className="text-2xl text-black font-semibold">
               {creator.subscriptionPrice ? `$${Number(creator.subscriptionPrice).toFixed(2)}/mês` : 'Preço não informado'}
             </p>
           </div>
@@ -85,7 +85,7 @@ export default function ProductPage() {
             </ul>
           </div>
 
-          <button className="w-full bg-purple-600 hover:bg-purple-700 py-4 rounded-lg font-semibold text-lg transition duration-200">
+          <button className="w-full bg-black hover:bg-black py-4 rounded-lg font-semibold text-lg transition duration-200">
             Assinar Agora
           </button>
 

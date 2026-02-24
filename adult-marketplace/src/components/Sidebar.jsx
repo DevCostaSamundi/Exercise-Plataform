@@ -1,37 +1,31 @@
-import { NavLink, useNavigate, Link } from 'react-router-dom';
 import { useState, useEffect } from 'react';
+import { Link, NavLink, useNavigate } from 'react-router-dom';
+import { useUI } from '../contexts/UIContext';
 
 export default function Sidebar() {
   const navigate = useNavigate();
+  const { discreetMode, projectName, logoChar } = useUI();
   const [user, setUser] = useState(null);
   const [isCreator, setIsCreator] = useState(false);
   const [isCollapsed, setIsCollapsed] = useState(false);
 
   useEffect(() => {
-    // Carregar dados do usuário do localStorage APENAS UMA VEZ
     const userStr = localStorage.getItem('user');
     const authToken = localStorage.getItem('authToken');
-    
+
     if (userStr && authToken) {
       try {
         const userData = JSON.parse(userStr);
         setUser(userData);
-        
-        // Verificar se é criador - funciona com maiúscula ou minúscula
-        const checkIsCreator = 
-          userData.role?. toLowerCase() === 'creator' || 
+        const checkIsCreator =
+          userData.role?.toLowerCase() === 'creator' ||
           userData.isCreator === true;
-        
         setIsCreator(checkIsCreator);
-        
-        // Debug apenas uma vez
-        console.log('👤 Usuário logado:', userData. displayName || userData.username);
-        console.log('🎭 Tipo de conta:', checkIsCreator ? '👑 CRIADOR' : '👤 Assinante');
       } catch (error) {
         console.error('❌ Erro ao carregar dados do usuário:', error);
       }
     }
-  }, []); // 👈 IMPORTANTE: array vazio = executa APENAS UMA VEZ
+  }, []);
 
   const handleLogout = () => {
     localStorage.removeItem('authToken');
@@ -40,16 +34,19 @@ export default function Sidebar() {
     navigate('/login');
   };
 
-  const linkBase = 'flex items-center space-x-3 px-4 py-3 rounded-lg text-sm font-medium transition-all';
-  const linkInactive = 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800';
-  const linkActive = 'text-white bg-indigo-600';
+  const linkBase =
+    'flex items-center space-x-3 px-4 py-3 rounded-lg text-sm font-medium transition-all';
+  const linkInactive =
+    'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800';
+  const linkActive =
+    'text-white bg-black dark:bg-white dark:text-black shadow-md';
 
   return (
     <>
       {/* Mobile Menu Button */}
       <button
         onClick={() => setIsCollapsed(!isCollapsed)}
-        className="md:hidden fixed bottom-4 right-4 z-50 w-14 h-14 bg-indigo-600 hover:bg-indigo-700 text-white rounded-full shadow-lg flex items-center justify-center"
+        className="md:hidden fixed bottom-4 right-4 z-50 w-14 h-14 bg-black hover:bg-slate-900 text-white rounded-full shadow-lg flex items-center justify-center transition-transform active:scale-95"
       >
         <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
@@ -59,32 +56,41 @@ export default function Sidebar() {
       {/* Sidebar */}
       <aside
         className={`fixed md:sticky top-0 left-0 h-screen bg-white dark:bg-slate-900 border-r border-slate-200 dark:border-slate-800 z-40 transition-all duration-300 ${
-          isCollapsed ? '-translate-x-full md:translate-x-0 md:w-20' : 'translate-x-0 w-64'
+          isCollapsed
+            ? '-translate-x-full md:translate-x-0 md:w-20'
+            : 'translate-x-0 w-64'
         }`}
       >
         <div className="flex flex-col h-full py-4 px-3">
-          {/* Logo / Header */}
+          {/* Logo */}
           <div className="flex items-center justify-between px-2 mb-6">
-            <Link to={isCreator ? "/creator/dashboard" : "/"} className="flex items-center space-x-3">
-              <div className="w-10 h-10 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-xl flex items-center justify-center flex-shrink-0">
-                <span className="text-white font-black text-xl">P</span>
+            <Link
+              to={isCreator ? '/creator/dashboard' : '/'}
+              className="flex items-center space-x-3"
+            >
+              <div className="w-10 h-10 bg-black dark:bg-white rounded-xl flex items-center justify-center flex-shrink-0">
+                <span className="text-white dark:text-black font-black text-xl">
+                  {logoChar}
+                </span>
               </div>
               {!isCollapsed && (
                 <div className="flex flex-col">
-                  <span className="text-sm font-bold text-slate-900 dark:text-white">PrideConnect</span>
+                  <span className="text-sm font-bold text-slate-900 dark:text-white">
+                    {projectName}
+                  </span>
                   <span className="text-xs text-slate-500 dark:text-slate-400">
                     {isCreator ? '👑 Área do Criador' : 'Explorar'}
                   </span>
                 </div>
               )}
             </Link>
-            
+
             <button
               onClick={() => setIsCollapsed(!isCollapsed)}
               className="hidden md:block p-1 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 rounded"
             >
               <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                <path d="M9.707 16.707a1 1 0 01-1.414 0l-6-6a1 1 0 010-1.414l6-6a1 1 0 011.414 1.414L5.414 9H17a1 1 0 110 2H5.414l4.293 4.293a1 1 0 010 1.414z" clipRule="evenodd" />
+                <path d="M9.707 16.707a1 1 0 01-1.414 0l-6-6a1 1 0 010-1.414l6-6a1 1 0 011.414 1.414L5.414 9H17a1 1 0 110 2H5.414l4.293 4.293a1 1 0 010 1.414z" />
               </svg>
             </button>
           </div>
@@ -93,21 +99,27 @@ export default function Sidebar() {
           <nav className="flex-1 space-y-1 overflow-y-auto">
             {/* Home / Dashboard */}
             <NavLink
-              to={isCreator ? "/creator/dashboard" : "/"}
-              className={({ isActive }) => `${linkBase} ${isActive ? linkActive : linkInactive}`}
-              title={isCreator ? "Dashboard" : "Início"}
+              to={isCreator ? '/creator/dashboard' : '/'}
+              className={({ isActive }) =>
+                `${linkBase} ${isActive ? linkActive : linkInactive}`
+              }
+              title={isCreator ? 'Dashboard' : 'Início'}
             >
               <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 flex-shrink-0" viewBox="0 0 20 20" fill="currentColor">
                 <path d="M10.707 2.293a1 1 0 00-1.414 0l-7 7a1 1 0 001.414 1.414L4 10.414V17a1 1 0 001 1h2a1 1 0 001-1v-2a1 1 0 011-1h2a1 1 0 011 1v2a1 1 0 001 1h2a1 1 0 001-1v-6.586l.293.293a1 1 0 001.414-1.414l-7-7z" />
               </svg>
-              {!isCollapsed && <span>{isCreator ? "Dashboard" : "Início"}</span>}
+              {!isCollapsed && (
+                <span>{isCreator ? 'Dashboard' : 'Início'}</span>
+              )}
             </NavLink>
 
-            {/* Explore (apenas para subscribers) */}
+            {/* Explore (subscriber only) */}
             {!isCreator && (
               <NavLink
                 to="/explore"
-                className={({ isActive }) => `${linkBase} ${isActive ?  linkActive : linkInactive}`}
+                className={({ isActive }) =>
+                  `${linkBase} ${isActive ? linkActive : linkInactive}`
+                }
                 title="Explorar"
               >
                 <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 flex-shrink-0" viewBox="0 0 20 20" fill="currentColor">
@@ -117,36 +129,42 @@ export default function Sidebar() {
               </NavLink>
             )}
 
-            {/* Subscribers/Subscriptions */}
-            {isCreator ?  (
+            {/* Subscribers / Subscriptions */}
+            {isCreator ? (
               <NavLink
                 to="/creator/subscribers"
-                className={({ isActive }) => `${linkBase} ${isActive ? linkActive : linkInactive}`}
-                title="Meus Assinantes"
+                className={({ isActive }) =>
+                  `${linkBase} ${isActive ? linkActive : linkInactive}`
+                }
+                title="Meus Seguidores"
               >
                 <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 flex-shrink-0" viewBox="0 0 20 20" fill="currentColor">
                   <path d="M9 6a3 3 0 11-6 0 3 3 0 016 0zM17 6a3 3 0 11-6 0 3 3 0 016 0zM12.93 17c.046-.327.07-.66.07-1a6.97 6.97 0 00-1.5-4.33A5 5 0 0119 16v1h-6.07zM6 11a5 5 0 015 5v1H1v-1a5 5 0 015-5z" />
                 </svg>
-                {! isCollapsed && <span>Meus Assinantes</span>}
+                {!isCollapsed && <span>Meus Seguidores</span>}
               </NavLink>
             ) : (
               <NavLink
                 to="/my-subscriptions"
-                className={({ isActive }) => `${linkBase} ${isActive ? linkActive : linkInactive}`}
-                title="Minhas Assinaturas"
+                className={({ isActive }) =>
+                  `${linkBase} ${isActive ? linkActive : linkInactive}`
+                }
+                title="Seguindo"
               >
                 <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 flex-shrink-0" viewBox="0 0 20 20" fill="currentColor">
                   <path d="M9 6a3 3 0 11-6 0 3 3 0 016 0zM17 6a3 3 0 11-6 0 3 3 0 016 0zM12.93 17c.046-.327.07-.66.07-1a6.97 6.97 0 00-1.5-4.33A5 5 0 0119 16v1h-6.07zM6 11a5 5 0 015 5v1H1v-1a5 5 0 015-5z" />
                 </svg>
-                {!isCollapsed && <span>Minhas Assinaturas</span>}
+                {!isCollapsed && <span>Seguindo</span>}
               </NavLink>
             )}
 
-            {/* Posts (apenas para criadores) */}
+            {/* Posts (creator only) */}
             {isCreator && (
               <NavLink
                 to="/creator/posts"
-                className={({ isActive }) => `${linkBase} ${isActive ? linkActive : linkInactive}`}
+                className={({ isActive }) =>
+                  `${linkBase} ${isActive ? linkActive : linkInactive}`
+                }
                 title="Meus Posts"
               >
                 <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 flex-shrink-0" viewBox="0 0 20 20" fill="currentColor">
@@ -156,127 +174,138 @@ export default function Sidebar() {
               </NavLink>
             )}
 
-            {/* Earnings (apenas para criadores) */}
-            {isCreator && (
+            {/* Messages (logged in only) */}
+            {user && (
               <NavLink
-                to="/creator/earnings"
-                className={({ isActive }) => `${linkBase} ${isActive ? linkActive : linkInactive}`}
-                title="Ganhos"
+                to={isCreator ? '/creator/messages' : '/messages'}
+                className={({ isActive }) =>
+                  `${linkBase} ${isActive ? linkActive : linkInactive} relative`
+                }
+                title="Mensagens"
               >
                 <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 flex-shrink-0" viewBox="0 0 20 20" fill="currentColor">
-                  <path d="M8.433 7.418c.155-.103.346-.196.567-.267v1.698a2.305 2.305 0 01-.567-.267C8.07 8.34 8 8.114 8 8c0-.114.07-.34.433-.582zM11 12.849v-1.698c.22.071.412.164.567.267.364.243.433.468.433.582 0 .114-.07.34-.433.582a2.305 2.305 0 01-.567-.267z" />
-                  <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-13a1 1 0 10-2 0v.092a4.535 4.535 0 00-1.676.662C6.602 6.234 6 7.009 6 8c0 .99.602 1.765 1.324 2.246.48.32 1.054.545 1.676.662v1.941c-.391-.127-.68-.317-.843-.504a1 1 0 10-1.51 1.31c.562.649 1.413 1.076 2.353 1.253V15a1 1 0 102 0v-.092a4.535 4.535 0 001.676-.662C13.398 13.766 14 12.991 14 12c0-.99-.602-1.765-1.324-2.246A4.535 4.535 0 0011 9.092V7.151c.391.127.68.317.843.504a1 1 0 101.511-1.31c-.563-.649-1.413-1.076-2.354-1.253V5z" clipRule="evenodd" />
+                  <path fillRule="evenodd" d="M18 10c0 3.866-3.582 7-8 7a8.841 8.841 0 01-4.083-.98L2 17l1.338-3.123C2.493 12.767 2 11.434 2 10c0-3.866 3.582-7 8-7s8 3.134 8 7zM7 9H5v2h2V9zm8 0h-2v2h2V9zM9 9h2v2H9V9z" clipRule="evenodd" />
                 </svg>
-                {! isCollapsed && <span>Ganhos</span>}
+                {!isCollapsed && <span>Mensagens</span>}
               </NavLink>
             )}
 
-            {/* Messages */}
-            <NavLink
-              to={isCreator ? "/creator/messages" : "/messages"}
-              className={({ isActive }) => `${linkBase} ${isActive ? linkActive : linkInactive} relative`}
-              title="Mensagens"
-            >
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 flex-shrink-0" viewBox="0 0 20 20" fill="currentColor">
-                <path fillRule="evenodd" d="M18 10c0 3.866-3.582 7-8 7a8.841 8.841 0 01-4.083-.98L2 17l1.338-3.123C2.493 12.767 2 11.434 2 10c0-3.866 3.582-7 8-7s8 3.134 8 7zM7 9H5v2h2V9zm8 0h-2v2h2V9zM9 9h2v2H9V9z" clipRule="evenodd" />
-              </svg>
-              {!isCollapsed && <span>Mensagens</span>}
-              <span className="absolute top-2 right-2 w-2 h-2 bg-red-500 rounded-full"></span>
-            </NavLink>
+            {/* Notifications & Settings (logged in only) */}
+            {user && (
+              <>
+                {!isCollapsed && (
+                  <div className="h-px bg-slate-200 dark:bg-slate-800 my-3" />
+                )}
+                <NavLink
+                  to={isCreator ? '/creator/notifications' : '/notifications'}
+                  className={({ isActive }) =>
+                    `${linkBase} ${isActive ? linkActive : linkInactive} relative`
+                  }
+                  title="Notificações"
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 flex-shrink-0" viewBox="0 0 20 20" fill="currentColor">
+                    <path d="M10 2a6 6 0 00-6 6v3.586l-.707.707A1 1 0 004 14h12a1 1 0 00.707-1.707L16 11.586V8a6 6 0 00-6-6zM10 18a3 3 0 01-3-3h6a3 3 0 01-3 3z" />
+                  </svg>
+                  {!isCollapsed && <span>Notificações</span>}
+                </NavLink>
 
-            {/* Favorites (apenas subscribers) */}
-            {! isCreator && (
-              <NavLink
-                to="/favorites"
-                className={({ isActive }) => `${linkBase} ${isActive ? linkActive : linkInactive}`}
-                title="Favoritos"
-              >
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 flex-shrink-0" viewBox="0 0 20 20" fill="currentColor">
-                  <path fillRule="evenodd" d="M3.172 5.172a4 4 0 015.656 0L10 6.343l1.172-1.171a4 4 0 115.656 5.656L10 17.657l-6.828-6.829a4 4 0 010-5.656z" clipRule="evenodd" />
-                </svg>
-                {!isCollapsed && <span>Favoritos</span>}
-              </NavLink>
+                <NavLink
+                  to="/settings"
+                  className={({ isActive }) =>
+                    `${linkBase} ${isActive ? linkActive : linkInactive}`
+                  }
+                  title="Configurações"
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 flex-shrink-0" viewBox="0 0 20 20" fill="currentColor">
+                    <path fillRule="evenodd" d="M11.49 3.17c-.38-1.56-2.6-1.56-2.98 0a1.532 1.532 0 01-2.286.948c-1.372-.836-2.942.734-2.106 2.106.54.886.061 2.042-.947 2.287-1.561.379-1.561 2.6 0 2.978a1.532 1.532 0 01.947 2.287c-.836 1.372.734 2.942 2.106 2.106a1.532 1.532 0 012.287.947c.379 1.561 2.6 1.561 2.978 0a1.533 1.533 0 012.287-.947c1.372.836 2.942-.734 2.106-2.106a1.533 1.533 0 01.947-2.287c1.561-.379 1.561-2.6 0-2.978a1.532 1.532 0 01-.947-2.287c.836-1.372-.734-2.942-2.106-2.106a1.532 1.532 0 01-2.287-.947zM10 13a3 3 0 100-6 3 3 0 000 6z" clipRule="evenodd" />
+                  </svg>
+                  {!isCollapsed && <span>Configurações</span>}
+                </NavLink>
+              </>
             )}
-
-            {! isCollapsed && <div className="h-px bg-slate-200 dark:bg-slate-800 my-3" />}
-
-            {/* Notifications */}
-            <NavLink
-              to={isCreator ? "/creator/notifications" : "/notifications"}
-              className={({ isActive }) => `${linkBase} ${isActive ? linkActive : linkInactive} relative`}
-              title="Notificações"
-            >
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 flex-shrink-0" viewBox="0 0 20 20" fill="currentColor">
-                <path d="M10 2a6 6 0 00-6 6v3.586l-.707.707A1 1 0 004 14h12a1 1 0 00.707-1.707L16 11.586V8a6 6 0 00-6-6zM10 18a3 3 0 01-3-3h6a3 3 0 01-3 3z" />
-              </svg>
-              {!isCollapsed && <span>Notificações</span>}
-              <span className="absolute top-2 left-8 w-5 h-5 bg-red-500 text-white text-xs rounded-full flex items-center justify-center font-bold">3</span>
-            </NavLink>
-
-            {/* Settings */}
-            <NavLink
-              to="/settings"
-              className={({ isActive }) => `${linkBase} ${isActive ? linkActive : linkInactive}`}
-              title="Configurações"
-            >
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 flex-shrink-0" viewBox="0 0 20 20" fill="currentColor">
-                <path fillRule="evenodd" d="M11.49 3.17c-.38-1.56-2.6-1.56-2.98 0a1.532 1.532 0 01-2.286.948c-1.372-.836-2.942.734-2.106 2.106.54.886.061 2.042-.947 2.287-1.561.379-1.561 2.6 0 2.978a1.532 1.532 0 01.947 2.287c-.836 1.372.734 2.942 2.106 2.106a1.532 1.532 0 012.287.947c.379 1.561 2.6 1.561 2.978 0a1.533 1.533 0 012.287-.947c1.372.836 2.942-.734 2.106-2.106a1.533 1.533 0 01.947-2.287c1.561-.379 1.561-2.6 0-2.978a1.532 1.532 0 01-.947-2.287c.836-1.372-.734-2.942-2.106-2.106a1.532 1.532 0 01-2.287-.947zM10 13a3 3 0 100-6 3 3 0 000 6z" clipRule="evenodd" />
-              </svg>
-              {!isCollapsed && <span>Configurações</span>}
-            </NavLink>
           </nav>
 
-          {/* Call to Action - Become Creator */}
+          {/* Become Creator CTA */}
           {!isCreator && !isCollapsed && (
             <div className="mt-4 mb-4">
               <Link
                 to="/creator-register"
-                className="block bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white text-center px-4 py-3 rounded-lg font-bold text-sm transition-all shadow-lg hover:shadow-xl"
+                className="block bg-black dark:bg-white text-white dark:text-black text-center px-4 py-3 rounded-lg font-bold text-sm transition-all shadow-lg hover:shadow-xl hover:scale-[1.02] active:scale-[0.98]"
               >
-                💰 Vire Criador
+                Vire Criador
               </Link>
             </div>
           )}
 
-          {/* User Profile */}
+          {/* User Profile / Auth */}
           <div className="mt-auto pt-4 border-t border-slate-200 dark:border-slate-800">
-            <NavLink
-              to="/profile"
-              className="flex items-center space-x-3 px-3 py-3 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
-            >
-              <div className="w-10 h-10 bg-gradient-to-br from-pink-500 to-purple-600 rounded-full flex items-center justify-center flex-shrink-0">
-                <span className="text-white font-bold text-sm">
-                  {user?.displayName?.charAt(0)?.toUpperCase() || user?.username?.charAt(0)?.toUpperCase() || 'U'}
-                </span>
-              </div>
-              {!isCollapsed && (
-                <div className="flex-1 min-w-0">
-                  <p className="text-sm font-semibold text-slate-900 dark:text-white truncate">
-                    {user?.displayName || user?.username || 'Usuário'}
-                  </p>
-                  <p className="text-xs text-slate-500 dark:text-slate-400 truncate">
-                    {isCreator ? '👑 Criador' : 'Ver perfil'}
-                  </p>
-                </div>
-              )}
-            </NavLink>
+            {user ? (
+              <>
+                <NavLink
+                  to="/profile"
+                  className="flex items-center space-x-3 px-3 py-3 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+                >
+                  <div className="w-10 h-10 bg-slate-200 dark:bg-slate-700 rounded-full flex items-center justify-center flex-shrink-0">
+                    <span className="text-slate-700 dark:text-slate-200 font-bold text-sm">
+                      {user?.displayName?.charAt(0)?.toUpperCase() ||
+                        user?.username?.charAt(0)?.toUpperCase() ||
+                        'U'}
+                    </span>
+                  </div>
+                  {!isCollapsed && (
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-semibold text-slate-900 dark:text-white truncate">
+                        {user?.displayName || user?.username || 'Usuário'}
+                      </p>
+                      <p className="text-xs text-slate-500 dark:text-slate-400 truncate">
+                        {isCreator ? '👑 Criador' : 'Ver perfil'}
+                      </p>
+                    </div>
+                  )}
+                </NavLink>
 
-            {/* Logout */}
-            <button
-              onClick={handleLogout}
-              className={`${linkBase} ${linkInactive} w-full justify-start mt-2`}
-              title="Sair"
-            >
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 flex-shrink-0" viewBox="0 0 20 20" fill="currentColor">
-                <path fillRule="evenodd" d="M3 3a1 1 0 00-1 1v12a1 1 0 102 0V4a1 1 0 00-1-1zm10.293 9.293a1 1 0 001.414 1.414l3-3a1 1 0 000-1.414l-3-3a1 1 0 10-1.414 1.414L14.586 9H7a1 1 0 100 2h7.586l-1.293 1.293z" clipRule="evenodd" />
-              </svg>
-              {!isCollapsed && <span className="text-red-600 dark:text-red-400">Sair</span>}
-            </button>
+                <button
+                  onClick={handleLogout}
+                  className={`${linkBase} ${linkInactive} w-full justify-start mt-2`}
+                  title="Sair"
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 flex-shrink-0" viewBox="0 0 20 20" fill="currentColor">
+                    <path fillRule="evenodd" d="M3 3a1 1 0 00-1 1v12a1 1 0 102 0V4a1 1 0 00-1-1zm10.293 9.293a1 1 0 001.414 1.414l3-3a1 1 0 000-1.414l-3-3a1 1 0 10-1.414 1.414L14.586 9H7a1 1 0 100 2h7.586l-1.293 1.293z" clipRule="evenodd" />
+                  </svg>
+                  {!isCollapsed && (
+                    <span className="text-slate-900 dark:text-white font-bold">
+                      Sair
+                    </span>
+                  )}
+                </button>
+              </>
+            ) : (
+              <div className="space-y-2">
+                <Link
+                  to="/login"
+                  className="flex items-center space-x-3 px-4 py-3 rounded-lg text-sm font-bold bg-slate-100 dark:bg-slate-800 text-slate-900 dark:text-white hover:bg-slate-200 dark:hover:bg-slate-700 transition-all"
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                    <path fillRule="evenodd" d="M3 3a1 1 0 011 1v12a1 1 0 11-2 0V4a1 1 0 011-1zm10.293 9.293a1 1 0 001.414 1.414l3-3a1 1 0 000-1.414l-3-3a1 1 0 10-1.414 1.414L14.586 9H7a1 1 0 100 2h7.586l-1.293 1.293z" clipRule="evenodd" />
+                  </svg>
+                  {!isCollapsed && <span>Entrar</span>}
+                </Link>
+                <Link
+                  to="/register"
+                  className="flex items-center space-x-3 px-4 py-3 rounded-lg text-sm font-bold bg-black dark:bg-white text-white dark:text-black hover:scale-[1.02] active:scale-[0.98] transition-all"
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                    <path d="M8 9a3 3 0 100-6 3 3 0 000 6zM8 11a6 6 0 016 6H2a6 6 0 016-6zM16 7a1 1 0 10-2 0v1h-1a1 1 0 100 2h1v1a1 1 0 102 0v-1h1a1 1 0 100-2h-1V7z" />
+                  </svg>
+                  {!isCollapsed && <span>Criar Conta</span>}
+                </Link>
+              </div>
+            )}
           </div>
         </div>
       </aside>
 
-      {/* Overlay for mobile */}
+      {/* Mobile overlay */}
       {!isCollapsed && (
         <div
           className="md:hidden fixed inset-0 bg-black/50 z-30"

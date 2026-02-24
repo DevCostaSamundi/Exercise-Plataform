@@ -137,8 +137,8 @@ export default function CreatorAnalyticsPage() {
             <div className="flex items-center justify-between h-16">
               <div className="flex items-center space-x-4">
                 <Link to="/creator/dashboard" className="flex items-center space-x-3">
-                  <div className="w-10 h-10 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-xl flex items-center justify-center">
-                    <span className="text-white font-black text-xl">P</span>
+                  <div className="w-10 h-10 bg-black dark:bg-white rounded-xl flex items-center justify-center">
+                    <span className="text-white dark:text-black font-black text-xl">F</span>
                   </div>
                   <span className="font-bold text-slate-900 dark:text-white">Analytics</span>
                 </Link>
@@ -149,7 +149,7 @@ export default function CreatorAnalyticsPage() {
                 <select
                   value={timeRange}
                   onChange={(e) => setTimeRange(e.target.value)}
-                  className="px-4 py-2 bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-lg text-sm font-medium text-slate-700 dark:text-slate-300 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                  className="px-4 py-2 bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-lg text-sm font-bold text-slate-700 dark:text-slate-300 focus:outline-none focus:ring-2 focus:ring-black dark:focus:ring-white"
                 >
                   <option value="7days">Últimos 7 dias</option>
                   <option value="30days">Últimos 30 dias</option>
@@ -166,8 +166,8 @@ export default function CreatorAnalyticsPage() {
           <div className="flex-1 w-full px-4 sm:px-6 lg:px-8 py-8">
             {/* Error Warning */}
             {error && (
-              <div className="mb-6 bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg p-4">
-                <div className="flex items-center gap-2 text-yellow-800 dark:text-yellow-300">
+              <div className="mb-6 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg p-4">
+                <div className="flex items-center gap-2 text-slate-500 dark:text-slate-400">
                   <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
                     <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
                   </svg>
@@ -225,10 +225,10 @@ export default function CreatorAnalyticsPage() {
                       </span>
                       <div className="flex-1 bg-slate-100 dark:bg-slate-800 rounded-full h-8 overflow-hidden">
                         <div
-                          className="bg-gradient-to-r from-indigo-500 to-purple-600 h-full flex items-center justify-end pr-2 transition-all"
+                          className="bg-black dark:bg-white h-full flex items-center justify-end pr-2 transition-all"
                           style={{ width: `${(item.views / 720) * 100}%` }}
                         >
-                          <span className="text-xs font-bold text-white">
+                          <span className="text-xs font-bold text-white dark:text-black">
                             {item.views}
                           </span>
                         </div>
@@ -250,7 +250,7 @@ export default function CreatorAnalyticsPage() {
                       className="flex items-center justify-between p-3 bg-slate-50 dark:bg-slate-800 rounded-lg"
                     >
                       <div className="flex items-center gap-3">
-                        <span className="w-8 h-8 bg-indigo-100 dark:bg-indigo-900 text-indigo-600 dark:text-indigo-400 rounded-full flex items-center justify-center font-bold text-sm">
+                        <span className="w-8 h-8 bg-black dark:bg-white text-white dark:text-black rounded-full flex items-center justify-center font-bold text-sm shadow-md">
                           #{index + 1}
                         </span>
                         <div>
@@ -309,8 +309,8 @@ function StatCard({ title, value, icon, trend, trendUp }) {
         <span className="text-2xl">{icon}</span>
         <span
           className={`text-sm font-semibold ${trendUp
-              ? 'text-green-600 dark:text-green-400'
-              : 'text-red-600 dark:text-red-400'
+            ? 'text-slate-800 dark:text-slate-800'
+            : 'text-slate-900 dark:text-slate-900'
             }`}
         >
           {trend}
@@ -341,7 +341,7 @@ function DemographicCard({ title, icon, data, labelKey }) {
             </div>
             <div className="w-full bg-slate-100 dark:bg-slate-800 rounded-full h-2">
               <div
-                className="bg-gradient-to-r from-indigo-500 to-purple-600 h-2 rounded-full transition-all"
+                className="bg-black dark:bg-white h-2 rounded-full transition-all"
                 style={{ width: `${item.percentage}%` }}
               />
             </div>

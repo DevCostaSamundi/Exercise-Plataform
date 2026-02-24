@@ -304,8 +304,8 @@ export default function UploadContentPage() {
             <div className="flex items-center justify-between h-16">
               <div className="flex items-center space-x-4">
                 <Link to="/" className="flex items-center space-x-3">
-                  <div className="w-10 h-10 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-xl flex items-center justify-center">
-                    <span className="text-white font-black text-xl">P</span>
+                  <div className="w-10 h-10 bg-black dark:bg-white rounded-xl flex items-center justify-center">
+                    <span className="text-white dark:text-black font-black text-xl">F</span>
                   </div>
                   <span className="font-bold text-slate-900 dark:text-white">Novo Post</span>
                 </Link>
@@ -313,22 +313,22 @@ export default function UploadContentPage() {
 
               {/* Progress Steps */}
               <div className="hidden sm:flex items-center space-x-2 text-sm">
-                <div className={`flex items-center ${step >= 1 ? 'text-indigo-600' : 'text-slate-400'}`}>
-                  <span className={`w-6 h-6 rounded-full flex items-center justify-center ${step >= 1 ? 'bg-indigo-600 text-white' : 'bg-slate-200 dark:bg-slate-700'}`}>
+                <div className={`flex items-center ${step >= 1 ? 'text-black' : 'text-slate-400'}`}>
+                  <span className={`w-6 h-6 rounded-full flex items-center justify-center ${step >= 1 ? 'bg-black text-white' : 'bg-slate-200 dark:bg-slate-700'}`}>
                     {step > 1 ? '✓' : '1'}
                   </span>
                   <span className="ml-2 hidden md:inline">Upload</span>
                 </div>
                 <div className="w-8 h-0.5 bg-slate-200 dark:bg-slate-700"></div>
-                <div className={`flex items-center ${step >= 2 ? 'text-indigo-600' : 'text-slate-400'}`}>
-                  <span className={`w-6 h-6 rounded-full flex items-center justify-center ${step >= 2 ? 'bg-indigo-600 text-white' : 'bg-slate-200 dark:bg-slate-700'}`}>
+                <div className={`flex items-center ${step >= 2 ? 'text-black' : 'text-slate-400'}`}>
+                  <span className={`w-6 h-6 rounded-full flex items-center justify-center ${step >= 2 ? 'bg-black text-white' : 'bg-slate-200 dark:bg-slate-700'}`}>
                     {step > 2 ? '✓' : '2'}
                   </span>
                   <span className="ml-2 hidden md:inline">Detalhes</span>
                 </div>
                 <div className="w-8 h-0.5 bg-slate-200 dark:bg-slate-700"></div>
-                <div className={`flex items-center ${step >= 3 ? 'text-indigo-600' : 'text-slate-400'}`}>
-                  <span className={`w-6 h-6 rounded-full flex items-center justify-center ${step >= 3 ? 'bg-indigo-600 text-white' : 'bg-slate-200 dark:bg-slate-700'}`}>
+                <div className={`flex items-center ${step >= 3 ? 'text-black' : 'text-slate-400'}`}>
+                  <span className={`w-6 h-6 rounded-full flex items-center justify-center ${step >= 3 ? 'bg-black text-white' : 'bg-slate-200 dark:bg-slate-700'}`}>
                     3
                   </span>
                   <span className="ml-2 hidden md:inline">Revisar</span>
@@ -354,8 +354,8 @@ export default function UploadContentPage() {
               {/* Upload Area */}
               <div
                 className={`border-2 border-dashed rounded-2xl p-12 text-center transition-all ${dragActive
-                  ? 'border-indigo-500 bg-indigo-50 dark:bg-indigo-900/10'
-                  : 'border-slate-300 dark:border-slate-700 hover:border-indigo-400 dark:hover:border-indigo-600'
+                  ? 'border-black dark:border-white bg-black/5 dark:bg-white/5'
+                  : 'border-slate-300 dark:border-slate-700 hover:border-black dark:hover:border-white'
                   }`}
                 onDragEnter={handleDrag}
                 onDragLeave={handleDrag}
@@ -372,8 +372,8 @@ export default function UploadContentPage() {
                 />
 
                 <div className="flex flex-col items-center">
-                  <div className="w-16 h-16 bg-indigo-100 dark:bg-indigo-900/20 rounded-full flex items-center justify-center mb-4">
-                    <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8 text-indigo-600 dark:text-indigo-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <div className="w-16 h-16 bg-black dark:bg-black/20 rounded-full flex items-center justify-center mb-4">
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8 text-black dark:text-black" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
                     </svg>
                   </div>
@@ -387,7 +387,7 @@ export default function UploadContentPage() {
 
                   <button
                     onClick={() => fileInputRef.current?.click()}
-                    className="bg-indigo-600 hover:bg-indigo-700 text-white font-medium px-6 py-3 rounded-lg transition-colors"
+                    className="bg-black hover:bg-black text-white font-medium px-6 py-3 rounded-lg transition-colors"
                   >
                     Selecionar Arquivos
                   </button>
@@ -400,7 +400,7 @@ export default function UploadContentPage() {
               </div>
 
               {errors.files && (
-                <p className="text-sm text-red-600 dark:text-red-400">{errors.files}</p>
+                <p className="text-sm text-slate-900 dark:text-slate-900">{errors.files}</p>
               )}
 
               {/* File Preview */}
@@ -439,7 +439,7 @@ export default function UploadContentPage() {
                           <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
                             <button
                               onClick={() => removeFile(fileObj.id)}
-                              className="bg-red-500 hover:bg-red-600 text-white p-2 rounded-lg transition-colors"
+                              className="bg-slate-900 hover:bg-slate-900 text-white p-2 rounded-lg transition-colors"
                             >
                               <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
                                 <path fillRule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clipRule="evenodd" />
@@ -490,11 +490,11 @@ export default function UploadContentPage() {
                     onChange={handleChange}
                     maxLength={100}
                     className={`w-full px-4 py-3 bg-slate-50 dark:bg-slate-800 border ${errors.title ? 'border-red-300' : 'border-slate-200 dark:border-slate-700'
-                      } rounded-lg text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500`}
+                      } rounded-lg text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-black dark:focus:ring-white`}
                     placeholder="Dê um título chamativo para seu post..."
                   />
                   <div className="flex justify-between mt-1">
-                    {errors.title && <p className="text-sm text-red-600">{errors.title}</p>}
+                    {errors.title && <p className="text-sm text-slate-900">{errors.title}</p>}
                     <p className="text-xs text-slate-500 ml-auto">{formData.title.length}/100</p>
                   </div>
                 </div>
@@ -511,11 +511,11 @@ export default function UploadContentPage() {
                     rows={4}
                     maxLength={500}
                     className={`w-full px-4 py-3 bg-slate-50 dark:bg-slate-800 border ${errors.description ? 'border-red-300' : 'border-slate-200 dark:border-slate-700'
-                      } rounded-lg text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500 resize-none`}
+                      } rounded-lg text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-black dark:focus:ring-white resize-none`}
                     placeholder="Descreva seu conteúdo..."
                   ></textarea>
                   <div className="flex justify-between mt-1">
-                    {errors.description && <p className="text-sm text-red-600">{errors.description}</p>}
+                    {errors.description && <p className="text-sm text-slate-900">{errors.description}</p>}
                     <p className="text-xs text-slate-500 ml-auto">{formData.description.length}/500</p>
                   </div>
                 </div>
@@ -530,11 +530,11 @@ export default function UploadContentPage() {
                       type="button"
                       onClick={() => setFormData(prev => ({ ...prev, visibility: 'subscribers', price: 0 }))}
                       className={`p-4 rounded-lg border-2 transition-all ${formData.visibility === 'subscribers'
-                        ? 'border-indigo-600 bg-indigo-50 dark:bg-indigo-900/20'
-                        : 'border-slate-200 dark:border-slate-700 hover:border-indigo-300'
+                        ? 'border-black dark:border-white bg-black/5 dark:bg-white/5'
+                        : 'border-slate-200 dark:border-slate-700 hover:border-black dark:hover:border-white'
                         }`}
                     >
-                      <svg xmlns="http://www.w3.org/2000/svg" className={`h-6 w-6 mx-auto mb-2 ${formData.visibility === 'subscribers' ? 'text-indigo-600' : 'text-slate-400'}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <svg xmlns="http://www.w3.org/2000/svg" className={`h-6 w-6 mx-auto mb-2 ${formData.visibility === 'subscribers' ? 'text-black' : 'text-slate-400'}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
                       </svg>
                       <p className="text-sm font-medium text-slate-900 dark:text-white">Assinantes</p>
@@ -545,11 +545,11 @@ export default function UploadContentPage() {
                       type="button"
                       onClick={() => setFormData(prev => ({ ...prev, visibility: 'premium' }))}
                       className={`p-4 rounded-lg border-2 transition-all ${formData.visibility === 'premium'
-                        ? 'border-purple-600 bg-purple-50 dark:bg-purple-900/20'
-                        : 'border-slate-200 dark:border-slate-700 hover:border-purple-300'
+                        ? 'border-slate-800 dark:border-slate-200 bg-black/5 dark:bg-white/5'
+                        : 'border-slate-200 dark:border-slate-700 hover:border-black dark:hover:border-white'
                         }`}
                     >
-                      <svg xmlns="http://www.w3.org/2000/svg" className={`h-6 w-6 mx-auto mb-2 ${formData.visibility === 'premium' ? 'text-purple-600' : 'text-slate-400'}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <svg xmlns="http://www.w3.org/2000/svg" className={`h-6 w-6 mx-auto mb-2 ${formData.visibility === 'premium' ? 'text-black' : 'text-slate-400'}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path
                           strokeLinecap="round"
                           strokeLinejoin="round"
@@ -564,11 +564,11 @@ export default function UploadContentPage() {
                       type="button"
                       onClick={() => setFormData(prev => ({ ...prev, visibility: 'free', price: 0 }))}
                       className={`p-4 rounded-lg border-2 transition-all ${formData.visibility === 'free'
-                        ? 'border-green-600 bg-green-50 dark:bg-green-900/20'
+                        ? 'border-green-600 bg-slate-800 dark:bg-slate-800/20'
                         : 'border-slate-200 dark:border-slate-700 hover:border-green-300'
                         }`}
                     >
-                      <svg xmlns="http://www.w3.org/2000/svg" className={`h-6 w-6 mx-auto mb-2 ${formData.visibility === 'free' ? 'text-green-600' : 'text-slate-400'}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <svg xmlns="http://www.w3.org/2000/svg" className={`h-6 w-6 mx-auto mb-2 ${formData.visibility === 'free' ? 'text-slate-800' : 'text-slate-400'}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945M8 3.935V5.5A2.5 2.5 0 0010.5 8h.5a2 2 0 012 2 2 2 0 104 0 2 2 0 012-2h1.064M15 20.488V18a2 2 0 012-2h3.064M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                       </svg>
                       <p className="text-sm font-medium text-slate-900 dark:text-white">Gratuito</p>
@@ -594,10 +594,10 @@ export default function UploadContentPage() {
                         max="500"
                         step="0.50"
                         className={`w-full pl-12 pr-4 py-3 bg-slate-50 dark:bg-slate-800 border ${errors.price ? 'border-red-300' : 'border-slate-200 dark:border-slate-700'
-                          } rounded-lg text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500`}
+                          } rounded-lg text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-black dark:focus:ring-white`}
                       />
                     </div>
-                    {errors.price && <p className="mt-1 text-sm text-red-600">{errors.price}</p>}
+                    {errors.price && <p className="mt-1 text-sm text-slate-900">{errors.price}</p>}
                     <p className="mt-1 text-xs text-slate-500">Preço mínimo: $ 5.00 | Máximo: $ 500.00</p>
                   </div>
                 )}
@@ -614,8 +614,8 @@ export default function UploadContentPage() {
                         type="button"
                         onClick={() => handleTagToggle(tag)}
                         className={`text-sm px-3 py-1.5 rounded-full transition-all ${formData.tags.includes(tag)
-                          ? 'bg-indigo-600 text-white'
-                          : 'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700 hover:border-indigo-300'
+                          ? 'bg-black text-white'
+                          : 'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700 hover:border-black'
                           }`}
                       >
                         {tag}
@@ -632,7 +632,7 @@ export default function UploadContentPage() {
                       name="scheduled"
                       checked={formData.scheduled}
                       onChange={handleChange}
-                      className="w-5 h-5 text-indigo-600 bg-slate-100 dark:bg-slate-800 border-slate-300 dark:border-slate-600 rounded focus:ring-2 focus:ring-indigo-500"
+                      className="w-5 h-5 text-black bg-slate-100 dark:bg-slate-800 border-slate-300 dark:border-slate-600 rounded focus:ring-2 focus:ring-black dark:focus:ring-white"
                     />
                     <div>
                       <span className="text-sm font-medium text-slate-900 dark:text-white">Agendar publicação</span>
@@ -653,9 +653,9 @@ export default function UploadContentPage() {
                           onChange={handleChange}
                           min={new Date().toISOString().split('T')[0]}
                           className={`w-full px-4 py-3 bg-slate-50 dark:bg-slate-800 border ${errors.scheduledDate ? 'border-red-300' : 'border-slate-200 dark:border-slate-700'
-                            } rounded-lg text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500`}
+                            } rounded-lg text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-black dark:focus:ring-white`}
                         />
-                        {errors.scheduledDate && <p className="mt-1 text-sm text-red-600">{errors.scheduledDate}</p>}
+                        {errors.scheduledDate && <p className="mt-1 text-sm text-slate-900">{errors.scheduledDate}</p>}
                       </div>
                       <div>
                         <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
@@ -667,9 +667,9 @@ export default function UploadContentPage() {
                           value={formData.scheduledTime}
                           onChange={handleChange}
                           className={`w-full px-4 py-3 bg-slate-50 dark:bg-slate-800 border ${errors.scheduledTime ? 'border-red-300' : 'border-slate-200 dark:border-slate-700'
-                            } rounded-lg text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500`}
+                            } rounded-lg text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-black dark:focus:ring-white`}
                         />
-                        {errors.scheduledTime && <p className="mt-1 text-sm text-red-600">{errors.scheduledTime}</p>}
+                        {errors.scheduledTime && <p className="mt-1 text-sm text-slate-900">{errors.scheduledTime}</p>}
                       </div>
                     </div>
                   )}
@@ -684,14 +684,14 @@ export default function UploadContentPage() {
                         name="watermark"
                         checked={formData.watermark}
                         onChange={handleChange}
-                        className="w-5 h-5 text-indigo-600 bg-slate-100 dark:bg-slate-800 border-slate-300 dark:border-slate-600 rounded focus:ring-2 focus:ring-indigo-500"
+                        className="w-5 h-5 text-black bg-slate-100 dark:bg-slate-800 border-slate-300 dark:border-slate-600 rounded focus:ring-2 focus:ring-black dark:focus:ring-white"
                       />
                       <div>
                         <span className="text-sm font-medium text-slate-900 dark:text-white">Adicionar marca d'água</span>
                         <p className="text-xs text-slate-500">Protege contra pirataria</p>
                       </div>
                     </div>
-                    <span className="text-xs bg-green-100 dark:bg-green-900/20 text-green-700 dark:text-green-400 px-2 py-1 rounded-full">
+                    <span className="text-xs bg-slate-800 dark:bg-slate-800/20 text-slate-800 dark:text-slate-800 px-2 py-1 rounded-full">
                       Recomendado
                     </span>
                   </label>
@@ -702,7 +702,7 @@ export default function UploadContentPage() {
                       name="allowDownload"
                       checked={formData.allowDownload}
                       onChange={handleChange}
-                      className="w-5 h-5 text-indigo-600 bg-slate-100 dark:bg-slate-800 border-slate-300 dark:border-slate-600 rounded focus:ring-2 focus:ring-indigo-500"
+                      className="w-5 h-5 text-black bg-slate-100 dark:bg-slate-800 border-slate-300 dark:border-slate-600 rounded focus:ring-2 focus:ring-black dark:focus:ring-white"
                     />
                     <div>
                       <span className="text-sm font-medium text-slate-900 dark:text-white">Permitir download</span>
@@ -731,19 +731,19 @@ export default function UploadContentPage() {
                 {/* Header */}
                 <div className="flex items-center justify-between p-4 border-b border-slate-200 dark:border-slate-800">
                   <div className="flex items-center space-x-3">
-                    <div className="w-10 h-10 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-full"></div>
+                    <div className="w-10 h-10 bg-slate-200 dark:bg-slate-800 rounded-full"></div>
                     <div>
                       <p className="font-semibold text-slate-900 dark:text-white">Seu Nome</p>
                       <p className="text-xs text-slate-500">Agora</p>
                     </div>
                   </div>
                   {formData.visibility === 'premium' && (
-                    <span className="bg-purple-100 dark:bg-purple-900/20 text-purple-700 dark:text-purple-400 text-xs font-bold px-3 py-1 rounded-full">
+                    <span className="bg-black dark:bg-black/20 text-black dark:text-black text-xs font-bold px-3 py-1 rounded-full">
                       PPV {formatPrice(formData.price)}
                     </span>
                   )}
                   {formData.visibility === 'free' && (
-                    <span className="bg-green-100 dark:bg-green-900/20 text-green-700 dark:text-green-400 text-xs font-bold px-3 py-1 rounded-full">
+                    <span className="bg-slate-800 dark:bg-slate-800/20 text-slate-800 dark:text-slate-800 text-xs font-bold px-3 py-1 rounded-full">
                       GRATUITO
                     </span>
                   )}
@@ -812,7 +812,7 @@ export default function UploadContentPage() {
               </div>
 
               {/* Summary Info */}
-              <div className="bg-indigo-50 dark:bg-indigo-900/20 border border-indigo-200 dark:border-indigo-800 rounded-lg p-4 max-w-2xl mx-auto">
+              <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg p-4 max-w-2xl mx-auto">
                 <div className="grid grid-cols-2 gap-4 text-sm">
                   <div>
                     <p className="text-slate-600 dark:text-slate-400 mb-1">Arquivos:</p>
@@ -840,7 +840,7 @@ export default function UploadContentPage() {
               </div>
 
               {errors.submit && (
-                <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 text-red-600 dark:text-red-400 px-4 py-3 rounded-lg max-w-2xl mx-auto">
+                <div className="bg-slate-900 dark:bg-slate-900/20 border border-red-200 dark:border-red-800 text-slate-900 dark:text-slate-900 px-4 py-3 rounded-lg max-w-2xl mx-auto">
                   {errors.submit}
                 </div>
               )}
@@ -872,7 +872,7 @@ export default function UploadContentPage() {
             {step < 3 ? (
               <button
                 onClick={handleNext}
-                className="px-6 py-3 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-lg transition-colors flex items-center space-x-2"
+                className="px-6 py-3 bg-black hover:bg-black text-white font-bold rounded-lg transition-colors flex items-center space-x-2"
               >
                 <span>Próximo</span>
                 <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
@@ -883,7 +883,7 @@ export default function UploadContentPage() {
               <button
                 onClick={handlePublish}
                 disabled={isUploading}
-                className="px-8 py-3 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 disabled:opacity-50 text-white font-bold rounded-lg transition-all flex items-center space-x-2"
+                className="px-8 py-3 bg-black hover:bg-black/90 disabled:opacity-50 text-white font-bold rounded-lg transition-all flex items-center space-x-2"
               >
                 {isUploading ? (
                   <>

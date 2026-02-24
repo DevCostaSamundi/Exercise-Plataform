@@ -74,7 +74,7 @@ export default function DMButton({ creatorId }) {
 
   return (
     <button
-      className={`px-4 py-2 rounded ${allowed ? 'bg-indigo-600 text-white' : 'bg-gray-300 text-gray-600 cursor-not-allowed'}`}
+      className={`px-4 py-2 rounded ${allowed ? 'bg-black text-white' : 'bg-gray-300 text-gray-600 cursor-not-allowed'}`}
       onClick={openChat}
       disabled={!allowed}
       title={!allowed ? message : 'Enviar mensagem'}

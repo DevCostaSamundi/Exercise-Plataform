@@ -112,9 +112,9 @@ export default function Web3PaymentModal({
                 </div>
 
                 {/* Amount */}
-                <div className="bg-purple-50 dark:bg-purple-900/20 rounded-lg p-4 mb-6">
+                <div className="bg-black dark:bg-black/20 rounded-lg p-4 mb-6">
                     <div className="text-sm text-gray-600 dark:text-gray-400">Amount</div>
-                    <div className="text-3xl font-bold text-purple-600 dark:text-purple-400">
+                    <div className="text-3xl font-bold text-black dark:text-black">
                         ${amountUSD.toFixed(2)}
                     </div>
                     <div className="text-xs text-gray-500 dark:text-gray-500 mt-1">
@@ -131,7 +131,7 @@ export default function Web3PaymentModal({
                         <button
                             onClick={handleConnect}
                             disabled={walletLoading}
-                            className="w-full bg-purple-600 hover:bg-purple-700 text-white py-3 rounded-lg font-medium flex items-center justify-center gap-2 disabled:opacity-50"
+                            className="w-full bg-black hover:bg-black text-white py-3 rounded-lg font-medium flex items-center justify-center gap-2 disabled:opacity-50"
                         >
                             {walletLoading ? (
                                 <>
@@ -176,7 +176,7 @@ export default function Web3PaymentModal({
                         <button
                             onClick={handlePayment}
                             disabled={paymentLoading}
-                            className="w-full bg-purple-600 hover:bg-purple-700 text-white py-3 rounded-lg font-medium disabled:opacity-50"
+                            className="w-full bg-black hover:bg-black text-white py-3 rounded-lg font-medium disabled:opacity-50"
                         >
                             Continue to Payment
                         </button>
@@ -190,7 +190,7 @@ export default function Web3PaymentModal({
                 {/* Step: Processing */}
                 {step === 'processing' && (
                     <div className="text-center py-8">
-                        <Loader2 className="animate-spin mx-auto mb-4 text-purple-600" size={48} />
+                        <Loader2 className="animate-spin mx-auto mb-4 text-black" size={48} />
                         <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">
                             Opening Payment Window...
                         </h3>
@@ -203,7 +203,7 @@ export default function Web3PaymentModal({
                 {/* Step: Confirming */}
                 {step === 'confirming' && (
                     <div className="text-center py-8">
-                        <Clock className="animate-pulse mx-auto mb-4 text-blue-600" size={48} />
+                        <Clock className="animate-pulse mx-auto mb-4 text-black" size={48} />
                         <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">
                             Confirming Payment...
                         </h3>
@@ -236,7 +236,7 @@ export default function Web3PaymentModal({
                 {/* Step: Success */}
                 {step === 'success' && (
                     <div className="text-center py-8">
-                        <CheckCircle className="mx-auto mb-4 text-green-600" size={64} />
+                        <CheckCircle className="mx-auto mb-4 text-slate-800" size={64} />
                         <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-2">
                             Payment Successful! 🎉
                         </h3>
@@ -249,11 +249,11 @@ export default function Web3PaymentModal({
                 {/* Step: Error */}
                 {step === 'error' && (
                     <div className="text-center py-8">
-                        <XCircle className="mx-auto mb-4 text-red-600" size={64} />
+                        <XCircle className="mx-auto mb-4 text-slate-900" size={64} />
                         <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-2">
                             Payment Failed
                         </h3>
-                        <p className="text-red-600 dark:text-red-400 mb-4">
+                        <p className="text-slate-900 dark:text-slate-900 mb-4">
                             {errorMessage || error}
                         </p>
                         <button
@@ -261,7 +261,7 @@ export default function Web3PaymentModal({
                                 setStep('connect');
                                 setErrorMessage('');
                             }}
-                            className="bg-purple-600 hover:bg-purple-700 text-white px-6 py-2 rounded-lg"
+                            className="bg-black hover:bg-black text-white px-6 py-2 rounded-lg"
                         >
                             Try Again
                         </button>

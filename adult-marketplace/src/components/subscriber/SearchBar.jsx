@@ -80,7 +80,7 @@ const SearchBar = ({ placeholder = 'Buscar criadores...', autoFocus = false }) =
           onChange={(e) => setQuery(e.target.value)}
           placeholder={placeholder}
           autoFocus={autoFocus}
-          className="w-full pl-11 pr-11 py-3 bg-gray-100 dark:bg-gray-800 border border-gray-300 dark:border-gray-700 rounded-full text-gray-900 dark:text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-purple-500"
+          className="w-full pl-11 pr-11 py-3 bg-gray-100 dark:bg-gray-800 border border-gray-300 dark:border-gray-700 rounded-full text-gray-900 dark:text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-black"
         />
         {query && (
           <button
@@ -116,7 +116,7 @@ const SearchBar = ({ placeholder = 'Buscar criadores...', autoFocus = false }) =
                     <p className="font-semibold text-gray-900 dark:text-white">
                       {creator.name}
                       {creator.isVerified && (
-                        <span className="ml-1 text-blue-500">✓</span>
+                        <span className="ml-1 text-black">✓</span>
                       )}
                     </p>
                     <p className="text-sm text-gray-500 dark:text-gray-400">

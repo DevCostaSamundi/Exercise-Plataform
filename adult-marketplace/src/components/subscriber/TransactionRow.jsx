@@ -16,13 +16,13 @@ const TransactionRow = ({ transaction }) => {
   const getStatusColor = (status) => {
     switch (status) {
       case PAYMENT_STATUS.COMPLETED:
-        return 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400';
+        return 'bg-slate-100 text-slate-800 dark:bg-slate-800/30 dark:text-slate-300';
       case PAYMENT_STATUS.PENDING:
-        return 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400';
+        return 'bg-slate-100 text-slate-600 dark:bg-slate-700/30 dark:text-slate-400';
       case PAYMENT_STATUS.FAILED:
-        return 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400';
+        return 'bg-red-50 text-red-600 dark:bg-red-900/20 dark:text-red-400';
       case PAYMENT_STATUS.REFUNDED:
-        return 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400';
+        return 'bg-slate-100 text-slate-500 dark:bg-slate-800/30 dark:text-slate-500';
       default:
         return 'bg-gray-100 text-gray-700 dark:bg-gray-700 dark:text-gray-400';
     }
@@ -176,7 +176,7 @@ const TransactionRow = ({ transaction }) => {
             {transaction.status === PAYMENT_STATUS.COMPLETED && (
               <button
                 onClick={handleDownloadReceipt}
-                className="flex items-center gap-2 px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-lg text-sm font-semibold transition-colors"
+                className="flex items-center gap-2 px-4 py-2 bg-black hover:bg-black text-white rounded-lg text-sm font-semibold transition-colors"
               >
                 <FiDownload />
                 Baixar Recibo

@@ -14,7 +14,7 @@ export function AuthProvider({ children }) {
   }, []);
 
   const checkAuth = async () => {
-    const token = localStorage.getItem('authToken');
+    const token = localStorage.getItem('flow_connect_token') || localStorage.getItem('authToken');
     const storedUserType = localStorage.getItem('userType');
     const storedUser = localStorage.getItem('user');
 
@@ -34,7 +34,8 @@ export function AuthProvider({ children }) {
 
   const login = async (email, password) => {
     const response = await authAPI.login(email, password);
-    
+
+    localStorage.setItem('flow_connect_token', response.data.accessToken);
     localStorage.setItem('authToken', response.data.accessToken);
     localStorage.setItem('userType', response.data.user.userType);
     localStorage.setItem('user', JSON.stringify(response.data.user));
@@ -48,7 +49,8 @@ export function AuthProvider({ children }) {
 
   const register = async (data) => {
     const response = await authAPI.register(data);
-    
+
+    localStorage.setItem('flow_connect_token', response.data.accessToken);
     localStorage.setItem('authToken', response.data.accessToken);
     localStorage.setItem('userType', 'SUBSCRIBER');
     localStorage.setItem('user', JSON.stringify(response.data.user));
@@ -62,7 +64,8 @@ export function AuthProvider({ children }) {
 
   const creatorRegister = async (data) => {
     const response = await authAPI.creatorRegister(data);
-    
+
+    localStorage.setItem('flow_connect_token', response.data.accessToken);
     localStorage.setItem('authToken', response.data.accessToken);
     localStorage.setItem('userType', 'CREATOR');
     localStorage.setItem('user', JSON.stringify(response.data.user));
@@ -75,6 +78,7 @@ export function AuthProvider({ children }) {
   };
 
   const logout = () => {
+    localStorage.removeItem('flow_connect_token');
     localStorage.removeItem('authToken');
     localStorage.removeItem('userType');
     localStorage.removeItem('user');

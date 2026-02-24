@@ -107,11 +107,11 @@ export default function LiveChatInput({ liveId }) {
     <div className="space-y-2">
       <div className="flex space-x-2">
         <input className="flex-1 p-2 rounded" value={text} onChange={e=>setText(e.target.value)} placeholder="Escreva algo..." />
-        <button className="bg-indigo-600 text-white px-4 py-2 rounded" onClick={trySend}>Enviar</button>
+        <button className="bg-black text-white px-4 py-2 rounded" onClick={trySend}>Enviar</button>
       </div>
       <div className="flex space-x-2">
         <button 
-          className="bg-yellow-500 text-white px-3 py-1 rounded text-sm"
+          className="bg-slate-600 text-white px-3 py-1 rounded text-sm"
           onClick={() => sendTip(10)}
         >
           💰 Tip $10

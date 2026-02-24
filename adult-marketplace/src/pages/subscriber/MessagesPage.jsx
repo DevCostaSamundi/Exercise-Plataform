@@ -327,7 +327,7 @@ export default function MessagesPage() {
         <Sidebar />
         <div className="flex-1 flex items-center justify-center">
           <div className="text-center">
-            <div className="inline-block animate-spin rounded-full h-12 w-12 border-4 border-indigo-600 border-t-transparent"></div>
+            <div className="inline-block animate-spin rounded-full h-12 w-12 border-4 border-black dark:border-white border-t-transparent"></div>
             <p className="mt-4 text-slate-600 dark:text-slate-400">Carregando mensagens...</p>
           </div>
         </div>
@@ -351,7 +351,7 @@ export default function MessagesPage() {
 
             <div className="flex items-center space-x-2 text-xs text-slate-500 dark: text-slate-400">
               <span className="inline-flex items-center space-x-1">
-                <span className={`w-2 h-2 rounded-full ${isConnected ? 'bg-emerald-500' : 'bg-red-500'}`} />
+                <span className={`w-2 h-2 rounded-full ${isConnected ? 'bg-slate-800' : 'bg-slate-900'}`} />
                 <span>{isConnected ? 'Online' : 'Offline'}</span>
               </span>
             </div>
@@ -402,7 +402,7 @@ export default function MessagesPage() {
                       </p>
                     </div>
                     {conv.unreadCount > 0 && (
-                      <span className="bg-indigo-600 text-white text-xs px-2 py-0.5 rounded-full">
+                      <span className="bg-black text-white text-xs px-2 py-0.5 rounded-full">
                         {conv.unreadCount}
                       </span>
                     )}
@@ -466,8 +466,8 @@ export default function MessagesPage() {
                       >
                         <div
                           className={`max-w-[85%] sm:max-w-[75%] rounded-2xl px-3 py-2 text-sm ${isCurrentUser
-                              ? 'bg-indigo-600 text-white rounded-br-sm'
-                              : 'bg-white dark:bg-slate-800 text-slate-900 dark:text-white rounded-bl-sm'
+                            ? 'bg-black text-white rounded-br-sm'
+                            : 'bg-white dark:bg-slate-800 text-slate-900 dark:text-white rounded-bl-sm'
                             }`}
                         >
                           {isPaid ? (
@@ -481,7 +481,7 @@ export default function MessagesPage() {
                                   setSelectedMessage(msg);
                                   setShowPPVModal(true);
                                 }}
-                                className="bg-yellow-500 text-black px-3 py-1 rounded-lg text-xs font-semibold whitespace-nowrap hover:bg-yellow-600 transition-colors"
+                                className="bg-slate-600 text-black px-3 py-1 rounded-lg text-xs font-semibold whitespace-nowrap hover:bg-slate-600 transition-colors"
                               >
                                 Desbloquear
                               </button>
@@ -533,13 +533,13 @@ export default function MessagesPage() {
                     onChange={handleInputChange}
                     placeholder="Escreva uma mensagem..."
                     disabled={sending}
-                    className="flex-1 text-sm px-3 py-2 rounded-lg bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                    className="flex-1 text-sm px-3 py-2 rounded-lg bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 focus:outline-none focus:ring-2 focus:ring-black dark:focus:ring-white"
                   />
 
                   <button
                     type="submit"
                     disabled={!messageInput.trim() || sending}
-                    className="px-3 sm:px-4 py-2 rounded-lg bg-indigo-600 text-white text-sm font-semibold hover:bg-indigo-700 disabled:opacity-50 transition-colors"
+                    className="px-3 sm:px-4 py-2 rounded-lg bg-black text-white text-sm font-semibold hover:bg-black disabled:opacity-50 transition-colors"
                   >
                     <span className="hidden sm:inline">{sending ? 'Enviando...' : 'Enviar'}</span>
                     {/* Ícone enviar (apenas mobile) */}

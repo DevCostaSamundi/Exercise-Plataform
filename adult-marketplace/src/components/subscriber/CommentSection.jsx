@@ -86,7 +86,7 @@ const CommentSection = ({ postId }) => {
                 <span className="font-semibold text-sm text-gray-900 dark:text-white">
                   {comment.author.name}
                   {comment.author.isVerified && (
-                    <span className="ml-1 text-blue-500">✓</span>
+                    <span className="ml-1 text-black">✓</span>
                   )}
                 </span>
                 <span className="text-xs text-gray-500 dark:text-gray-400">
@@ -96,7 +96,7 @@ const CommentSection = ({ postId }) => {
               {isOwner && (
                 <button
                   onClick={() => handleDeleteComment(comment._id)}
-                  className="text-red-500 hover:text-red-600 p-1"
+                  className="text-slate-900 hover:text-slate-900 p-1"
                   title="Deletar comentário"
                 >
                   <FiTrash2 className="text-sm" />
@@ -127,13 +127,13 @@ const CommentSection = ({ postId }) => {
             value={newComment}
             onChange={(e) => setNewComment(e.target.value)}
             placeholder="Escreva um comentário..."
-            className="flex-1 px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-full bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-purple-500"
+            className="flex-1 px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-full bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-black"
             maxLength={500}
           />
           <button
             type="submit"
             disabled={!newComment.trim() || submitting}
-            className="px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-full disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+            className="px-4 py-2 bg-black hover:bg-black text-white rounded-full disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
           >
             <FiSend />
           </button>

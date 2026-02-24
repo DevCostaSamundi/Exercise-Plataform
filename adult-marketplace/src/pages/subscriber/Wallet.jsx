@@ -49,7 +49,7 @@ const Wallet = () => {
       <div className="mb-6">
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center gap-2">
-            <FiDollarSign className="text-3xl text-green-600" />
+            <FiDollarSign className="text-3xl text-slate-800" />
             <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
               Carteira
             </h1>
@@ -67,7 +67,7 @@ const Wallet = () => {
                 onClick={() => setPeriod(option.value)}
                 className={`px-4 py-2 rounded-lg font-semibold transition-all ${
                   period === option.value
-                    ? 'bg-green-600 text-white'
+                    ? 'bg-slate-800 text-white'
                     : 'bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-300 dark:hover:bg-gray-600'
                 }`}
               >
@@ -81,7 +81,7 @@ const Wallet = () => {
       {/* Stats Cards */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
         {/* Total Spent */}
-        <div className="bg-gradient-to-br from-green-500 to-green-700 text-white rounded-lg p-6 shadow-lg">
+        <div className="bg-black text-white rounded-lg p-6 shadow-lg">
           <div className="flex items-center justify-between mb-4">
             <FiDollarSign className="text-4xl opacity-80" />
           </div>
@@ -94,7 +94,7 @@ const Wallet = () => {
         {/* Transaction Count */}
         <div className="bg-white dark:bg-gray-800 rounded-lg p-6 shadow border border-gray-200 dark: border-gray-700">
           <div className="flex items-center justify-between mb-4">
-            <FiCreditCard className="text-4xl text-blue-600" />
+            <FiCreditCard className="text-4xl text-black" />
           </div>
           <h3 className="text-3xl font-bold text-gray-900 dark:text-white mb-1">
             {stats.transactionCount || 0}
@@ -107,7 +107,7 @@ const Wallet = () => {
         {/* Breakdown */}
         <div className="bg-white dark:bg-gray-800 rounded-lg p-6 shadow border border-gray-200 dark:border-gray-700">
           <div className="flex items-center justify-between mb-4">
-            <FiPieChart className="text-4xl text-purple-600" />
+            <FiPieChart className="text-4xl text-black" />
           </div>
           <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-2">
             Distribuição
@@ -133,7 +133,7 @@ const Wallet = () => {
           </h2>
           <Link
             to="/transactions"
-            className="text-sm text-indigo-600 hover:text-indigo-700 font-medium"
+            className="text-sm text-black hover:text-black font-medium"
           >
             Ver todas →
           </Link>
@@ -147,8 +147,8 @@ const Wallet = () => {
                 className="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-900 rounded-lg"
               >
                 <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 bg-indigo-100 dark:bg-indigo-900/20 rounded-full flex items-center justify-center">
-                    <FiDollarSign className="text-indigo-600" />
+                  <div className="w-10 h-10 bg-black dark:bg-black/20 rounded-full flex items-center justify-center">
+                    <FiDollarSign className="text-black" />
                   </div>
                   <div>
                     <p className="font-medium text-gray-900 dark:text-white">

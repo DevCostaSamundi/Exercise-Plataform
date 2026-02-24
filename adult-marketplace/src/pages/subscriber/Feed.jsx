@@ -103,9 +103,8 @@ const Feed = () => {
             className="p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors"
           >
             <FiRefreshCw
-              className={`text-xl text-gray-600 dark:text-gray-400 ${
-                refreshing ? 'animate-spin' : ''
-              }`}
+              className={`text-xl text-gray-600 dark:text-gray-400 ${refreshing ? 'animate-spin' : ''
+                }`}
             />
           </button>
         </div>
@@ -116,8 +115,8 @@ const Feed = () => {
 
       {/* Error Message */}
       {error && (
-        <div className="mb-6 p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg">
-          <p className="text-red-600 dark:text-red-400">{error}</p>
+        <div className="mb-6 p-4 bg-slate-900 dark:bg-slate-900/20 border border-red-200 dark:border-red-800 rounded-lg">
+          <p className="text-slate-900 dark:text-slate-900">{error}</p>
         </div>
       )}
 
@@ -136,7 +135,7 @@ const Feed = () => {
             </p>
             <a
               href="/explore"
-              className="inline-block px-6 py-3 bg-purple-600 hover:bg-purple-700 text-white rounded-lg font-semibold transition-colors"
+              className="inline-block px-6 py-3 bg-black hover:bg-black text-white rounded-lg font-semibold transition-colors"
             >
               Explorar Criadores
             </a>
@@ -159,7 +158,7 @@ const Feed = () => {
             {/* Loading Indicator */}
             {loading && (
               <div className="text-center py-8">
-                <div className="inline-block w-8 h-8 border-4 border-purple-600 border-t-transparent rounded-full animate-spin" />
+                <div className="inline-block w-8 h-8 border-4 border-black dark:border-white border-t-transparent rounded-full animate-spin" />
                 <p className="mt-2 text-gray-600 dark:text-gray-400">
                   Carregando...
                 </p>

@@ -40,7 +40,7 @@ function PageHeader() {
     <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-8">
       <Link
         to="/"
-        className="inline-flex items-center space-x-2 text-indigo-600 dark:text-indigo-400 hover:text-indigo-700 dark:hover:text-indigo-300 font-medium transition-colors"
+        className="inline-flex items-center space-x-2 text-black dark:text-black hover:text-black dark:hover:text-black font-medium transition-colors"
       >
         <svg xmlns="http://www.w3. org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
           <path fillRule="evenodd" d="M9.707 16.707a1 1 0 01-1.414 0l-6-6a1 1 0 010-1.414l6-6a1 1 0 011.414 1.414L5.414 9H17a1 1 0 110 2H5.414l4.293 4.293a1 1 0 010 1.414z" clipRule="evenodd" />
@@ -65,7 +65,7 @@ function TitleSection() {
   return (
     <header className="text-center mb-8 pb-8 border-b border-slate-200 dark:border-slate-800">
       {/* Logo */}
-      <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-2xl mb-4 shadow-lg">
+      <div className="inline-flex items-center justify-center w-16 h-16 bg-black dark:bg-slate-800 rounded-2xl mb-4 shadow-lg">
         <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8 text-white" viewBox="0 0 20 20" fill="currentColor">
           <path fillRule="evenodd" d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4zm2 6a1 1 0 011-1h6a1 1 0 110 2H7a1 1 0 01-1-1zm1 3a1 1 0 100 2h6a1 1 0 100-2H7z" clipRule="evenodd" />
         </svg>
@@ -76,7 +76,7 @@ function TitleSection() {
       </h1>
 
       <p className="text-slate-600 dark:text-slate-400 mb-2">
-        PrideConnect — Plataforma de Conteúdo para a Comunidade LGBT+
+        FlowConnect — Plataforma de Conteúdo para a Comunidade LGBT+
       </p>
 
       <div className="flex flex-col sm:flex-row items-center justify-center gap-2 sm:gap-6 text-sm text-slate-500 dark:text-slate-500">
@@ -94,19 +94,19 @@ function TitleSection() {
 
 function AlertBanner() {
   return (
-    <div className="mb-8 rounded-xl border border-red-200 dark:border-red-800/50 bg-red-50 dark:bg-red-900/20 p-5">
+    <div className="mb-8 rounded-xl border border-red-200 dark:border-red-800/50 bg-slate-900 dark:bg-slate-900/20 p-5">
       <div className="flex items-start space-x-4">
         <div className="flex-shrink-0">
           <span className="text-2xl">⚠️</span>
         </div>
         <div>
-          <h3 className="font-semibold text-red-900 dark:text-red-200 mb-1">
+          <h3 className="font-semibold text-slate-900 dark:text-slate-900 mb-1">
             Leia com Atenção
           </h3>
-          <p className="text-sm text-red-800 dark:text-red-300 leading-relaxed">
-            Ao acessar ou usar o PrideConnect, você concorda com estes Termos de Uso.  
-            Esta plataforma contém <strong>conteúdo adulto</strong> e é destinada 
-            exclusivamente a pessoas com <strong>18 anos ou mais</strong>. Se você não 
+          <p className="text-sm text-slate-900 dark:text-slate-900 leading-relaxed">
+            Ao acessar ou usar o FlowConnect, você concorda com estes Termos de Uso.
+            Esta plataforma contém <strong>conteúdo adulto</strong> e é destinada
+            exclusivamente a pessoas com <strong>18 anos ou mais</strong>. Se você não
             concorda com estes termos ou não possui a idade mínima, não utilize a plataforma.
           </p>
         </div>
@@ -128,7 +128,7 @@ function TableOfContents() {
           <a
             key={item.id}
             href={`#${item.id}`}
-            className="flex items-center space-x-2 px-3 py-2 rounded-lg text-sm text-slate-700 dark:text-slate-300 hover:bg-white dark:hover:bg-slate-700 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors group"
+            className="flex items-center space-x-2 px-3 py-2 rounded-lg text-sm text-slate-700 dark:text-slate-300 hover:bg-white dark:hover:bg-slate-700 hover:text-black dark:hover:text-black transition-colors group"
           >
             <span className="text-base">{item.icon}</span>
             <span className="group-hover:underline">
@@ -171,7 +171,7 @@ function BulletList({ items }) {
     <ul className="space-y-2 ml-1">
       {items.map((item, index) => (
         <li key={index} className="flex items-start space-x-3">
-          <span className="text-indigo-500 mt-1.5">•</span>
+          <span className="text-black mt-1.5">•</span>
           <span>{item}</span>
         </li>
       ))}
@@ -184,7 +184,7 @@ function NumberedList({ items }) {
     <ol className="space-y-2 ml-1">
       {items.map((item, index) => (
         <li key={index} className="flex items-start space-x-3">
-          <span className="flex-shrink-0 w-6 h-6 bg-indigo-100 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400 rounded-full flex items-center justify-center text-xs font-bold">
+          <span className="flex-shrink-0 w-6 h-6 bg-black dark:bg-black/30 text-black dark:text-black rounded-full flex items-center justify-center text-xs font-bold">
             {index + 1}
           </span>
           <span className="pt-0.5">{item}</span>
@@ -197,27 +197,27 @@ function NumberedList({ items }) {
 function HighlightBox({ type = 'info', title, children }) {
   const styles = {
     info: {
-      container: 'border-blue-200 dark:border-blue-800/50 bg-blue-50 dark:bg-blue-900/20',
-      title: 'text-blue-900 dark:text-blue-200',
-      text: 'text-blue-800 dark:text-blue-300',
+      container: 'border-blue-200 dark:border-blue-800/50 bg-black dark:bg-black/20',
+      title: 'text-black dark:text-black',
+      text: 'text-black dark:text-black',
       icon: 'ℹ️',
     },
     warning: {
-      container: 'border-amber-200 dark:border-amber-800/50 bg-amber-50 dark:bg-amber-900/20',
-      title: 'text-amber-900 dark:text-amber-200',
-      text: 'text-amber-800 dark:text-amber-300',
+      container: 'border-amber-200 dark:border-amber-800/50 bg-slate-600 dark:bg-slate-600/20',
+      title: 'text-slate-600 dark:text-slate-600',
+      text: 'text-slate-600 dark:text-slate-600',
       icon: '⚠️',
     },
     danger: {
-      container: 'border-red-200 dark:border-red-800/50 bg-red-50 dark:bg-red-900/20',
-      title: 'text-red-900 dark:text-red-200',
-      text: 'text-red-800 dark:text-red-300',
+      container: 'border-red-200 dark:border-red-800/50 bg-slate-900 dark:bg-slate-900/20',
+      title: 'text-slate-900 dark:text-slate-900',
+      text: 'text-slate-900 dark:text-slate-900',
       icon: '🚫',
     },
     success: {
-      container: 'border-green-200 dark:border-green-800/50 bg-green-50 dark:bg-green-900/20',
-      title: 'text-green-900 dark:text-green-200',
-      text: 'text-green-800 dark:text-green-300',
+      container: 'border-green-200 dark:border-green-800/50 bg-slate-800 dark:bg-slate-800/20',
+      title: 'text-slate-800 dark:text-slate-800',
+      text: 'text-slate-800 dark:text-slate-800',
       icon: '✅',
     },
   };
@@ -280,7 +280,7 @@ function FeeTable({ fees }) {
               <td className="px-4 py-3 font-medium text-slate-900 dark:text-white">
                 {fee.type}
               </td>
-              <td className="px-4 py-3 text-indigo-600 dark:text-indigo-400 font-semibold">
+              <td className="px-4 py-3 text-black dark:text-black font-semibold">
                 {fee.rate}
               </td>
               <td className="px-4 py-3 text-slate-600 dark:text-slate-400">
@@ -298,7 +298,7 @@ function InternalLink({ to, children }) {
   return (
     <Link
       to={to}
-      className="text-indigo-600 dark:text-indigo-400 hover:text-indigo-700 dark:hover:text-indigo-300 underline underline-offset-2"
+      className="text-black dark:text-black hover:text-black dark:hover:text-black underline underline-offset-2"
     >
       {children}
     </Link>
@@ -310,8 +310,8 @@ function FooterNote() {
     <footer className="mt-12 pt-8 border-t border-slate-200 dark:border-slate-800">
       <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
         <p className="text-sm text-slate-500 dark:text-slate-400 text-center sm:text-left">
-          🏳️‍🌈 PrideConnect — Construindo um espaço seguro e inclusivo para a 
-          comunidade LGBT+. 
+          🏳️‍🌈 FlowConnect — Construindo um espaço seguro e inclusivo para a
+          comunidade LGBT+.
         </p>
 
         <div className="flex items-center space-x-4 text-sm">
@@ -332,12 +332,12 @@ export default function TermsPage() {
   return (
     <div className="min-h-screen bg-slate-50 dark:bg-slate-950 py-8 px-4">
       <div className="mx-auto w-full">
-        
+
         <PageHeader />
 
         {/* Card Principal */}
         <article className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-6 sm:p-10 shadow-sm">
-          
+
           <TitleSection />
           <AlertBanner />
           <TableOfContents />
@@ -347,28 +347,28 @@ export default function TermsPage() {
           {/* 1. Aceitação */}
           <Section id="aceitacao" icon="✅" title="1. Aceitação dos Termos">
             <p>
-              Ao acessar, navegar ou utilizar o PrideConnect ("Plataforma", "Serviço", 
-              "nós", "nosso"), você ("Usuário", "você") declara que leu, compreendeu 
-              e concorda em ficar vinculado a estes Termos de Uso ("Termos"). 
+              Ao acessar, navegar ou utilizar o FlowConnect ("Plataforma", "Serviço",
+              "nós", "nosso"), você ("Usuário", "você") declara que leu, compreendeu
+              e concorda em ficar vinculado a estes Termos de Uso ("Termos").
             </p>
 
             <p>
-              Estes Termos constituem um acordo legal vinculante entre você e o 
-              PrideConnect.  Se você não concorda com qualquer parte destes Termos, 
+              Estes Termos constituem um acordo legal vinculante entre você e o
+              FlowConnect.  Se você não concorda com qualquer parte destes Termos,
               não deve acessar ou usar a Plataforma.
             </p>
 
             <HighlightBox type="info" title="Acordo Vinculante">
-              O uso continuado da Plataforma após quaisquer alterações nestes 
-              Termos constitui sua aceitação das modificações. É sua responsabilidade 
-              revisar periodicamente estes Termos. 
+              O uso continuado da Plataforma após quaisquer alterações nestes
+              Termos constitui sua aceitação das modificações. É sua responsabilidade
+              revisar periodicamente estes Termos.
             </HighlightBox>
           </Section>
 
           {/* 2. Definições */}
           <Section id="definicoes" icon="📖" title="2. Definições">
             <p>
-              Para fins destes Termos, os seguintes termos têm os significados 
+              Para fins destes Termos, os seguintes termos têm os significados
               indicados:
             </p>
 
@@ -377,7 +377,7 @@ export default function TermsPage() {
                 {
                   icon: '🌐',
                   term: 'Plataforma',
-                  definition: 'O website, aplicativos, APIs e todos os serviços relacionados ao PrideConnect.',
+                  definition: 'O website, aplicativos, APIs e todos os serviços relacionados ao FlowConnect.',
                 },
                 {
                   icon: '👤',
@@ -416,7 +416,7 @@ export default function TermsPage() {
           {/* 3.  Elegibilidade */}
           <Section id="elegibilidade" icon="🔞" title="3. Elegibilidade e Verificação de Idade">
             <p>
-              Para usar o PrideConnect, você deve atender aos seguintes requisitos:
+              Para usar o FlowConnect, você deve atender aos seguintes requisitos:
             </p>
 
             <BulletList
@@ -429,9 +429,9 @@ export default function TermsPage() {
             />
 
             <HighlightBox type="danger" title="Proibição Absoluta">
-              O acesso por menores de 18 anos é estritamente proibido. Implementamos 
-              verificação de idade na entrada da Plataforma.  Se descobrirmos que um 
-              usuário é menor de idade, sua conta será imediatamente encerrada e 
+              O acesso por menores de 18 anos é estritamente proibido. Implementamos
+              verificação de idade na entrada da Plataforma.  Se descobrirmos que um
+              usuário é menor de idade, sua conta será imediatamente encerrada e
               as autoridades competentes poderão ser notificadas.
             </HighlightBox>
 
@@ -454,7 +454,7 @@ export default function TermsPage() {
           <Section id="conta" icon="👤" title="4. Sua Conta">
             <SubSection title="4.1 Criação de Conta">
               <p>
-                Para acessar recursos completos da Plataforma, você deve criar uma 
+                Para acessar recursos completos da Plataforma, você deve criar uma
                 conta fornecendo:
               </p>
               <BulletList
@@ -483,8 +483,8 @@ export default function TermsPage() {
 
             <SubSection title="4.3 Uma Conta por Pessoa">
               <p>
-                Cada pessoa pode manter apenas uma conta na Plataforma.  Contas 
-                múltiplas podem ser encerradas sem aviso prévio.  Criadores podem 
+                Cada pessoa pode manter apenas uma conta na Plataforma.  Contas
+                múltiplas podem ser encerradas sem aviso prévio.  Criadores podem
                 ter uma conta pessoal convertida em conta de criador.
               </p>
             </SubSection>
@@ -493,7 +493,7 @@ export default function TermsPage() {
           {/* 5. Assinantes */}
           <Section id="assinantes" icon="⭐" title="5.  Regras para Assinantes">
             <p>
-              Como Assinante do PrideConnect, você concorda com as seguintes regras:
+              Como Assinante do FlowConnect, você concorda com as seguintes regras:
             </p>
 
             <SubSection title="5.1 Direitos do Assinante">
@@ -521,8 +521,8 @@ export default function TermsPage() {
             </SubSection>
 
             <HighlightBox type="warning" title="Redistribuição de Conteúdo">
-              A redistribuição não autorizada de conteúdo de Criadores é uma 
-              violação grave que resultará em banimento permanente e possíveis 
+              A redistribuição não autorizada de conteúdo de Criadores é uma
+              violação grave que resultará em banimento permanente e possíveis
               ações legais. Respeitamos e protegemos os direitos dos Criadores.
             </HighlightBox>
           </Section>
@@ -530,7 +530,7 @@ export default function TermsPage() {
           {/* 6. Criadores */}
           <Section id="criadores" icon="🎨" title="6. Regras para Criadores">
             <p>
-              Como Criador no PrideConnect, você possui direitos e responsabilidades 
+              Como Criador no FlowConnect, você possui direitos e responsabilidades
               adicionais:
             </p>
 
@@ -570,9 +570,9 @@ export default function TermsPage() {
             </SubSection>
 
             <HighlightBox type="success" title="Proteção ao Criador">
-              O PrideConnect oferece ferramentas de proteção incluindo: marca 
-              d'água automática, detecção de vazamentos, sistema DMCA, bloqueio 
-              por região e moderação de comentários. 
+              O FlowConnect oferece ferramentas de proteção incluindo: marca
+              d'água automática, detecção de vazamentos, sistema DMCA, bloqueio
+              por região e moderação de comentários.
             </HighlightBox>
           </Section>
 
@@ -610,7 +610,7 @@ export default function TermsPage() {
           {/* 8. Conteúdo Proibido */}
           <Section id="proibido" icon="🚫" title="8. Conteúdo Proibido">
             <p>
-              Os seguintes tipos de conteúdo são <strong>estritamente proibidos</strong> 
+              Os seguintes tipos de conteúdo são <strong>estritamente proibidos</strong>
               e resultarão em ação imediata:
             </p>
 
@@ -628,17 +628,17 @@ export default function TermsPage() {
                 { icon: '🎭', title: 'Personificação', desc: 'Fingir ser outra pessoa ou roubo de identidade.' },
                 { icon: '🔒', title: 'Dados privados', desc: 'Compartilhamento de informações pessoais de terceiros.' },
                 { icon: '⚖️', title: 'Conteúdo ilegal', desc: 'Qualquer conteúdo que viole leis aplicáveis.' },
-              ]. map((item) => (
+              ].map((item) => (
                 <div
                   key={item.title}
-                  className="flex items-start space-x-3 p-4 bg-red-50 dark:bg-red-900/10 border border-red-200 dark:border-red-800/30 rounded-lg"
+                  className="flex items-start space-x-3 p-4 bg-slate-900 dark:bg-slate-900/10 border border-red-200 dark:border-red-800/30 rounded-lg"
                 >
                   <span className="text-2xl">{item.icon}</span>
                   <div>
-                    <h4 className="font-semibold text-red-900 dark:text-red-200">
+                    <h4 className="font-semibold text-slate-900 dark:text-slate-900">
                       {item.title}
                     </h4>
-                    <p className="text-sm text-red-700 dark:text-red-300">
+                    <p className="text-sm text-slate-900 dark:text-slate-900">
                       {item.desc}
                     </p>
                   </div>
@@ -682,7 +682,7 @@ export default function TermsPage() {
                 ]}
               />
               <p className="text-sm text-slate-500 dark:text-slate-400 mt-3">
-                * Taxas sujeitas a alteração com aviso prévio de 30 dias.  Taxas de 
+                * Taxas sujeitas a alteração com aviso prévio de 30 dias.  Taxas de
                 rede blockchain variam conforme congestionamento.
               </p>
             </SubSection>
@@ -700,8 +700,8 @@ export default function TermsPage() {
             </SubSection>
 
             <HighlightBox type="info" title="Discrição nos Pagamentos">
-              Nossos pagamentos aparecem de forma discreta em extratos bancários 
-              e faturas de cartão.  Para máxima privacidade, recomendamos o uso 
+              Nossos pagamentos aparecem de forma discreta em extratos bancários
+              e faturas de cartão.  Para máxima privacidade, recomendamos o uso
               de criptomoedas, especialmente Monero (XMR).
             </HighlightBox>
           </Section>
@@ -745,16 +745,16 @@ export default function TermsPage() {
           <Section id="propriedade" icon="©️" title="11. Propriedade Intelectual">
             <SubSection title="11.1 Conteúdo da Plataforma">
               <p>
-                O PrideConnect e todo o seu conteúdo original (design, código, 
-                logotipos, textos) são propriedade exclusiva da empresa e protegidos 
+                O FlowConnect e todo o seu conteúdo original (design, código,
+                logotipos, textos) são propriedade exclusiva da empresa e protegidos
                 por leis de propriedade intelectual.
               </p>
             </SubSection>
 
             <SubSection title="11.2 Conteúdo do Criador">
               <p>
-                Criadores mantêm todos os direitos autorais sobre seu conteúdo.  Ao 
-                publicar na Plataforma, você concede ao PrideConnect:
+                Criadores mantêm todos os direitos autorais sobre seu conteúdo.  Ao
+                publicar na Plataforma, você concede ao FlowConnect:
               </p>
               <BulletList
                 items={[
@@ -768,8 +768,8 @@ export default function TermsPage() {
 
             <SubSection title="11.3 Conteúdo do Usuário">
               <p>
-                Ao publicar comentários, mensagens ou outro conteúdo, você concede 
-                licença para seu uso na Plataforma. Você garante que possui direitos 
+                Ao publicar comentários, mensagens ou outro conteúdo, você concede
+                licença para seu uso na Plataforma. Você garante que possui direitos
                 sobre todo conteúdo que publica.
               </p>
             </SubSection>
@@ -778,14 +778,14 @@ export default function TermsPage() {
           {/* 12.  DMCA */}
           <Section id="dmca" icon="⚖️" title="12.  DMCA e Direitos Autorais">
             <p>
-              Respeitamos os direitos de propriedade intelectual e respondemos a 
-              notificações de violação conforme o Digital Millennium Copyright Act 
+              Respeitamos os direitos de propriedade intelectual e respondemos a
+              notificações de violação conforme o Digital Millennium Copyright Act
               (DMCA) e legislações equivalentes.
             </p>
 
             <SubSection title="12. 1 Notificação de Violação">
               <p>
-                Para reportar violação de direitos autorais, envie uma notificação 
+                Para reportar violação de direitos autorais, envie uma notificação
                 contendo:
               </p>
               <NumberedList
@@ -802,15 +802,15 @@ export default function TermsPage() {
 
             <SubSection title="12.2 Contra-Notificação">
               <p>
-                Se você acredita que seu conteúdo foi removido por engano, pode 
-                enviar uma contra-notificação.  Consulte nossa página de 
+                Se você acredita que seu conteúdo foi removido por engano, pode
+                enviar uma contra-notificação.  Consulte nossa página de
                 <InternalLink to="/support"> Suporte</InternalLink> para mais informações.
               </p>
             </SubSection>
 
             <HighlightBox type="info" title="Reincidência">
-              Usuários que violarem repetidamente direitos autorais terão suas 
-              contas encerradas permanentemente, conforme nossa política de 
+              Usuários que violarem repetidamente direitos autorais terão suas
+              contas encerradas permanentemente, conforme nossa política de
               reincidência.
             </HighlightBox>
           </Section>
@@ -818,10 +818,10 @@ export default function TermsPage() {
           {/* 13. Privacidade */}
           <Section id="privacidade" icon="🔒" title="13.  Privacidade e Dados">
             <p>
-              Sua privacidade é importante para nós. O tratamento de seus dados 
+              Sua privacidade é importante para nós. O tratamento de seus dados
               pessoais é regido pela nossa{' '}
-              <InternalLink to="/privacy">Política de Privacidade</InternalLink>, 
-              que faz parte integrante destes Termos. 
+              <InternalLink to="/privacy">Política de Privacidade</InternalLink>,
+              que faz parte integrante destes Termos.
             </p>
 
             <BulletList
@@ -838,7 +838,7 @@ export default function TermsPage() {
           {/* 14.  Conduta */}
           <Section id="conduta" icon="🤝" title="14. Código de Conduta">
             <p>
-              O PrideConnect é um espaço inclusivo para a comunidade LGBT+. Esperamos 
+              O FlowConnect é um espaço inclusivo para a comunidade LGBT+. Esperamos
               que todos os usuários mantenham um ambiente respeitoso:
             </p>
 
@@ -868,8 +868,8 @@ export default function TermsPage() {
             </SubSection>
 
             <HighlightBox type="success" title="Comunidade Segura">
-              Nosso objetivo é manter o PrideConnect como um espaço seguro e 
-              acolhedor.  Violações do código de conduta serão tratadas com 
+              Nosso objetivo é manter o FlowConnect como um espaço seguro e
+              acolhedor.  Violações do código de conduta serão tratadas com
               seriedade e podem resultar em ação imediata.
             </HighlightBox>
           </Section>
@@ -892,7 +892,7 @@ export default function TermsPage() {
 
             <SubSection title="15.2 Encerramento pelo Usuário">
               <p>
-                Você pode encerrar sua conta a qualquer momento através das 
+                Você pode encerrar sua conta a qualquer momento através das
                 configurações.  Ao encerrar:
               </p>
               <BulletList
@@ -920,8 +920,8 @@ export default function TermsPage() {
           {/* 16. Isenção */}
           <Section id="isencao" icon="📋" title="16. Isenção de Garantias">
             <p>
-              A PLATAFORMA É FORNECIDA "COMO ESTÁ" E "CONFORME DISPONÍVEL", SEM 
-              GARANTIAS DE QUALQUER TIPO, EXPRESSAS OU IMPLÍCITAS. 
+              A PLATAFORMA É FORNECIDA "COMO ESTÁ" E "CONFORME DISPONÍVEL", SEM
+              GARANTIAS DE QUALQUER TIPO, EXPRESSAS OU IMPLÍCITAS.
             </p>
 
             <p>Não garantimos que:</p>
@@ -939,8 +939,8 @@ export default function TermsPage() {
           {/* 17. Responsabilidade */}
           <Section id="responsabilidade" icon="⚠️" title="17. Limitação de Responsabilidade">
             <p>
-              NA MÁXIMA EXTENSÃO PERMITIDA POR LEI, O PRIDECONNECT NÃO SERÁ 
-              RESPONSÁVEL POR DANOS INDIRETOS, INCIDENTAIS, ESPECIAIS, 
+              NA MÁXIMA EXTENSÃO PERMITIDA POR LEI, O PRIDECONNECT NÃO SERÁ
+              RESPONSÁVEL POR DANOS INDIRETOS, INCIDENTAIS, ESPECIAIS,
               CONSEQUENCIAIS OU PUNITIVOS, INCLUINDO:
             </p>
 
@@ -955,17 +955,17 @@ export default function TermsPage() {
             />
 
             <p>
-              Nossa responsabilidade total não excederá o maior valor entre: 
-              (a) valores pagos por você nos últimos 12 meses; ou (b) $ 500.00. 
+              Nossa responsabilidade total não excederá o maior valor entre:
+              (a) valores pagos por você nos últimos 12 meses; ou (b) $ 500.00.
             </p>
           </Section>
 
           {/* 18. Indenização */}
           <Section id="indenizacao" icon="🛡️" title="18.  Indenização">
             <p>
-              Você concorda em indenizar, defender e isentar o PrideConnect, seus 
-              diretores, funcionários, agentes e parceiros de quaisquer 
-              reivindicações, danos, perdas, custos e despesas (incluindo 
+              Você concorda em indenizar, defender e isentar o FlowConnect, seus
+              diretores, funcionários, agentes e parceiros de quaisquer
+              reivindicações, danos, perdas, custos e despesas (incluindo
               honorários advocatícios) decorrentes de:
             </p>
 
@@ -984,30 +984,30 @@ export default function TermsPage() {
           <Section id="disputas" icon="⚔️" title="19. Resolução de Disputas">
             <SubSection title="19.1 Negociação">
               <p>
-                Antes de iniciar qualquer procedimento formal, as partes 
-                concordam em tentar resolver disputas através de negociação 
-                de boa-fé por um período mínimo de 30 dias. 
+                Antes de iniciar qualquer procedimento formal, as partes
+                concordam em tentar resolver disputas através de negociação
+                de boa-fé por um período mínimo de 30 dias.
               </p>
             </SubSection>
 
             <SubSection title="19.2 Lei Aplicável">
               <p>
-                Estes Termos são regidos pelas leis da República Federativa do 
+                Estes Termos são regidos pelas leis da República Federativa do
                 Brasil, independentemente de conflitos de disposições legais.
               </p>
             </SubSection>
 
             <SubSection title="19.3 Foro">
               <p>
-                As partes elegem o foro da Comarca de São Paulo, Estado de São 
-                Paulo, Brasil, para dirimir quaisquer controvérsias decorrentes 
-                destes Termos, com exclusão de qualquer outro. 
+                As partes elegem o foro da Comarca de São Paulo, Estado de São
+                Paulo, Brasil, para dirimir quaisquer controvérsias decorrentes
+                destes Termos, com exclusão de qualquer outro.
               </p>
             </SubSection>
 
             <SubSection title="19.4 Arbitragem (Opcional)">
               <p>
-                Disputas podem ser submetidas à arbitragem, a critério das 
+                Disputas podem ser submetidas à arbitragem, a critério das
                 partes, conforme as regras da Câmara de Arbitragem aplicável.
               </p>
             </SubSection>
@@ -1016,7 +1016,7 @@ export default function TermsPage() {
           {/* 20.  Alterações */}
           <Section id="alteracoes" icon="📝" title="20. Alterações nos Termos">
             <p>
-              Reservamos o direito de modificar estes Termos a qualquer momento. 
+              Reservamos o direito de modificar estes Termos a qualquer momento.
               Mudanças entrarão em vigor após publicação na Plataforma.
             </p>
 
@@ -1031,27 +1031,27 @@ export default function TermsPage() {
             />
 
             <HighlightBox type="info" title="Fique Informado">
-              Recomendamos revisar estes Termos periodicamente.  Para mudanças 
-              que afetem significativamente seus direitos, enviaremos notificação 
-              com pelo menos 30 dias de antecedência. 
+              Recomendamos revisar estes Termos periodicamente.  Para mudanças
+              que afetem significativamente seus direitos, enviaremos notificação
+              com pelo menos 30 dias de antecedência.
             </HighlightBox>
           </Section>
 
           {/* 21. Contato */}
           <Section id="contato" icon="📧" title="21. Contato">
             <p>
-              Para dúvidas, sugestões ou preocupações sobre estes Termos, entre 
+              Para dúvidas, sugestões ou preocupações sobre estes Termos, entre
               em contato conosco:
             </p>
 
-            <div className="mt-4 p-6 bg-gradient-to-br from-indigo-50 to-purple-50 dark:from-indigo-900/20 dark:to-purple-900/20 rounded-xl border border-indigo-200 dark:border-indigo-800/50">
+            <div className="mt-4 p-6 bg-slate-50 dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800">
               <div className="grid sm:grid-cols-3 gap-6">
                 <div>
                   <h4 className="font-semibold text-slate-900 dark:text-white mb-2">
                     📬 Suporte Geral
                   </h4>
                   <p className="text-sm text-slate-600 dark:text-slate-400 mb-3">
-                    Dúvidas, problemas e solicitações. 
+                    Dúvidas, problemas e solicitações.
                   </p>
                   <InternalLink to="/support">
                     Acessar Suporte →
@@ -1075,7 +1075,7 @@ export default function TermsPage() {
                     ⚖️ DMCA/Legal
                   </h4>
                   <p className="text-sm text-slate-600 dark:text-slate-400 mb-3">
-                    Violações de direitos autorais. 
+                    Violações de direitos autorais.
                   </p>
                   <InternalLink to="/support">
                     Reportar →
@@ -1085,8 +1085,8 @@ export default function TermsPage() {
             </div>
 
             <p className="mt-6 text-sm text-slate-600 dark:text-slate-400">
-              <strong>Tempo de resposta:</strong> Nosso objetivo é responder todas 
-              as solicitações em até 5 dias úteis.  Questões urgentes relacionadas 
+              <strong>Tempo de resposta:</strong> Nosso objetivo é responder todas
+              as solicitações em até 5 dias úteis.  Questões urgentes relacionadas
               a segurança ou conteúdo ilegal são priorizadas.
             </p>
           </Section>
@@ -1098,8 +1098,8 @@ export default function TermsPage() {
                 ✅ Declaração de Aceitação
               </h3>
               <p className="text-slate-600 dark:text-slate-400 max-w-2xl mx-auto">
-                Ao criar uma conta, acessar ou usar o PrideConnect, você confirma 
-                que leu, compreendeu e concorda com estes Termos de Uso em sua 
+                Ao criar uma conta, acessar ou usar o FlowConnect, você confirma
+                que leu, compreendeu e concorda com estes Termos de Uso em sua
                 totalidade.  Se você não concorda, não utilize a Plataforma.
               </p>
             </div>

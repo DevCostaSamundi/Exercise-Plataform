@@ -136,10 +136,10 @@ export const PATTERNS = {
 
 // Cores de status
 export const STATUS_COLORS = {
-  success: 'text-green-600 bg-green-100',
-  warning: 'text-yellow-600 bg-yellow-100',
-  error: 'text-red-600 bg-red-100',
-  info: 'text-blue-600 bg-blue-100',
+  success: 'text-slate-800 bg-slate-800',
+  warning: 'text-slate-600 bg-slate-600',
+  error: 'text-slate-900 bg-slate-900',
+  info: 'text-black bg-black',
   pending: 'text-gray-600 bg-gray-100',
 };
 
@@ -209,10 +209,10 @@ export const DEBOUNCE_TIMES = {
 
 // LocalStorage keys
 export const STORAGE_KEYS = {
-  AUTH_TOKEN: 'pride_connect_token',
-  USER_DATA: 'pride_connect_user',
-  THEME: 'pride_connect_theme',
-  LANGUAGE: 'pride_connect_lang',
+  AUTH_TOKEN: 'flow_connect_token',
+  USER_DATA: 'flow_connect_user',
+  THEME: 'flow_connect_theme',
+  LANGUAGE: 'flow_connect_lang',
 };
 
 // Temas
@@ -230,7 +230,7 @@ export const LANGUAGES = {
 
 // App Metadata
 export const APP_INFO = {
-  NAME: import.meta.env.VITE_APP_NAME || 'PrideConnect',
+  NAME: import.meta.env.VITE_APP_NAME || 'FlowConnect',
   VERSION: import.meta.env.VITE_APP_VERSION || '1.0.0',
   LAST_UPDATED: new Date().toISOString().split('T')[0],
 };

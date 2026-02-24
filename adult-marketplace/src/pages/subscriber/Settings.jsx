@@ -180,7 +180,7 @@ const Settings = () => {
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-[60vh]">
-        <div className="w-12 h-12 border-4 border-purple-600 border-t-transparent rounded-full animate-spin" />
+        <div className="w-12 h-12 border-4 border-black dark:border-white border-t-transparent rounded-full animate-spin" />
       </div>
     );
   }
@@ -205,7 +205,7 @@ const Settings = () => {
                       key={tab.id}
                       onClick={() => setActiveTab(tab.id)}
                       className={`w-full flex items-center gap-3 px-4 py-3 transition-colors ${activeTab === tab.id
-                        ? 'bg-purple-50 dark:bg-purple-900/20 text-purple-600 dark:text-purple-400 font-semibold'
+                        ? 'bg-black dark:bg-black/20 text-black dark:text-black font-semibold'
                         : 'text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700'
                         }`}
                     >
@@ -306,7 +306,7 @@ const Settings = () => {
                     <button
                       onClick={handleSavePersonal}
                       disabled={saving}
-                      className="flex items-center gap-2 px-6 py-3 bg-purple-600 hover:bg-purple-700 text-white rounded-lg font-semibold transition-colors disabled:opacity-50"
+                      className="flex items-center gap-2 px-6 py-3 bg-black hover:bg-black text-white rounded-lg font-semibold transition-colors disabled:opacity-50"
                     >
                       <FiSave />
                       {saving ? 'Salvando...' : 'Salvar Alterações'}
@@ -379,8 +379,8 @@ const Settings = () => {
                         </div>
 
                         {passwordErrors.length > 0 && (
-                          <div className="p-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg">
-                            <ul className="list-disc list-inside text-sm text-red-600 dark:text-red-400">
+                          <div className="p-3 bg-slate-900 dark:bg-slate-900/20 border border-red-200 dark:border-red-800 rounded-lg">
+                            <ul className="list-disc list-inside text-sm text-slate-900 dark:text-slate-900">
                               {passwordErrors.map((error, index) => (
                                 <li key={index}>{error}</li>
                               ))}
@@ -391,7 +391,7 @@ const Settings = () => {
                         <button
                           onClick={handleChangePassword}
                           disabled={saving}
-                          className="px-6 py-3 bg-purple-600 hover:bg-purple-700 text-white rounded-lg font-semibold transition-colors disabled:opacity-50"
+                          className="px-6 py-3 bg-black hover:bg-black text-white rounded-lg font-semibold transition-colors disabled:opacity-50"
                         >
                           {saving ? 'Salvando...' : 'Alterar Senha'}
                         </button>
@@ -461,7 +461,7 @@ const Settings = () => {
                                 [setting.key]: e.target.checked,
                               })
                             }
-                            className="w-5 h-5 text-purple-600 rounded"
+                            className="w-5 h-5 text-black rounded"
                           />
                         </label>
                       ))}
@@ -470,7 +470,7 @@ const Settings = () => {
                     <button
                       onClick={handleSaveNotifications}
                       disabled={saving}
-                      className="flex items-center gap-2 px-6 py-3 bg-purple-600 hover:bg-purple-700 text-white rounded-lg font-semibold transition-colors disabled:opacity-50"
+                      className="flex items-center gap-2 px-6 py-3 bg-black hover:bg-black text-white rounded-lg font-semibold transition-colors disabled:opacity-50"
                     >
                       <FiSave />
                       {saving ? 'Salvando...' : 'Salvar Preferências'}
@@ -486,7 +486,7 @@ const Settings = () => {
                         Métodos de Pagamento
                       </h2>
                       <button
-                        className="flex items-center gap-2 px-4 py-2 bg-purple-400 text-white rounded-lg font-semibold opacity-60 cursor-not-allowed"
+                        className="flex items-center gap-2 px-4 py-2 bg-black text-white rounded-lg font-semibold opacity-60 cursor-not-allowed"
                         disabled
                       >
                         <FiPlus />
@@ -519,7 +519,7 @@ const Settings = () => {
                             </div>
                             <button
                               onClick={() => handleRemovePaymentMethod(method._id)}
-                              className="p-2 text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors"
+                              className="p-2 text-slate-900 hover:bg-slate-900 dark:hover:bg-slate-900/20 rounded-lg transition-colors"
                             >
                               <FiTrash2 />
                             </button>
@@ -538,7 +538,7 @@ const Settings = () => {
                     </h2>
                     <p className="text-gray-600 dark:text-gray-400">
                       Acesse a página de{' '}
-                      <a href="/subscriptions" className="text-purple-600 hover:underline">
+                      <a href="/subscriptions" className="text-black hover:underline">
                         Assinaturas
                       </a>{' '}
                       para gerenciar suas assinaturas ativas.
@@ -554,7 +554,7 @@ const Settings = () => {
                     </h2>
                     <p className="text-gray-600 dark:text-gray-400">
                       Acesse a página de{' '}
-                      <a href="/transactions" className="text-purple-600 hover:underline">
+                      <a href="/transactions" className="text-black hover:underline">
                         Transações
                       </a>{' '}
                       para ver seu histórico completo de compras.

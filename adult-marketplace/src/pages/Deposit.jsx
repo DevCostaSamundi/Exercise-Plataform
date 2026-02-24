@@ -79,8 +79,8 @@ export default function Deposit() {
     if (!isConnected) {
         return (
             <div className="max-w-4xl mx-auto p-6">
-                <div className="bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg p-6 text-center">
-                    <AlertCircle className="mx-auto mb-4 text-yellow-600" size={48} />
+                <div className="bg-slate-600 dark:bg-slate-600/20 border border-yellow-200 dark:border-yellow-800 rounded-lg p-6 text-center">
+                    <AlertCircle className="mx-auto mb-4 text-slate-600" size={48} />
                     <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-2">
                         Please Login First
                     </h2>
@@ -96,7 +96,7 @@ export default function Deposit() {
         return (
             <div className="max-w-4xl mx-auto p-6">
                 <div className="flex items-center justify-center py-12">
-                    <Loader2 className="animate-spin text-purple-600" size={48} />
+                    <Loader2 className="animate-spin text-black" size={48} />
                 </div>
             </div>
         );
@@ -115,7 +115,7 @@ export default function Deposit() {
             </div>
 
             {/* Balance Card */}
-            <div className="bg-gradient-to-br from-purple-500 to-purple-700 rounded-2xl p-6 text-white">
+            <div className="bg-black dark:bg-white rounded-2xl p-6 text-white dark:text-black shadow-lg">
                 <div className="text-sm opacity-90 mb-1">Current Balance</div>
                 <div className="text-4xl font-bold">${balance.toFixed(2)} USDC</div>
             </div>
@@ -148,7 +148,7 @@ export default function Deposit() {
                         />
                         <button
                             onClick={copyAddress}
-                            className="px-4 py-3 bg-purple-600 hover:bg-purple-700 text-white rounded-lg flex items-center gap-2"
+                            className="px-4 py-3 bg-black hover:bg-black text-white rounded-lg flex items-center gap-2"
                         >
                             {copied ? (
                                 <>
@@ -166,14 +166,14 @@ export default function Deposit() {
                 </div>
 
                 {/* Network Info */}
-                <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4 mb-6">
+                <div className="bg-black dark:bg-black/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4 mb-6">
                     <div className="flex gap-2">
-                        <AlertCircle className="text-blue-600 dark:text-blue-400 flex-shrink-0 mt-0.5" size={20} />
+                        <AlertCircle className="text-black dark:text-black flex-shrink-0 mt-0.5" size={20} />
                         <div className="text-sm">
-                            <p className="font-medium text-blue-900 dark:text-blue-100 mb-1">
+                            <p className="font-medium text-black dark:text-black mb-1">
                                 Important: Only send USDC on Polygon Network!
                             </p>
-                            <p className="text-blue-800 dark:text-blue-200">
+                            <p className="text-black dark:text-black">
                                 Sending on other networks (Ethereum, BSC, etc.) will result in permanent loss of funds.
                             </p>
                         </div>
@@ -187,7 +187,7 @@ export default function Deposit() {
                     </h3>
                     {depositInfo?.instructions?.steps?.map((step) => (
                         <div key={step.step} className="flex gap-4">
-                            <div className="flex-shrink-0 w-8 h-8 bg-purple-600 text-white rounded-full flex items-center justify-center font-bold">
+                            <div className="flex-shrink-0 w-8 h-8 bg-black text-white rounded-full flex items-center justify-center font-bold">
                                 {step.step}
                             </div>
                             <div>
@@ -221,7 +221,7 @@ export default function Deposit() {
                                 </span>
                                 {
                                     exchange.recommended && (
-                                        <span className="text-xs bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-200 px-2 py-1 rounded">
+                                        <span className="text-xs bg-slate-800 dark:bg-slate-800 text-slate-800 dark:text-slate-800 px-2 py-1 rounded">
                                             Recommended
                                         </span>
                                     )
@@ -251,7 +251,7 @@ export default function Deposit() {
                                 className="flex items-center justify-between p-4 bg-gray-50 dark:bg-gray-900 rounded-lg"
                             >
                                 <div className="flex items-center gap-3">
-                                    <CheckCircle className="text-green-600" size={24} />
+                                    <CheckCircle className="text-slate-800" size={24} />
                                     <div>
                                         <div className="font-medium text-gray-900 dark:text-white">
                                             +${deposit.amountUSD.toFixed(2)} USDC
@@ -265,7 +265,7 @@ export default function Deposit() {
                                 <a href={getExplorerUrl(deposit.web3TxHash)}
                                     target="_blank"
                                     rel="noopener noreferrer"
-                                    className="text-purple-600 hover:text-purple-700 text-sm flex items-center gap-1"
+                                    className="text-black hover:text-black text-sm flex items-center gap-1"
                                 >
                                     View
                                     <ExternalLink size={14} />

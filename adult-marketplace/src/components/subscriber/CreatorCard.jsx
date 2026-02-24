@@ -35,7 +35,7 @@ const CreatorCard = ({ creator, onSubscribe, isSubscribed: initialSubscribed = f
       className="block bg-white dark:bg-gray-800 rounded-lg shadow-md hover:shadow-xl transition-all overflow-hidden group"
     >
       {/* Cover Image */}
-      <div className="relative h-32 bg-gradient-to-r from-purple-500 to-pink-500">
+      <div className="relative h-32 bg-slate-200 dark:bg-slate-700">
         {creator.coverImage ? (
           <img
             src={creator.coverImage}
@@ -43,12 +43,12 @@ const CreatorCard = ({ creator, onSubscribe, isSubscribed: initialSubscribed = f
             className="w-full h-full object-cover"
           />
         ) : (
-          <div className="w-full h-full bg-gradient-to-r from-purple-400 via-pink-500 to-red-500" />
+          <div className="w-full h-full bg-slate-300 dark:bg-slate-600" />
         )}
-        
+
         {/* Verified Badge */}
         {creator.isVerified && (
-          <div className="absolute top-3 right-3 bg-blue-500 text-white px-2 py-1 rounded-full text-xs font-semibold flex items-center gap-1">
+          <div className="absolute top-3 right-3 bg-black text-white px-2 py-1 rounded-full text-xs font-semibold flex items-center gap-1">
             <FiCheck className="text-sm" />
             Verificado
           </div>
@@ -85,11 +85,11 @@ const CreatorCard = ({ creator, onSubscribe, isSubscribed: initialSubscribed = f
         {/* Stats */}
         <div className="flex items-center gap-4 mb-4 text-sm">
           <div className="flex items-center gap-1 text-gray-600 dark:text-gray-400">
-            <FiHeart className="text-red-500" />
+            <FiHeart className="text-slate-900" />
             <span>{formatNumber(creator.likesCount || 0)}</span>
           </div>
           <div className="flex items-center gap-1 text-gray-600 dark:text-gray-400">
-            <FiMessageCircle className="text-blue-500" />
+            <FiMessageCircle className="text-black" />
             <span>{formatNumber(creator.postsCount || 0)} posts</span>
           </div>
           <div className="text-gray-600 dark:text-gray-400">
@@ -101,11 +101,10 @@ const CreatorCard = ({ creator, onSubscribe, isSubscribed: initialSubscribed = f
         <button
           onClick={handleSubscribe}
           disabled={loading}
-          className={`w-full py-2. 5 rounded-lg font-semibold transition-all ${
-            isSubscribed
+          className={`w-full py-2. 5 rounded-lg font-semibold transition-all ${isSubscribed
               ? 'bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-300 dark:hover:bg-gray-600'
-              : 'bg-gradient-to-r from-purple-600 to-pink-600 text-white hover:from-purple-700 hover:to-pink-700'
-          } ${loading ? 'opacity-50 cursor-not-allowed' : ''}`}
+              : 'bg-black dark:bg-white text-white dark:text-black hover:scale-105 active:scale-95'
+            } ${loading ? 'opacity-50 cursor-not-allowed' : ''}`}
         >
           {loading ? (
             'Processando...'
@@ -122,14 +121,14 @@ const CreatorCard = ({ creator, onSubscribe, isSubscribed: initialSubscribed = f
         <div className="border-t dark:border-gray-700 grid grid-cols-3 gap-px bg-gray-200 dark:bg-gray-700">
           {creator.previewPosts.slice(0, 3).map((post, index) => (
             <div key={index} className="aspect-square bg-gray-100 dark:bg-gray-900 overflow-hidden">
-              {post.media && post.media[0] ?  (
+              {post.media && post.media[0] ? (
                 <img
                   src={post.media[0].thumbnail || post.media[0].url}
                   alt={`Preview ${index + 1}`}
                   className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
                 />
               ) : (
-                <div className="w-full h-full bg-gradient-to-br from-purple-400 to-pink-500" />
+                <div className="w-full h-full bg-slate-200 dark:bg-slate-700" />
               )}
             </div>
           ))}

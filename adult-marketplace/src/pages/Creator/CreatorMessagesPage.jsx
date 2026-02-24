@@ -377,7 +377,7 @@ export default function CreatorMessagesPage() {
         <CreatorSidebar />
         <div className="flex-1 flex items-center justify-center">
           <div className="text-center">
-            <div className="inline-block animate-spin rounded-full h-12 w-12 border-4 border-indigo-600 border-t-transparent"></div>
+            <div className="inline-block animate-spin rounded-full h-12 w-12 border-4 border-black dark:border-white border-t-transparent"></div>
             <p className="mt-4 text-slate-600 dark:text-slate-400">Carregando mensagens...</p>
           </div>
         </div>
@@ -423,7 +423,7 @@ export default function CreatorMessagesPage() {
 
             <div className="hidden sm:flex items-center space-x-2 text-xs text-slate-500 dark:text-slate-400">
               <span className="inline-flex items-center space-x-1">
-                <span className={`w-2 h-2 rounded-full ${isConnected ? 'bg-emerald-500' : 'bg-red-500'}`} />
+                <span className={`w-2 h-2 rounded-full ${isConnected ? 'bg-slate-800' : 'bg-slate-900'}`} />
                 <span>{isConnected ? 'Online' : 'Offline'}</span>
               </span>
               <span>•</span>
@@ -459,7 +459,7 @@ export default function CreatorMessagesPage() {
                   value={search}
                   onChange={(e) => setSearch(e.target.value)}
                   placeholder="Buscar assinante..."
-                  className="w-full pl-9 pr-3 py-2 rounded-lg bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs text-slate-900 dark:text-slate-100 placeholder: text-slate-400 focus:outline-none focus: ring-2 focus:ring-indigo-500"
+                  className="w-full pl-9 pr-3 py-2 rounded-lg bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs text-slate-900 dark:text-slate-100 placeholder: text-slate-400 focus:outline-none focus: ring-2 focus:ring-black dark:focus:ring-white"
                 />
               </div>
             </div>
@@ -484,15 +484,15 @@ export default function CreatorMessagesPage() {
                     >
                       <div className="relative flex-shrink-0">
                         <img
-                          src={conv.otherUser.avatar || `https://placehold.co/48x48/8B7FE8/white?text=${conv.otherUser.displayName ?.[0] || 'U'}`}
+                          src={conv.otherUser.avatar || `https://placehold.co/48x48/8B7FE8/white?text=${conv.otherUser.displayName?.[0] || 'U'}`}
                           alt={conv.otherUser.displayName}
                           className="w-10 h-10 rounded-full object-cover"
                           onError={(e) => {
-                            e.target.src = `https://placehold.co/48x48/8B7FE8/white?text=${conv.otherUser.displayName ?.[0] || 'U'}`;
+                            e.target.src = `https://placehold.co/48x48/8B7FE8/white?text=${conv.otherUser.displayName?.[0] || 'U'}`;
                           }}
                         />
                         {conv.isVIP && (
-                          <span className="absolute -bottom-1 -right-1 bg-yellow-400 text-[10px] px-1 rounded-full text-black font-bold border border-slate-900">
+                          <span className="absolute -bottom-1 -right-1 bg-slate-600 text-[10px] px-1 rounded-full text-black font-bold border border-slate-900">
                             VIP
                           </span>
                         )}
@@ -513,7 +513,7 @@ export default function CreatorMessagesPage() {
                         </p>
                       </div>
                       {conv.unreadCount > 0 && (
-                        <span className="ml-1 bg-indigo-600 text-white text-[11px] px-2 py-0.5 rounded-full font-semibold flex-shrink-0">
+                        <span className="ml-1 bg-black text-white text-[11px] px-2 py-0.5 rounded-full font-semibold flex-shrink-0">
                           {conv.unreadCount}
                         </span>
                       )}
@@ -596,14 +596,14 @@ export default function CreatorMessagesPage() {
                         >
                           <div
                             className={`max-w-[85%] sm:max-w-[75%] rounded-2xl px-3 py-2 text-sm ${isCurrentUser
-                                ? 'bg-indigo-600 text-white rounded-br-sm'
-                                : 'bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 rounded-bl-sm'
+                              ? 'bg-black text-white rounded-br-sm'
+                              : 'bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 rounded-bl-sm'
                               } ${isPaid ? 'border-2 border-yellow-400' : ''}`}
                           >
                             {/* Mensagem paga */}
                             {isPaid && (
                               <div className="flex items-center space-x-2 mb-2 pb-2 border-b border-yellow-400/30">
-                                <span className="text-yellow-400">💰</span>
+                                <span className="text-slate-600">💰</span>
                                 <span className="text-xs font-semibold">
                                   Conteúdo Pago - $ {msg.content.price?.toFixed(2)}
                                 </span>
@@ -614,8 +614,8 @@ export default function CreatorMessagesPage() {
                             {msg.content.isPaid && !msg.isUnlocked && (
                               <div className="bg-slate-100 dark:bg-slate-800 rounded-lg p-3 sm:p-4 flex flex-col sm:flex-row items-start sm:items-center sm:justify-between gap-3">
                                 <div className="flex items-center space-x-3">
-                                  <div className="w-10 h-10 sm:w-12 sm:h-12 bg-indigo-100 dark:bg-indigo-900/20 rounded-full flex items-center justify-center flex-shrink-0">
-                                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 sm:h-6 sm:w-6 text-indigo-600" viewBox="0 0 20 20" fill="currentColor">
+                                  <div className="w-10 h-10 sm:w-12 sm:h-12 bg-black dark:bg-black/20 rounded-full flex items-center justify-center flex-shrink-0">
+                                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 sm:h-6 sm:w-6 text-black" viewBox="0 0 20 20" fill="currentColor">
                                       <path fillRule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clipRule="evenodd" />
                                     </svg>
                                   </div>
@@ -638,7 +638,7 @@ export default function CreatorMessagesPage() {
                                     setLockedMessageId(msg._id);
                                     setShowPaymentModal(true);
                                   }}
-                                  className="w-full sm:w-auto bg-indigo-600 hover:bg-indigo-700 text-white px-3 sm:px-4 py-2 rounded-lg font-semibold transition-colors flex items-center justify-center space-x-2 text-xs sm:text-sm whitespace-nowrap"
+                                  className="w-full sm:w-auto bg-black hover:bg-black text-white px-3 sm:px-4 py-2 rounded-lg font-semibold transition-colors flex items-center justify-center space-x-2 text-xs sm:text-sm whitespace-nowrap"
                                 >
                                   <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 sm:h-5 sm: w-5" viewBox="0 0 20 20" fill="currentColor">
                                     <path d="M8.433 7.418c.155-.103.346-.196.567-.267v1.698a2.305 2.305 0 01-.567-.267C8.07 8.34 8 8.114 8 8c0-.114.07-.34.433-.582zM11 12.849v-1.698c. 22. 071.412.164.567.267.364.243.433.468.433.582 0.114-.07.34-.433.582a2.305 2.305 0 01-.567.267z" />
@@ -680,7 +680,7 @@ export default function CreatorMessagesPage() {
                             )}
 
                             <p
-                              className={`text-[10px] mt-1 ${isCurrentUser ? 'text-indigo-100/80' : 'text-slate-400'
+                              className={`text-[10px] mt-1 ${isCurrentUser ? 'text-black/80' : 'text-slate-400'
                                 }`}
                             >
                               {formatFullTime(msg.createdAt)}
@@ -727,7 +727,7 @@ export default function CreatorMessagesPage() {
                           )}
                           <button
                             onClick={() => handleRemoveFile(idx)}
-                            className="absolute -top-2 -right-2 w-6 h-6 bg-red-500 text-white rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
+                            className="absolute -top-2 -right-2 w-6 h-6 bg-slate-900 text-white rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
                           >
                             ×
                           </button>
@@ -760,7 +760,7 @@ export default function CreatorMessagesPage() {
                     title="Anexar mídia"
                   >
                     {uploading ? (
-                      <div className="w-5 h-5 border-2 border-indigo-600 border-t-transparent rounded-full animate-spin"></div>
+                      <div className="w-5 h-5 border-2 border-black dark:border-white border-t-transparent rounded-full animate-spin"></div>
                     ) : (
                       <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
                         <path fillRule="evenodd" d="M4 3a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V5a2 2 0 00-2-2H4zm12 12H4l4-8 3 6 2-4 3 6z" clipRule="evenodd" />
@@ -773,7 +773,7 @@ export default function CreatorMessagesPage() {
                     <button
                       type="button"
                       onClick={() => setShowPPVModal(true)}
-                      className="p-2 rounded-lg text-yellow-500 hover:text-yellow-600 hover:bg-yellow-50 dark:hover:bg-yellow-900/20 transition-colors flex-shrink-0"
+                      className="p-2 rounded-lg text-slate-600 hover:text-slate-600 hover:bg-slate-600 dark:hover:bg-slate-600/20 transition-colors flex-shrink-0"
                       title="Enviar como conteúdo pago"
                     >
                       <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
@@ -789,13 +789,13 @@ export default function CreatorMessagesPage() {
                     onChange={handleInputChange}
                     placeholder="Escreva uma mensagem..."
                     disabled={sending || uploading}
-                    className="flex-1 text-sm px-3 py-2 rounded-lg bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-slate-100 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 disabled:opacity-50"
+                    className="flex-1 text-sm px-3 py-2 rounded-lg bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-slate-100 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-black dark:focus:ring-white disabled:opacity-50"
                   />
 
                   <button
                     type="submit"
                     disabled={(!messageInput.trim() && uploadedFiles.length === 0) || sending || uploading}
-                    className="px-3 sm:px-4 py-2 rounded-lg bg-indigo-600 text-white text-sm font-semibold hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                    className="px-3 sm:px-4 py-2 rounded-lg bg-black text-white text-sm font-semibold hover:bg-black disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                   >
                     <span className="hidden sm:inline">{sending ? 'Enviando...' : 'Enviar'}</span>
                     {/* Ícone enviar (apenas mobile) */}
@@ -839,7 +839,7 @@ export default function CreatorMessagesPage() {
                   step="0.01"
                   value={ppvPrice}
                   onChange={(e) => setPpvPrice(parseFloat(e.target.value))}
-                  className="w-full pl-10 pr-4 py-2 sm:py-3 rounded-lg bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white text-base sm:text-lg font-semibold focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                  className="w-full pl-10 pr-4 py-2 sm:py-3 rounded-lg bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white text-base sm:text-lg font-semibold focus:outline-none focus:ring-2 focus:ring-black dark:focus:ring-white"
                 />
               </div>
               <p className="text-xs text-slate-500 dark:text-slate-400 mt-2">
@@ -874,7 +874,7 @@ export default function CreatorMessagesPage() {
               <button
                 onClick={handleSendPPV}
                 disabled={sending || !ppvPrice || ppvPrice < 5 || ppvPrice > 500}
-                className="flex-1 px-4 py-2 sm:py-3 rounded-lg bg-gradient-to-r from-yellow-500 to-orange-500 hover:from-yellow-600 hover:to-orange-600 text-white font-bold transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                className="flex-1 px-4 py-2 sm:py-3 rounded-lg bg-black hover:from-yellow-600 hover:to-orange-600 text-white font-bold transition-all disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {sending ? 'Enviando...' : 'Enviar PPV'}
               </button>

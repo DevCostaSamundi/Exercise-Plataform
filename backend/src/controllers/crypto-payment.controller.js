@@ -1,98 +1,77 @@
 import prisma from '../config/database.js';
 import { v4 as uuidv4 } from 'uuid';
 import logger from '../utils/logger.js';
+import crypto from 'crypto';
 import { createPublicClient, http, formatUnits } from 'viem';
 import { polygon, polygonAmoy } from 'viem/chains';
+import { isGaslessEnabled, getFiatOnRampConfig, web3Config } from '../config/web3.config.js';
 
 /**
- * Crypto Payment Controller
- * Handles pure crypto payments (no fiat on-ramp)
+ * Crypto Payment Controller — FlowConnect
+ * Gerencia pagamentos USDC nativos na Polygon
  */
 
-const network = process.env.NODE_ENV === 'production' ? polygon : polygonAmoy;
+const isProduction = process.env.NODE_ENV === 'production';
+const network = isProduction ? polygon : polygonAmoy;
+
 const publicClient = createPublicClient({
     chain: network,
     transport: http(process.env.POLYGON_RPC_URL),
 });
 
+// ============================================
+// CRIAR ORDEM DE PAGAMENTO
+// ============================================
+
 /**
- * Create crypto payment order
  * POST /api/v1/payments/crypto/create-order
+ * Cria uma ordem de pagamento crypto e retorna dados para o frontend
  */
 export const createCryptoOrder = async (req, res) => {
     try {
         const userId = req.user.id;
-        const {
-            creatorId,
-            type, // 'SUBSCRIPTION', 'TIP', 'PPV_MESSAGE', 'PPV_POST'
-            amountUSD,
-            subscriptionId,
-            postId,
-            messageId,
-        } = req.body;
+        const { creatorId, type, amountUSD, subscriptionId, postId, messageId } = req.body;
 
-        // Validations
-        if (!creatorId) {
-            return res.status(400).json({
-                success: false,
-                message: 'Creator ID is required',
-            });
-        }
+        // Validações
+        if (!creatorId) return res.status(400).json({ success: false, message: 'creatorId é obrigatório' });
+        if (!amountUSD || amountUSD < 1) return res.status(400).json({ success: false, message: 'Valor mínimo é $1' });
+        if (amountUSD > 10000) return res.status(400).json({ success: false, message: 'Valor máximo é $10.000' });
+        if (!type) return res.status(400).json({ success: false, message: 'Tipo de pagamento é obrigatório' });
 
-        if (!amountUSD || amountUSD < 1) {
-            return res.status(400).json({
-                success: false,
-                message: 'Minimum amount is $1',
-            });
-        }
-
-        if (amountUSD > 10000) {
-            return res.status(400).json({
-                success: false,
-                message: 'Maximum amount is $10,000',
-            });
-        }
-
-        // Get creator
+        // Busca criador
         const creator = await prisma.creator.findUnique({
             where: { id: creatorId },
             select: {
                 id: true,
                 payoutWallet: true,
                 displayName: true,
-                user: {
-                    select: {
-                        username: true,
-                    },
-                },
+                user: { select: { username: true } },
             },
         });
 
-        if (!creator) {
-            return res.status(404).json({
-                success: false,
-                message: 'Creator not found',
-            });
-        }
-
+        if (!creator) return res.status(404).json({ success: false, message: 'Criador não encontrado' });
         if (!creator.payoutWallet) {
             return res.status(400).json({
                 success: false,
-                message: 'Creator has not configured their wallet yet',
+                message: 'Este criador ainda não configurou a carteira de recebimento',
             });
         }
 
-        // Generate unique order ID
+        // Impede pagamento para si mesmo
+        const user = await prisma.user.findUnique({ where: { id: userId }, select: { creatorProfile: { select: { id: true } } } });
+        if (user?.creatorProfile?.id === creatorId) {
+            return res.status(400).json({ success: false, message: 'Você não pode pagar a si mesmo' });
+        }
+
+        // Gera ID único do pedido
         const orderId = `ord_${uuidv4().replace(/-/g, '')}`;
 
-        // Calculate fees
-        const platformFee = parseFloat(amountUSD) * 0.10; // 10%
+        // Calcula taxas
+        const platformFee = parseFloat(amountUSD) * 0.10;
         const netAmount = parseFloat(amountUSD) - platformFee;
-
-        // Convert to USDC amount (6 decimals)
         const usdcAmount = BigInt(Math.floor(parseFloat(amountUSD) * 1e6));
 
-        // Create payment record
+        // Cria registro de pagamento
         const payment = await prisma.payment.create({
             data: {
                 userId,
@@ -104,7 +83,7 @@ export const createCryptoOrder = async (req, res) => {
                 gateway: 'CRYPTO_DIRECT',
                 gatewayOrderId: orderId,
                 platformFee,
-                gatewayFee: 0, // No gateway fee for direct crypto
+                gatewayFee: 0,
                 netAmount,
                 subscriptionId,
                 postId,
@@ -117,47 +96,53 @@ export const createCryptoOrder = async (req, res) => {
                     creatorWallet: creator.payoutWallet,
                     contractAddress: process.env.PAYMENT_CONTRACT_ADDRESS,
                     network: network.name,
+                    gasless: isGaslessEnabled(),
                 },
-                expiresAt: new Date(Date.now() + 30 * 60 * 1000), // 30 minutes
+                expiresAt: new Date(Date.now() + 30 * 60 * 1000), // 30 minutos
             },
         });
 
-        logger.info('✅ Crypto order created:', {
-            orderId,
-            paymentId: payment.id,
-            userId,
-            creatorId,
-            amountUSD,
-        });
+        logger.info('✅ Ordem crypto criada:', { orderId, paymentId: payment.id, amountUSD });
 
-        // Return payment details for frontend
+        // Configurações gasless
+        const gaslessConfig = isGaslessEnabled()
+            ? {
+                enabled: true,
+                forwarder: process.env.TRUSTED_FORWARDER_ADDRESS,
+                paymasterUrl: web3Config.gasless.biconomy?.paymasterUrl,
+            }
+            : { enabled: false };
+
         res.status(201).json({
             success: true,
             data: {
                 paymentId: payment.id,
                 orderId,
 
-                // Payment details
+                // Valores
                 amountUSD: parseFloat(amountUSD),
                 amountUSDC: formatUnits(usdcAmount, 6),
                 platformFee,
                 netAmount,
 
-                // Contract info
+                // Contrato
                 contractAddress: process.env.PAYMENT_CONTRACT_ADDRESS,
                 creatorWallet: creator.payoutWallet,
+                usdcAddress: isProduction
+                    ? '0x3c499c542cEF5E3811e1192ce70d8cC03d5c3359'
+                    : process.env.USDC_ADDRESS_POLYGON,
 
-                // Network
+                // Rede
                 network: network.name,
                 chainId: network.id,
 
-                // USDC contract
-                usdcAddress: process.env.USDC_ADDRESS_POLYGON,
+                // Gasless
+                gasless: gaslessConfig,
 
-                // Expiration
+                // Expiração
                 expiresAt: payment.expiresAt,
 
-                // Creator info
+                // Info do criador
                 creator: {
                     id: creator.id,
                     displayName: creator.displayName,
@@ -165,77 +150,74 @@ export const createCryptoOrder = async (req, res) => {
                 },
             },
         });
+
     } catch (error) {
-        logger.error('Error creating crypto order:', error);
-        res.status(500).json({
-            success: false,
-            message: 'Failed to create order',
-            error: error.message,
-        });
+        logger.error('Erro ao criar ordem crypto:', error);
+        res.status(500).json({ success: false, message: 'Falha ao criar ordem', error: error.message });
     }
 };
 
+// ============================================
+// VERIFICAR PAGAMENTO ON-CHAIN
+// ============================================
+
 /**
- * Verify payment on-chain
  * POST /api/v1/payments/crypto/verify
+ * Verifica transação na blockchain após envio pelo usuário
  */
 export const verifyPayment = async (req, res) => {
     try {
         const { paymentId, txHash } = req.body;
         const userId = req.user.id;
 
-        if (!txHash || !txHash.match(/^0x[a-fA-F0-9]{64}$/)) {
-            return res.status(400).json({
-                success: false,
-                message: 'Invalid transaction hash',
-            });
+        if (!txHash?.match(/^0x[a-fA-F0-9]{64}$/)) {
+            return res.status(400).json({ success: false, message: 'Hash de transação inválido' });
         }
 
-        // Get payment
         const payment = await prisma.payment.findFirst({
-            where: {
-                id: paymentId,
-                userId,
-                status: 'PENDING',
-            },
+            where: { id: paymentId, userId, status: 'PENDING' },
         });
 
         if (!payment) {
             return res.status(404).json({
                 success: false,
-                message: 'Payment not found or already processed',
+                message: 'Pagamento não encontrado ou já processado',
             });
         }
 
-        // Get transaction receipt
-        const receipt = await publicClient.getTransactionReceipt({
-            hash: txHash,
-        });
+        // Verifica expiração
+        if (payment.expiresAt && payment.expiresAt < new Date()) {
+            await prisma.payment.update({
+                where: { id: paymentId },
+                data: { status: 'EXPIRED' },
+            });
+            return res.status(400).json({ success: false, message: 'Ordem de pagamento expirada' });
+        }
 
-        if (!receipt) {
+        // Busca recibo na blockchain
+        let receipt;
+        try {
+            receipt = await publicClient.getTransactionReceipt({ hash: txHash });
+        } catch {
             return res.status(400).json({
                 success: false,
-                message: 'Transaction not found on blockchain',
+                message: 'Transação não encontrada. Aguarde alguns segundos e tente novamente.',
             });
         }
 
-        // Check if transaction was successful
+        if (!receipt) {
+            return res.status(400).json({ success: false, message: 'Transação ainda não confirmada' });
+        }
+
         if (receipt.status !== 'success') {
             await prisma.payment.update({
                 where: { id: paymentId },
-                data: {
-                    status: 'FAILED',
-                    web3TxHash: txHash,
-                },
+                data: { status: 'FAILED', web3TxHash: txHash },
             });
-
-            return res.status(400).json({
-                success: false,
-                message: 'Transaction failed on blockchain',
-            });
+            return res.status(400).json({ success: false, message: 'Transação falhou na blockchain' });
         }
 
-        // Update payment with tx hash
+        // Atualiza com status confirmando
         await prisma.payment.update({
             where: { id: paymentId },
             data: {
@@ -246,33 +228,31 @@ export const verifyPayment = async (req, res) => {
             },
         });
 
-        logger.info('Payment verification started:', {
-            paymentId,
-            txHash,
-        });
+        logger.info('Verificação iniciada:', { paymentId, txHash });
 
         res.json({
             success: true,
-            message: 'Payment verification started',
+            message: 'Transação encontrada! Aguardando confirmações da rede...',
             data: {
                 paymentId,
                 txHash,
                 status: 'CONFIRMING',
                 blockNumber: Number(receipt.blockNumber),
+                explorerUrl: `${isProduction ? 'https://polygonscan.com' : 'https://amoy.polygonscan.com'}/tx/${txHash}`,
             },
         });
+
     } catch (error) {
-        logger.error('Error verifying payment:', error);
-        res.status(500).json({
-            success: false,
-            message: 'Failed to verify payment',
-            error: error.message,
-        });
+        logger.error('Erro ao verificar pagamento:', error);
+        res.status(500).json({ success: false, message: 'Falha ao verificar pagamento' });
     }
 };
 
+// ============================================
+// STATUS DO PAGAMENTO
+// ============================================
+
 /**
- * Get payment status
  * GET /api/v1/payments/crypto/:paymentId/status
  */
 export const getCryptoPaymentStatus = async (req, res) => {
@@ -281,51 +261,38 @@ export const getCryptoPaymentStatus = async (req, res) => {
         const userId = req.user.id;
 
         const payment = await prisma.payment.findFirst({
-            where: {
-                id: paymentId,
-                userId,
-            },
+            where: { id: paymentId, userId },
             include: {
                 creator: {
                     select: {
                         displayName: true,
                         payoutWallet: true,
-                        user: {
-                            select: {
-                                username: true,
-                                avatar: true,
-                            },
-                        },
+                        user: { select: { username: true, avatar: true } },
                     },
                 },
             },
         });
 
         if (!payment) {
-            return res.status(404).json({
-                success: false,
-                message: 'Payment not found',
-            });
+            return res.status(404).json({ success: false, message: 'Pagamento não encontrado' });
         }
 
-        // If has tx hash and still confirming, check blockchain
+        // Atualiza confirmações se ainda confirmando
+        let confirmations = payment.web3Confirmations || 0;
         if (payment.web3TxHash && payment.status === 'CONFIRMING') {
             try {
                 const currentBlock = await publicClient.getBlockNumber();
-                const confirmations = Number(currentBlock) - payment.web3BlockNumber;
-
+                confirmations = Number(currentBlock) - (payment.web3BlockNumber || 0);
                 await prisma.payment.update({
                     where: { id: paymentId },
-                    data: {
-                        web3Confirmations: confirmations,
-                    },
+                    data: { web3Confirmations: confirmations },
                 });
-
-                payment.web3Confirmations = confirmations;
-            } catch (error) {
-                logger.error('Error checking confirmations:', error);
+            } catch (err) {
+                logger.error('Erro ao verificar confirmações:', err);
             }
         }
+
+        const explorerBase = isProduction ? 'https://polygonscan.com' : 'https://amoy.polygonscan.com';
 
         res.json({
             success: true,
@@ -336,89 +303,48 @@ export const getCryptoPaymentStatus = async (req, res) => {
                 type: payment.type,
                 gateway: payment.gateway,
                 web3TxHash: payment.web3TxHash,
-                web3Confirmations: payment.web3Confirmations,
+                web3Confirmations: confirmations,
+                confirmationsRequired: 2,
                 confirmedAt: payment.confirmedAt,
                 createdAt: payment.createdAt,
                 expiresAt: payment.expiresAt,
+                explorerUrl: payment.web3TxHash
+                    ? `${explorerBase}/tx/${payment.web3TxHash}`
+                    : null,
                 creator: payment.creator,
             },
         });
+
     } catch (error) {
-        logger.error('Error getting payment status:', error);
-        res.status(500).json({
-            success: false,
-            message: 'Failed to get payment status',
-        });
+        logger.error('Erro ao buscar status:', error);
+        res.status(500).json({ success: false, message: 'Falha ao buscar status' });
     }
 };
 
-/**
- * Get USDC price in fiat (for display)
- * GET /api/v1/payments/crypto/price
- */
-export const getUSDCPrice = async (req, res) => {
-    try {
-        const { amount, currency = 'BRL' } = req.query;
-
-        // For USDC, it's 1:1 with USD
-        // Convert USD to requested currency
-        const rates = {
-            USD: 1,
-            BRL: 5.5, // Example rate
-            EUR: 0.92,
-            GBP: 0.79,
-        };
-
-        const rate = rates[currency] || 1;
-        const convertedAmount = parseFloat(amount) * rate;
-
-        res.json({
-            success: true,
-            data: {
-                amountUSD: parseFloat(amount),
-                amountUSDC: parseFloat(amount),
-                currency,
-                convertedAmount: convertedAmount.toFixed(2),
-                rate,
-            },
-        });
-    } catch (error) {
-        logger.error('Error getting price:', error);
-        res.status(500).json({
-            success: false,
-            message: 'Failed to get price',
-        });
-    }
-};
+// ============================================
+// SALDO DO CRIADOR
+// ============================================
 
 /**
- * Get creator's pending balance
- * GET /api/v1/creators/balance
+ * GET /api/v1/payments/creators/balance
  */
 export const getCreatorBalance = async (req, res) => {
     try {
         const userId = req.user.id;
 
-        // Get creator
         const creator = await prisma.creator.findUnique({
             where: { userId },
-            include: {
-                balance: true,
-            },
+            include: { balance: true },
         });
 
         if (!creator) {
-            return res.status(404).json({
-                success: false,
-                message: 'Creator profile not found',
-            });
+            return res.status(404).json({ success: false, message: 'Perfil de criador não encontrado' });
         }
 
-        // Get on-chain balance if wallet configured
+        // Consulta saldo on-chain
         let onChainBalance = 0;
         if (creator.payoutWallet && process.env.PAYMENT_CONTRACT_ADDRESS) {
             try {
-                // Read from contract
                 const balance = await publicClient.readContract({
                     address: process.env.PAYMENT_CONTRACT_ADDRESS,
                     abi: [{
@@ -431,10 +357,9 @@ export const getCreatorBalance = async (req, res) => {
                     functionName: 'creatorBalances',
                     args: [creator.payoutWallet],
                 });
-
                 onChainBalance = Number(formatUnits(balance, 6));
-            } catch (error) {
-                logger.error('Error reading on-chain balance:', error);
+            } catch (err) {
+                logger.error('Erro ao ler saldo on-chain:', err);
             }
         }
 
@@ -443,17 +368,156 @@ export const getCreatorBalance = async (req, res) => {
             data: {
                 availableUSD: creator.balance?.availableUSD || 0,
                 lifetimeEarnings: creator.balance?.lifetimeEarnings || 0,
-                onChainBalance, // Available to withdraw from contract
+                onChainBalance,           // Disponível para saque no contrato
                 payoutWallet: creator.payoutWallet,
                 hasWallet: !!creator.payoutWallet,
+                canWithdraw: onChainBalance > 0,
+            },
+        });
+
+    } catch (error) {
+        logger.error('Erro ao buscar saldo:', error);
+        res.status(500).json({ success: false, message: 'Falha ao buscar saldo' });
+    }
+};
+
+// ============================================
+// FIAT ON-RAMP — URL ASSINADA (Moonpay / Transak)
+// ============================================
+
+/**
+ * GET /api/v1/payments/crypto/onramp-url
+ * Gera URL assinada para compra de USDC via cartão/PIX
+ */
+export const getOnRampUrl = async (req, res) => {
+    try {
+        const userId = req.user.id;
+        const { provider = 'moonpay', amountUSD, walletAddress } = req.query;
+
+        const fiatConfig = getFiatOnRampConfig();
+
+        if (!fiatConfig.anyEnabled) {
+            return res.status(503).json({
+                success: false,
+                message: 'Compra com cartão não disponível no momento',
+            });
+        }
+
+        const user = await prisma.user.findUnique({
+            where: { id: userId },
+            select: { email: true, createdAt: true },
+        });
+
+        let url;
+
+        if (provider === 'moonpay' && fiatConfig.moonpay.enabled) {
+            url = buildMoonpayUrl({
+                apiKey: fiatConfig.moonpay.apiKey,
+                secretKey: fiatConfig.moonpay.secretKey,
+                walletAddress: walletAddress || '',
+                amountUSD: parseFloat(amountUSD) || 10,
+                email: user.email,
+            });
+
+        } else if (provider === 'transak' && fiatConfig.transak.enabled) {
+            url = buildTransakUrl({
+                apiKey: fiatConfig.transak.apiKey,
+                environment: fiatConfig.transak.environment,
+                widgetUrl: fiatConfig.transak.widgetUrl,
+                walletAddress: walletAddress || '',
+                amountUSD: parseFloat(amountUSD) || 10,
+                email: user.email,
+            });
+
+        } else {
+            return res.status(400).json({ success: false, message: 'Provedor inválido ou não configurado' });
+        }
+
+        res.json({ success: true, data: { url, provider } });
+
+    } catch (error) {
+        logger.error('Erro ao gerar URL on-ramp:', error);
+        res.status(500).json({ success: false, message: 'Falha ao gerar link de compra' });
+    }
+};
+
+// ============================================
+// HELPERS — URLS DE FIAT ON-RAMP
+// ============================================
+
+function buildMoonpayUrl({ apiKey, secretKey, walletAddress, amountUSD, email }) {
+    const params = new URLSearchParams({
+        apiKey,
+        currencyCode: 'usdc_polygon',
+        walletAddress,
+        baseCurrencyAmount: amountUSD.toString(),
+        email,
+        colorCode: '%23000000', // Cor preta (FlowConnect)
+        language: 'pt',
+    });
+
+    const urlWithoutSignature = `https://buy.moonpay.com?${params.toString()}`;
+
+    // Assina a URL com HMAC-SHA256
+    if (secretKey) {
+        const signature = crypto
+            .createHmac('sha256', secretKey)
+            .update(new URL(urlWithoutSignature).search)
+            .digest('base64');
+
+        return `${urlWithoutSignature}&signature=${encodeURIComponent(signature)}`;
+    }
+
+    return urlWithoutSignature;
+}
+
+function buildTransakUrl({ apiKey, environment, widgetUrl, walletAddress, amountUSD, email }) {
+    const params = new URLSearchParams({
+        apiKey,
+        environment,
+        defaultCryptoCurrency: 'USDC',
+        network: 'polygon',
+        walletAddress,
+        fiatAmount: amountUSD.toString(),
+        fiatCurrency: 'BRL',
+        email,
+        themeColor: '000000', // Preto
+        hideMenu: 'true',
+        isFeeCalculationShown: 'true',
+    });
+
+    return `${widgetUrl}?${params.toString()}`;
+}
+
+// ============================================
+// PREÇO / CONVERSÃO
+// ============================================
+
+/**
+ * GET /api/v1/payments/crypto/price
+ */
+export const getUSDCPrice = async (req, res) => {
+    try {
+        const { amount = '10', currency = 'BRL' } = req.query;
+
+        // USDC é 1:1 com USD — converte para moeda local
+        const rates = { USD: 1, BRL: 5.5, EUR: 0.92, GBP: 0.79 };
+        const rate = rates[currency] || 1;
+        const convertedAmount = parseFloat(amount) * rate;
+
+        res.json({
+            success: true,
+            data: {
+                amountUSD: parseFloat(amount),
+                amountUSDC: parseFloat(amount), // 1:1
+                currency,
+                convertedAmount: convertedAmount.toFixed(2),
+                rate,
+                note: 'USDC é sempre 1:1 com USD',
             },
         });
     } catch (error) {
-        logger.error('Error getting creator balance:', error);
-        res.status(500).json({
-            success: false,
-            message: 'Failed to get balance',
-        });
+        res.status(500).json({ success: false, message: 'Falha ao buscar preço' });
     }
 };
 
@@ -461,6 +525,7 @@ export default {
     createCryptoOrder,
     verifyPayment,
     getCryptoPaymentStatus,
-    getUSDCPrice,
     getCreatorBalance,
+    getOnRampUrl,
+    getUSDCPrice,
 };

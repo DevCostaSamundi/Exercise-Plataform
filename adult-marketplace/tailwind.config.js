@@ -6,6 +6,18 @@ export default {
   ],
   theme: {
     extend: {
+      colors: {
+        primary: {
+          light: '#ffffff',
+          dark: '#000000',
+          DEFAULT: '#000000',
+        },
+        accent: {
+          light: '#f8fafc', // slate-50
+          dark: '#020617', // slate-950
+          DEFAULT: '#0f172a', // slate-900
+        }
+      },
       animation: {
         'like-bounce': 'like-bounce 0.6s ease-in-out',
         'fade-in': 'fade-in 0.3s ease-in',

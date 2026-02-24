@@ -61,8 +61,8 @@ export default function TrendingPage() {
       <div className="flex min-h-screen bg-slate-50 dark:bg-slate-950">
         <Sidebar />
         <div className="flex-1">
-          <ErrorMessage 
-            message={error} 
+          <ErrorMessage
+            message={error}
             onRetry={fetchTrendingCreators}
             title="Erro ao Carregar Trending"
           />
@@ -92,41 +92,37 @@ export default function TrendingPage() {
               <div className="flex gap-2">
                 <button
                   onClick={() => setFilter('all')}
-                  className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
-                    filter === 'all'
-                      ? 'bg-indigo-600 text-white'
+                  className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${filter === 'all'
+                      ? 'bg-black text-white'
                       : 'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700'
-                  }`}
+                    }`}
                 >
                   Todos
                 </button>
                 <button
                   onClick={() => setFilter('new')}
-                  className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
-                    filter === 'new'
-                      ? 'bg-indigo-600 text-white'
+                  className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${filter === 'new'
+                      ? 'bg-black text-white'
                       : 'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700'
-                  }`}
+                    }`}
                 >
                   Novos
                 </button>
                 <button
                   onClick={() => setFilter('rising')}
-                  className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
-                    filter === 'rising'
-                      ? 'bg-indigo-600 text-white'
+                  className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${filter === 'rising'
+                      ? 'bg-black text-white'
                       : 'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700'
-                  }`}
+                    }`}
                 >
                   Em Crescimento
                 </button>
                 <button
                   onClick={() => setFilter('top')}
-                  className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
-                    filter === 'top'
-                      ? 'bg-indigo-600 text-white'
+                  className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${filter === 'top'
+                      ? 'bg-black text-white'
                       : 'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700'
-                  }`}
+                    }`}
                 >
                   Top
                 </button>
@@ -140,8 +136,8 @@ export default function TrendingPage() {
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
             {/* Demo Warning */}
             {error && (
-              <div className="mb-6 bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg p-4">
-                <div className="flex items-center gap-2 text-yellow-800 dark:text-yellow-300">
+              <div className="mb-6 bg-slate-600 dark:bg-slate-600/20 border border-yellow-200 dark:border-yellow-800 rounded-lg p-4">
+                <div className="flex items-center gap-2 text-slate-600 dark:text-slate-600">
                   <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
                     <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
                   </svg>
@@ -209,7 +205,7 @@ function CreatorCard({ creator }) {
     >
       {/* Trending Badge */}
       {creator.trending && (
-        <div className="absolute top-3 right-3 z-10 bg-red-500 text-white px-3 py-1 rounded-full text-xs font-bold flex items-center gap-1">
+        <div className="absolute top-3 right-3 z-10 bg-slate-900 text-white px-3 py-1 rounded-full text-xs font-bold flex items-center gap-1">
           <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
             <path
               fillRule="evenodd"
@@ -222,7 +218,7 @@ function CreatorCard({ creator }) {
       )}
 
       {/* Avatar */}
-      <div className="relative h-48 bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center">
+      <div className="relative h-48 bg-black dark:bg-white flex items-center justify-center">
         {creator.avatar ? (
           <img
             src={creator.avatar}
@@ -236,7 +232,7 @@ function CreatorCard({ creator }) {
         )}
         {/* Verified Badge */}
         {creator.verified && (
-          <div className="absolute bottom-3 left-3 bg-blue-500 text-white p-1.5 rounded-full">
+          <div className="absolute bottom-3 left-3 bg-black text-white p-1.5 rounded-full">
             <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
               <path
                 fillRule="evenodd"
@@ -250,7 +246,7 @@ function CreatorCard({ creator }) {
 
       {/* Info */}
       <div className="p-6">
-        <h3 className="text-xl font-bold text-slate-900 dark:text-white mb-1 truncate group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors">
+        <h3 className="text-xl font-bold text-slate-900 dark:text-white mb-1 truncate group-hover:text-black dark:group-hover:text-black transition-colors">
           {creator.displayName}
         </h3>
         <p className="text-sm text-slate-500 dark:text-slate-400 mb-3">
@@ -278,10 +274,10 @@ function CreatorCard({ creator }) {
 
         {/* Subscribe Button */}
         <div className="flex items-center justify-between pt-4 border-t border-slate-200 dark:border-slate-800">
-          <span className="text-lg font-bold text-indigo-600 dark:text-indigo-400">
+          <span className="text-lg font-bold text-black dark:text-black">
             {formatCurrency(creator.subscriptionPrice ?? creator.price ?? 0, 'USD')}/month
           </span>
-          <button className="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors">
+          <button className="bg-black hover:bg-black text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors">
             Assinar
           </button>
         </div>

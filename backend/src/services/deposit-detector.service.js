@@ -5,58 +5,74 @@ import logger from '../utils/logger.js';
 
 /**
  * Deposit Detector Service
- * Monitors USDC deposits to user wallets
+ * Monitora depósitos USDC nas carteiras pessoais dos usuários
+ * Acionado pelo Alchemy Webhook (ADDRESS_ACTIVITY)
  */
 class DepositDetectorService {
     constructor() {
         const network = process.env.NODE_ENV === 'production' ? polygon : polygonAmoy;
-        
+
         this.client = createPublicClient({
             chain: network,
             transport: http(process.env.POLYGON_RPC_URL),
         });
 
         this.usdcAddress = process.env.USDC_ADDRESS_POLYGON;
-        this.isMonitoring = false;
     }
 
     /**
-     * Start monitoring deposits via Alchemy webhook
-     * This is called when webhook receives USDC transfer events
+     * Processa um evento de depósito USDC recebido do Alchemy webhook
+     * @param {Object} activity - Objeto activity do Alchemy ADDRESS_ACTIVITY
+     *
+     * Formato correto do Alchemy:
+     * {
+     *   hash: "0x...",
+     *   fromAddress: "0x...",
+     *   toAddress: "0x...",
+     *   asset: "USDC",
+     *   category: "token",
+     *   rawContract: { rawValue: "1000000", address: "0x...", decimals: 6 }
+     * }
      */
-    async processDepositEvent(event) {
+    async processDepositEvent(activity) {
         try {
-            const {
-                transaction: { hash: txHash },
-                log: { topics, data },
-            } = event;
+            // ✅ FORMATO CORRETO do Alchemy ADDRESS_ACTIVITY
+            const txHash = activity.hash;
+            const to = activity.toAddress?.toLowerCase();
+            const rawAmount = activity.rawContract?.rawValue;
 
-            logger.info('💰 Deposit event received:', { txHash });
+            if (!txHash || !to || !rawAmount) {
+                logger.warn('⚠️ Dados incompletos na activity do Alchemy:', {
+                    hasHash: !!txHash,
+                    hasTo: !!to,
+                    hasRawAmount: !!rawAmount,
+                });
+                return { success: false, reason: 'incomplete_data' };
+            }
 
-            // Decode Transfer event
-            // Transfer(address indexed from, address indexed to, uint256 value)
-            const [, fromTopic, toTopic] = topics;
-            
-            const to = `0x${toTopic.slice(26)}`.toLowerCase();
-            
-            // Decode amount
-            const amount = BigInt(data);
+            const amount = BigInt(rawAmount);
             const amountUSD = Number(formatUnits(amount, 6));
 
-            // Find user with this wallet
+            logger.info('💰 Evento de depósito recebido:', { txHash, to, amountUSD });
+
+            // Depósito mínimo
+            if (amountUSD < 1) {
+                logger.warn('Depósito abaixo do mínimo:', { amountUSD, txHash });
+                return { success: false, reason: 'below_minimum' };
+            }
+
+            // Busca o usuário dono desta carteira
             const user = await prisma.user.findUnique({
                 where: { web3Wallet: to },
-                include: {
-                    wallet: true,
-                },
+                include: { wallet: true },
             });
 
             if (!user) {
-                logger.warn('Deposit to unknown wallet:', { to, amountUSD });
-                return { success: false };
+                logger.warn('Depósito para carteira desconhecida:', { to, amountUSD });
+                return { success: false, reason: 'unknown_wallet' };
             }
 
-            // Check if deposit already processed
+            // Idempotência: verifica se já foi processado
             const existingDeposit = await prisma.payment.findFirst({
                 where: {
                     web3TxHash: txHash,
@@ -65,169 +81,155 @@ class DepositDetectorService {
             });
 
             if (existingDeposit) {
-                logger.info('Deposit already processed:', { txHash });
-                return { success: true };
+                logger.info('Depósito já processado anteriormente:', { txHash });
+                return { success: true, alreadyProcessed: true };
             }
 
-            // Create deposit record
-            const deposit = await prisma.payment.create({
-                data: {
-                    userId: user.id,
-                    type: 'WALLET_DEPOSIT',
-                    amountUSD: amountUSD,
-                    currency: 'USDC',
-                    cryptoCurrency: 'USDC',
-                    cryptoAmount: amount.toString(),
-                    cryptoAddress: to,
-                    status: 'COMPLETED',
-                    gateway: 'WEB3_DIRECT',
-                    web3TxHash: txHash,
-                    web3Confirmations: 2,
-                    confirmedAt: new Date(),
-                    paidAt: new Date(),
-                },
+            // Cria o registro e atualiza saldo atomicamente
+            const deposit = await prisma.$transaction(async (tx) => {
+                const dep = await tx.payment.create({
+                    data: {
+                        userId: user.id,
+                        type: 'WALLET_DEPOSIT',
+                        amountUSD,
+                        currency: 'USDC',
+                        cryptoCurrency: 'USDC',
+                        cryptoAmount: amount.toString(),
+                        cryptoAddress: to,
+                        status: 'COMPLETED',
+                        gateway: 'WEB3_DIRECT',
+                        gatewayOrderId: `dep_${txHash.slice(2, 18)}`,
+                        web3TxHash: txHash,
+                        web3Confirmations: 2,
+                        confirmedAt: new Date(),
+                        paidAt: new Date(),
+                    },
+                });
+
+                await tx.userWallet.upsert({
+                    where: { userId: user.id },
+                    create: {
+                        userId: user.id,
+                        balanceUSD: amountUSD,
+                        totalDeposited: amountUSD,
+                    },
+                    update: {
+                        balanceUSD: { increment: amountUSD },
+                        totalDeposited: { increment: amountUSD },
+                    },
+                });
+
+                await tx.notification.create({
+                    data: {
+                        userId: user.id,
+                        type: 'PAYMENT',
+                        title: '✅ Depósito Recebido',
+                        message: `$${amountUSD.toFixed(2)} USDC foi adicionado ao seu saldo`,
+                        metadata: {
+                            depositId: dep.id,
+                            txHash,
+                            amount: amountUSD,
+                        },
+                    },
+                });
+
+                return dep;
             });
 
-            // Update user wallet balance
-            await prisma.userWallet.upsert({
-                where: { userId: user.id },
-                create: {
-                    userId: user.id,
-                    balanceUSD: amountUSD,
-                    totalDeposited: amountUSD,
-                },
-                update: {
-                    balanceUSD: { increment: amountUSD },
-                    totalDeposited: { increment: amountUSD },
-                },
-            });
-
-            logger.info('✅ Deposit processed:', {
+            logger.info('✅ Depósito processado com sucesso:', {
                 userId: user.id,
                 amountUSD,
                 txHash,
-                newBalance: user.wallet ? user.wallet.balanceUSD + amountUSD : amountUSD,
-            });
-
-            // Send notification
-            await prisma.notification.create({
-                data: {
-                    userId: user.id,
-                    type: 'PAYMENT',
-                    title: 'Deposit Received',
-                    message: `$${amountUSD.toFixed(2)} USDC has been added to your balance`,
-                    metadata: {
-                        depositId: deposit.id,
-                        txHash,
-                        amount: amountUSD,
-                    },
-                },
+                novoSaldo: (user.wallet?.balanceUSD || 0) + amountUSD,
             });
 
             return { success: true, deposit };
 
         } catch (error) {
-            logger.error('Error processing deposit:', error);
+            logger.error('❌ Erro ao processar depósito:', error);
             return { success: false, error: error.message };
         }
     }
 
     /**
-     * Get deposit address for user (their wallet)
+     * Retorna o endereço de depósito do usuário (sua própria carteira)
      */
     async getDepositAddress(userId) {
         try {
             const user = await prisma.user.findUnique({
                 where: { id: userId },
-                select: {
-                    web3Wallet: true,
-                },
+                select: { web3Wallet: true },
             });
 
             if (!user || !user.web3Wallet) {
-                throw new Error('User wallet not configured');
+                throw new Error('Carteira do usuário não configurada');
             }
 
             return {
                 address: user.web3Wallet,
                 currency: 'USDC',
                 network: 'Polygon',
-                minAmount: 1, // $1 minimum
+                minAmount: 1,
             };
         } catch (error) {
-            logger.error('Error getting deposit address:', error);
+            logger.error('Erro ao obter endereço de depósito:', error);
             throw error;
         }
     }
 
     /**
-     * Get deposit instructions for user
+     * Instruções de depósito para o usuário
      */
     getDepositInstructions(address) {
         return {
             steps: [
                 {
                     step: 1,
-                    title: 'Buy USDC',
-                    description: 'Purchase USDC on any exchange (Binance, Coinbase, etc.)',
+                    title: 'Compre USDC',
+                    description: 'Compre USDC em qualquer exchange (Binance, Coinbase, etc.)',
                 },
                 {
                     step: 2,
-                    title: 'Select Polygon Network',
-                    description: 'When withdrawing, make sure to select Polygon (not Ethereum)',
+                    title: 'Selecione a rede Polygon',
+                    description: 'Ao sacar, escolha obrigatoriamente a rede Polygon (não Ethereum)',
                 },
                 {
                     step: 3,
-                    title: 'Send to Your Address',
-                    description: `Send USDC to: ${address}`,
+                    title: 'Envie para seu endereço',
+                    description: `Envie USDC para: ${address}`,
                 },
                 {
                     step: 4,
-                    title: 'Wait for Confirmation',
-                    description: 'Your balance will update in 1-2 minutes',
+                    title: 'Aguarde a confirmação',
+                    description: 'Seu saldo será atualizado em 1-2 minutos',
                 },
             ],
             warnings: [
-                'Only send USDC on Polygon network',
-                'Sending on other networks will result in loss of funds',
-                'Minimum deposit: $1 USDC',
-                'Deposits are instant (1-2 minutes)',
+                'Envie apenas USDC na rede Polygon',
+                'Envios em outras redes resultarão em perda de fundos',
+                'Depósito mínimo: $1 USDC',
+                'Depósitos são processados automaticamente em até 2 minutos',
             ],
             exchanges: [
-                {
-                    name: 'Binance',
-                    url: 'https://www.binance.com',
-                    supported: true,
-                    recommended: true,
-                },
-                {
-                    name: 'Coinbase',
-                    url: 'https://www.coinbase.com',
-                    supported: true,
-                },
-                {
-                    name: 'KuCoin',
-                    url: 'https://www.kucoin.com',
-                    supported: true,
-                },
+                { name: 'Binance', url: 'https://www.binance.com', supported: true, recommended: true },
+                { name: 'Coinbase', url: 'https://www.coinbase.com', supported: true },
+                { name: 'KuCoin', url: 'https://www.kucoin.com', supported: true },
             ],
         };
     }
 
     /**
-     * Get user's deposit history
+     * Histórico de depósitos do usuário
      */
     async getDepositHistory(userId, limit = 20) {
         try {
-            const deposits = await prisma.payment.findMany({
+            return await prisma.payment.findMany({
                 where: {
                     userId,
                     type: 'WALLET_DEPOSIT',
                     status: 'COMPLETED',
                 },
-                orderBy: {
-                    createdAt: 'desc',
-                },
+                orderBy: { createdAt: 'desc' },
                 take: limit,
                 select: {
                     id: true,
@@ -238,29 +240,25 @@ class DepositDetectorService {
                     createdAt: true,
                 },
             });
-
-            return deposits;
         } catch (error) {
-            logger.error('Error getting deposit history:', error);
+            logger.error('Erro ao buscar histórico de depósitos:', error);
             throw error;
         }
     }
 
     /**
-     * Validate USDC balance before payment
+     * Valida se o usuário tem saldo suficiente
      */
     async validateBalance(userId, requiredAmount) {
         try {
-            const wallet = await prisma.userWallet.findUnique({
-                where: { userId },
-            });
+            const wallet = await prisma.userWallet.findUnique({ where: { userId } });
 
             if (!wallet) {
                 return {
                     valid: false,
                     balance: 0,
                     required: requiredAmount,
-                    message: 'Wallet not found',
+                    message: 'Carteira não encontrada',
                 };
             }
 
@@ -272,11 +270,11 @@ class DepositDetectorService {
                 required: requiredAmount,
                 shortage: hasEnough ? 0 : requiredAmount - wallet.balanceUSD,
                 message: hasEnough
-                    ? 'Sufficient balance'
-                    : `Insufficient balance. Need $${(requiredAmount - wallet.balanceUSD).toFixed(2)} more`,
+                    ? 'Saldo suficiente'
+                    : `Saldo insuficiente. Deposite mais $${(requiredAmount - wallet.balanceUSD).toFixed(2)} USDC`,
             };
         } catch (error) {
-            logger.error('Error validating balance:', error);
+            logger.error('Erro ao validar saldo:', error);
             throw error;
         }
     }

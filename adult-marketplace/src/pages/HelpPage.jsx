@@ -12,8 +12,8 @@ export default function HelpPage() {
       questions: [
         {
           id: 1,
-          question: 'O que é PrideConnect?',
-          answer: 'PrideConnect é uma plataforma que conecta criadores de conteúdo com seus fãs através de assinaturas mensais. Criadores podem monetizar seu conteúdo exclusivo e construir uma comunidade engajada.',
+          question: 'O que é FlowConnect?',
+          answer: 'FlowConnect é uma plataforma que conecta criadores de conteúdo com seus fãs através de assinaturas mensais. Criadores podem monetizar seu conteúdo exclusivo e construir uma comunidade engajada.',
         },
         {
           id: 2,
@@ -118,7 +118,7 @@ export default function HelpPage() {
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 placeholder="Buscar na central de ajuda..."
-                className="w-full px-4 py-3 pl-12 bg-slate-100 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-xl text-slate-900 dark:text-white placeholder-slate-500 dark:placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                className="w-full px-4 py-3 pl-12 bg-slate-100 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-xl text-slate-900 dark:text-white placeholder-slate-500 dark:placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-black dark:focus:ring-white"
               />
               <svg
                 className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400"
@@ -141,8 +141,8 @@ export default function HelpPage() {
                 to="/support"
                 className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 p-6 hover:shadow-lg transition-all text-center"
               >
-                <div className="w-12 h-12 bg-indigo-100 dark:bg-indigo-900 rounded-full flex items-center justify-center mx-auto mb-3">
-                  <svg className="w-6 h-6 text-indigo-600 dark:text-indigo-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <div className="w-12 h-12 bg-black dark:bg-black rounded-full flex items-center justify-center mx-auto mb-3">
+                  <svg className="w-6 h-6 text-black dark:text-black" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
                   </svg>
                 </div>
@@ -154,8 +154,8 @@ export default function HelpPage() {
                 to="/terms"
                 className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 p-6 hover:shadow-lg transition-all text-center"
               >
-                <div className="w-12 h-12 bg-blue-100 dark:bg-blue-900 rounded-full flex items-center justify-center mx-auto mb-3">
-                  <svg className="w-6 h-6 text-blue-600 dark:text-blue-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <div className="w-12 h-12 bg-black dark:bg-black rounded-full flex items-center justify-center mx-auto mb-3">
+                  <svg className="w-6 h-6 text-black dark:text-black" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                   </svg>
                 </div>
@@ -167,8 +167,8 @@ export default function HelpPage() {
                 to="/safety"
                 className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 p-6 hover:shadow-lg transition-all text-center"
               >
-                <div className="w-12 h-12 bg-green-100 dark:bg-green-900 rounded-full flex items-center justify-center mx-auto mb-3">
-                  <svg className="w-6 h-6 text-green-600 dark:text-green-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <div className="w-12 h-12 bg-slate-800 dark:bg-slate-800 rounded-full flex items-center justify-center mx-auto mb-3">
+                  <svg className="w-6 h-6 text-slate-800 dark:text-slate-800" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
                   </svg>
                 </div>
@@ -198,9 +198,8 @@ export default function HelpPage() {
                             {faq.question}
                           </span>
                           <svg
-                            className={`w-5 h-5 text-slate-400 flex-shrink-0 transition-transform ${
-                              openFaq === faq.id ? 'rotate-180' : ''
-                            }`}
+                            className={`w-5 h-5 text-slate-400 flex-shrink-0 transition-transform ${openFaq === faq.id ? 'rotate-180' : ''
+                              }`}
                             fill="none"
                             viewBox="0 0 24 24"
                             stroke="currentColor"
@@ -229,16 +228,16 @@ export default function HelpPage() {
             )}
 
             {/* Contact CTA */}
-            <div className="mt-16 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-2xl p-8 text-center">
+            <div className="mt-16 bg-black dark:bg-white rounded-2xl p-8 text-center text-white dark:text-black">
               <h2 className="text-2xl font-bold text-white mb-2">
                 Ainda precisa de ajuda?
               </h2>
-              <p className="text-indigo-100 mb-6">
+              <p className="text-black mb-6">
                 Nossa equipe de suporte está pronta para ajudar
               </p>
               <Link
                 to="/support"
-                className="inline-flex items-center gap-2 px-6 py-3 bg-white hover:bg-slate-100 text-indigo-600 rounded-lg font-medium transition-colors"
+                className="inline-flex items-center gap-2 px-6 py-3 bg-white hover:bg-slate-100 text-black rounded-lg font-medium transition-colors"
               >
                 Entrar em Contato
               </Link>

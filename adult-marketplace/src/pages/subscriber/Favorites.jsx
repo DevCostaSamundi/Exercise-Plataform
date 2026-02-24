@@ -39,7 +39,7 @@ const Favorites = () => {
       {/* Header */}
       <div className="mb-6">
         <div className="flex items-center gap-2 mb-4">
-          <FiHeart className="text-3xl text-red-500" />
+          <FiHeart className="text-3xl text-slate-900" />
           <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
             Favoritos
           </h1>
@@ -58,7 +58,7 @@ const Favorites = () => {
                 onClick={() => setSortBy(option.value)}
                 className={`px-4 py-2 rounded-lg font-semibold transition-all ${
                   sortBy === option.value
-                    ? 'bg-red-500 text-white'
+                    ? 'bg-slate-900 text-white'
                     : 'bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-300 dark:hover:bg-gray-600'
                 }`}
               >

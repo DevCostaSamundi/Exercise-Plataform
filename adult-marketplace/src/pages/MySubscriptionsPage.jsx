@@ -22,7 +22,7 @@ export default function MySubscriptionsPage() {
 
     try {
       const response = await subscriptionService.getSubscriptions();
-      
+
       if (response.success) {
         setSubscriptions(response.data || []);
       } else {
@@ -49,8 +49,8 @@ export default function MySubscriptionsPage() {
       if (response.success) {
         // Atualizar lista localmente
         setSubscriptions(subscriptions.map(sub =>
-          sub.id === subscriptionId 
-            ? { ...sub, status: 'CANCELLED', autoRenew: false } 
+          sub.id === subscriptionId
+            ? { ...sub, status: 'CANCELLED', autoRenew: false }
             : sub
         ));
 
@@ -83,8 +83,8 @@ export default function MySubscriptionsPage() {
         <Sidebar />
         <div className="flex-1 flex items-center justify-center">
           <div className="text-center">
-            <div className="animate-spin rounded-full h-12 w-12 border-4 border-indigo-600 border-t-transparent mx-auto mb-4"></div>
-            <p className="text-slate-600 dark:text-slate-400">Carregando assinaturas... </p>
+            <div className="animate-spin rounded-full h-12 w-12 border-4 border-black dark:border-white border-t-transparent mx-auto mb-4"></div>
+            <p className="text-slate-600 dark:text-slate-400 font-bold">Carregando assinaturas... </p>
           </div>
         </div>
       </div>
@@ -111,7 +111,7 @@ export default function MySubscriptionsPage() {
               {subscriptions.length > 0 && (
                 <div className="text-right">
                   <p className="text-sm text-slate-500 dark:text-slate-400">Total Mensal</p>
-                  <p className="text-2xl font-bold text-indigo-600 dark:text-indigo-400">
+                  <p className="text-2xl font-bold text-black dark:text-white">
                     {formatCurrency(totalMonthlyCost)}
                   </p>
                 </div>
@@ -125,8 +125,8 @@ export default function MySubscriptionsPage() {
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
             {/* Error Message */}
             {error && (
-              <div className="mb-6 bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg p-4">
-                <div className="flex items-center gap-2 text-yellow-800 dark:text-yellow-300">
+              <div className="mb-6 bg-slate-600 dark:bg-slate-600/20 border border-yellow-200 dark:border-yellow-800 rounded-lg p-4">
+                <div className="flex items-center gap-2 text-slate-600 dark:text-slate-600">
                   <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
                     <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
                   </svg>
@@ -138,7 +138,7 @@ export default function MySubscriptionsPage() {
             )}
 
             {/* Subscriptions List */}
-            {subscriptions.length > 0 ?  (
+            {subscriptions.length > 0 ? (
               <div className="space-y-6">
                 {/* Active Subscriptions */}
                 {subscriptions.filter(sub => sub.status === 'ACTIVE').length > 0 && (
@@ -203,11 +203,11 @@ export default function MySubscriptionsPage() {
 
                 {/* Total Summary (Active only) */}
                 {subscriptions.filter(sub => sub.status === 'ACTIVE').length > 0 && (
-                  <div className="bg-indigo-50 dark:bg-indigo-900/20 rounded-xl border border-indigo-200 dark:border-indigo-800 p-6">
+                  <div className="bg-slate-50 dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 p-6">
                     <div className="flex items-center justify-between">
                       <div>
-                        <p className="text-sm text-indigo-600 dark:text-indigo-400 font-medium mb-1">
-                          Total de {subscriptions.filter(sub => sub. status === 'ACTIVE').length} assinatura(s) ativa(s)
+                        <p className="text-sm text-black dark:text-white font-bold mb-1">
+                          Total de {subscriptions.filter(sub => sub.status === 'ACTIVE').length} assinatura(s) ativa(s)
                         </p>
                         <p className="text-xs text-slate-600 dark:text-slate-400">
                           Cobrado mensalmente
@@ -215,9 +215,9 @@ export default function MySubscriptionsPage() {
                       </div>
                       <div className="text-right">
                         <p className="text-sm text-slate-600 dark:text-slate-400 mb-1">
-                          Total mensal: 
+                          Total mensal:
                         </p>
-                        <p className="text-3xl font-bold text-indigo-600 dark:text-indigo-400">
+                        <p className="text-3xl font-bold text-black dark:text-white">
                           {formatCurrency(totalMonthlyCost)}
                         </p>
                       </div>
@@ -249,7 +249,7 @@ export default function MySubscriptionsPage() {
                 </p>
                 <Link
                   to="/explore"
-                  className="inline-flex items-center gap-2 px-6 py-3 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg font-medium transition-colors"
+                  className="inline-flex items-center gap-2 px-6 py-3 bg-black dark:bg-white text-white dark:text-black rounded-lg font-bold transition-all hover:scale-105 active:scale-95 shadow-lg"
                 >
                   <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
@@ -275,7 +275,7 @@ function SubscriptionCard({ subscription, onCancel, onReactivate, cancelling }) 
   const formatDate = (dateString) => {
     return new Date(dateString).toLocaleDateString('pt-BR', {
       day: '2-digit',
-      month:  'long',
+      month: 'long',
       year: 'numeric',
     });
   };
@@ -284,19 +284,19 @@ function SubscriptionCard({ subscription, onCancel, onReactivate, cancelling }) 
     switch (subscription.status) {
       case 'ACTIVE':
         return (
-          <span className="px-3 py-1 bg-green-100 dark:bg-green-900/20 text-green-700 dark:text-green-400 text-xs font-medium rounded-full">
+          <span className="px-3 py-1 bg-slate-800 dark:bg-slate-800/20 text-slate-800 dark:text-slate-800 text-xs font-medium rounded-full">
             ✓ Ativa
           </span>
         );
-      case 'CANCELLED': 
+      case 'CANCELLED':
         return (
-          <span className="px-3 py-1 bg-yellow-100 dark:bg-yellow-900/20 text-yellow-700 dark:text-yellow-400 text-xs font-medium rounded-full">
+          <span className="px-3 py-1 bg-slate-600 dark:bg-slate-600/20 text-slate-600 dark:text-slate-600 text-xs font-medium rounded-full">
             ⏸ Cancelada
           </span>
         );
       case 'EXPIRED':
         return (
-          <span className="px-3 py-1 bg-red-100 dark:bg-red-900/20 text-red-700 dark:text-red-400 text-xs font-medium rounded-full">
+          <span className="px-3 py-1 bg-slate-900 dark:bg-slate-900/20 text-slate-900 dark:text-slate-900 text-xs font-medium rounded-full">
             ✕ Expirada
           </span>
         );
@@ -306,11 +306,10 @@ function SubscriptionCard({ subscription, onCancel, onReactivate, cancelling }) 
   };
 
   return (
-    <div className={`bg-white dark:bg-slate-900 rounded-xl border ${
-      isActive 
-        ? 'border-slate-200 dark:border-slate-800' 
+    <div className={`bg-white dark:bg-slate-900 rounded-xl border ${isActive
+        ? 'border-slate-200 dark:border-slate-800'
         : 'border-slate-200 dark:border-slate-800 opacity-75'
-    } p-6`}>
+      } p-6`}>
       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-6">
         {/* Creator Info */}
         <div className="flex items-center gap-4 flex-1">
@@ -318,7 +317,7 @@ function SubscriptionCard({ subscription, onCancel, onReactivate, cancelling }) 
             onClick={() => navigate(`/creator/${subscription.creator?.username || subscription.creatorId}`)}
             className="flex-shrink-0"
           >
-            <div className="w-16 h-16 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-full flex items-center justify-center text-white text-xl font-bold hover:scale-110 transition-transform">
+            <div className="w-16 h-16 bg-black dark:bg-white rounded-full flex items-center justify-center text-white dark:text-black text-xl font-bold hover:scale-110 transition-transform shadow-lg">
               {subscription.creator?.displayName?.charAt(0) || 'C'}
             </div>
           </button>
@@ -327,7 +326,7 @@ function SubscriptionCard({ subscription, onCancel, onReactivate, cancelling }) 
             <div className="flex items-center gap-2 mb-1">
               <button
                 onClick={() => navigate(`/creator/${subscription.creator?.username || subscription.creatorId}`)}
-                className="font-bold text-lg text-slate-900 dark:text-white hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors truncate"
+                className="font-bold text-lg text-slate-900 dark:text-white hover:text-slate-600 dark:hover:text-slate-400 transition-colors truncate"
               >
                 {subscription.creator?.displayName || 'Criador'}
               </button>
@@ -347,7 +346,7 @@ function SubscriptionCard({ subscription, onCancel, onReactivate, cancelling }) 
               </span>
 
               {subscription.autoRenew && isActive && (
-                <span className="flex items-center gap-1 text-green-600 dark:text-green-400">
+                <span className="flex items-center gap-1 text-slate-800 dark:text-slate-800">
                   <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
                     <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
                   </svg>
@@ -375,7 +374,7 @@ function SubscriptionCard({ subscription, onCancel, onReactivate, cancelling }) 
           <div className="flex gap-2">
             <button
               onClick={() => navigate(`/creator/${subscription.creator?.username || subscription.creatorId}`)}
-              className="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg text-sm font-medium transition-colors"
+              className="px-4 py-2 bg-black dark:bg-white text-white dark:text-black rounded-lg text-sm font-bold transition-all hover:scale-105 active:scale-95 shadow-md"
             >
               Ver Perfil
             </button>
@@ -384,7 +383,7 @@ function SubscriptionCard({ subscription, onCancel, onReactivate, cancelling }) 
               <button
                 onClick={() => onCancel(subscription.id)}
                 disabled={cancelling}
-                className="px-4 py-2 bg-red-600 hover: bg-red-700 disabled:bg-red-400 text-white rounded-lg text-sm font-medium transition-colors flex items-center gap-2"
+                className="px-4 py-2 bg-slate-900 hover: bg-slate-900 disabled:bg-slate-900 text-white rounded-lg text-sm font-medium transition-colors flex items-center gap-2"
               >
                 {cancelling ? (
                   <>
@@ -403,7 +402,7 @@ function SubscriptionCard({ subscription, onCancel, onReactivate, cancelling }) 
             {(isCancelled || isExpired) && onReactivate && (
               <button
                 onClick={() => onReactivate(subscription.id)}
-                className="px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg text-sm font-medium transition-colors"
+                className="px-4 py-2 bg-slate-800 hover:bg-slate-800 text-white rounded-lg text-sm font-medium transition-colors"
               >
                 Reativar
               </button>

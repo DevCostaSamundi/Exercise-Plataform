@@ -55,7 +55,7 @@ const MediaViewer = ({ media = [], initialIndex = 0, onClose, allowDownload = fa
       const url = window.URL.createObjectURL(blob);
       const link = document.createElement('a');
       link.href = url;
-      link.download = `prideconnect-${Date.now()}. ${isVideo ? 'mp4' : 'jpg'}`;
+      link.download = `flowconnect-${Date.now()}. ${isVideo ? 'mp4' : 'jpg'}`;
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
@@ -155,11 +155,10 @@ const MediaViewer = ({ media = [], initialIndex = 0, onClose, allowDownload = fa
               <button
                 key={index}
                 onClick={() => setCurrentIndex(index)}
-                className={`flex-shrink-0 w-16 h-16 rounded-lg overflow-hidden border-2 transition-all ${
-                  index === currentIndex
+                className={`flex-shrink-0 w-16 h-16 rounded-lg overflow-hidden border-2 transition-all ${index === currentIndex
                     ? 'border-white scale-110'
                     : 'border-transparent opacity-60 hover:opacity-100'
-                }`}
+                  }`}
               >
                 {item.type === 'video' ? (
                   <video

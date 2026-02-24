@@ -24,7 +24,7 @@ export default function WithdrawalModal({ isOpen, onClose, availableBalance, onS
   const fetchCurrencies = async () => {
     try {
       const response = await paymentService.getAvailableCurrencies();
-      const cryptoOnly = response.data.filter(c => ! c.fiat);
+      const cryptoOnly = response.data.filter(c => !c.fiat);
       setCurrencies(cryptoOnly);
     } catch (err) {
       setError('Erro ao carregar moedas');
@@ -42,13 +42,13 @@ export default function WithdrawalModal({ isOpen, onClose, availableBalance, onS
   const handleContinueAmount = () => {
     const amountNum = parseFloat(amount);
 
-    if (! amountNum || amountNum < minWithdrawal) {
+    if (!amountNum || amountNum < minWithdrawal) {
       setError(`Valor mínimo de saque: $${minWithdrawal}`);
       return;
     }
 
     if (amountNum > availableBalance) {
-      setError(`Saldo insuficiente.  Disponível: $${availableBalance. toFixed(2)}`);
+      setError(`Saldo insuficiente.  Disponível: $${availableBalance.toFixed(2)}`);
       return;
     }
 
@@ -62,7 +62,7 @@ export default function WithdrawalModal({ isOpen, onClose, availableBalance, onS
 
     try {
       const netAmount = parseFloat(amount) - platformFee;
-      const estimateResponse = await paymentService.estimatePrice(netAmount, crypto. code);
+      const estimateResponse = await paymentService.estimatePrice(netAmount, crypto.code);
       setEstimate(estimateResponse.data);
       setStep(3);
     } catch (err) {
@@ -73,7 +73,7 @@ export default function WithdrawalModal({ isOpen, onClose, availableBalance, onS
   };
 
   const handleContinueAddress = () => {
-    if (!address || address.trim(). length < 20) {
+    if (!address || address.trim().length < 20) {
       setError('Endereço inválido');
       return;
     }
@@ -89,10 +89,10 @@ export default function WithdrawalModal({ isOpen, onClose, availableBalance, onS
       await withdrawalService.requestWithdrawal({
         amountUSD: parseFloat(amount),
         cryptoCurrency: selectedCrypto.code,
-        destinationAddress: address. trim(),
+        destinationAddress: address.trim(),
       });
 
-      onSuccess?. ();
+      onSuccess?.();
     } catch (err) {
       setError(err.message || 'Erro ao solicitar saque');
       setLoading(false);
@@ -138,7 +138,7 @@ export default function WithdrawalModal({ isOpen, onClose, availableBalance, onS
         <div className="p-6">
           {/* Error Message */}
           {error && (
-            <div className="mb-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 text-red-700 dark:text-red-400 px-4 py-3 rounded-lg">
+            <div className="mb-4 bg-slate-900 dark:bg-slate-900/20 border border-red-200 dark:border-red-800 text-slate-900 dark:text-slate-900 px-4 py-3 rounded-lg">
               {error}
             </div>
           )}
@@ -157,14 +157,14 @@ export default function WithdrawalModal({ isOpen, onClose, availableBalance, onS
                     value={amount}
                     onChange={handleAmountChange}
                     placeholder="0.00"
-                    className="w-full pl-10 pr-4 py-4 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-slate-900 dark:text-white text-2xl font-bold focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                    className="w-full pl-10 pr-4 py-4 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-slate-900 dark:text-white text-2xl font-bold focus:outline-none focus:ring-2 focus:ring-black"
                   />
                 </div>
                 <div className="flex items-center justify-between mt-2">
                   <p className="text-sm text-slate-500">Mínimo: ${minWithdrawal}</p>
                   <button
-                    onClick={() => setAmount(availableBalance. toFixed(2))}
-                    className="text-sm text-indigo-600 dark:text-indigo-400 hover:underline font-medium"
+                    onClick={() => setAmount(availableBalance.toFixed(2))}
+                    className="text-sm text-black dark:text-black hover:underline font-medium"
                   >
                     Usar saldo total
                   </button>
@@ -176,9 +176,9 @@ export default function WithdrawalModal({ isOpen, onClose, availableBalance, onS
                 {[20, 50, 100, 200].map((value) => (
                   <button
                     key={value}
-                    onClick={() => setAmount(value. toString())}
+                    onClick={() => setAmount(value.toString())}
                     disabled={value > availableBalance}
-                    className="px-4 py-2 border border-slate-200 dark:border-slate-700 rounded-lg text-slate-900 dark:text-white font-semibold hover:bg-indigo-50 dark:hover:bg-indigo-900/20 hover:border-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                    className="px-4 py-2 border border-slate-200 dark:border-slate-700 rounded-lg text-slate-900 dark:text-white font-semibold hover:bg-black dark:hover:bg-black/20 hover:border-black disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                   >
                     ${value}
                   </button>
@@ -196,13 +196,13 @@ export default function WithdrawalModal({ isOpen, onClose, availableBalance, onS
                   </div>
                   <div className="flex items-center justify-between text-sm">
                     <span className="text-slate-600 dark:text-slate-400">Taxa da plataforma:</span>
-                    <span className="font-medium text-red-600 dark:text-red-400">
+                    <span className="font-medium text-slate-900 dark:text-slate-900">
                       -{formatCurrency(platformFee)}
                     </span>
                   </div>
                   <div className="border-t border-slate-200 dark:border-slate-700 pt-2 flex items-center justify-between">
                     <span className="font-semibold text-slate-900 dark:text-white">Você receberá:</span>
-                    <span className="font-bold text-xl text-green-600 dark:text-green-400">
+                    <span className="font-bold text-xl text-slate-800 dark:text-slate-800">
                       {formatCurrency(parseFloat(amount) - platformFee)}
                     </span>
                   </div>
@@ -212,7 +212,7 @@ export default function WithdrawalModal({ isOpen, onClose, availableBalance, onS
               <button
                 onClick={handleContinueAmount}
                 disabled={!amount || parseFloat(amount) < minWithdrawal}
-                className="w-full px-6 py-4 bg-indigo-600 hover:bg-indigo-700 disabled:bg-slate-400 text-white rounded-lg font-bold transition-colors"
+                className="w-full px-6 py-4 bg-black hover:bg-black disabled:bg-slate-400 text-white rounded-lg font-bold transition-colors"
               >
                 Continuar
               </button>
@@ -227,11 +227,10 @@ export default function WithdrawalModal({ isOpen, onClose, availableBalance, onS
                   key={crypto.code}
                   onClick={() => handleSelectCrypto(crypto)}
                   disabled={loading}
-                  className={`w-full p-4 rounded-xl border-2 transition-all text-left hover:border-indigo-500 dark:hover:border-indigo-400 hover:shadow-lg ${
-                    crypto.recommended
-                      ? 'border-indigo-500 dark:border-indigo-400 bg-indigo-50 dark:bg-indigo-900/20'
+                  className={`w-full p-4 rounded-xl border-2 transition-all text-left hover:border-black dark:hover:border-black hover:shadow-lg ${crypto.recommended
+                      ? 'border-black dark:border-white bg-black dark:bg-black/20'
                       : 'border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800'
-                  }`}
+                    }`}
                 >
                   <div className="flex items-center justify-between">
                     <div className="flex items-center space-x-3">
@@ -242,7 +241,7 @@ export default function WithdrawalModal({ isOpen, onClose, availableBalance, onS
                             {crypto.name}
                           </p>
                           {crypto.recommended && (
-                            <span className="text-xs bg-indigo-600 text-white px-2 py-0.5 rounded-full font-semibold">
+                            <span className="text-xs bg-black text-white px-2 py-0.5 rounded-full font-semibold">
                               Recomendado
                             </span>
                           )}
@@ -271,7 +270,7 @@ export default function WithdrawalModal({ isOpen, onClose, availableBalance, onS
               <div className="bg-slate-50 dark:bg-slate-800 rounded-xl p-6">
                 <p className="text-sm text-slate-600 dark:text-slate-400 mb-2">Você receberá:</p>
                 <p className="text-3xl font-bold text-slate-900 dark:text-white">
-                  {estimate.estimatedAmount} {selectedCrypto.code. split('_')[0]}
+                  {estimate.estimatedAmount} {selectedCrypto.code.split('_')[0]}
                 </p>
                 <p className="text-sm text-slate-500 mt-1">
                   ≈ {formatCurrency(estimate.amountUSD)}
@@ -287,23 +286,23 @@ export default function WithdrawalModal({ isOpen, onClose, availableBalance, onS
                   value={address}
                   onChange={(e) => setAddress(e.target.value)}
                   placeholder={`Digite seu endereço ${selectedCrypto.code.split('_')[0]}`}
-                  className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-slate-900 dark:text-white font-mono text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                  className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-slate-900 dark:text-white font-mono text-sm focus:outline-none focus:ring-2 focus:ring-black"
                 />
                 <p className="text-xs text-slate-500 mt-2">
                   ⚠️ Certifique-se de que o endereço está correto.  Transações de cripto não podem ser revertidas.
                 </p>
               </div>
 
-              <div className="bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg p-4">
+              <div className="bg-slate-600 dark:bg-slate-600/20 border border-yellow-200 dark:border-yellow-800 rounded-lg p-4">
                 <div className="flex items-start space-x-3">
-                  <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-yellow-600 dark:text-yellow-400 flex-shrink-0 mt-0.5" viewBox="0 0 20 20" fill="currentColor">
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-slate-600 dark:text-slate-600 flex-shrink-0 mt-0.5" viewBox="0 0 20 20" fill="currentColor">
                     <path fillRule="evenodd" d="M8. 257 3.099c.765-1. 36 2.722-1. 36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
                   </svg>
                   <div className="flex-1">
-                    <p className="text-sm font-medium text-yellow-800 dark:text-yellow-200">
+                    <p className="text-sm font-medium text-slate-600 dark:text-slate-600">
                       Importante
                     </p>
-                    <ul className="text-sm text-yellow-700 dark:text-yellow-300 mt-1 space-y-1">
+                    <ul className="text-sm text-slate-600 dark:text-slate-600 mt-1 space-y-1">
                       <li>• Verifique que o endereço é da rede <strong>{selectedCrypto.network}</strong></li>
                       <li>• Envios para rede incorreta resultam em perda permanente</li>
                       <li>• O saque será processado em até 24 horas úteis</li>
@@ -321,7 +320,7 @@ export default function WithdrawalModal({ isOpen, onClose, availableBalance, onS
                 </button>
                 <button
                   onClick={handleContinueAddress}
-                  className="flex-1 px-6 py-3 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg font-bold transition-colors"
+                  className="flex-1 px-6 py-3 bg-black hover:bg-black text-white rounded-lg font-bold transition-colors"
                 >
                   Continuar
                 </button>
@@ -337,7 +336,7 @@ export default function WithdrawalModal({ isOpen, onClose, availableBalance, onS
                   <span className="text-slate-600 dark:text-slate-400">Você receberá:</span>
                   <div className="text-right">
                     <p className="text-2xl font-bold text-slate-900 dark:text-white">
-                      {estimate.estimatedAmount} {selectedCrypto. code.split('_')[0]}
+                      {estimate.estimatedAmount} {selectedCrypto.code.split('_')[0]}
                     </p>
                     <p className="text-sm text-slate-500">≈ {formatCurrency(estimate.amountUSD)}</p>
                   </div>
@@ -364,23 +363,23 @@ export default function WithdrawalModal({ isOpen, onClose, availableBalance, onS
                   </div>
                   <div className="flex items-center justify-between">
                     <span className="text-slate-600 dark:text-slate-400">Taxa:</span>
-                    <span className="font-medium text-red-600 dark:text-red-400">
+                    <span className="font-medium text-slate-900 dark:text-slate-900">
                       -{formatCurrency(platformFee)}
                     </span>
                   </div>
                 </div>
               </div>
 
-              <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-4">
+              <div className="bg-slate-900 dark:bg-slate-900/20 border border-red-200 dark:border-red-800 rounded-lg p-4">
                 <div className="flex items-start space-x-3">
-                  <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-red-600 dark:text-red-400 flex-shrink-0 mt-0.5" viewBox="0 0 20 20" fill="currentColor">
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-slate-900 dark:text-slate-900 flex-shrink-0 mt-0.5" viewBox="0 0 20 20" fill="currentColor">
                     <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101. 414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1. 414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8. 707 7.293z" clipRule="evenodd" />
                   </svg>
                   <div className="flex-1">
-                    <p className="text-sm font-medium text-red-800 dark:text-red-200">
+                    <p className="text-sm font-medium text-slate-900 dark:text-slate-900">
                       Atenção
                     </p>
-                    <p className="text-sm text-red-700 dark:text-red-300 mt-1">
+                    <p className="text-sm text-slate-900 dark:text-slate-900 mt-1">
                       Verifique cuidadosamente todas as informações.  Transações de criptomoedas não podem ser canceladas ou revertidas.
                     </p>
                   </div>
@@ -398,7 +397,7 @@ export default function WithdrawalModal({ isOpen, onClose, availableBalance, onS
                 <button
                   onClick={handleConfirmWithdrawal}
                   disabled={loading}
-                  className="flex-1 px-6 py-4 bg-red-600 hover:bg-red-700 disabled:bg-red-400 text-white rounded-lg font-bold transition-colors flex items-center justify-center space-x-2"
+                  className="flex-1 px-6 py-4 bg-slate-900 hover:bg-slate-900 disabled:bg-slate-900 text-white rounded-lg font-bold transition-colors flex items-center justify-center space-x-2"
                 >
                   {loading ? (
                     <>

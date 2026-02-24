@@ -18,7 +18,7 @@ export default function LoadingSpinner({ size = 'md', message = '', fullScreen =
   const spinnerElement = (
     <div className="flex flex-col items-center justify-center gap-4">
       <div
-        className={`${sizeClasses[size]} border-indigo-600 border-t-transparent rounded-full animate-spin`}
+        className={`${sizeClasses[size]} border-black dark:border-white border-t-transparent rounded-full animate-spin`}
         role="status"
         aria-label="Loading"
       />

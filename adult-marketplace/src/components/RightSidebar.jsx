@@ -31,8 +31,8 @@ export default function RightSidebar() {
   }, []);
 
   const suggestions = [
-    { title: 'Complete seu perfil', description: 'Adicione uma bio e foto de perfil', icon: '👤', color: 'indigo' },
-    { title: 'Explore criadores LGBT+', description: 'Descubra conteúdo autêntico', icon: '🏳️‍🌈', color: 'purple' },
+    { title: 'Complete seu perfil', description: 'Adicione uma bio e foto de perfil', icon: '👤', color: 'slate' },
+    { title: 'Descubra criadores', description: 'Explore novos talentos da plataforma', icon: '✨', color: 'slate' },
   ];
 
   return (
@@ -57,7 +57,7 @@ export default function RightSidebar() {
                   className="w-10 h-10 rounded-full"
                 />
                 {creator.isVerified && (
-                  <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-indigo-600 rounded-full flex items-center justify-center border-2 border-white dark:border-slate-950">
+                  <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-black rounded-full flex items-center justify-center border-2 border-white dark:border-slate-950">
                     <svg xmlns="http://www.w3.org/2000/svg" className="h-2.5 w-2.5 text-white" viewBox="0 0 20 20" fill="currentColor">
                       <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
                     </svg>
@@ -65,12 +65,12 @@ export default function RightSidebar() {
                 )}
               </div>
               <div className="flex-1 min-w-0">
-                <p className="text-sm font-semibold text-slate-900 dark:text-white truncate group-hover:text-indigo-600 dark:group-hover:text-indigo-400">
+                <p className="text-sm font-semibold text-slate-900 dark:text-white truncate group-hover:text-black dark:group-hover:text-black">
                   {creator.name}
                 </p>
                 <p className="text-xs text-slate-500 dark:text-slate-400">{creator.subscribers} assinantes</p>
               </div>
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 text-slate-400 group-hover:text-indigo-600" viewBox="0 0 20 20" fill="currentColor">
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 text-slate-400 group-hover:text-black" viewBox="0 0 20 20" fill="currentColor">
                 <path fillRule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clipRule="evenodd" />
               </svg>
             </Link>
@@ -78,7 +78,7 @@ export default function RightSidebar() {
         </div>
         <Link
           to="/trending"
-          className="block mt-4 text-sm text-indigo-600 dark:text-indigo-400 hover:text-indigo-700 dark:hover:text-indigo-300 font-medium text-center"
+          className="block mt-4 text-sm text-black dark:text-black hover:text-black dark:hover:text-black font-medium text-center"
         >
           Ver todos →
         </Link>
@@ -95,7 +95,7 @@ export default function RightSidebar() {
             <Link
               key={item.tag}
               to={`/explore?tag=${item.tag.toLowerCase()}`}
-              className="inline-flex items-center space-x-1.5 bg-slate-100 dark:bg-slate-900 hover:bg-indigo-100 dark:hover:bg-indigo-900 text-slate-700 dark:text-slate-300 hover:text-indigo-600 dark:hover:text-indigo-400 px-3 py-1.5 rounded-lg text-sm font-medium transition-colors"
+              className="inline-flex items-center space-x-1.5 bg-slate-100 dark:bg-slate-900 hover:bg-black dark:hover:bg-black text-slate-700 dark:text-slate-300 hover:text-black dark:hover:text-black px-3 py-1.5 rounded-lg text-sm font-medium transition-colors"
             >
               <span>{item.emoji}</span>
               <span>{item.tag}</span>
@@ -116,7 +116,7 @@ export default function RightSidebar() {
           {suggestions.map((suggestion, index) => (
             <div
               key={index}
-              className="flex items-start space-x-3 p-3 bg-slate-50 dark:bg-slate-900 rounded-lg hover:bg-indigo-50 dark:hover:bg-indigo-900/20 transition-colors cursor-pointer group"
+              className="flex items-start space-x-3 p-3 bg-slate-50 dark:bg-slate-900 rounded-lg hover:bg-black dark:hover:bg-black/20 transition-colors cursor-pointer group"
             >
               <div className={`w-10 h-10 bg-${suggestion.color}-100 dark:bg-${suggestion.color}-900/20 rounded-lg flex items-center justify-center flex-shrink-0 group-hover:scale-110 transition-transform`}>
                 <span className="text-lg">{suggestion.icon}</span>
@@ -131,17 +131,17 @@ export default function RightSidebar() {
       </div>
 
       {/* Platform Info */}
-      <div className="bg-gradient-to-br from-indigo-500 to-purple-600 rounded-xl p-4 text-white">
+      <div className="bg-black dark:bg-white rounded-xl p-4 text-white dark:text-black">
         <h3 className="font-bold mb-2 flex items-center">
-          <span className="text-lg mr-2">🎉</span>
+          <span className="text-lg mr-2">🚀</span>
           Seja um Criador!
         </h3>
-        <p className="text-sm text-white/90 mb-4">
-          Monetize seu conteúdo e construa sua comunidade LGBT+
+        <p className="text-sm opacity-90 mb-4">
+          Monetize seu conteúdo e construa sua própria comunidade.
         </p>
         <Link
           to="/creator-register"
-          className="block w-full bg-white hover:bg-slate-100 text-indigo-600 text-center font-bold py-2 px-4 rounded-lg text-sm transition-colors"
+          className="block w-full bg-white dark:bg-black hover:bg-slate-100 dark:hover:bg-slate-900 text-black dark:text-white text-center font-bold py-2 px-4 rounded-lg text-sm transition-colors"
         >
           Comece Agora 💰
         </Link>
@@ -150,14 +150,14 @@ export default function RightSidebar() {
       {/* Footer Links */}
       <div className="text-xs text-slate-500 dark:text-slate-400 space-y-2 px-2">
         <div className="flex flex-wrap gap-x-3 gap-y-1">
-          <Link to="/about" className="hover:text-indigo-600 dark:hover:text-indigo-400">Sobre</Link>
-          <Link to="/help" className="hover:text-indigo-600 dark:hover:text-indigo-400">Ajuda</Link>
-          <Link to="/terms" className="hover:text-indigo-600 dark:hover:text-indigo-400">Termos</Link>
-          <Link to="/privacy" className="hover:text-indigo-600 dark:hover:text-indigo-400">Privacidade</Link>
-          <Link to="/safety" className="hover:text-indigo-600 dark:hover:text-indigo-400">Segurança</Link>
+          <Link to="/about" className="hover:text-black dark:hover:text-black">Sobre</Link>
+          <Link to="/help" className="hover:text-black dark:hover:text-black">Ajuda</Link>
+          <Link to="/terms" className="hover:text-black dark:hover:text-black">Termos</Link>
+          <Link to="/privacy" className="hover:text-black dark:hover:text-black">Privacidade</Link>
+          <Link to="/safety" className="hover:text-black dark:hover:text-black">Segurança</Link>
         </div>
         <p className="text-slate-400 dark:text-slate-500">
-          © 2025 PrideConnect. Feito com 💜
+          © 2026 {window.localStorage.getItem('discreetMode') === 'true' ? 'Portal' : 'FlowConnect'}.
         </p>
       </div>
     </aside>

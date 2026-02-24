@@ -63,7 +63,7 @@ export default function ForgotPasswordPage() {
 
   const handleSendCode = async (e) => {
     e.preventDefault();
-    
+
     const newErrors = validateEmail();
     if (Object.keys(newErrors).length > 0) {
       setErrors(newErrors);
@@ -71,7 +71,7 @@ export default function ForgotPasswordPage() {
     }
 
     setIsLoading(true);
-    
+
     try {
       // TODO: Integrar com API para enviar código
       // await fetch('/api/auth/forgot-password', {
@@ -79,12 +79,12 @@ export default function ForgotPasswordPage() {
       //   headers: { 'Content-Type': 'application/json' },
       //   body: JSON.stringify({ email: formData.email })
       // });
-      
+
       await new Promise(resolve => setTimeout(resolve, 1500));
-      
+
       setStep(2);
       setResendTimer(60); // 60 segundos para reenviar
-      
+
       // Timer countdown
       const interval = setInterval(() => {
         setResendTimer(prev => {
@@ -95,7 +95,7 @@ export default function ForgotPasswordPage() {
           return prev - 1;
         });
       }, 1000);
-      
+
     } catch (error) {
       setErrors({ email: 'Erro ao enviar código. Tente novamente.' });
     } finally {
@@ -105,7 +105,7 @@ export default function ForgotPasswordPage() {
 
   const handleVerifyCode = async (e) => {
     e.preventDefault();
-    
+
     const newErrors = validateCode();
     if (Object.keys(newErrors).length > 0) {
       setErrors(newErrors);
@@ -113,7 +113,7 @@ export default function ForgotPasswordPage() {
     }
 
     setIsLoading(true);
-    
+
     try {
       // TODO: Verificar código com API
       // await fetch('/api/auth/verify-code', {
@@ -121,9 +121,9 @@ export default function ForgotPasswordPage() {
       //   headers: { 'Content-Type': 'application/json' },
       //   body: JSON.stringify({ email: formData.email, code: formData.code })
       // });
-      
+
       await new Promise(resolve => setTimeout(resolve, 1500));
-      
+
       setStep(3);
     } catch (error) {
       setErrors({ code: 'Código inválido ou expirado.' });
@@ -134,7 +134,7 @@ export default function ForgotPasswordPage() {
 
   const handleResetPassword = async (e) => {
     e.preventDefault();
-    
+
     const newErrors = validatePassword();
     if (Object.keys(newErrors).length > 0) {
       setErrors(newErrors);
@@ -142,7 +142,7 @@ export default function ForgotPasswordPage() {
     }
 
     setIsLoading(true);
-    
+
     try {
       // TODO: Resetar senha com API
       // await fetch('/api/auth/reset-password', {
@@ -154,16 +154,16 @@ export default function ForgotPasswordPage() {
       //     newPassword: formData.newPassword 
       //   })
       // });
-      
+
       await new Promise(resolve => setTimeout(resolve, 1500));
-      
+
       setStep(4);
-      
+
       // Redirecionar para login após 3 segundos
       setTimeout(() => {
         navigate('/login');
       }, 3000);
-      
+
     } catch (error) {
       setErrors({ submit: 'Erro ao redefinir senha. Tente novamente.' });
     } finally {
@@ -173,12 +173,12 @@ export default function ForgotPasswordPage() {
 
   const handleResendCode = async () => {
     if (resendTimer > 0) return;
-    
+
     setIsLoading(true);
     try {
       // TODO: Reenviar código
       await new Promise(resolve => setTimeout(resolve, 1000));
-      
+
       setResendTimer(60);
       const interval = setInterval(() => {
         setResendTimer(prev => {
@@ -202,12 +202,12 @@ export default function ForgotPasswordPage() {
         {/* Logo */}
         <div className="text-center mb-8">
           <Link to="/" className="inline-flex items-center space-x-3 mb-4">
-            <div className="w-12 h-12 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-xl flex items-center justify-center">
+            <div className="w-12 h-12 bg-black dark:bg-slate-800 rounded-xl flex items-center justify-center">
               <span className="text-white font-black text-2xl">P</span>
             </div>
-            <h1 className="text-2xl font-bold text-slate-900 dark:text-white">PrideConnect</h1>
+            <h1 className="text-2xl font-bold text-slate-900 dark:text-white">FlowConnect</h1>
           </Link>
-          
+
           {step < 4 && (
             <>
               <h2 className="text-2xl font-bold text-slate-900 dark:text-white mb-2">
@@ -240,20 +240,19 @@ export default function ForgotPasswordPage() {
                   value={formData.email}
                   onChange={handleChange}
                   autoFocus
-                  className={`w-full px-4 py-3 bg-slate-50 dark:bg-slate-800 border ${
-                    errors.email ? 'border-red-300' : 'border-slate-200 dark:border-slate-700'
-                  } rounded-lg text-slate-900 dark:text-white placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all`}
+                  className={`w-full px-4 py-3 bg-slate-50 dark:bg-slate-800 border ${errors.email ? 'border-red-300' : 'border-slate-200 dark:border-slate-700'
+                    } rounded-lg text-slate-900 dark:text-white placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-black dark:focus:ring-white transition-all`}
                   placeholder="seu@email.com"
                 />
                 {errors.email && (
-                  <p className="mt-1 text-sm text-red-600 dark:text-red-400">{errors.email}</p>
+                  <p className="mt-1 text-sm text-slate-900 dark:text-slate-900">{errors.email}</p>
                 )}
               </div>
 
               <button
                 type="submit"
                 disabled={isLoading}
-                className="w-full bg-indigo-600 hover:bg-indigo-700 disabled:bg-indigo-400 text-white font-bold py-3 px-4 rounded-lg transition-colors flex items-center justify-center space-x-2"
+                className="w-full bg-black hover:bg-black disabled:bg-black text-white font-bold py-3 px-4 rounded-lg transition-colors flex items-center justify-center space-x-2"
               >
                 {isLoading ? (
                   <>
@@ -279,11 +278,11 @@ export default function ForgotPasswordPage() {
           {/* Step 2: Verification Code */}
           {step === 2 && (
             <form onSubmit={handleVerifyCode} className="space-y-5">
-              <div className="bg-indigo-50 dark:bg-indigo-900/20 border border-indigo-200 dark:border-indigo-800 rounded-lg p-4 text-center">
-                <svg xmlns="http://www.w3.org/2000/svg" className="mx-auto h-12 w-12 text-indigo-600 dark:text-indigo-400 mb-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <div className="bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg p-4 text-center">
+                <svg xmlns="http://www.w3.org/2000/svg" className="mx-auto h-12 w-12 text-black dark:text-black mb-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
                 </svg>
-                <p className="text-sm text-indigo-900 dark:text-indigo-200">
+                <p className="text-slate-600 dark:text-slate-400">
                   Verifique sua caixa de entrada (e spam!)
                 </p>
               </div>
@@ -300,20 +299,19 @@ export default function ForgotPasswordPage() {
                   onChange={handleChange}
                   maxLength="6"
                   autoFocus
-                  className={`w-full px-4 py-3 bg-slate-50 dark:bg-slate-800 border ${
-                    errors.code ? 'border-red-300' : 'border-slate-200 dark:border-slate-700'
-                  } rounded-lg text-slate-900 dark:text-white text-center text-2xl tracking-widest font-mono placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all`}
+                  className={`w-full px-4 py-3 bg-slate-50 dark:bg-slate-800 border ${errors.code ? 'border-red-300' : 'border-slate-200 dark:border-slate-700'
+                    } rounded-lg text-slate-900 dark:text-white text-center text-2xl tracking-widest font-mono placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-black dark:focus:ring-white transition-all`}
                   placeholder="000000"
                 />
                 {errors.code && (
-                  <p className="mt-1 text-sm text-red-600 dark:text-red-400">{errors.code}</p>
+                  <p className="mt-1 text-sm text-slate-900 dark:text-slate-900">{errors.code}</p>
                 )}
               </div>
 
               <button
                 type="submit"
                 disabled={isLoading}
-                className="w-full bg-indigo-600 hover:bg-indigo-700 disabled:bg-indigo-400 text-white font-bold py-3 px-4 rounded-lg transition-colors"
+                className="w-full bg-black hover:bg-black disabled:bg-black text-white font-bold py-3 px-4 rounded-lg transition-colors"
               >
                 {isLoading ? 'Verificando...' : 'Verificar código'}
               </button>
@@ -324,10 +322,10 @@ export default function ForgotPasswordPage() {
                   type="button"
                   onClick={handleResendCode}
                   disabled={resendTimer > 0}
-                  className="text-sm text-indigo-600 dark:text-indigo-400 hover:text-indigo-700 dark:hover:text-indigo-300 font-medium disabled:text-slate-400 disabled:cursor-not-allowed"
+                  className="text-sm text-black hover:underline font-medium disabled:text-slate-400 disabled:cursor-not-allowed"
                 >
-                  {resendTimer > 0 
-                    ? `Reenviar código em ${resendTimer}s` 
+                  {resendTimer > 0
+                    ? `Reenviar código em ${resendTimer}s`
                     : 'Não recebeu? Reenviar código'}
                 </button>
               </div>
@@ -360,9 +358,8 @@ export default function ForgotPasswordPage() {
                     value={formData.newPassword}
                     onChange={handleChange}
                     autoFocus
-                    className={`w-full px-4 py-3 pr-12 bg-slate-50 dark:bg-slate-800 border ${
-                      errors.newPassword ? 'border-red-300' : 'border-slate-200 dark:border-slate-700'
-                    } rounded-lg text-slate-900 dark:text-white placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all`}
+                    className={`w-full px-4 py-3 pr-12 bg-slate-50 dark:bg-slate-800 border ${errors.newPassword ? 'border-red-300' : 'border-slate-200 dark:border-slate-700'
+                      } rounded-lg text-slate-900 dark:text-white placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-black dark:focus:ring-white transition-all`}
                     placeholder="••••••••"
                   />
                   <button
@@ -384,7 +381,7 @@ export default function ForgotPasswordPage() {
                   </button>
                 </div>
                 {errors.newPassword && (
-                  <p className="mt-1 text-sm text-red-600 dark:text-red-400">{errors.newPassword}</p>
+                  <p className="mt-1 text-sm text-slate-900 dark:text-slate-900">{errors.newPassword}</p>
                 )}
                 <p className="mt-1 text-xs text-slate-500">Mínimo 8 caracteres, com maiúsculas, minúsculas e números</p>
               </div>
@@ -399,18 +396,17 @@ export default function ForgotPasswordPage() {
                   name="confirmPassword"
                   value={formData.confirmPassword}
                   onChange={handleChange}
-                  className={`w-full px-4 py-3 bg-slate-50 dark:bg-slate-800 border ${
-                    errors.confirmPassword ? 'border-red-300' : 'border-slate-200 dark:border-slate-700'
-                  } rounded-lg text-slate-900 dark:text-white placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all`}
+                  className={`w-full px-4 py-3 bg-slate-50 dark:bg-slate-800 border ${errors.confirmPassword ? 'border-red-300' : 'border-slate-200 dark:border-slate-700'
+                    } rounded-lg text-slate-900 dark:text-white placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-black dark:focus:ring-white transition-all`}
                   placeholder="••••••••"
                 />
                 {errors.confirmPassword && (
-                  <p className="mt-1 text-sm text-red-600 dark:text-red-400">{errors.confirmPassword}</p>
+                  <p className="mt-1 text-sm text-slate-900 dark:text-slate-900">{errors.confirmPassword}</p>
                 )}
               </div>
 
               {errors.submit && (
-                <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 text-red-600 dark:text-red-400 px-4 py-3 rounded-lg text-sm">
+                <div className="bg-slate-900 dark:bg-slate-900/20 border border-red-200 dark:border-red-800 text-slate-900 dark:text-slate-900 px-4 py-3 rounded-lg text-sm">
                   {errors.submit}
                 </div>
               )}
@@ -418,7 +414,7 @@ export default function ForgotPasswordPage() {
               <button
                 type="submit"
                 disabled={isLoading}
-                className="w-full bg-indigo-600 hover:bg-indigo-700 disabled:bg-indigo-400 text-white font-bold py-3 px-4 rounded-lg transition-colors flex items-center justify-center space-x-2"
+                className="w-full bg-black hover:bg-black disabled:bg-black text-white font-bold py-3 px-4 rounded-lg transition-colors flex items-center justify-center space-x-2"
               >
                 {isLoading ? (
                   <>
@@ -443,12 +439,12 @@ export default function ForgotPasswordPage() {
           {/* Step 4: Success */}
           {step === 4 && (
             <div className="text-center py-6">
-              <div className="w-16 h-16 bg-green-100 dark:bg-green-900/20 rounded-full flex items-center justify-center mx-auto mb-4">
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8 text-green-600 dark:text-green-400" viewBox="0 0 20 20" fill="currentColor">
+              <div className="w-16 h-16 bg-slate-800 dark:bg-slate-800/20 rounded-full flex items-center justify-center mx-auto mb-4">
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8 text-slate-800 dark:text-slate-800" viewBox="0 0 20 20" fill="currentColor">
                   <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
                 </svg>
               </div>
-              
+
               <h3 className="text-2xl font-bold text-slate-900 dark:text-white mb-2">
                 Senha redefinida com sucesso! ✓
               </h3>
@@ -467,9 +463,9 @@ export default function ForgotPasswordPage() {
                 voce pode clicar no link abaixo se nao quiser esperar
                 <p></p>
               </div>
-              <Link 
-                to="/login" 
-                className="inline-block mt-4 text-indigo-600 dark:text-indigo-400 hover:text-indigo-700 dark:hover:text-indigo-300 font-medium text-sm"
+              <Link
+                to="/login"
+                className="inline-block mt-4 text-black dark:text-black hover:text-black dark:hover:text-black font-medium text-sm"
               >
                 Ir para login agora →
               </Link>
@@ -479,8 +475,8 @@ export default function ForgotPasswordPage() {
           {/* Back to Login (only steps 1-3) */}
           {step < 4 && (
             <div className="mt-6 text-center">
-              <Link 
-                to="/login" 
+              <Link
+                to="/login"
                 className="text-sm text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white font-medium"
               >
                 ← Voltar para login
@@ -494,7 +490,7 @@ export default function ForgotPasswordPage() {
           <div className="mt-6 text-center">
             <p className="text-sm text-slate-500 dark:text-slate-400">
               Ainda com problemas?{' '}
-              <Link to="/support" className="text-indigo-600 dark:text-indigo-400 hover:underline font-medium">
+              <Link to="/support" className="text-black dark:text-black hover:underline font-medium">
                 Entre em contato com o suporte
               </Link>
             </p>

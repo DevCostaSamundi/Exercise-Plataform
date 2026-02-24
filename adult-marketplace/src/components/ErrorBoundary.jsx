@@ -23,7 +23,7 @@ class ErrorBoundary extends Component {
   componentDidCatch(error, errorInfo) {
     // Log error details for debugging
     console.error('ErrorBoundary caught an error:', error, errorInfo);
-    
+
     this.setState({
       error,
       errorInfo,
@@ -55,18 +55,18 @@ class ErrorBoundary extends Component {
             <div className="flex items-start gap-4">
               {/* Error Icon */}
               <div className="flex-shrink-0">
-                <div className="w-12 h-12 bg-red-100 dark:bg-red-900/30 rounded-full flex items-center justify-center">
-                  <svg 
-                    className="w-6 h-6 text-red-600 dark:text-red-400" 
-                    fill="none" 
-                    viewBox="0 0 24 24" 
+                <div className="w-12 h-12 bg-slate-900 dark:bg-slate-900/30 rounded-full flex items-center justify-center">
+                  <svg
+                    className="w-6 h-6 text-slate-900 dark:text-slate-900"
+                    fill="none"
+                    viewBox="0 0 24 24"
                     stroke="currentColor"
                   >
-                    <path 
-                      strokeLinecap="round" 
-                      strokeLinejoin="round" 
-                      strokeWidth={2} 
-                      d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" 
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
                     />
                   </svg>
                 </div>
@@ -87,7 +87,7 @@ class ErrorBoundary extends Component {
                     <summary className="cursor-pointer text-sm font-semibold text-slate-700 dark:text-slate-300 mb-2">
                       Detalhes do erro (desenvolvimento)
                     </summary>
-                    <div className="mt-2 text-xs font-mono text-red-600 dark:text-red-400 whitespace-pre-wrap">
+                    <div className="mt-2 text-xs font-mono text-slate-900 dark:text-slate-900 whitespace-pre-wrap">
                       <p className="font-bold mb-1">{this.state.error.toString()}</p>
                       {this.state.errorInfo && (
                         <p className="text-slate-600 dark:text-slate-400 mt-2">
@@ -102,7 +102,7 @@ class ErrorBoundary extends Component {
                 <div className="flex gap-3">
                   <button
                     onClick={this.handleReset}
-                    className="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-medium rounded-lg transition-colors focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
+                    className="px-4 py-2 bg-black hover:bg-black text-white text-sm font-medium rounded-lg transition-colors focus:outline-none focus:ring-2 focus:ring-black focus:ring-offset-2"
                   >
                     Tentar Novamente
                   </button>

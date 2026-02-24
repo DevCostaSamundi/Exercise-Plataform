@@ -132,11 +132,10 @@ const Explore = () => {
             <button
               key={option.value}
               onClick={() => setSortBy(option.value)}
-              className={`px-4 py-2 rounded-full font-semibold whitespace-nowrap transition-all ${
-                sortBy === option.value
-                  ? 'bg-purple-600 text-white'
+              className={`px-4 py-2 rounded-full font-semibold whitespace-nowrap transition-all ${sortBy === option.value
+                  ? 'bg-black text-white'
                   : 'bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-300 dark:hover:bg-gray-600'
-              }`}
+                }`}
             >
               {option.label}
             </button>
@@ -168,7 +167,7 @@ const Explore = () => {
                 onChange={(e) =>
                   setFilters({ ...filters, verified: e.target.checked })
                 }
-                className="w-4 h-4 text-purple-600 rounded"
+                className="w-4 h-4 text-black rounded"
               />
               <span className="text-gray-900 dark:text-white">
                 Apenas Verificados
@@ -201,7 +200,7 @@ const Explore = () => {
           <div className="flex gap-2 mt-4">
             <button
               onClick={applyFilters}
-              className="flex-1 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-lg font-semibold"
+              className="flex-1 py-2 bg-black hover:bg-black text-white rounded-lg font-semibold"
             >
               Aplicar Filtros
             </button>
@@ -230,14 +229,14 @@ const Explore = () => {
       {/* Loading */}
       {loading && (
         <div className="text-center py-8">
-          <div className="inline-block w-8 h-8 border-4 border-purple-600 border-t-transparent rounded-full animate-spin" />
+          <div className="inline-block w-8 h-8 border-4 border-black dark:border-white border-t-transparent rounded-full animate-spin" />
         </div>
       )}
 
       {/* No More */}
       {!hasMore && creators.length > 0 && (
         <div className="text-center py-8 text-gray-500">
-          Você viu todos os criadores disponíveis! 
+          Você viu todos os criadores disponíveis!
         </div>
       )}
 

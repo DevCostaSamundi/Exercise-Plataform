@@ -45,7 +45,7 @@ const PPVMessageModal = ({ message, creator, onClose, onUnlock }) => {
     return (
       <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black bg-opacity-50">
         <div className="bg-white dark:bg-gray-800 rounded-lg shadow-xl max-w-md w-full p-6">
-          <h2 className="text-xl font-bold text-red-600 mb-4">Erro</h2>
+          <h2 className="text-xl font-bold text-slate-900 mb-4">Erro</h2>
           <p className="text-gray-700 dark:text-gray-300 mb-4">
             Esta mensagem não possui um preço válido.
           </p>
@@ -89,7 +89,7 @@ const PPVMessageModal = ({ message, creator, onClose, onUnlock }) => {
               <p className="font-semibold text-gray-900 dark:text-white">
                 {creator?.name}
                 {creator?.isVerified && (
-                  <span className="ml-1 text-blue-500">✓</span>
+                  <span className="ml-1 text-black">✓</span>
                 )}
               </p>
               <p className="text-sm text-gray-500 dark:text-gray-400">
@@ -99,13 +99,13 @@ const PPVMessageModal = ({ message, creator, onClose, onUnlock }) => {
           </div>
 
           {/* Price */}
-          <div className="flex items-center justify-center p-6 bg-purple-50 dark:bg-purple-900/20 rounded-lg">
+          <div className="flex items-center justify-center p-6 bg-black dark:bg-black/20 rounded-lg">
             <div className="text-center">
-              <FiLock className="text-4xl text-purple-600 dark:text-purple-400 mx-auto mb-2" />
+              <FiLock className="text-4xl text-black dark:text-black mx-auto mb-2" />
               <p className="text-sm text-gray-600 dark:text-gray-400 mb-1">
                 Conteúdo Exclusivo
               </p>
-              <p className="text-3xl font-bold text-purple-600 dark:text-purple-400">
+              <p className="text-3xl font-bold text-black dark:text-black">
                 {formatPrice(price, message.currency)}
               </p>
             </div>
@@ -126,8 +126,8 @@ const PPVMessageModal = ({ message, creator, onClose, onUnlock }) => {
                 type="button"
                 onClick={() => setPaymentMethod('crypto')}
                 className={`w-full flex items-center gap-3 p-4 rounded-lg border-2 transition-colors ${paymentMethod === 'crypto'
-                    ? 'border-purple-600 bg-purple-50 dark:bg-purple-900/20'
-                    : 'border-gray-300 dark:border-gray-600 hover:border-purple-400'
+                  ? 'border-black bg-black dark:bg-black/20'
+                  : 'border-gray-300 dark:border-gray-600 hover:border-black'
                   }`}
               >
                 <FiDollarSign className="text-xl" />
@@ -140,7 +140,7 @@ const PPVMessageModal = ({ message, creator, onClose, onUnlock }) => {
                   </p>
                 </div>
                 {paymentMethod === 'crypto' && (
-                  <div className="ml-auto w-5 h-5 bg-purple-600 rounded-full flex items-center justify-center">
+                  <div className="ml-auto w-5 h-5 bg-black rounded-full flex items-center justify-center">
                     <svg className="w-3 h-3 text-white" fill="currentColor" viewBox="0 0 20 20">
                       <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
                     </svg>
@@ -152,8 +152,8 @@ const PPVMessageModal = ({ message, creator, onClose, onUnlock }) => {
 
           {/* Error Message */}
           {error && (
-            <div className="p-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg">
-              <p className="text-sm text-red-600 dark:text-red-400">{error}</p>
+            <div className="p-3 bg-slate-900 dark:bg-slate-900/20 border border-red-200 dark:border-red-800 rounded-lg">
+              <p className="text-sm text-slate-900 dark:text-slate-900">{error}</p>
             </div>
           )}
 
@@ -169,7 +169,7 @@ const PPVMessageModal = ({ message, creator, onClose, onUnlock }) => {
             <button
               onClick={handleUnlock}
               disabled={loading}
-              className="flex-1 px-4 py-3 bg-purple-600 hover:bg-purple-700 text-white rounded-lg transition-colors font-semibold disabled:opacity-50 disabled:cursor-not-allowed"
+              className="flex-1 px-4 py-3 bg-black hover:bg-black text-white rounded-lg transition-colors font-semibold disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {loading ? (
                 <span className="flex items-center justify-center gap-2">

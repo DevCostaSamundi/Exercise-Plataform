@@ -27,11 +27,11 @@ console.log('🔧 Web3Auth Config:', {
 
 // Validate configuration
 if (!chainConfig.rpcTarget) {
-    throw new Error('RPC Target is not configured. Please set VITE_RPC_URL in .env file');
+    console.error('❌ RPC Target is not configured. Please set VITE_RPC_URL in .env file. Using fallback.');
 }
 
 if (!import.meta.env.VITE_WEB3AUTH_CLIENT_ID) {
-    throw new Error('Web3Auth Client ID is not configured. Please set VITE_WEB3AUTH_CLIENT_ID in .env file');
+    console.warn('⚠️ Web3Auth Client ID is not configured. Web3Auth will be disabled.');
 }
 
 const privateKeyProvider = new EthereumPrivateKeyProvider({
@@ -44,7 +44,7 @@ export const web3AuthConfig = {
     chainConfig,
     privateKeyProvider,
     uiConfig: {
-        appName: import.meta.env.VITE_APP_NAME || 'PrideConnect',
+        appName: import.meta.env.VITE_APP_NAME || 'FlowConnect',
         appUrl: import.meta.env.VITE_FRONTEND_URL || window.location.origin,
         theme: {
             primary: import.meta.env.VITE_PRIMARY_COLOR || '#9333ea',
@@ -58,5 +58,26 @@ export const web3AuthConfig = {
 };
 
 export const createWeb3AuthInstance = () => {
-    return new Web3Auth(web3AuthConfig);
+    try {
+        const clientId = import.meta.env.VITE_WEB3AUTH_CLIENT_ID;
+
+        if (!clientId) {
+            console.warn('⚠️ VITE_WEB3AUTH_CLIENT_ID not set');
+            return null;
+        }
+
+        const web3auth = new Web3Auth({
+            clientId,
+            web3AuthNetwork: import.meta.env.VITE_WEB3AUTH_NETWORK === 'sapphire_mainnet'
+                ? WEB3AUTH_NETWORK.SAPPHIRE_MAINNET
+                : WEB3AUTH_NETWORK.SAPPHIRE_DEVNET,
+            chainConfig,
+            privateKeyProvider,
+        });
+
+        return web3auth;
+    } catch (err) {
+        console.error('❌ Error creating Web3Auth instance:', err);
+        return null;
+    }
 };

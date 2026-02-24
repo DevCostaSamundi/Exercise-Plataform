@@ -1,9 +1,9 @@
 {
-  "name": "prideconnect",
+  "name": "flowconnect",
   "private": true,
   "version": "1.0.0",
   "type": "module",
-  "description": "Web3-powered content creator platform frontend",
+  "description": "Universal content creator platform frontend",
   "author": "Your Name",
   "license": "MIT",
   "scripts": {

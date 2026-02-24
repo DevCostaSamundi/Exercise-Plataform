@@ -1,7 +1,7 @@
 {
-  "name": "prideconnect-backend",
+  "name": "flowconnect-backend",
   "version": "1.0.0",
-  "description": "Backend API for PrideConnect - LGBT+ Adult Content Platform",
+  "description": "Backend API for FlowConnect - Content Creator Platform",
   "main": "server.js",
   "type": "module",
   "scripts": {
@@ -48,6 +48,8 @@
     "qrcode.react": "^4.2.0",
     "socket.io": "^4.8.3",
     "streamifier": "^0.1.1",
+    "uuid": "^13.0.0",
+    "viem": "^2.46.2",
     "winston": "^3.11.0"
   },
   "devDependencies": {

@@ -15,7 +15,7 @@ const Transactions = () => {
     type: '',
     status: '',
     startDate: '',
-    endDate:  '',
+    endDate: '',
   });
 
   const lastTransactionRef = useInfiniteScroll(loadMore, hasMore, loading);
@@ -29,8 +29,8 @@ const Transactions = () => {
       setLoading(true);
       const response = await transactionService.getTransactions({
         page: pageNum,
-        limit:  20,
-        ... filters,
+        limit: 20,
+        ...filters,
       });
 
       const newTransactions = response.transactions || [];
@@ -77,7 +77,7 @@ const Transactions = () => {
 
   const clearFilters = () => {
     setFilters({
-      type:  '',
+      type: '',
       status: '',
       startDate: '',
       endDate: '',
@@ -96,7 +96,7 @@ const Transactions = () => {
           <div className="flex gap-2">
             <button
               onClick={handleExportCSV}
-              className="flex items-center gap-2 px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg font-medium transition-colors"
+              className="flex items-center gap-2 px-4 py-2 bg-slate-800 hover:bg-slate-800 text-white rounded-lg font-medium transition-colors"
             >
               <FiDownload className="text-lg" />
               <span>Exportar CSV</span>
@@ -157,8 +157,8 @@ const Transactions = () => {
                 </label>
                 <input
                   type="date"
-                  value={filters. startDate}
-                  onChange={(e) => setFilters({ ... filters, startDate: e.target.value })}
+                  value={filters.startDate}
+                  onChange={(e) => setFilters({ ...filters, startDate: e.target.value })}
                   className="w-full px-3 py-2 bg-gray-50 dark:bg-gray-900 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-900 dark:text-white"
                 />
               </div>
@@ -169,8 +169,8 @@ const Transactions = () => {
                 </label>
                 <input
                   type="date"
-                  value={filters. endDate}
-                  onChange={(e) => setFilters({ ... filters, endDate: e.target.value })}
+                  value={filters.endDate}
+                  onChange={(e) => setFilters({ ...filters, endDate: e.target.value })}
                   className="w-full px-3 py-2 bg-gray-50 dark:bg-gray-900 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-900 dark:text-white"
                 />
               </div>
@@ -191,7 +191,7 @@ const Transactions = () => {
       {/* Transactions List */}
       {loading && transactions.length === 0 ? (
         <div className="flex justify-center py-12">
-          <div className="animate-spin rounded-full h-12 w-12 border-4 border-indigo-600 border-t-transparent"></div>
+          <div className="animate-spin rounded-full h-12 w-12 border-4 border-black dark:border-white border-t-transparent"></div>
         </div>
       ) : transactions.length === 0 ? (
         <div className="text-center py-12 text-gray-400">
@@ -212,7 +212,7 @@ const Transactions = () => {
 
           {loading && (
             <div className="flex justify-center py-4">
-              <div className="animate-spin rounded-full h-8 w-8 border-4 border-indigo-600 border-t-transparent"></div>
+              <div className="animate-spin rounded-full h-8 w-8 border-4 border-black dark:border-white border-t-transparent"></div>
             </div>
           )}
         </div>

@@ -42,11 +42,10 @@ export default function TipModal({ isOpen, onClose, creator, onSuccess }) {
                 <button
                   key={preset}
                   onClick={() => setAmount(preset)}
-                  className={`py-2 rounded-lg font-medium transition-colors ${
-                    amount === preset
-                      ? 'bg-indigo-600 text-white'
+                  className={`py-2 rounded-lg font-medium transition-colors ${amount === preset
+                      ? 'bg-black text-white'
                       : 'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300'
-                  }`}
+                    }`}
                 >
                   ${preset}
                 </button>
@@ -60,7 +59,7 @@ export default function TipModal({ isOpen, onClose, creator, onSuccess }) {
                 value={amount}
                 onChange={(e) => setAmount(Number(e.target.value))}
                 min="1"
-                className="w-full pl-8 pr-4 py-3 bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg focus:ring-2 focus:ring-indigo-500 text-slate-900 dark:text-white"
+                className="w-full pl-8 pr-4 py-3 bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg focus:ring-2 focus:ring-black dark:focus:ring-white text-slate-900 dark:text-white"
                 placeholder="Valor personalizado"
               />
             </div>
@@ -74,7 +73,7 @@ export default function TipModal({ isOpen, onClose, creator, onSuccess }) {
               value={message}
               onChange={(e) => setMessage(e.target.value)}
               rows="3"
-              className="w-full px-4 py-3 bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg focus:ring-2 focus:ring-indigo-500 text-slate-900 dark:text-white resize-none"
+              className="w-full px-4 py-3 bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg focus:ring-2 focus:ring-black dark:focus:ring-white text-slate-900 dark:text-white resize-none"
               placeholder="Deixe uma mensagem para o criador..."
             />
           </div>
@@ -82,7 +81,7 @@ export default function TipModal({ isOpen, onClose, creator, onSuccess }) {
           <button
             onClick={handleContinue}
             disabled={amount < 1}
-            className="w-full bg-gradient-to-r from-pink-500 to-purple-600 hover:from-pink-600 hover:to-purple-700 disabled:opacity-50 disabled:cursor-not-allowed text-white font-bold py-3 rounded-lg transition-all"
+            className="w-full bg-black dark:bg-white hover:bg-black/90 dark:hover:bg-white/90 disabled:opacity-50 disabled:cursor-not-allowed text-white dark:text-black font-bold py-3 rounded-lg transition-all"
           >
             Continuar para Pagamento
           </button>
@@ -94,16 +93,16 @@ export default function TipModal({ isOpen, onClose, creator, onSuccess }) {
           isOpen={showPayment}
           onClose={() => setShowPayment(false)}
           paymentData={{
-            creatorId: creator. id,
+            creatorId: creator.id,
             type: 'TIP',
             amountUSD: amount,
             message,  // ✅ INCLUIR MENSAGEM
           }}
           onSuccess={(payment) => {
-            console. log('✅ Tip sent:', payment);
+            console.log('✅ Tip sent:', payment);
             setShowPayment(false);
             onClose();
-            onSuccess?. ();
+            onSuccess?.();
           }}
         />
       )}

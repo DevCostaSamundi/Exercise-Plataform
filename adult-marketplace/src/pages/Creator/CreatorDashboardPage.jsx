@@ -4,8 +4,10 @@ import CreatorSidebar from '../../components/CreatorSidebar';
 import api from '../../services/api';
 import LoadingSpinner from '../../components/LoadingSpinner';
 import ErrorMessage from '../../components/ErrorMessage';
+import { useUI } from '../../contexts/UIContext';
 
 export default function CreatorDashboardPage() {
+  const { projectName, logoChar } = useUI();
   const [timeRange, setTimeRange] = useState('7days');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -178,8 +180,8 @@ export default function CreatorDashboardPage() {
             <div className="flex items-center justify-between h-16">
               <div className="flex items-center space-x-4">
                 <Link to="/creator/dashboard" className="flex items-center space-x-3">
-                  <div className="w-10 h-10 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-xl flex items-center justify-center">
-                    <span className="text-white font-black text-xl">P</span>
+                  <div className="w-10 h-10 bg-black dark:bg-white rounded-xl flex items-center justify-center">
+                    <span className="text-white dark:text-black font-black text-xl">{logoChar}</span>
                   </div>
                   <span className="font-bold text-slate-900 dark:text-white">Dashboard</span>
                 </Link>
@@ -216,16 +218,14 @@ export default function CreatorDashboardPage() {
             {/* Subscribers */}
             <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 p-6">
               <div className="flex items-center justify-between mb-4">
-                <div className="w-12 h-12 bg-indigo-100 dark:bg-indigo-900/20 rounded-lg flex items-center justify-center">
-                  <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-indigo-600 dark:text-indigo-400" viewBox="0 0 20 20" fill="currentColor">
+                <div className="w-12 h-12 bg-slate-100 dark:bg-slate-800 rounded-lg flex items-center justify-center">
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-black dark:text-white" viewBox="0 0 20 20" fill="currentColor">
                     <path d="M9 6a3 3 0 11-6 0 3 3 0 016 0zM17 6a3 3 0 11-6 0 3 3 0 016 0zM12.93 17c.046-.327.07-.66.07-1a6.97 6.97 0 00-1.5-4.33A5 5 0 0119 16v1h-6.07zM6 11a5 5 0 015 5v1H1v-1a5 5 0 015-5z" />
                   </svg>
                 </div>
-                {stats.subscribersGrowth > 0 && (
-                  <span className="text-xs font-medium text-green-600 dark:text-green-400 bg-green-50 dark:bg-green-900/20 px-2 py-1 rounded-full">
-                    +{toNumber(stats.subscribersGrowth).toFixed(1)}%
-                  </span>
-                )}
+                <span className="text-xs font-medium text-slate-600 dark:text-slate-400 bg-slate-100 dark:bg-slate-800 px-2 py-1 rounded-full">
+                  +{toNumber(stats.subscribersGrowth).toFixed(1)}%
+                </span>
               </div>
               <h3 className="text-2xl font-bold text-slate-900 dark:text-white mb-1">
                 {formatNumber(stats.subscribers)}
@@ -236,16 +236,14 @@ export default function CreatorDashboardPage() {
             {/* Earnings */}
             <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 p-6">
               <div className="flex items-center justify-between mb-4">
-                <div className="w-12 h-12 bg-green-100 dark:bg-green-900/20 rounded-lg flex items-center justify-center">
-                  <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-green-600 dark:text-green-400" viewBox="0 0 20 20" fill="currentColor">
+                <div className="w-12 h-12 bg-slate-100 dark:bg-slate-800 rounded-lg flex items-center justify-center">
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-black dark:text-white" viewBox="0 0 20 20" fill="currentColor">
                     <path fillRule="evenodd" d="M4 4a2 2 0 00-2 2v4a2 2 0 002 2V6h10a2 2 0 00-2-2H4zm2 6a2 2 0 012-2h8a2 2 0 012 2v4a2 2 0 01-2 2H8a2 2 0 01-2-2v-4zm6 4a2 2 0 100-4 2 2 0 000 4z" clipRule="evenodd" />
                   </svg>
                 </div>
-                {stats.earningsGrowth > 0 && (
-                  <span className="text-xs font-medium text-green-600 dark:text-green-400 bg-green-50 dark:bg-green-900/20 px-2 py-1 rounded-full">
-                    +{toNumber(stats.earningsGrowth).toFixed(1)}%
-                  </span>
-                )}
+                <span className="text-xs font-medium text-slate-600 dark:text-slate-400 bg-slate-100 dark:bg-slate-800 px-2 py-1 rounded-full">
+                  +{toNumber(stats.earningsGrowth).toFixed(1)}%
+                </span>
               </div>
               <h3 className="text-2xl font-bold text-slate-900 dark:text-white mb-1">
                 {formatCurrency(stats.earnings)}
@@ -256,8 +254,8 @@ export default function CreatorDashboardPage() {
             {/* Posts */}
             <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 p-6">
               <div className="flex items-center justify-between mb-4">
-                <div className="w-12 h-12 bg-purple-100 dark:bg-purple-900/20 rounded-lg flex items-center justify-center">
-                  <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-purple-600 dark:text-purple-400" viewBox="0 0 20 20" fill="currentColor">
+                <div className="w-12 h-12 bg-slate-100 dark:bg-slate-800 rounded-lg flex items-center justify-center">
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-black dark:text-white" viewBox="0 0 20 20" fill="currentColor">
                     <path fillRule="evenodd" d="M4 3a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V5a2 2 0 00-2-2H4zm12 12H4l4-8 3 6 2-4 3 6z" clipRule="evenodd" />
                   </svg>
                 </div>
@@ -274,8 +272,8 @@ export default function CreatorDashboardPage() {
             {/* Engagement - ✅ CORRIGIDO */}
             <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 p-6">
               <div className="flex items-center justify-between mb-4">
-                <div className="w-12 h-12 bg-pink-100 dark:bg-pink-900/20 rounded-lg flex items-center justify-center">
-                  <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-pink-600 dark:text-pink-400" viewBox="0 0 20 20" fill="currentColor">
+                <div className="w-12 h-12 bg-slate-100 dark:bg-slate-800 rounded-lg flex items-center justify-center">
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-black dark:text-white" viewBox="0 0 20 20" fill="currentColor">
                     <path fillRule="evenodd" d="M3.172 5.172a4 4 0 015.656 0L10 6.343l1.172-1.171a4 4 0 115.656 5.656L10 17.657l-6.828-6.829a4 4 0 010-5.656z" clipRule="evenodd" />
                   </svg>
                 </div>
@@ -292,16 +290,16 @@ export default function CreatorDashboardPage() {
 
           {/* Mensagem informativa se não há dados */}
           {stats.subscribers === 0 && stats.posts === 0 && (
-            <div className="bg-indigo-50 dark:bg-indigo-900/20 border border-indigo-200 dark:border-indigo-800 rounded-xl p-6 mb-8">
-              <h3 className="text-lg font-bold text-indigo-900 dark:text-indigo-100 mb-2">
+            <div className="bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-6 mb-8">
+              <h3 className="text-lg font-bold text-black dark:text-black mb-2">
                 🚀 Comece sua jornada!
               </h3>
-              <p className="text-indigo-700 dark:text-indigo-300 mb-4">
+              <p className="text-black dark:text-black mb-4">
                 Seu dashboard está vazio. Que tal criar seu primeiro post?
               </p>
               <Link
                 to="/creator/upload"
-                className="inline-flex items-center px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg transition"
+                className="inline-flex items-center px-4 py-2 bg-black dark:bg-white text-white dark:text-black rounded-lg font-bold transition-all hover:scale-105 active:scale-95 shadow-md"
               >
                 Criar primeiro post →
               </Link>

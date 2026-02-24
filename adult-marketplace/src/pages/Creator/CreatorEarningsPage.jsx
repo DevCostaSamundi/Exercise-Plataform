@@ -145,10 +145,10 @@ export default function CreatorEarningsPage() {
 
   const getStatusBadge = (status) => {
     const badges = {
-      PENDING: { label: 'Pendente', color: 'bg-yellow-100 dark:bg-yellow-900/20 text-yellow-700 dark:text-yellow-400' },
-      PROCESSING: { label: 'Processando', color: 'bg-blue-100 dark:bg-blue-900/20 text-blue-700 dark:text-blue-400' },
-      COMPLETED: { label: 'Concluído', color: 'bg-green-100 dark:bg-green-900/20 text-green-700 dark:text-green-400' },
-      FAILED: { label: 'Falhou', color: 'bg-red-100 dark:bg-red-900/20 text-red-700 dark:text-red-400' },
+      PENDING: { label: 'Pendente', color: 'bg-slate-600 dark:bg-slate-600/20 text-slate-600 dark:text-slate-600' },
+      PROCESSING: { label: 'Processando', color: 'bg-black dark:bg-black/20 text-black dark:text-black' },
+      COMPLETED: { label: 'Concluído', color: 'bg-slate-800 dark:bg-slate-800/20 text-slate-800 dark:text-slate-800' },
+      FAILED: { label: 'Falhou', color: 'bg-slate-900 dark:bg-slate-900/20 text-slate-900 dark:text-slate-900' },
       CANCELLED: { label: 'Cancelado', color: 'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-400' },
     };
     return badges[status] || badges.PENDING;
@@ -160,7 +160,7 @@ export default function CreatorEarningsPage() {
         <CreatorSidebar />
         <div className="flex-1 flex items-center justify-center">
           <div className="text-center">
-            <div className="inline-block animate-spin rounded-full h-12 w-12 border-4 border-indigo-600 border-t-transparent"></div>
+            <div className="inline-block animate-spin rounded-full h-12 w-12 border-4 border-black dark:border-white border-t-transparent"></div>
             <p className="mt-4 text-slate-600 dark:text-slate-400">Carregando ganhos...</p>
           </div>
         </div>
@@ -199,7 +199,7 @@ export default function CreatorEarningsPage() {
               <button
                 onClick={() => setShowWithdrawalModal(true)}
                 disabled={!balance || balance.availableUSD < 10}
-                className="flex items-center space-x-2 bg-indigo-600 hover:bg-indigo-700 disabled:bg-slate-400 text-white font-semibold px-4 py-2 rounded-lg transition-colors"
+                className="flex items-center space-x-2 bg-black hover:bg-black disabled:bg-slate-400 text-white font-semibold px-4 py-2 rounded-lg transition-colors"
               >
                 <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
                   <path fillRule="evenodd" d="M4 4a2 2 0 00-2 2v4a2 2 0 002 2V6h10a2 2 0 00-2-2H4zm2 6a2 2 0 012-2h8a2 2 0 012 2v4a2 2 0 01-2 2H8a2 2 0 01-2-2v-4zm6 4a2 2 0 100-4 2 2 0 000 4z" clipRule="evenodd" />
@@ -214,10 +214,10 @@ export default function CreatorEarningsPage() {
           {/* Balance Cards */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
             {/* Available Balance */}
-            <div className="bg-gradient-to-br from-indigo-500 to-purple-600 rounded-2xl p-6 text-white shadow-lg">
+            <div className="bg-black dark:bg-white border border-slate-200 dark:border-slate-800 rounded-2xl p-6 text-white dark:text-black shadow-lg">
               <div className="flex items-center justify-between mb-4">
-                <p className="text-indigo-100 text-sm font-medium">Disponível</p>
-                <div className="w-10 h-10 bg-white/20 rounded-full flex items-center justify-center">
+                <p className="text-white/70 dark:text-black/70 text-sm font-medium">Disponível</p>
+                <div className="w-10 h-10 bg-white/20 dark:bg-black/10 rounded-full flex items-center justify-center">
                   <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" viewBox="0 0 20 20" fill="currentColor">
                     <path d="M8.433 7.418c.155-.103.346-.196.567-.267v1.698a2.305 2.305 0 01-.567-.267C8.07 8.34 8 8.114 8 8c0-.114.07-.34.433-.582zM11 12.849v-1.698c.22.071.412.164.567.267.364.243.433.468.433.582 0-.114-.07-.34-.433-.582a2.305 2.305 0 01-.567.267z" />
                     <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-13a1 1 0 10-2 0v.092a4.535 4.535 0 00-1.676.662C6.602 6.234 6 7.009 6 8c0.99.602 1.765 1.324 2.246.48.32 1.054.545 1.676.662v1.941c-.391-.127-.68-.317-.843-.504a1 1 0 10-1.51 1.31c.562.649 1.413 1.076 2.353 1.253V15a1 1 0 102 0v-.092a4.535 4.535 0 001.676-.662C13.398 13.766 14 12.991 14 12c0-.99-.602-1.765-1.324-2.246A4.535 4.535 0 0011 9.092V7.151c.391.127.68.317.843.504a1 1 0 101.511-1.31c-.563-.649-1.413-1.076-2.354-1.253V5z" clipRule="evenodd" />
@@ -227,7 +227,7 @@ export default function CreatorEarningsPage() {
               <p className="text-4xl font-bold mb-2">
                 {formatCurrency(balance?.availableUSD || 0)}
               </p>
-              <p className="text-indigo-100 text-xs">
+              <p className="text-white/50 dark:text-black/50 text-xs">
                 Pronto para saque
               </p>
             </div>
@@ -236,8 +236,8 @@ export default function CreatorEarningsPage() {
             <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-6">
               <div className="flex items-center justify-between mb-4">
                 <p className="text-slate-600 dark:text-slate-400 text-sm font-medium">Pendente</p>
-                <div className="w-10 h-10 bg-yellow-100 dark:bg-yellow-900/20 rounded-full flex items-center justify-center">
-                  <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-yellow-600" viewBox="0 0 20 20" fill="currentColor">
+                <div className="w-10 h-10 bg-slate-600 dark:bg-slate-600/20 rounded-full flex items-center justify-center">
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-slate-600" viewBox="0 0 20 20" fill="currentColor">
                     <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clipRule="evenodd" />
                   </svg>
                 </div>
@@ -254,8 +254,8 @@ export default function CreatorEarningsPage() {
             <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-6">
               <div className="flex items-center justify-between mb-4">
                 <p className="text-slate-600 dark:text-slate-400 text-sm font-medium">Este Mês</p>
-                <div className="w-10 h-10 bg-green-100 dark:bg-green-900/20 rounded-full flex items-center justify-center">
-                  <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-green-600" viewBox="0 0 20 20" fill="currentColor">
+                <div className="w-10 h-10 bg-slate-800 dark:bg-slate-800/20 rounded-full flex items-center justify-center">
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-slate-800" viewBox="0 0 20 20" fill="currentColor">
                     <path fillRule="evenodd" d="M12 7a1 1 0 110-2h5a1 1 0 011 1v5a1 1 0 11-2 0V8.414l-4.293 4.293a1 1 0 01-1.414 0L8 10.414l-4.293 4.293a1 1 0 01-1.414-1.414l5-5a1 1 0 011.414 0L11 10.586 14.586 7H12z" clipRule="evenodd" />
                   </svg>
                 </div>
@@ -272,8 +272,8 @@ export default function CreatorEarningsPage() {
             <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-6">
               <div className="flex items-center justify-between mb-4">
                 <p className="text-slate-600 dark:text-slate-400 text-sm font-medium">Total Ganho</p>
-                <div className="w-10 h-10 bg-purple-100 dark:bg-purple-900/20 rounded-full flex items-center justify-center">
-                  <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-purple-600" viewBox="0 0 20 20" fill="currentColor">
+                <div className="w-10 h-10 bg-black dark:bg-black/20 rounded-full flex items-center justify-center">
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-black" viewBox="0 0 20 20" fill="currentColor">
                     <path d="M2 11a1 1 0 011-1h2a1 1 0 011 1v5a1 1 0 01-1 1H3a1 1 0 01-1-1v-5zM8 7a1 1 0 011-1h2a1 1 0 011 1v9a1 1 0 01-1 1H9a1 1 0 01-1-1V7zM14 4a1 1 0 011-1h2a1 1 0 011 1v12a1 1 0 01-1 1h-2a1 1 0 01-1-1V4z" />
                   </svg>
                 </div>
@@ -291,7 +291,7 @@ export default function CreatorEarningsPage() {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
             <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-6">
               <div className="flex items-center space-x-3">
-                <div className="w-12 h-12 bg-indigo-100 dark:bg-indigo-900/20 rounded-full flex items-center justify-center">
+                <div className="w-12 h-12 bg-black dark:bg-black/20 rounded-full flex items-center justify-center">
                   <span className="text-2xl">👥</span>
                 </div>
                 <div>
@@ -303,7 +303,7 @@ export default function CreatorEarningsPage() {
 
             <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-6">
               <div className="flex items-center space-x-3">
-                <div className="w-12 h-12 bg-purple-100 dark:bg-purple-900/20 rounded-full flex items-center justify-center">
+                <div className="w-12 h-12 bg-black dark:bg-black/20 rounded-full flex items-center justify-center">
                   <span className="text-2xl">💎</span>
                 </div>
                 <div>
@@ -315,7 +315,7 @@ export default function CreatorEarningsPage() {
 
             <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-6">
               <div className="flex items-center space-x-3">
-                <div className="w-12 h-12 bg-green-100 dark:bg-green-900/20 rounded-full flex items-center justify-center">
+                <div className="w-12 h-12 bg-slate-800 dark:bg-slate-800/20 rounded-full flex items-center justify-center">
                   <span className="text-2xl">💸</span>
                 </div>
                 <div>
@@ -335,8 +335,8 @@ export default function CreatorEarningsPage() {
                 <button
                   onClick={() => setActiveTab('payments')}
                   className={`flex-1 px-4 py-2 rounded-lg font-medium text-sm transition-colors ${activeTab === 'payments'
-                      ? 'bg-indigo-600 text-white'
-                      : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800'
+                    ? 'bg-black text-white'
+                    : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800'
                     }`}
                 >
                   💰 Recebimentos ({payments.length})
@@ -344,8 +344,8 @@ export default function CreatorEarningsPage() {
                 <button
                   onClick={() => setActiveTab('withdrawals')}
                   className={`flex-1 px-4 py-2 rounded-lg font-medium text-sm transition-colors ${activeTab === 'withdrawals'
-                      ? 'bg-indigo-600 text-white'
-                      : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800'
+                    ? 'bg-black text-white'
+                    : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800'
                     }`}
                 >
                   🏦 Saques ({withdrawals.length})
@@ -386,7 +386,7 @@ export default function CreatorEarningsPage() {
                                     href={`https://blockchain.com/btc/tx/${payment.txHash}`}
                                     target="_blank"
                                     rel="noopener noreferrer"
-                                    className="text-xs text-indigo-600 hover:underline"
+                                    className="text-xs text-black hover:underline"
                                   >
                                     Ver TX
                                   </a>
@@ -396,7 +396,7 @@ export default function CreatorEarningsPage() {
                           </div>
                         </div>
                         <div className="text-right">
-                          <p className="text-lg font-bold text-green-600 dark:text-green-400">
+                          <p className="text-lg font-bold text-slate-800 dark:text-slate-800">
                             +{formatCurrency(payment.netAmount)}
                           </p>
                           <p className="text-xs text-slate-500">
@@ -452,7 +452,7 @@ export default function CreatorEarningsPage() {
                                     href={`https://blockchain.com/btc/tx/${withdrawal.txHash}`}
                                     target="_blank"
                                     rel="noopener noreferrer"
-                                    className="text-xs text-indigo-600 hover:underline"
+                                    className="text-xs text-black hover:underline"
                                   >
                                     Ver TX
                                   </a>
@@ -463,7 +463,7 @@ export default function CreatorEarningsPage() {
                         </div>
                         <div className="text-right flex items-center space-x-3">
                           <div>
-                            <p className="text-lg font-bold text-red-600 dark:text-red-400">
+                            <p className="text-lg font-bold text-slate-900 dark:text-slate-900">
                               -{formatCurrency(withdrawal.amountUSD)}
                             </p>
                             <p className="text-xs text-slate-500">
@@ -473,7 +473,7 @@ export default function CreatorEarningsPage() {
                           {withdrawal.status === 'PENDING' && (
                             <button
                               onClick={() => handleCancelWithdrawal(withdrawal.id)}
-                              className="p-2 text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors"
+                              className="p-2 text-slate-900 hover:bg-slate-900 dark:hover:bg-slate-900/20 rounded-lg transition-colors"
                               title="Cancelar saque"
                             >
                               <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">

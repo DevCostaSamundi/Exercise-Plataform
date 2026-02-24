@@ -24,7 +24,7 @@ export default function FavoritesPage() {
     } catch (err) {
       console.error('Erro ao carregar favoritos:', err);
       setError(err.response?.data?.message || 'Erro ao carregar favoritos');
-      
+
     } finally {
       setLoading(false);
     }
@@ -70,8 +70,8 @@ export default function FavoritesPage() {
         <div className="flex-1 overflow-y-auto">
           <div className="w-full mx-auto px-4 sm:px-6 lg:px-8 py-8">
             {error && (
-              <div className="mb-6 bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg p-4">
-                <p className="text-sm font-medium text-yellow-800 dark:text-yellow-300">
+              <div className="mb-6 bg-slate-600 dark:bg-slate-600/20 border border-yellow-200 dark:border-yellow-800 rounded-lg p-4">
+                <p className="text-sm font-medium text-slate-600 dark:text-slate-600">
                   ⚠️ Dados de demonstração - API não conectada
                 </p>
               </div>
@@ -89,7 +89,7 @@ export default function FavoritesPage() {
                         to={`/creator/${creator.username}`}
                         className="flex items-center gap-3 flex-1 min-w-0"
                       >
-                        <div className="w-14 h-14 bg-gradient-to-br from-pink-500 to-purple-600 rounded-full flex items-center justify-center text-white text-xl font-bold flex-shrink-0">
+                        <div className="w-14 h-14 bg-black dark:bg-black/20 rounded-full flex items-center justify-center text-white dark:text-black text-xl font-bold flex-shrink-0">
                           {creator.displayName.charAt(0)}
                         </div>
                         <div className="min-w-0">
@@ -103,7 +103,7 @@ export default function FavoritesPage() {
                       </Link>
                       <button
                         onClick={() => removeFavorite(creator.id)}
-                        className="text-red-500 hover:text-red-600 transition-colors"
+                        className="text-slate-900 hover:text-slate-900 transition-colors"
                         title="Remover dos favoritos"
                       >
                         <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 20 20">
@@ -126,7 +126,7 @@ export default function FavoritesPage() {
                     {creator.isSubscribed ? (
                       <Link
                         to={`/creator/${creator.username}`}
-                        className="block w-full bg-indigo-600 hover:bg-indigo-700 text-white text-center py-2 rounded-lg font-medium transition-colors"
+                        className="block w-full bg-black hover:bg-black text-white text-center py-2 rounded-lg font-medium transition-colors"
                       >
                         Ver Perfil
                       </Link>
@@ -162,7 +162,7 @@ export default function FavoritesPage() {
                 </p>
                 <Link
                   to="/explore"
-                  className="inline-flex items-center gap-2 px-6 py-3 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg font-medium transition-colors"
+                  className="inline-flex items-center gap-2 px-6 py-3 bg-black hover:bg-black text-white rounded-lg font-medium transition-colors"
                 >
                   Explorar Criadores
                 </Link>

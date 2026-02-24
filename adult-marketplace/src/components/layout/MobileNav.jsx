@@ -36,7 +36,7 @@ const MobileNav = () => {
               className={({ isActive }) =>
                 `flex flex-col items-center justify-center flex-1 h-full relative ${
                   isActive
-                    ? 'text-purple-600 dark:text-purple-400'
+                    ? 'text-black dark:text-black'
                     : 'text-gray-600 dark:text-gray-400'
                 }`
               }
@@ -46,7 +46,7 @@ const MobileNav = () => {
                   <div className="relative">
                     <Icon className={`text-2xl ${isActive ? 'scale-110' : ''} transition-transform`} />
                     {item.badge > 0 && (
-                      <span className="absolute -top-1 -right-1 min-w-[18px] h-[18px] bg-red-500 text-white text-xs font-bold rounded-full flex items-center justify-center px-1">
+                      <span className="absolute -top-1 -right-1 min-w-[18px] h-[18px] bg-slate-900 text-white text-xs font-bold rounded-full flex items-center justify-center px-1">
                         {item.badge > 9 ? '9+' : item.badge}
                       </span>
                     )}
@@ -55,7 +55,7 @@ const MobileNav = () => {
                     {item.label}
                   </span>
                   {isActive && (
-                    <div className="absolute top-0 left-1/2 -translate-x-1/2 w-12 h-1 bg-purple-600 rounded-b-full" />
+                    <div className="absolute top-0 left-1/2 -translate-x-1/2 w-12 h-1 bg-black rounded-b-full" />
                   )}
                 </>
               )}

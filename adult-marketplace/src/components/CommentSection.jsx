@@ -173,13 +173,13 @@ const CommentSection = ({ postId, creatorId, currentUserId }) => {
                     value={newComment}
                     onChange={(e) => setNewComment(e.target.value)}
                     placeholder="Adicione um comentário..."
-                    className="flex-1 px-4 py-2 bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 text-slate-900 dark:text-white placeholder-slate-400"
+                    className="flex-1 px-4 py-2 bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-black text-slate-900 dark:text-white placeholder-slate-400"
                     disabled={submitting}
                 />
                 <button
                     type="submit"
                     disabled={!newComment.trim() || submitting}
-                    className="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+                    className="px-4 py-2 bg-black hover:bg-black text-white rounded-lg font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
                 >
                     <FiSend className="text-lg" />
                     {submitting ? 'Enviando...' : 'Enviar'}
@@ -188,15 +188,15 @@ const CommentSection = ({ postId, creatorId, currentUserId }) => {
 
             {/* Error Message */}
             {error && (
-                <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-3">
-                    <p className="text-sm text-red-600 dark:text-red-400">{error}</p>
+                <div className="bg-slate-900 dark:bg-slate-900/20 border border-red-200 dark:border-red-800 rounded-lg p-3">
+                    <p className="text-sm text-slate-900 dark:text-slate-900">{error}</p>
                 </div>
             )}
 
             {/* Loading State */}
             {loading && (
                 <div className="text-center py-8">
-                    <div className="inline-block w-8 h-8 border-4 border-indigo-600 border-t-transparent rounded-full animate-spin" />
+                    <div className="inline-block w-8 h-8 border-4 border-black dark:border-white border-t-transparent rounded-full animate-spin" />
                 </div>
             )}
 
@@ -228,7 +228,7 @@ const CommentSection = ({ postId, creatorId, currentUserId }) => {
                                                     {comment.user?.name}
                                                 </span>
                                                 {comment.user?._id === creatorId && (
-                                                    <span className="bg-indigo-600 text-white text-xs px-2 py-0.5 rounded-full">
+                                                    <span className="bg-black text-white text-xs px-2 py-0.5 rounded-full">
                                                         Criador
                                                     </span>
                                                 )}
@@ -242,7 +242,7 @@ const CommentSection = ({ postId, creatorId, currentUserId }) => {
                                                 {comment.user?._id === currentUserId && (
                                                     <button
                                                         onClick={() => handleDeleteComment(comment._id)}
-                                                        className="text-red-500 hover:text-red-600 transition-colors"
+                                                        className="text-slate-900 hover:text-slate-900 transition-colors"
                                                         aria-label="Delete comment"
                                                     >
                                                         <FiTrash2 className="text-sm" />
@@ -259,7 +259,7 @@ const CommentSection = ({ postId, creatorId, currentUserId }) => {
                                     {/* Reply Button */}
                                     <button
                                         onClick={() => setReplyingTo(replyingTo === comment._id ? null : comment._id)}
-                                        className="text-xs text-indigo-600 dark:text-indigo-400 hover:underline mt-1 ml-3"
+                                        className="text-xs text-black dark:text-black hover:underline mt-1 ml-3"
                                     >
                                         Responder
                                     </button>
@@ -275,13 +275,13 @@ const CommentSection = ({ postId, creatorId, currentUserId }) => {
                                                 value={replyText}
                                                 onChange={(e) => setReplyText(e.target.value)}
                                                 placeholder="Escreva uma resposta..."
-                                                className="flex-1 px-3 py-1.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 text-sm text-slate-900 dark:text-white"
+                                                className="flex-1 px-3 py-1.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-black text-sm text-slate-900 dark:text-white"
                                                 autoFocus
                                             />
                                             <button
                                                 type="submit"
                                                 disabled={!replyText.trim() || submitting}
-                                                className="px-3 py-1.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg text-sm font-medium transition-colors disabled:opacity-50"
+                                                className="px-3 py-1.5 bg-black hover:bg-black text-white rounded-lg text-sm font-medium transition-colors disabled:opacity-50"
                                             >
                                                 <FiSend />
                                             </button>

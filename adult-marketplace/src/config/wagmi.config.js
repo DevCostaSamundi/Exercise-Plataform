@@ -29,7 +29,7 @@ export const wagmiConfig = createConfig({
       showQrModal: true,
     }),
     coinbaseWallet({ 
-      appName: 'PrideConnect',
+      appName: 'FlowConnect',
       appLogoUrl: 'https://prideconnect.com/logo.png',
     }),
   ],

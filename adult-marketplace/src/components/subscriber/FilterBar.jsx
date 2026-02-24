@@ -26,7 +26,7 @@ const FilterBar = ({ activeFilter, onFilterChange, showAll = true }) => {
             onClick={() => onFilterChange(filter.id)}
             className={`flex items-center gap-2 px-4 py-2 rounded-full font-semibold whitespace-nowrap transition-all ${
               isActive
-                ?  'bg-purple-600 text-white shadow-lg'
+                ?  'bg-black text-white shadow-lg'
                 : 'bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-300 dark:hover:bg-gray-600'
             }`}
           >

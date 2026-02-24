@@ -82,7 +82,7 @@ const PostCard = ({ post, onLike, onUnlock }) => {
               <p className="font-semibold text-gray-900 dark:text-white">
                 {post.creator.name}
                 {post.creator.isVerified && (
-                  <span className="ml-1 text-blue-500">✓</span>
+                  <span className="ml-1 text-black">✓</span>
                 )}
               </p>
               <p className="text-sm text-gray-500 dark:text-gray-400">
@@ -136,7 +136,7 @@ const PostCard = ({ post, onLike, onUnlock }) => {
                       e.stopPropagation();
                       setShowPPVModal(true);
                     }}
-                    className="px-6 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-full font-semibold transition-colors"
+                    className="px-6 py-2 bg-black hover:bg-black text-white rounded-full font-semibold transition-colors"
                   >
                     Desbloquear
                   </button>
@@ -177,8 +177,8 @@ const PostCard = ({ post, onLike, onUnlock }) => {
               onClick={handleLike}
               className={`flex items-center gap-2 transition-colors ${
                 isLiked
-                  ? 'text-red-500'
-                  : 'text-gray-600 dark:text-gray-400 hover:text-red-500'
+                  ? 'text-slate-900'
+                  : 'text-gray-600 dark:text-gray-400 hover:text-slate-900'
               }`}
             >
               <FiHeart className={`text-xl ${isLiked ? 'fill-current' : ''}`} />
@@ -186,7 +186,7 @@ const PostCard = ({ post, onLike, onUnlock }) => {
             </button>
 
             {/* Comments */}
-            <button className="flex items-center gap-2 text-gray-600 dark:text-gray-400 hover:text-blue-500 transition-colors">
+            <button className="flex items-center gap-2 text-gray-600 dark:text-gray-400 hover:text-black transition-colors">
               <FiMessageCircle className="text-xl" />
               <span className="text-sm font-medium">
                 {formatNumber(post.commentsCount || 0)}
@@ -196,14 +196,14 @@ const PostCard = ({ post, onLike, onUnlock }) => {
             {/* Share */}
             <button
               onClick={handleShare}
-              className="flex items-center gap-2 text-gray-600 dark:text-gray-400 hover:text-green-500 transition-colors"
+              className="flex items-center gap-2 text-gray-600 dark:text-gray-400 hover:text-slate-800 transition-colors"
             >
               <FiShare2 className="text-xl" />
             </button>
           </div>
 
           {isPPV && (
-            <span className="flex items-center gap-1 text-purple-600 font-semibold">
+            <span className="flex items-center gap-1 text-black font-semibold">
               <FiLock className="text-sm" />
               PPV
             </span>

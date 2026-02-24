@@ -25,7 +25,7 @@ const PPVModal = ({ content, onClose, onUnlock }) => {
           {/* Header */}
           <div className="flex items-center justify-between p-6 border-b dark:border-gray-700">
             <h2 className="text-xl font-bold text-gray-900 dark:text-white flex items-center gap-2">
-              <FiLock className="text-purple-600" />
+              <FiLock className="text-black" />
               Desbloquear Conteúdo
             </h2>
             <button
@@ -77,10 +77,10 @@ const PPVModal = ({ content, onClose, onUnlock }) => {
             )}
 
             {/* Price */}
-            <div className="mt-4 bg-purple-50 dark:bg-purple-900/20 rounded-lg p-4">
+            <div className="mt-4 bg-black dark:bg-black/20 rounded-lg p-4">
               <div className="flex items-center justify-between">
                 <span className="text-gray-700 dark:text-gray-300">Preço:</span>
-                <span className="text-2xl font-bold text-purple-600 dark:text-purple-400">
+                <span className="text-2xl font-bold text-black dark:text-black">
                   {formatCurrency(content.price)}
                 </span>
               </div>
@@ -91,14 +91,14 @@ const PPVModal = ({ content, onClose, onUnlock }) => {
           <div className="p-6">
             <button
               onClick={handleUnlock}
-              className="w-full py-3 px-4 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-lg font-semibold hover:from-purple-700 hover:to-pink-700 transition-all flex items-center justify-center gap-2"
+              className="w-full py-3 px-4 bg-black dark:bg-white text-white dark:text-black rounded-lg font-semibold hover:scale-105 active:scale-95 transition-all flex items-center justify-center gap-2"
             >
               <FiDollarSign />
               Desbloquear por {formatCurrency(content.price)}
             </button>
 
             <p className="mt-4 text-xs text-center text-gray-500 dark: text-gray-400">
-              Ao desbloquear, você terá acesso permanente a este conteúdo. 
+              Ao desbloquear, você terá acesso permanente a este conteúdo.
             </p>
           </div>
         </div>
@@ -112,9 +112,9 @@ const PPVModal = ({ content, onClose, onUnlock }) => {
           paymentData={{
             creatorId: content.creator.id,
             type: content.type === 'post' ? 'PPV_POST' : 'PPV_MESSAGE',
-            amountUSD:  content.price,
-            postId: content.type === 'post' ? content. id : undefined,
-            messageId: content.type === 'message' ? content. id : undefined,
+            amountUSD: content.price,
+            postId: content.type === 'post' ? content.id : undefined,
+            messageId: content.type === 'message' ? content.id : undefined,
           }}
           onSuccess={handlePaymentSuccess}
         />

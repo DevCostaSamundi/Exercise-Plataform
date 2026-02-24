@@ -132,7 +132,7 @@ const CreatorProfile = () => {
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-[60vh]">
-        <div className="w-12 h-12 border-4 border-purple-600 border-t-transparent rounded-full animate-spin" />
+        <div className="w-12 h-12 border-4 border-black dark:border-white border-t-transparent rounded-full animate-spin" />
       </div>
     );
   }
@@ -150,7 +150,7 @@ const CreatorProfile = () => {
   return (
     <div className="max-w-4xl mx-auto">
       {/* Cover Image */}
-      <div className="relative h-48 md:h-64 bg-gradient-to-r from-purple-500 to-pink-500 rounded-t-lg overflow-hidden">
+      <div className="relative h-48 md:h-64 bg-slate-200 dark:bg-slate-700 rounded-t-lg overflow-hidden">
         {creator.coverImage ? (
           <img
             src={creator.coverImage}
@@ -179,7 +179,7 @@ const CreatorProfile = () => {
                 <h1 className="text-2xl font-bold text-gray-900 dark:text-white flex items-center gap-2">
                   {creator.displayName}
                   {creator.isVerified && (
-                    <span className="text-blue-500 text-xl">
+                    <span className="text-black text-xl">
                       <FiCheck className="inline" />
                     </span>
                   )}
@@ -194,8 +194,8 @@ const CreatorProfile = () => {
                 <button
                   onClick={handleFavorite}
                   className={`p-3 rounded-lg border-2 transition-all ${isFavorited
-                      ? 'border-red-500 bg-red-50 dark:bg-red-900/20 text-red-500'
-                      : 'border-gray-300 dark:border-gray-600 hover:border-red-500 text-gray-600 dark:text-gray-400'
+                    ? 'border-red-500 bg-slate-900 dark:bg-slate-900/20 text-slate-900'
+                    : 'border-gray-300 dark:border-gray-600 hover:border-red-500 text-gray-600 dark:text-gray-400'
                     }`}
                   title={isFavorited ? 'Remover dos favoritos' : 'Adicionar aos favoritos'}
                 >
@@ -204,7 +204,7 @@ const CreatorProfile = () => {
 
                 <Link
                   to={`/messages/${creator.userId}`}
-                  className="p-3 rounded-lg border-2 border-gray-300 dark:border-gray-600 hover:border-blue-500 text-gray-600 dark:text-gray-400 hover:text-blue-500 transition-all"
+                  className="p-3 rounded-lg border-2 border-gray-300 dark:border-gray-600 hover:border-blue-500 text-gray-600 dark:text-gray-400 hover:text-black transition-all"
                   title="Enviar mensagem"
                 >
                   <FiMessageCircle />
@@ -214,8 +214,8 @@ const CreatorProfile = () => {
                   onClick={handleSubscribe}
                   disabled={subscribing}
                   className={`px-6 py-3 rounded-lg font-bold transition-all ${isSubscribed
-                      ? 'bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-300'
-                      : 'bg-gradient-to-r from-purple-600 to-pink-600 text-white hover:from-purple-700 hover:to-pink-700'
+                    ? 'bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-300'
+                    : 'bg-black dark:bg-white text-white dark:text-black hover:scale-105 transition-all'
                     } ${subscribing ? 'opacity-50 cursor-not-allowed' : ''}`}
                 >
                   {subscribing
@@ -275,7 +275,7 @@ const CreatorProfile = () => {
                   href={creator.website}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="flex items-center gap-1 hover:text-purple-600"
+                  className="flex items-center gap-1 hover:text-black"
                 >
                   <FiLink />
                   {creator.website.replace(/^https?:\/\//, '')}
@@ -286,7 +286,7 @@ const CreatorProfile = () => {
                   href={`https://instagram.com/${creator.instagram}`}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="flex items-center gap-1 hover:text-purple-600"
+                  className="flex items-center gap-1 hover:text-black"
                 >
                   <FiInstagram />
                   @{creator.instagram}
@@ -297,7 +297,7 @@ const CreatorProfile = () => {
                   href={`https://twitter.com/${creator.twitter}`}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="flex items-center gap-1 hover:text-purple-600"
+                  className="flex items-center gap-1 hover:text-black"
                 >
                   <FiTwitter />
                   @{creator.twitter}
@@ -320,8 +320,8 @@ const CreatorProfile = () => {
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id)}
                 className={`flex items-center gap-2 px-4 py-3 font-semibold transition-all ${activeTab === tab.id
-                    ? 'text-purple-600 border-b-2 border-purple-600'
-                    : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white'
+                  ? 'text-black dark:text-white border-b-2 border-black dark:border-white'
+                  : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white'
                   }`}
               >
                 <Icon />
@@ -338,8 +338,8 @@ const CreatorProfile = () => {
           <div>
             {!canViewContent ? (
               <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-12 text-center">
-                <div className="w-20 h-20 mx-auto mb-4 bg-purple-100 dark:bg-purple-900/20 rounded-full flex items-center justify-center">
-                  <FiGrid className="text-4xl text-purple-600" />
+                <div className="w-20 h-20 mx-auto mb-4 bg-black dark:bg-black/20 rounded-full flex items-center justify-center">
+                  <FiGrid className="text-4xl text-black" />
                 </div>
                 <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-2">
                   Conteúdo Exclusivo
@@ -350,7 +350,7 @@ const CreatorProfile = () => {
                 <button
                   onClick={handleSubscribe}
                   disabled={subscribing}
-                  className="px-8 py-3 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-lg font-bold hover:from-purple-700 hover:to-pink-700 transition-all"
+                  className="px-8 py-3 bg-black dark:bg-white text-white dark:text-black rounded-lg font-bold hover:scale-105 transition-all"
                 >
                   Assinar por {formatCurrency(creator.subscriptionPrice)}/mês
                 </button>
@@ -368,7 +368,7 @@ const CreatorProfile = () => {
 
                 {postsLoading && (
                   <div className="text-center py-8">
-                    <div className="inline-block w-8 h-8 border-4 border-purple-600 border-t-transparent rounded-full animate-spin" />
+                    <div className="inline-block w-8 h-8 border-4 border-black dark:border-white border-t-transparent rounded-full animate-spin" />
                   </div>
                 )}
 

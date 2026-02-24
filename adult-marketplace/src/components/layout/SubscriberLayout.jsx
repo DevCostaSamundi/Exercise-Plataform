@@ -9,8 +9,10 @@ import Header from './Header';
 import Sidebar from './Sidebar';
 import MobileNav from './MobileNav';
 import { FiX } from 'react-icons/fi';
+import { useUI } from '../../contexts/UIContext';
 
 const SubscriberLayout = ({ user, onLogout }) => {
+  const { projectName, logoChar } = useUI();
   const [showMobileSidebar, setShowMobileSidebar] = useState(false);
 
   const toggleMobileSidebar = () => {
@@ -48,11 +50,11 @@ const SubscriberLayout = ({ user, onLogout }) => {
               {/* Header */}
               <div className="flex items-center justify-between p-4 border-b dark:border-gray-800">
                 <div className="flex items-center gap-2">
-                  <div className="w-8 h-8 bg-gradient-to-r from-purple-600 to-pink-600 rounded-lg flex items-center justify-center">
-                    <span className="text-white font-bold">P</span>
+                  <div className="w-8 h-8 bg-black dark:bg-white rounded-lg flex items-center justify-center">
+                    <span className="text-white dark:text-black font-bold">{logoChar}</span>
                   </div>
                   <span className="font-bold text-gray-900 dark:text-white">
-                    PrideConnect
+                    {projectName}
                   </span>
                 </div>
                 <button

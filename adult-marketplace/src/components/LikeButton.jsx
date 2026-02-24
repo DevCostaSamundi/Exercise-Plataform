@@ -76,13 +76,13 @@ const LikeButton = ({ postId, initialLiked = false, initialCount = 0, onLikeChan
         <button
             onClick={handleLike}
             disabled={isLoading}
-            className="flex items-center space-x-2 text-slate-600 dark:text-slate-400 hover:text-red-500 dark:hover:text-red-400 transition-colors disabled:opacity-50 disabled:cursor-not-allowed group"
+            className="flex items-center space-x-2 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-900 transition-colors disabled:opacity-50 disabled:cursor-not-allowed group"
             aria-label={isLiked ? 'Unlike' : 'Like'}
         >
             <div className="relative">
                 {isLiked ? (
                     <FaHeart
-                        className={`h-6 w-6 text-red-500 ${isAnimating ? 'animate-like-bounce' : ''
+                        className={`h-6 w-6 text-slate-900 ${isAnimating ? 'animate-like-bounce' : ''
                             }`}
                     />
                 ) : (
@@ -91,11 +91,11 @@ const LikeButton = ({ postId, initialLiked = false, initialCount = 0, onLikeChan
 
                 {/* Ripple effect on like */}
                 {isAnimating && isLiked && (
-                    <div className="absolute inset-0 rounded-full bg-red-500 opacity-50 animate-ping" />
+                    <div className="absolute inset-0 rounded-full bg-slate-900 opacity-50 animate-ping" />
                 )}
             </div>
 
-            <span className={`text-sm font-medium ${isLiked ? 'text-red-500' : ''}`}>
+            <span className={`text-sm font-medium ${isLiked ? 'text-slate-900' : ''}`}>
                 {likeCount > 0 ? likeCount.toLocaleString() : ''}
             </span>
 

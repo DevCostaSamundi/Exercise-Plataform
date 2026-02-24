@@ -4,7 +4,10 @@ import axios from 'axios';
 
 const API_URL = import.meta.env.VITE_API_URL;
 
-// USDC ABI (minimal)
+// ============================================
+// ABIs MÍNIMAS
+// ============================================
+
 const USDC_ABI = [
     {
         name: 'approve',
@@ -30,14 +33,11 @@ const USDC_ABI = [
         name: 'balanceOf',
         type: 'function',
         stateMutability: 'view',
-        inputs: [
-            { name: 'account', type: 'address' },
-        ],
+        inputs: [{ name: 'account', type: 'address' }],
         outputs: [{ name: '', type: 'uint256' }],
     },
 ];
 
-// PaymentSplitter ABI (minimal)
 const PAYMENT_SPLITTER_ABI = [
     {
         name: 'pay',
@@ -52,6 +52,57 @@ const PAYMENT_SPLITTER_ABI = [
     },
 ];
 
+// ============================================
+// MENSAGENS AMIGÁVEIS POR ETAPA
+// ============================================
+
+export const STEP_MESSAGES = {
+    idle: {
+        title: '',
+        description: '',
+        tip: '',
+    },
+    creating: {
+        title: 'Preparando seu pagamento...',
+        description: 'Estamos configurando tudo para você.',
+        tip: 'Isso leva apenas alguns segundos.',
+    },
+    checking: {
+        title: 'Verificando sua carteira...',
+        description: 'Checando saldo e permissões.',
+        tip: 'Estamos confirmando que você tem USDC suficiente.',
+    },
+    approving: {
+        title: 'Autorize o pagamento na sua carteira',
+        description: 'Uma janela do MetaMask vai aparecer. Clique em "Confirmar" para continuar.',
+        tip: '🔐 Isso é seguro e necessário apenas uma vez por valor.',
+    },
+    paying: {
+        title: 'Confirme o pagamento na sua carteira',
+        description: 'O MetaMask vai mostrar os detalhes. Clique em "Confirmar" para pagar.',
+        tip: '⚡ A taxa de rede é de apenas alguns centavos.',
+    },
+    confirming: {
+        title: 'Processando na blockchain...',
+        description: 'Sua transação foi enviada e está sendo confirmada.',
+        tip: '⏱ Normalmente leva menos de 30 segundos na Polygon.',
+    },
+    success: {
+        title: 'Pagamento realizado! 🎉',
+        description: 'Tudo certo! O conteúdo já está disponível.',
+        tip: '',
+    },
+    error: {
+        title: 'Algo deu errado',
+        description: 'Tente novamente ou use outra forma de pagamento.',
+        tip: '',
+    },
+};
+
+// ============================================
+// HOOK PRINCIPAL
+// ============================================
+
 export const useCryptoPayment = () => {
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState(null);
@@ -59,279 +110,237 @@ export const useCryptoPayment = () => {
     const [currentPayment, setCurrentPayment] = useState(null);
     const [isConnected, setIsConnected] = useState(false);
     const [userAddress, setUserAddress] = useState(null);
+    const [usdcBalance, setUsdcBalance] = useState(null);
 
-    // Check wallet connection on mount (silently, without requesting)
+    // Verifica conexão ao montar (sem popup)
     useEffect(() => {
         checkConnectionSilently();
 
-        // Listen for account changes
         if (window.ethereum) {
             window.ethereum.on('accountsChanged', handleAccountsChanged);
-            window.ethereum.on('chainChanged', handleChainChanged);
+            window.ethereum.on('chainChanged', () => window.location.reload());
         }
 
         return () => {
             if (window.ethereum) {
                 window.ethereum.removeListener('accountsChanged', handleAccountsChanged);
-                window.ethereum.removeListener('chainChanged', handleChainChanged);
             }
         };
     }, []);
 
     const handleAccountsChanged = (accounts) => {
-        console.log('Accounts changed:', accounts);
         if (accounts.length === 0) {
             setIsConnected(false);
             setUserAddress(null);
+            setUsdcBalance(null);
         } else {
             setIsConnected(true);
             setUserAddress(accounts[0]);
         }
     };
 
-    const handleChainChanged = () => {
-        console.log('Chain changed, reloading...');
-        window.location.reload();
-    };
-
-    // Check connection silently (don't request accounts, just check)
     const checkConnectionSilently = async () => {
-        if (!window.ethereum) {
-            console.log('MetaMask not installed');
-            return;
-        }
-
+        if (!window.ethereum) return;
         try {
-            // Use eth_accounts which returns empty array if not connected
-            // This won't trigger MetaMask popup
             const accounts = await window.ethereum.request({ method: 'eth_accounts' });
-            
-            if (accounts && accounts.length > 0) {
+            if (accounts?.length > 0) {
                 setIsConnected(true);
                 setUserAddress(accounts[0]);
-                console.log('✅ Wallet already connected:', accounts[0]);
-            } else {
-                setIsConnected(false);
-                setUserAddress(null);
-                console.log('ℹ️ Wallet not connected yet');
             }
-        } catch (err) {
-            // Silently fail - this is expected when not connected
-            console.log('ℹ️ No wallet connection found');
-            setIsConnected(false);
-            setUserAddress(null);
+        } catch {
+            // Silenciosamente ignora — esperado quando não conectado
         }
     };
 
-    // Connect wallet (explicitly request connection)
+    // ============================================
+    // CONECTAR CARTEIRA
+    // ============================================
+
     const connectWallet = useCallback(async () => {
         if (!window.ethereum) {
-            throw new Error('MetaMask not found. Please install MetaMask.');
+            throw new Error('MetaMask não encontrado. Instale a extensão para continuar.');
         }
 
         try {
-            console.log('🔗 Requesting wallet connection...');
-            
-            // This WILL trigger MetaMask popup
             const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
-            
-            if (accounts.length === 0) {
-                throw new Error('No accounts found');
+
+            if (!accounts?.length) {
+                throw new Error('Nenhuma conta encontrada na carteira');
             }
 
             setIsConnected(true);
             setUserAddress(accounts[0]);
-            console.log('✅ Wallet connected:', accounts[0]);
-
             return accounts[0];
+
         } catch (err) {
-            console.error('❌ Connection error:', err);
-            
-            // User rejected the request
             if (err.code === 4001) {
-                throw new Error('Please approve the connection in MetaMask');
+                throw new Error('Você recusou a conexão. Aprove no MetaMask para continuar.');
             }
-            
             throw err;
         }
     }, []);
 
-    // Get provider and signer from MetaMask
+    // ============================================
+    // VERIFICAR REDE (Polygon)
+    // ============================================
+
+    const ensurePolygonNetwork = useCallback(async () => {
+        if (!window.ethereum) return;
+
+        const chainIdHex = await window.ethereum.request({ method: 'eth_chainId' });
+        const chainId = parseInt(chainIdHex, 16);
+
+        const expectedChainId = import.meta.env.VITE_NETWORK === 'polygon' ? 137 : 80002;
+        const networkName = expectedChainId === 137 ? 'Polygon' : 'Polygon Amoy (Testnet)';
+
+        if (chainId !== expectedChainId) {
+            try {
+                await window.ethereum.request({
+                    method: 'wallet_switchEthereumChain',
+                    params: [{ chainId: `0x${expectedChainId.toString(16)}` }],
+                });
+            } catch (switchError) {
+                if (switchError.code === 4902) {
+                    // Rede não adicionada — adiciona automaticamente
+                    await window.ethereum.request({
+                        method: 'wallet_addEthereumChain',
+                        params: [{
+                            chainId: `0x${expectedChainId.toString(16)}`,
+                            chainName: networkName,
+                            nativeCurrency: { name: 'POL', symbol: 'POL', decimals: 18 },
+                            rpcUrls: [import.meta.env.VITE_POLYGON_RPC_URL || 'https://polygon-rpc.com'],
+                            blockExplorerUrls: [
+                                expectedChainId === 137
+                                    ? 'https://polygonscan.com'
+                                    : 'https://amoy.polygonscan.com',
+                            ],
+                        }],
+                    });
+                } else {
+                    throw new Error(`Por favor, troque a rede para ${networkName} no MetaMask.`);
+                }
+            }
+        }
+    }, []);
+
+    // ============================================
+    // PROVIDER & SIGNER
+    // ============================================
+
     const getProviderAndSigner = useCallback(async () => {
         if (!window.ethereum) {
-            throw new Error('MetaMask not found. Please install MetaMask.');
+            throw new Error('Carteira não encontrada. Por favor, instale o MetaMask.');
         }
 
-        // Check if already connected
         let accounts = await window.ethereum.request({ method: 'eth_accounts' });
-        
-        // If no accounts, request connection
-        if (accounts.length === 0) {
-            console.log('📱 No accounts found, requesting connection...');
+
+        if (!accounts?.length) {
             accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
         }
 
-        if (accounts.length === 0) {
-            throw new Error('No accounts available. Please connect your wallet.');
+        if (!accounts?.length) {
+            throw new Error('Conecte sua carteira para continuar.');
         }
 
-        const address = accounts[0];
-        console.log('👛 Using account:', address);
+        await ensurePolygonNetwork();
 
         const provider = new ethers.BrowserProvider(window.ethereum);
         const signer = await provider.getSigner();
 
-        return { provider, signer, address };
-    }, []);
+        return { provider, signer, address: accounts[0] };
+    }, [ensurePolygonNetwork]);
 
-    /**
-     * Create payment order
-     */
+    // ============================================
+    // VERIFICAR SALDO USDC
+    // ============================================
+
+    const checkUSDCBalance = useCallback(async (usdcAddress, userAddr, requiredAmount) => {
+        setCurrentStep('checking');
+        const { provider } = await getProviderAndSigner();
+
+        const usdcContract = new ethers.Contract(usdcAddress, USDC_ABI, provider);
+        const balance = await usdcContract.balanceOf(userAddr);
+        const balanceFormatted = parseFloat(ethers.formatUnits(balance, 6));
+
+        setUsdcBalance(balanceFormatted);
+
+        if (balance < requiredAmount) {
+            throw new Error(
+                `Saldo insuficiente de USDC. Você tem $${balanceFormatted.toFixed(2)} mas precisa de $${ethers.formatUnits(requiredAmount, 6)}.`
+            );
+        }
+
+        return balance;
+    }, [getProviderAndSigner]);
+
+    // ============================================
+    // CRIAR ORDEM
+    // ============================================
+
     const createPaymentOrder = useCallback(async (paymentData) => {
+        setCurrentStep('creating');
+        setError(null);
+
         try {
-            setCurrentStep('creating');
-            setError(null);
-
-            console.log('📝 Creating payment order with data:', paymentData);
-
             const response = await axios.post(
                 `${API_URL}/payments/crypto/create-order`,
                 paymentData,
-                {
-                    headers: {
-                        Authorization: `Bearer ${localStorage.getItem('token')}`,
-                    },
-                }
+                { headers: { Authorization: `Bearer ${localStorage.getItem('token')}` } }
             );
 
             const order = response.data.data;
-            console.log('✅ Order created:', order.orderId);
             setCurrentPayment(order);
-            
             return order;
+
         } catch (err) {
-            const errorMsg = err.response?.data?.message || err.message;
-            console.error('❌ Create order error:', errorMsg);
-            setError(errorMsg);
-            throw new Error(errorMsg);
+            const message = err.response?.data?.message || 'Falha ao criar pagamento';
+            setError(message);
+            throw new Error(message);
         }
     }, []);
 
-    /**
-     * Check current USDC allowance and balance
-     */
-    const checkAllowance = useCallback(async (order, userAddress) => {
+    // ============================================
+    // APROVAR USDC
+    // ============================================
+
+    const approveUSDC = useCallback(async (order) => {
         try {
-            const { provider } = await getProviderAndSigner();
-            
-            const usdcContract = new ethers.Contract(
-                order.usdcAddress,
-                USDC_ABI,
-                provider
-            );
+            const { signer, address } = await getProviderAndSigner();
 
-            // Check allowance
-            const allowance = await usdcContract.allowance(
-                userAddress,
-                order.contractAddress
-            );
-
-            // Check USDC balance
-            const balance = await usdcContract.balanceOf(userAddress);
-
+            const usdcContract = new ethers.Contract(order.usdcAddress, USDC_ABI, signer);
             const requiredAmount = ethers.parseUnits(order.amountUSDC, 6);
-            
-            console.log('💰 USDC Balance:', ethers.formatUnits(balance, 6), 'USDC');
-            console.log('✅ Current Allowance:', ethers.formatUnits(allowance, 6), 'USDC');
-            console.log('📊 Required Amount:', order.amountUSDC, 'USDC');
 
-            // Check if user has enough USDC
-            if (balance < requiredAmount) {
-                throw new Error(`Insufficient USDC balance. You have ${ethers.formatUnits(balance, 6)} USDC but need ${order.amountUSDC} USDC`);
+            // Verifica allowance atual
+            const currentAllowance = await usdcContract.allowance(address, order.contractAddress);
+
+            if (currentAllowance >= requiredAmount) {
+                return null; // Já tem permissão suficiente
             }
 
-            return { 
-                allowance, 
-                balance,
-                requiredAmount, 
-                needsApproval: allowance < requiredAmount 
-            };
+            setCurrentStep('approving');
+
+            const tx = await usdcContract.approve(order.contractAddress, requiredAmount);
+            await tx.wait();
+
+            return tx.hash;
+
         } catch (err) {
-            console.error('❌ Check allowance error:', err);
-            throw err;
+            if (err.code === 'ACTION_REJECTED' || err.code === 4001) {
+                throw new Error('Aprovação cancelada. Você precisa aprovar para continuar.');
+            }
+            throw new Error(err.reason || err.message || 'Falha na aprovação do USDC');
         }
     }, [getProviderAndSigner]);
 
-    /**
-     * Approve USDC spending
-     */
-    const approveUSDC = useCallback(async (order) => {
-        try {
-            setCurrentStep('approving');
-            setError(null);
+    // ============================================
+    // EXECUTAR PAGAMENTO
+    // ============================================
 
-            console.log('🔐 Starting USDC approval...');
-
-            const { signer, address } = await getProviderAndSigner();
-            
-            // Check if approval is needed
-            const { needsApproval, requiredAmount, balance } = await checkAllowance(order, address);
-            
-            if (!needsApproval) {
-                console.log('✅ Sufficient allowance already exists, skipping approval');
-                return null;
-            }
-
-            const usdcContract = new ethers.Contract(
-                order.usdcAddress,
-                USDC_ABI,
-                signer
-            );
-
-            console.log('📝 Requesting approval for:', order.amountUSDC, 'USDC');
-            console.log('📍 Spender (Payment Contract):', order.contractAddress);
-
-            // Request approval
-            const approvalAmount = requiredAmount;
-            const tx = await usdcContract.approve(
-                order.contractAddress,
-                approvalAmount
-            );
-
-            console.log('⏳ Approval transaction sent:', tx.hash);
-            console.log('⏳ Waiting for confirmation...');
-
-            // Wait for transaction
-            const receipt = await tx.wait();
-            console.log('✅ Approval confirmed in block:', receipt.blockNumber);
-
-            return tx.hash;
-        } catch (err) {
-            console.error('❌ Approve error:', err);
-            
-            // User rejected transaction
-            if (err.code === 'ACTION_REJECTED' || err.code === 4001) {
-                throw new Error('Transaction rejected. Please approve in your wallet.');
-            }
-            
-            const errorMsg = err.reason || err.message || 'Failed to approve USDC';
-            setError(errorMsg);
-            throw new Error(errorMsg);
-        }
-    }, [getProviderAndSigner, checkAllowance]);
-
-    /**
-     * Execute payment
-     */
     const executePayment = useCallback(async (order) => {
         try {
             setCurrentStep('paying');
-            setError(null);
-
-            console.log('💸 Starting payment execution...');
 
             const { signer } = await getProviderAndSigner();
-
             const paymentContract = new ethers.Contract(
                 order.contractAddress,
                 PAYMENT_SPLITTER_ABI,
@@ -340,216 +349,165 @@ export const useCryptoPayment = () => {
 
             const amount = ethers.parseUnits(order.amountUSDC, 6);
 
-            console.log('📝 Calling pay() with:');
-            console.log('  - Creator:', order.creatorWallet);
-            console.log('  - Amount:', order.amountUSDC, 'USDC');
-            console.log('  - OrderId:', order.orderId);
-
-            // Execute payment
             const tx = await paymentContract.pay(
                 order.creatorWallet,
                 amount,
                 order.orderId
             );
 
-            console.log('⏳ Payment transaction sent:', tx.hash);
-            console.log('⏳ Waiting for confirmation...');
-
-            // Wait for transaction
-            const receipt = await tx.wait();
-            console.log('✅ Payment confirmed in block:', receipt.blockNumber);
+            setCurrentStep('confirming');
+            await tx.wait();
 
             return tx.hash;
+
         } catch (err) {
-            console.error('❌ Payment error:', err);
-            
-            // User rejected transaction
             if (err.code === 'ACTION_REJECTED' || err.code === 4001) {
-                throw new Error('Transaction rejected. Please approve in your wallet.');
+                throw new Error('Pagamento cancelado. Confirme a transação no MetaMask para continuar.');
             }
-            
-            const errorMsg = err.reason || err.message || 'Payment transaction failed';
-            setError(errorMsg);
-            throw new Error(errorMsg);
+            throw new Error(err.reason || err.message || 'Falha no pagamento');
         }
     }, [getProviderAndSigner]);
 
-    /**
-     * Verify payment with backend
-     */
-    const verifyPayment = useCallback(async (paymentId, txHash) => {
+    // ============================================
+    // VERIFICAR COM BACKEND
+    // ============================================
+
+    const verifyWithBackend = useCallback(async (paymentId, txHash) => {
         try {
-            console.log('🔍 Verifying payment with backend...');
-            
             const response = await axios.post(
                 `${API_URL}/payments/crypto/verify`,
                 { paymentId, txHash },
-                {
-                    headers: {
-                        Authorization: `Bearer ${localStorage.getItem('token')}`,
-                    },
-                }
+                { headers: { Authorization: `Bearer ${localStorage.getItem('token')}` } }
             );
-
-            console.log('✅ Backend verification response:', response.data);
             return response.data;
-        } catch (err) {
-            console.error('⚠️ Verify error:', err);
-            // Non-critical, backend will catch it via webhook
+        } catch {
+            // Não crítico — o webhook do Alchemy fará a confirmação
             return null;
         }
     }, []);
 
-    /**
-     * Complete payment flow
-     */
+    // ============================================
+    // FLUXO COMPLETO DE PAGAMENTO
+    // ============================================
+
     const processPayment = useCallback(async (paymentData) => {
         try {
             setLoading(true);
             setError(null);
 
-            console.log('=== 🚀 Starting Payment Process ===');
-            console.log('Payment data:', paymentData);
-
-            // Check MetaMask
             if (!window.ethereum) {
-                throw new Error('MetaMask not found. Please install MetaMask extension.');
+                throw new Error('Instale o MetaMask para pagar com cripto.');
             }
 
-            // Get wallet info (will request connection if needed)
             const { address } = await getProviderAndSigner();
-            console.log('👛 Connected wallet:', address);
-
-            // Update state
             setIsConnected(true);
             setUserAddress(address);
 
-            // 1. Create order
-            console.log('\n📝 Step 1/4: Creating payment order...');
+            // 1. Cria ordem
             const order = await createPaymentOrder(paymentData);
-            console.log('✅ Order created:', order.orderId);
 
-            // 2. Approve USDC (if needed)
-            console.log('\n🔐 Step 2/4: Checking USDC approval...');
-            const approvalHash = await approveUSDC(order);
-            if (approvalHash) {
-                console.log('✅ Approval successful:', approvalHash);
-            } else {
-                console.log('✅ Approval skipped (sufficient allowance exists)');
-            }
+            // 2. Verifica saldo USDC
+            const requiredAmount = ethers.parseUnits(order.amountUSDC, 6);
+            await checkUSDCBalance(order.usdcAddress, address, requiredAmount);
 
-            // 3. Execute payment
-            console.log('\n💸 Step 3/4: Executing payment...');
-            const paymentHash = await executePayment(order);
-            console.log('✅ Payment successful:', paymentHash);
+            // 3. Aprova USDC (se necessário)
+            await approveUSDC(order);
 
-            // 4. Verify with backend
-            console.log('\n🔍 Step 4/4: Verifying with backend...');
-            await verifyPayment(order.paymentId, paymentHash);
-            console.log('✅ Verification complete');
+            // 4. Executa pagamento
+            const txHash = await executePayment(order);
 
-            setCurrentStep('confirming');
+            // 5. Notifica backend (opcional — webhook fará o trabalho real)
+            await verifyWithBackend(order.paymentId, txHash);
 
-            console.log('\n=== ✅ Payment Process Complete ===\n');
-
-            return {
-                paymentId: order.paymentId,
-                txHash: paymentHash,
-                orderId: order.orderId,
-            };
+            return { paymentId: order.paymentId, txHash, orderId: order.orderId };
 
         } catch (err) {
-            console.error('\n=== ❌ Payment Process Failed ===');
-            console.error('Error:', err.message);
-            console.error('Full error:', err);
             setError(err.message);
-            setCurrentStep('idle');
+            setCurrentStep('error');
             throw err;
         } finally {
             setLoading(false);
         }
-    }, [getProviderAndSigner, createPaymentOrder, approveUSDC, executePayment, verifyPayment]);
+    }, [getProviderAndSigner, createPaymentOrder, checkUSDCBalance, approveUSDC, executePayment, verifyWithBackend]);
 
-    /**
-     * Check payment status
-     */
+    // ============================================
+    // POLLING DE STATUS
+    // ============================================
+
     const checkPaymentStatus = useCallback(async (paymentId) => {
-        try {
-            const response = await axios.get(
-                `${API_URL}/payments/crypto/${paymentId}/status`,
-                {
-                    headers: {
-                        Authorization: `Bearer ${localStorage.getItem('token')}`,
-                    },
-                }
-            );
-
-            return response.data.data;
-        } catch (err) {
-            console.error('Status check error:', err);
-            throw err;
-        }
+        const response = await axios.get(
+            `${API_URL}/payments/crypto/${paymentId}/status`,
+            { headers: { Authorization: `Bearer ${localStorage.getItem('token')}` } }
+        );
+        return response.data.data;
     }, []);
 
-    /**
-     * Poll status until complete
-     */
     const pollPaymentStatus = useCallback(async (paymentId, onUpdate) => {
-        const maxAttempts = 60; // 5 minutes
+        const maxAttempts = 60; // 5 minutos
         let attempts = 0;
-
-        console.log('🔄 Starting to poll payment status...');
 
         return new Promise((resolve, reject) => {
             const interval = setInterval(async () => {
                 try {
                     attempts++;
-                    console.log(`🔄 Polling attempt ${attempts}/${maxAttempts}`);
-
                     const status = await checkPaymentStatus(paymentId);
-                    console.log('📊 Payment status:', status.status);
 
-                    if (onUpdate) {
-                        onUpdate(status);
-                    }
+                    if (onUpdate) onUpdate(status);
 
                     if (status.status === 'COMPLETED') {
-                        console.log('✅ Payment completed!');
                         clearInterval(interval);
                         setCurrentStep('success');
                         resolve(status);
                     }
 
                     if (['FAILED', 'EXPIRED'].includes(status.status)) {
-                        console.log('❌ Payment failed or expired');
                         clearInterval(interval);
-                        reject(new Error(`Payment ${status.status.toLowerCase()}`));
+                        reject(new Error(`Pagamento ${status.status === 'FAILED' ? 'falhou' : 'expirou'}`));
                     }
 
                     if (attempts >= maxAttempts) {
-                        console.log('⏱️ Polling timeout');
                         clearInterval(interval);
-                        reject(new Error('Payment confirmation timeout - please check your transaction manually'));
+                        reject(new Error('Tempo esgotado. Verifique a transação no explorador da blockchain.'));
                     }
+
                 } catch (err) {
-                    console.error('❌ Polling error:', err);
                     clearInterval(interval);
                     reject(err);
                 }
-            }, 5000); // Poll every 5 seconds
+            }, 5000); // A cada 5 segundos
         });
     }, [checkPaymentStatus]);
 
+    // ============================================
+    // URL DE FIAT ON-RAMP
+    // ============================================
+
+    const getOnRampUrl = useCallback(async ({ provider = 'moonpay', amountUSD, walletAddress }) => {
+        try {
+            const response = await axios.get(`${API_URL}/payments/crypto/onramp-url`, {
+                params: { provider, amountUSD, walletAddress },
+                headers: { Authorization: `Bearer ${localStorage.getItem('token')}` },
+            });
+            return response.data.data.url;
+        } catch (err) {
+            throw new Error('Não foi possível gerar o link de compra com cartão');
+        }
+    }, []);
+
     return {
-        // State
+        // Estado
         loading,
         error,
         currentStep,
         currentPayment,
         isConnected,
         userAddress,
+        usdcBalance,
 
-        // Methods
+        // Mensagens amigáveis
+        stepMessage: STEP_MESSAGES[currentStep] || STEP_MESSAGES.idle,
+
+        // Métodos
         connectWallet,
         processPayment,
         checkPaymentStatus,
@@ -557,6 +515,14 @@ export const useCryptoPayment = () => {
         createPaymentOrder,
         approveUSDC,
         executePayment,
-        checkAllowance,
+        checkUSDCBalance,
+        getOnRampUrl,
+
+        // Reset
+        reset: () => {
+            setError(null);
+            setCurrentStep('idle');
+            setCurrentPayment(null);
+        },
     };
 };

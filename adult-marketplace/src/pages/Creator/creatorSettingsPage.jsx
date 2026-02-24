@@ -63,7 +63,7 @@ function Input({ id, type = 'text', value, onChange, placeholder, disabled, clas
         onChange={onChange}
         placeholder={placeholder}
         disabled={disabled}
-        className={`w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent disabled:opacity-50 disabled:cursor-not-allowed transition-colors ${prefix ? 'pl-8' : ''} ${className}`}
+        className={`w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-black dark:focus:ring-white focus:border-transparent disabled:opacity-50 disabled:cursor-not-allowed transition-colors ${prefix ? 'pl-8' : ''} ${className}`}
         {...props}
       />
     </div>
@@ -81,7 +81,7 @@ function TextArea({ id, value, onChange, placeholder, rows = 4, maxLength, disab
         rows={rows}
         maxLength={maxLength}
         disabled={disabled}
-        className="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent disabled:opacity-50 disabled:cursor-not-allowed transition-colors resize-none"
+        className="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-black dark:focus:ring-white focus:border-transparent disabled:opacity-50 disabled:cursor-not-allowed transition-colors resize-none"
       />
       {maxLength && (
         <span className="absolute bottom-2 right-3 text-xs text-slate-400">
@@ -99,7 +99,7 @@ function Select({ id, value, onChange, options, placeholder, disabled }) {
       value={value || ''}
       onChange={onChange}
       disabled={disabled}
-      className="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent disabled:opacity-50 disabled:cursor-not-allowed transition-colors appearance-none cursor-pointer"
+      className="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-black dark:focus:ring-white focus:border-transparent disabled:opacity-50 disabled:cursor-not-allowed transition-colors appearance-none cursor-pointer"
     >
       {placeholder && <option value="">{placeholder}</option>}
       {options.map((opt) => (
@@ -129,7 +129,7 @@ function Toggle({ id, checked, onChange, label, description, disabled }) {
         aria-checked={checked}
         onClick={() => !disabled && onChange(!checked)}
         disabled={disabled}
-        className={`relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 dark:focus:ring-offset-slate-900 disabled:opacity-50 disabled:cursor-not-allowed ${checked ? 'bg-indigo-600' : 'bg-slate-300 dark:bg-slate-600'
+        className={`relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-black dark:focus:ring-white focus:ring-offset-2 dark:focus:ring-offset-slate-900 disabled:opacity-50 disabled:cursor-not-allowed ${checked ? 'bg-black' : 'bg-slate-300 dark:bg-slate-600'
           }`}
       >
         <span
@@ -143,10 +143,10 @@ function Toggle({ id, checked, onChange, label, description, disabled }) {
 
 function Button({ children, variant = 'primary', size = 'md', loading, disabled, className = '', ...props }) {
   const variants = {
-    primary: 'bg-indigo-600 hover:bg-indigo-700 text-white shadow-lg shadow-indigo-600/25',
+    primary: 'bg-black hover:bg-black/90 text-white shadow-lg',
     secondary: 'bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-900 dark:text-white',
-    danger: 'bg-red-600 hover:bg-red-700 text-white shadow-lg shadow-red-600/25',
-    success: 'bg-green-600 hover:bg-green-700 text-white shadow-lg shadow-green-600/25',
+    danger: 'bg-slate-900 hover:bg-slate-900 text-white shadow-lg shadow-red-600/25',
+    success: 'bg-slate-800 hover:bg-slate-800 text-white shadow-lg shadow-green-600/25',
     outline: 'border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300',
   };
 
@@ -178,14 +178,14 @@ function FormGroup({ label, htmlFor, required, hint, error, children }) {
     <div className="mb-5">
       <label htmlFor={htmlFor} className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
         {label}
-        {required && <span className="text-red-500 ml-1">*</span>}
+        {required && <span className="text-slate-900 ml-1">*</span>}
       </label>
       {children}
       {hint && !error && (
         <p className="text-xs text-slate-500 dark:text-slate-400 mt-1.5">{hint}</p>
       )}
       {error && (
-        <p className="text-xs text-red-500 mt-1.5 flex items-center space-x-1">
+        <p className="text-xs text-slate-900 mt-1.5 flex items-center space-x-1">
           <span>⚠️</span>
           <span>{error}</span>
         </p>
@@ -220,7 +220,7 @@ function TabNavigation({ activeTab, setActiveTab }) {
             key={tab.id}
             onClick={() => setActiveTab(tab.id)}
             className={`flex items-center align-center space-x-2 px-4 py-2.5 rounded-lg text-sm font-medium transition-all whitespace-nowrap ${activeTab === tab.id
-              ? 'bg-white dark:bg-slate-900 text-indigo-600 dark:text-indigo-400 shadow-sm'
+              ? 'bg-white dark:bg-slate-900 text-black dark:text-black shadow-sm'
               : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-white/50 dark:hover:bg-slate-700/50'
               }`}
           >
@@ -244,10 +244,10 @@ function Toast({ show, message, type = 'success', onClose }) {
   if (!show) return null;
 
   const styles = {
-    success: 'bg-green-500',
-    error: 'bg-red-500',
-    info: 'bg-blue-500',
-    warning: 'bg-amber-500',
+    success: 'bg-slate-800',
+    error: 'bg-slate-900',
+    info: 'bg-black',
+    warning: 'bg-slate-600',
   };
 
   const icons = {
@@ -328,7 +328,7 @@ function ProfileSection({ profile, setProfile, onSave, saving, toast }) {
         {/* Cover Image */}
         <div className="relative mb-16">
           <div
-            className="h-40 sm:h-52 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-xl overflow-hidden cursor-pointer group"
+            className="h-40 sm:h-52 bg-slate-200 dark:bg-slate-800 rounded-xl overflow-hidden cursor-pointer group"
             onClick={() => coverInputRef.current?.click()}
           >
             {coverPreview ? (
@@ -365,7 +365,7 @@ function ProfileSection({ profile, setProfile, onSave, saving, toast }) {
               {avatarPreview ? (
                 <img src={avatarPreview} alt="Avatar" className="w-full h-full object-cover" />
               ) : (
-                <div className="w-full h-full bg-gradient-to-br from-pink-500 to-purple-600 flex items-center justify-center">
+                <div className="w-full h-full bg-slate-200 dark:bg-slate-800 flex items-center justify-center">
                   <span className="text-white font-bold text-2xl">
                     {getInitials(profile.displayName)}
                   </span>
@@ -406,7 +406,7 @@ function ProfileSection({ profile, setProfile, onSave, saving, toast }) {
             />
           </FormGroup>
 
-          <FormGroup label="Username" htmlFor="username" required hint="prideconnect.com/@username">
+          <FormGroup label="Username" htmlFor="username" required hint="flowconnect.com/@username">
             <Input
               id="username"
               value={profile.username}
@@ -490,8 +490,8 @@ function ProfileSection({ profile, setProfile, onSave, saving, toast }) {
           </FormGroup>
         </div>
 
-        <div className="mt-4 p-4 bg-indigo-50 dark:bg-indigo-900/20 border border-indigo-200 dark:border-indigo-800 rounded-lg">
-          <p className="text-sm text-indigo-900 dark:text-indigo-200">
+        <div className="mt-4 p-4 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg">
+          <p className="text-sm text-black dark:text-black">
             🏳️‍🌈 Essas informações são opcionais e ajudam a comunidade LGBT+ a
             encontrar criadores com identidades semelhantes.
           </p>
@@ -600,7 +600,7 @@ function AccountSection({ account, setAccount, onSave, saving, toast }) {
 
         <div className="flex items-center justify-between p-3 bg-slate-50 dark:bg-slate-800 rounded-lg">
           <div className="flex items-center space-x-2">
-            <span className={`w-3 h-3 rounded-full ${account.emailVerified ? 'bg-green-500' : 'bg-amber-500'}`}></span>
+            <span className={`w-3 h-3 rounded-full ${account.emailVerified ? 'bg-slate-800' : 'bg-slate-600'}`}></span>
             <span className="text-sm text-slate-700 dark:text-slate-300">
               {account.emailVerified ? 'Email verificado' : 'Email não verificado'}
             </span>
@@ -698,9 +698,9 @@ function AccountSection({ account, setAccount, onSave, saving, toast }) {
 
       {/* Excluir Conta */}
       <SettingsCard title="Zona de Perigo" description="Ações irreversíveis">
-        <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-4">
-          <h4 className="font-semibold text-red-900 dark:text-red-200 mb-2">Excluir Conta</h4>
-          <p className="text-sm text-red-700 dark:text-red-300 mb-4">
+        <div className="bg-slate-900 dark:bg-slate-900/20 border border-red-200 dark:border-red-800 rounded-lg p-4">
+          <h4 className="font-semibold text-slate-900 dark:text-slate-900 mb-2">Excluir Conta</h4>
+          <p className="text-sm text-slate-900 dark:text-slate-900 mb-4">
             Ao excluir sua conta, todos os seus dados, conteúdos, assinantes e
             ganhos serão permanentemente removidos. Esta ação não pode ser desfeita.
           </p>
@@ -735,13 +735,13 @@ function SubscriptionSection({ subscription, setSubscription, onSave, saving }) 
             />
           </FormGroup>
 
-          <div className="bg-gradient-to-br from-green-50 to-emerald-50 dark:from-green-900/20 dark:to-emerald-900/20 border border-green-200 dark:border-green-800 rounded-lg p-4">
-            <p className="text-sm text-green-700 dark:text-green-300">💰 Você recebe:</p>
-            <p className="text-3xl font-bold text-green-600 dark:text-green-400 mt-1">
+          <div className="bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg p-4">
+            <p className="text-sm text-slate-800 dark:text-slate-800">💰 Você recebe:</p>
+            <p className="text-3xl font-bold text-slate-800 dark:text-slate-800 mt-1">
               ${creatorEarnings.toFixed(2)}
-              <span className="text-sm font-normal text-green-500 ml-2">/ mês</span>
+              <span className="text-sm font-normal text-slate-800 ml-2">/ mês</span>
             </p>
-            <p className="text-xs text-green-600 dark:text-green-400 mt-1">Taxa da plataforma: 10%</p>
+            <p className="text-xs text-slate-800 dark:text-slate-800 mt-1">Taxa da plataforma: 10%</p>
           </div>
         </div>
       </SettingsCard>
@@ -766,7 +766,7 @@ function SubscriptionSection({ subscription, setSubscription, onSave, saving }) 
                   <p className="font-medium text-slate-900 dark:text-white">{bundle.label}</p>
                   <p className="text-sm text-slate-500">
                     Total: ${totalPrice.toFixed(2)}
-                    {discount > 0 && <span className="text-green-500 ml-1">(-{discount}%)</span>}
+                    {discount > 0 && <span className="text-slate-800 ml-1">(-{discount}%)</span>}
                   </p>
                 </div>
                 <div className="flex items-center space-x-2">
@@ -893,7 +893,7 @@ function PaymentsSection({ payments, setPayments, onSave, saving }) {
               key={method.id}
               onClick={() => setPayments({ ...payments, withdrawMethod: method.id })}
               className={`p-4 rounded-xl border-2 transition-all text-left ${payments.withdrawMethod === method.id
-                ? 'border-indigo-500 bg-indigo-50 dark:bg-indigo-900/20'
+                ? 'border-black dark:border-white bg-slate-100 dark:bg-slate-800'
                 : 'border-slate-200 dark:border-slate-700 hover:border-slate-300 dark:hover:border-slate-600'
                 }`}
             >
@@ -917,8 +917,8 @@ function PaymentsSection({ payments, setPayments, onSave, saving }) {
             />
           </FormGroup>
 
-          <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4 mt-4">
-            <p className="text-sm text-blue-700 dark:text-blue-300">
+          <div className="bg-black dark:bg-black/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4 mt-4">
+            <p className="text-sm text-black dark:text-black">
               ℹ️ <strong>Importante:</strong> Use apenas endereços da rede Polygon. Pagamentos são feitos em USDC.
             </p>
           </div>
@@ -1528,7 +1528,7 @@ export default function CreatorSettingsPage() {
       return (
         <div className="flex items-center justify-center py-20">
           <div className="text-center">
-            <svg className="animate-spin h-12 w-12 text-indigo-600 mx-auto mb-4" fill="none" viewBox="0 0 24 24">
+            <svg className="animate-spin h-12 w-12 text-black mx-auto mb-4" fill="none" viewBox="0 0 24 24">
               <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
               <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
             </svg>

@@ -59,6 +59,7 @@ export const registerSchema = Joi.object({
     'Gay',
     'Lésbica',
     'Bissexual',
+    'Demissexual',
     'Pansexual',
     'Assexual',
     'Queer',

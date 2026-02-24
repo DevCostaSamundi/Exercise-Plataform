@@ -399,10 +399,10 @@ export default function CreatorRegisterPage() {
         {/* Header */}
         <div className="text-center mb-8">
           <Link to="/" className="inline-flex items-center space-x-3 mb-4">
-            <div className="w-12 h-12 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-xl flex items-center justify-center">
-              <span className="text-white font-black text-2xl">P</span>
+            <div className="w-12 h-12 bg-black dark:bg-white rounded-xl flex items-center justify-center">
+              <span className="text-white dark:text-black font-black text-2xl">F</span>
             </div>
-            <h1 className="text-2xl font-bold text-slate-900 dark:text-white">PrideConnect</h1>
+            <h1 className="text-2xl font-bold text-slate-900 dark:text-white">FlowConnect</h1>
           </Link>
           <h2 className="text-3xl font-bold text-slate-900 dark:text-white mb-2">
             Torne-se um Criador 🌍
@@ -418,13 +418,13 @@ export default function CreatorRegisterPage() {
             {[1, 2, 3, 4, 5].map((s) => (
               <div key={s} className="flex items-center flex-1">
                 <div className={`w-10 h-10 rounded-full flex items-center justify-center font-bold text-sm transition-all ${s <= step
-                    ? 'bg-indigo-600 text-white'
-                    : 'bg-slate-200 dark:bg-slate-800 text-slate-400'
+                  ? 'bg-black text-white'
+                  : 'bg-slate-200 dark:bg-slate-800 text-slate-400'
                   }`}>
                   {s < step ? '✓' : s}
                 </div>
                 {s < 5 && (
-                  <div className={`flex-1 h-1 mx-1 transition-all ${s < step ? 'bg-indigo-600' : 'bg-slate-200 dark:bg-slate-800'
+                  <div className={`flex-1 h-1 mx-1 transition-all ${s < step ? 'bg-black' : 'bg-slate-200 dark:bg-slate-800'
                     }`}></div>
                 )}
               </div>
@@ -441,9 +441,9 @@ export default function CreatorRegisterPage() {
             {/* Step 1: Informações Básicas */}
             {step === 1 && (
               <div className="space-y-5">
-                <div className="bg-indigo-50 dark:bg-indigo-900/20 border border-indigo-200 dark:border-indigo-800 rounded-lg p-4 mb-6">
-                  <p className="text-sm text-indigo-900 dark:text-indigo-200">
-                    🌍 <strong>Plataforma Global:</strong> Bem-vindo à primeira plataforma descentralizada para criadores +18.  Suportamos pagamentos em crypto.
+                <div className="bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg p-4 mb-6">
+                  <p className="text-sm text-slate-700 dark:text-slate-300">
+                    🌍 <strong>Plataforma Global:</strong> Bem-vindo à primeira plataforma descentralizada para criadores +18. Suportamos pagamentos em crypto.
                   </p>
                 </div>
 
@@ -457,10 +457,10 @@ export default function CreatorRegisterPage() {
                     value={formData.email}
                     onChange={handleChange}
                     className={`w-full px-4 py-3 bg-slate-50 dark:bg-slate-800 border ${errors.email ? 'border-red-300' : 'border-slate-200 dark:border-slate-700'
-                      } rounded-lg text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500`}
+                      } rounded-lg text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-black dark:focus:ring-white`}
                     placeholder="seu@email.com"
                   />
-                  {errors.email && <p className="mt-1 text-sm text-red-600">{errors.email}</p>}
+                  {errors.email && <p className="mt-1 text-sm text-slate-900">{errors.email}</p>}
                 </div>
 
                 <div>
@@ -475,11 +475,11 @@ export default function CreatorRegisterPage() {
                       value={formData.username}
                       onChange={handleChange}
                       className={`w-full pl-10 pr-4 py-3 bg-slate-50 dark:bg-slate-800 border ${errors.username ? 'border-red-300' : 'border-slate-200 dark:border-slate-700'
-                        } rounded-lg text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500`}
+                        } rounded-lg text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-black dark:focus:ring-white`}
                       placeholder="seunome"
                     />
                   </div>
-                  {errors.username && <p className="mt-1 text-sm text-red-600">{errors.username}</p>}
+                  {errors.username && <p className="mt-1 text-sm text-slate-900">{errors.username}</p>}
                 </div>
 
                 <div>
@@ -493,7 +493,7 @@ export default function CreatorRegisterPage() {
                       value={formData.password}
                       onChange={handleChange}
                       className={`w-full px-4 py-3 pr-12 bg-slate-50 dark:bg-slate-800 border ${errors.password ? 'border-red-300' : 'border-slate-200 dark:border-slate-700'
-                        } rounded-lg text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500`}
+                        } rounded-lg text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-black dark:focus:ring-white`}
                       placeholder="••••••••"
                     />
                     <button
@@ -504,7 +504,7 @@ export default function CreatorRegisterPage() {
                       {showPassword ? '👁️' : '👁️‍🗨️'}
                     </button>
                   </div>
-                  {errors.password && <p className="mt-1 text-sm text-red-600">{errors.password}</p>}
+                  {errors.password && <p className="mt-1 text-sm text-slate-900">{errors.password}</p>}
                 </div>
 
                 <div>
@@ -517,10 +517,10 @@ export default function CreatorRegisterPage() {
                     value={formData.confirmPassword}
                     onChange={handleChange}
                     className={`w-full px-4 py-3 bg-slate-50 dark:bg-slate-800 border ${errors.confirmPassword ? 'border-red-300' : 'border-slate-200 dark:border-slate-700'
-                      } rounded-lg text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500`}
+                      } rounded-lg text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-black dark:focus:ring-white`}
                     placeholder="••••••••"
                   />
-                  {errors.confirmPassword && <p className="mt-1 text-sm text-red-600">{errors.confirmPassword}</p>}
+                  {errors.confirmPassword && <p className="mt-1 text-sm text-slate-900">{errors.confirmPassword}</p>}
                 </div>
               </div>
             )}
@@ -528,8 +528,8 @@ export default function CreatorRegisterPage() {
             {/* Step 2: Perfil */}
             {step === 2 && (
               <div className="space-y-5">
-                <div className="bg-purple-50 dark:bg-purple-900/20 border border-purple-200 dark:border-purple-800 rounded-lg p-4 mb-6">
-                  <p className="text-sm text-purple-900 dark:text-purple-200">
+                <div className="bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg p-4 mb-6">
+                  <p className="text-sm text-slate-700 dark:text-slate-300">
                     ✨ <strong>Seu Perfil Global:</strong> Crie um perfil atrativo para fãs do mundo todo. Seja autêntico e criativo!
                   </p>
                 </div>
@@ -544,10 +544,10 @@ export default function CreatorRegisterPage() {
                     value={formData.displayName}
                     onChange={handleChange}
                     className={`w-full px-4 py-3 bg-slate-50 dark:bg-slate-800 border ${errors.displayName ? 'border-red-300' : 'border-slate-200 dark:border-slate-700'
-                      } rounded-lg text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500`}
+                      } rounded-lg text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-black dark:focus:ring-white`}
                     placeholder="Como você quer ser chamado"
                   />
-                  {errors.displayName && <p className="mt-1 text-sm text-red-600">{errors.displayName}</p>}
+                  {errors.displayName && <p className="mt-1 text-sm text-slate-900">{errors.displayName}</p>}
                 </div>
 
                 <div className="grid grid-cols-2 gap-4">
@@ -562,9 +562,9 @@ export default function CreatorRegisterPage() {
                       onChange={handleChange}
                       max={new Date(new Date().setFullYear(new Date().getFullYear() - 18)).toISOString().split('T')[0]}
                       className={`w-full px-4 py-3 bg-slate-50 dark:bg-slate-800 border ${errors.birthDate ? 'border-red-300' : 'border-slate-200 dark:border-slate-700'
-                        } rounded-lg text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500`}
+                        } rounded-lg text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-black dark:focus:ring-white`}
                     />
-                    {errors.birthDate && <p className="mt-1 text-sm text-red-600">{errors.birthDate}</p>}
+                    {errors.birthDate && <p className="mt-1 text-sm text-slate-900">{errors.birthDate}</p>}
                   </div>
 
                   <div>
@@ -575,7 +575,7 @@ export default function CreatorRegisterPage() {
                       name="country"
                       value={formData.country}
                       onChange={handleChange}
-                      className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                      className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-black dark:focus:ring-white"
                     >
                       <option value="">Selecione seu país... </option>
                       {countryOptions.map(country => (
@@ -594,7 +594,7 @@ export default function CreatorRegisterPage() {
                     name="location"
                     value={formData.location}
                     onChange={handleChange}
-                    className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                    className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-black dark:focus:ring-white"
                     placeholder="Ex: São Paulo, SP ou New York, NY"
                   />
                 </div>
@@ -609,14 +609,14 @@ export default function CreatorRegisterPage() {
                       value={formData.genderIdentity}
                       onChange={handleChange}
                       className={`w-full px-4 py-3 bg-slate-50 dark:bg-slate-800 border ${errors.genderIdentity ? 'border-red-300' : 'border-slate-200 dark:border-slate-700'
-                        } rounded-lg text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500`}
+                        } rounded-lg text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-black dark:focus:ring-white`}
                     >
                       <option value="">Selecione... </option>
                       {genderOptions.map(opt => (
                         <option key={opt} value={opt}>{opt}</option>
                       ))}
                     </select>
-                    {errors.genderIdentity && <p className="mt-1 text-sm text-red-600">{errors.genderIdentity}</p>}
+                    {errors.genderIdentity && <p className="mt-1 text-sm text-slate-900">{errors.genderIdentity}</p>}
                   </div>
 
                   <div>
@@ -627,7 +627,7 @@ export default function CreatorRegisterPage() {
                       name="orientation"
                       value={formData.orientation}
                       onChange={handleChange}
-                      className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                      className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-black dark:focus:ring-white"
                     >
                       <option value="">Selecione... </option>
                       {orientationOptions.map(opt => (
@@ -648,11 +648,11 @@ export default function CreatorRegisterPage() {
                     rows={5}
                     maxLength={500}
                     className={`w-full px-4 py-3 bg-slate-50 dark:bg-slate-800 border ${errors.bio ? 'border-red-300' : 'border-slate-200 dark:border-slate-700'
-                      } rounded-lg text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500 resize-none`}
+                      } rounded-lg text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-black dark:focus:ring-white resize-none`}
                     placeholder="Conte sobre você, seu conteúdo e o que torna você único..."
                   ></textarea>
                   <p className="mt-1 text-xs text-slate-500">{formData.bio.length}/500 caracteres</p>
-                  {errors.bio && <p className="mt-1 text-sm text-red-600">{errors.bio}</p>}
+                  {errors.bio && <p className="mt-1 text-sm text-slate-900">{errors.bio}</p>}
                 </div>
               </div>
             )}
@@ -660,9 +660,9 @@ export default function CreatorRegisterPage() {
             {/* Step 3: Tipo de Conteúdo */}
             {step === 3 && (
               <div className="space-y-6">
-                <div className="bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg p-4 mb-6">
-                  <p className="text-sm text-green-900 dark:text-green-200">
-                    💰 <strong>Monetização Global:</strong> Defina seu preço em USD (equivalente aceito em crypto/BRL).  Você pode alterar depois!
+                <div className="bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg p-4 mb-6">
+                  <p className="text-sm text-slate-700 dark:text-slate-300">
+                    💰 <strong>Monetização Global:</strong> Defina seu preço em USD (equivalente aceito em crypto/BRL). Você pode alterar depois!
                   </p>
                 </div>
 
@@ -677,15 +677,15 @@ export default function CreatorRegisterPage() {
                         type="button"
                         onClick={() => handleMultiSelect('contentTypes', type)}
                         className={`px-4 py-3 rounded-lg text-sm font-medium transition-all ${formData.contentTypes.includes(type)
-                            ? 'bg-indigo-600 text-white'
-                            : 'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700 hover:border-indigo-300'
+                          ? 'bg-black text-white'
+                          : 'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700 hover:border-black'
                           }`}
                       >
                         {type}
                       </button>
                     ))}
                   </div>
-                  {errors.contentTypes && <p className="mt-2 text-sm text-red-600">{errors.contentTypes}</p>}
+                  {errors.contentTypes && <p className="mt-2 text-sm text-slate-900">{errors.contentTypes}</p>}
                 </div>
 
                 <div>
@@ -699,15 +699,15 @@ export default function CreatorRegisterPage() {
                         type="button"
                         onClick={() => handleMultiSelect('aesthetic', aes)}
                         className={`px-4 py-3 rounded-lg text-sm font-medium transition-all ${formData.aesthetic.includes(aes)
-                            ? 'bg-purple-600 text-white'
-                            : 'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700 hover:border-purple-300'
+                          ? 'bg-black text-white'
+                          : 'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700 hover:border-black'
                           }`}
                       >
                         {aes}
                       </button>
                     ))}
                   </div>
-                  {errors.aesthetic && <p className="mt-2 text-sm text-red-600">{errors.aesthetic}</p>}
+                  {errors.aesthetic && <p className="mt-2 text-sm text-slate-900">{errors.aesthetic}</p>}
                 </div>
 
                 <div>
@@ -724,11 +724,11 @@ export default function CreatorRegisterPage() {
                       step="0.10"
                       min="5"
                       className={`w-full pl-12 pr-4 py-3 bg-slate-50 dark:bg-slate-800 border ${errors.subscriptionPrice ? 'border-red-300' : 'border-slate-200 dark:border-slate-700'
-                        } rounded-lg text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500`}
+                        } rounded-lg text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-black dark:focus:ring-white`}
                       placeholder="9.99"
                     />
                   </div>
-                  {errors.subscriptionPrice && <p className="mt-1 text-sm text-red-600">{errors.subscriptionPrice}</p>}
+                  {errors.subscriptionPrice && <p className="mt-1 text-sm text-slate-900">{errors.subscriptionPrice}</p>}
                   <p className="mt-1 text-xs text-slate-500">
                     Preço em USD.  Fãs podem pagar com Crypto. (conversão automática)
                   </p>
@@ -751,7 +751,7 @@ export default function CreatorRegisterPage() {
                       </div>
                       <div className="flex justify-between">
                         <span>100 assinantes:</span>
-                        <span className="font-bold text-indigo-600 dark:text-indigo-400">
+                        <span className="font-bold text-black dark:text-black">
                           ${(priceNumber(formData.subscriptionPrice) * 100 * 0.8).toFixed(2)}/mês
                         </span>
                       </div>
@@ -767,8 +767,8 @@ export default function CreatorRegisterPage() {
             {/* Step 4: Dados de Pagamento */}
             {step === 4 && (
               <div className="space-y-5">
-                <div className="bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg p-4 mb-6">
-                  <p className="text-sm text-yellow-900 dark:text-yellow-200">
+                <div className="bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg p-4 mb-6">
+                  <p className="text-sm text-slate-700 dark:text-slate-300">
                     🔒 <strong>Pagamentos Descentralizados:</strong> Crypto é nossa opção principal para uma plataforma verdadeiramente global.
                   </p>
                 </div>
@@ -779,8 +779,8 @@ export default function CreatorRegisterPage() {
                   </label>
                   <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                     <label className={`px-4 py-4 rounded-lg cursor-pointer border-2 transition-all ${formData.paymentMethod === 'crypto'
-                        ? 'bg-indigo-600 text-white border-indigo-600'
-                        : 'bg-slate-50 dark:bg-slate-800 border-slate-200 dark:border-slate-700 hover:border-indigo-300'
+                      ? 'bg-black text-white border-black dark:border-white'
+                      : 'bg-slate-50 dark:bg-slate-800 border-slate-200 dark:border-slate-700 hover:border-black dark:hover:border-white'
                       }`}>
                       <input
                         type="radio"
@@ -809,15 +809,15 @@ export default function CreatorRegisterPage() {
                     value={formData.fullName}
                     onChange={handleChange}
                     className={`w-full px-4 py-3 bg-slate-50 dark:bg-slate-800 border ${errors.fullName ? 'border-red-300' : 'border-slate-200 dark:border-slate-700'
-                      } rounded-lg text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500`}
+                      } rounded-lg text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-black dark:focus:ring-white`}
                     placeholder="Seu Nome Completo"
                   />
-                  {errors.fullName && <p className="mt-1 text-sm text-red-600">{errors.fullName}</p>}
+                  {errors.fullName && <p className="mt-1 text-sm text-slate-900">{errors.fullName}</p>}
                 </div>
 
                 {/* Campos condicionais por método */}
                 {formData.paymentMethod === 'crypto' && (
-                  <div className="space-y-4 bg-indigo-50 dark:bg-indigo-900/20 rounded-lg p-4">
+                  <div className="space-y-4 bg-black dark:bg-black/20 rounded-lg p-4">
                     <h3 className="font-medium text-slate-900 dark:text-white">Configuração Cryptocurrency</h3>
 
                     <div>
@@ -828,7 +828,7 @@ export default function CreatorRegisterPage() {
                         name="cryptoCurrency"
                         value={formData.cryptoCurrency}
                         onChange={handleChange}
-                        className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                        className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-black dark:focus:ring-white"
                       >
                         {cryptoCurrencyOptions.map(c => (
                           <option key={c} value={c}>{c}</option>
@@ -846,10 +846,10 @@ export default function CreatorRegisterPage() {
                         value={formData.cryptoWallet}
                         onChange={handleChange}
                         className={`w-full px-4 py-3 bg-slate-50 dark:bg-slate-800 border ${errors.cryptoWallet ? 'border-red-300' : 'border-slate-200 dark:border-slate-700'
-                          } rounded-lg text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500`}
+                          } rounded-lg text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-black dark:focus:ring-white`}
                         placeholder="Ex: 0x...  (ETH) ou bc1...  (BTC)"
                       />
-                      {errors.cryptoWallet && <p className="mt-1 text-sm text-red-600">{errors.cryptoWallet}</p>}
+                      {errors.cryptoWallet && <p className="mt-1 text-sm text-slate-900">{errors.cryptoWallet}</p>}
                       <p className="mt-2 text-xs text-slate-500">
                         ⚡ Pagamentos instantâneos e globais.  Sem intermediários, sem fronteiras.
                       </p>
@@ -862,8 +862,8 @@ export default function CreatorRegisterPage() {
             {/* Step 5: Verificação */}
             {step === 5 && (
               <div className="space-y-6">
-                <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-4 mb-6">
-                  <p className="text-sm text-red-900 dark:text-red-200">
+                <div className="bg-slate-900 dark:bg-slate-900/20 border border-red-200 dark:border-red-800 rounded-lg p-4 mb-6">
+                  <p className="text-sm text-slate-900 dark:text-slate-900">
                     ⚠️ <strong>Verificação Global:</strong> Para proteção de todos os usuários, verificamos a identidade de criadores mundialmente.
                   </p>
                 </div>
@@ -872,7 +872,7 @@ export default function CreatorRegisterPage() {
                   <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
                     Documento de Identidade (RG, CNH, Passaporte ou ID oficial)
                   </label>
-                  <div className="border-2 border-dashed border-slate-300 dark:border-slate-700 rounded-lg p-6 text-center hover:border-indigo-400 transition-colors cursor-pointer">
+                  <div className="border-2 border-dashed border-slate-300 dark:border-slate-700 rounded-lg p-6 text-center hover:border-black transition-colors cursor-pointer">
                     <input
                       type="file"
                       name="idDocument"
@@ -891,14 +891,14 @@ export default function CreatorRegisterPage() {
                       <p className="text-xs text-slate-500 mt-1">PNG, JPG ou PDF (máx. 5MB)</p>
                     </label>
                   </div>
-                  {errors.idDocument && <p className="mt-1 text-sm text-red-600">{errors.idDocument}</p>}
+                  {errors.idDocument && <p className="mt-1 text-sm text-slate-900">{errors.idDocument}</p>}
                 </div>
 
                 <div>
                   <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
                     Selfie segurando o documento
                   </label>
-                  <div className="border-2 border-dashed border-slate-300 dark:border-slate-700 rounded-lg p-6 text-center hover:border-indigo-400 transition-colors cursor-pointer">
+                  <div className="border-2 border-dashed border-slate-300 dark:border-slate-700 rounded-lg p-6 text-center hover:border-black transition-colors cursor-pointer">
                     <input
                       type="file"
                       name="selfieWithId"
@@ -918,7 +918,7 @@ export default function CreatorRegisterPage() {
                       <p className="text-xs text-slate-500 mt-1">Tire uma selfie clara segurando seu documento</p>
                     </label>
                   </div>
-                  {errors.selfieWithId && <p className="mt-1 text-sm text-red-600">{errors.selfieWithId}</p>}
+                  {errors.selfieWithId && <p className="mt-1 text-sm text-slate-900">{errors.selfieWithId}</p>}
                 </div>
 
                 {/* Checkboxes de Termos */}
@@ -929,13 +929,13 @@ export default function CreatorRegisterPage() {
                       name="ageConfirm"
                       checked={formData.ageConfirm}
                       onChange={handleChange}
-                      className="mt-1 w-5 h-5 text-indigo-600 bg-slate-100 dark:bg-slate-800 border-slate-300 dark:border-slate-600 rounded focus:ring-2 focus:ring-indigo-500"
+                      className="mt-1 w-5 h-5 text-black bg-slate-100 dark:bg-slate-800 border-slate-300 dark:border-slate-600 rounded focus:ring-2 focus:ring-black dark:focus:ring-white"
                     />
                     <span className="text-sm text-slate-700 dark:text-slate-300">
                       Confirmo que tenho <strong>18 anos ou mais</strong> e estou ciente de que esta plataforma permite conteúdo adulto.
                     </span>
                   </label>
-                  {errors.ageConfirm && <p className="text-sm text-red-600">{errors.ageConfirm}</p>}
+                  {errors.ageConfirm && <p className="text-sm text-slate-900">{errors.ageConfirm}</p>}
 
                   <label className="flex items-start space-x-3 cursor-pointer">
                     <input
@@ -943,13 +943,13 @@ export default function CreatorRegisterPage() {
                       name="contentOwnership"
                       checked={formData.contentOwnership}
                       onChange={handleChange}
-                      className="mt-1 w-5 h-5 text-indigo-600 bg-slate-100 dark:bg-slate-800 border-slate-300 dark:border-slate-600 rounded focus:ring-2 focus:ring-indigo-500"
+                      className="mt-1 w-5 h-5 text-black bg-slate-100 dark:bg-slate-800 border-slate-300 dark:border-slate-600 rounded focus:ring-2 focus:ring-black dark:focus:ring-white"
                     />
                     <span className="text-sm text-slate-700 dark:text-slate-300">
                       Confirmo que sou o <strong>autor e dono</strong> de todo o conteúdo que irei publicar e que não violarei direitos autorais de terceiros.
                     </span>
                   </label>
-                  {errors.contentOwnership && <p className="text-sm text-red-600">{errors.contentOwnership}</p>}
+                  {errors.contentOwnership && <p className="text-sm text-slate-900">{errors.contentOwnership}</p>}
 
                   <label className="flex items-start space-x-3 cursor-pointer">
                     <input
@@ -957,24 +957,24 @@ export default function CreatorRegisterPage() {
                       name="agreeTerms"
                       checked={formData.agreeTerms}
                       onChange={handleChange}
-                      className="mt-1 w-5 h-5 text-indigo-600 bg-slate-100 dark:bg-slate-800 border-slate-300 dark:border-slate-600 rounded focus:ring-2 focus:ring-indigo-500"
+                      className="mt-1 w-5 h-5 text-black bg-slate-100 dark:bg-slate-800 border-slate-300 dark:border-slate-600 rounded focus:ring-2 focus:ring-black dark:focus:ring-white"
                     />
                     <span className="text-sm text-slate-700 dark:text-slate-300">
                       Concordo com os{' '}
-                      <Link to="/creator-terms" target="_blank" className="text-indigo-600 dark:text-indigo-400 hover:underline">
+                      <Link to="/creator-terms" target="_blank" className="text-black dark:text-black hover:underline">
                         Termos de Uso para Criadores
                       </Link>
                       {' '}e{' '}
-                      <Link to="/privacy" target="_blank" className="text-indigo-600 dark:text-indigo-400 hover:underline">
+                      <Link to="/privacy" target="_blank" className="text-black dark:text-black hover:underline">
                         Política de Privacidade
                       </Link>
                     </span>
                   </label>
-                  {errors.agreeTerms && <p className="text-sm text-red-600">{errors.agreeTerms}</p>}
+                  {errors.agreeTerms && <p className="text-sm text-slate-900">{errors.agreeTerms}</p>}
                 </div>
 
                 {errors.submit && (
-                  <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 text-red-600 dark:text-red-400 px-4 py-3 rounded-lg text-sm">
+                  <div className="bg-slate-900 dark:bg-slate-900/20 border border-red-200 dark:border-red-800 text-slate-900 dark:text-slate-900 px-4 py-3 rounded-lg text-sm">
                     {errors.submit}
                   </div>
                 )}
@@ -1004,7 +1004,7 @@ export default function CreatorRegisterPage() {
                 <button
                   type="button"
                   onClick={handleNext}
-                  className="px-6 py-3 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-lg transition-colors flex items-center space-x-2"
+                  className="px-6 py-3 bg-black hover:bg-black text-white font-bold rounded-lg transition-colors flex items-center space-x-2"
                 >
                   <span>Próximo</span>
                   <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
@@ -1015,7 +1015,7 @@ export default function CreatorRegisterPage() {
                 <button
                   type="submit"
                   disabled={isLoading}
-                  className="px-8 py-3 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 disabled:opacity-50 text-white font-bold rounded-lg transition-all flex items-center space-x-2"
+                  className="px-8 py-3 bg-black hover:bg-black/90 disabled:opacity-50 text-white font-bold rounded-lg shadow-lg transition-all flex items-center space-x-2"
                 >
                   {isLoading ? (
                     <>
@@ -1042,7 +1042,7 @@ export default function CreatorRegisterPage() {
         {/* Help Text */}
         <p className="mt-6 text-center text-sm text-slate-500 dark:text-slate-400">
           Dúvidas? Entre em contato com nosso{' '}
-          <Link to="/support" className="text-indigo-600 dark:text-indigo-400 hover:underline">
+          <Link to="/support" className="text-black dark:text-black hover:underline">
             Suporte para Criadores
           </Link>
         </p>

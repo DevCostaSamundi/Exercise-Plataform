@@ -33,12 +33,12 @@ const Profile = () => {
     try {
       setLoading(true);
       // ✅ USAR ROTA CORRETA
-      const response = await api. get('/user/profile');
+      const response = await api.get('/user/profile');
 
       setUser(response.data);
       setStats(response.data.stats);
       setFormData({
-        name: response.data. displayName || response.data.username,
+        name: response.data.displayName || response.data.username,
         bio: response.data.bio || '',
       });
     } catch (err) {
@@ -55,12 +55,12 @@ const Profile = () => {
       const formDataToSend = new FormData();
       formDataToSend.append('displayName', formData.name);
       formDataToSend.append('bio', formData.bio);
-      
+
       if (formData.avatar) {
         formDataToSend.append('avatar', formData.avatar);
       }
       if (formData.coverImage) {
-        formDataToSend. append('coverImage', formData. coverImage);
+        formDataToSend.append('coverImage', formData.coverImage);
       }
 
       // ✅ USAR ROTA CORRETA
@@ -91,7 +91,7 @@ const Profile = () => {
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-[60vh]">
-        <div className="w-12 h-12 border-4 border-purple-600 border-t-transparent rounded-full animate-spin" />
+        <div className="w-12 h-12 border-4 border-black dark:border-white border-t-transparent rounded-full animate-spin" />
       </div>
     );
   }
@@ -102,15 +102,15 @@ const Profile = () => {
       <div className="flex-1">
         <div className="max-w-4xl mx-auto">
           {/* Cover Image */}
-          <div className="relative h-48 md:h-64 bg-gradient-to-r from-purple-500 to-pink-500 rounded-t-lg overflow-hidden">
-            {user?. coverImage && (
+          <div className="relative h-48 md:h-64 bg-slate-200 dark:bg-slate-700 rounded-t-lg overflow-hidden">
+            {user?.coverImage && (
               <img
                 src={user.coverImage}
                 alt="Cover"
                 className="w-full h-full object-cover"
               />
             )}
-            
+
             {editing && (
               <div className="absolute inset-0 bg-black/50 flex items-center justify-center">
                 <label className="cursor-pointer bg-white/90 px-4 py-2 rounded-lg font-medium hover:bg-white transition-colors">
@@ -132,13 +132,13 @@ const Profile = () => {
             <div className="flex flex-col md:flex-row items-start md:items-end gap-6 mb-6">
               <div className="relative">
                 <img
-                  src={user?. avatar || `https://ui-avatars.com/api/?name=${user?.username}&size=128`}
+                  src={user?.avatar || `https://ui-avatars.com/api/?name=${user?.username}&size=128`}
                   alt={user?.username}
                   className="w-32 h-32 rounded-full border-4 border-white dark:border-gray-800 shadow-lg"
                 />
-                
+
                 {editing && (
-                  <label className="absolute bottom-0 right-0 bg-indigo-600 hover:bg-indigo-700 text-white p-2 rounded-full cursor-pointer shadow-lg transition-colors">
+                  <label className="absolute bottom-0 right-0 bg-black hover:bg-black text-white p-2 rounded-full cursor-pointer shadow-lg transition-colors">
                     <FiEdit2 className="w-5 h-5" />
                     <input
                       type="file"
@@ -187,7 +187,7 @@ const Profile = () => {
                     </p>
                     {user?.bio && (
                       <p className="text-gray-700 dark:text-gray-300">
-                        {user. bio}
+                        {user.bio}
                       </p>
                     )}
                   </>
@@ -207,7 +207,7 @@ const Profile = () => {
                     <button
                       onClick={handleSave}
                       disabled={saving}
-                      className="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg font-medium transition-colors disabled:opacity-50 flex items-center gap-2"
+                      className="px-4 py-2 bg-black hover:bg-black text-white rounded-lg font-medium transition-colors disabled:opacity-50 flex items-center gap-2"
                     >
                       {saving ? (
                         <>
@@ -222,7 +222,7 @@ const Profile = () => {
                 ) : (
                   <button
                     onClick={() => setEditing(true)}
-                    className="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg font-medium transition-colors flex items-center gap-2"
+                    className="px-4 py-2 bg-black hover:bg-black text-white rounded-lg font-medium transition-colors flex items-center gap-2"
                   >
                     <FiEdit2 />
                     Editar Perfil
@@ -237,7 +237,7 @@ const Profile = () => {
                 to="/my-subscriptions"
                 className="flex flex-col items-center p-4 bg-gray-50 dark:bg-gray-900 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
               >
-                <FiList className="text-2xl text-indigo-600 mb-2" />
+                <FiList className="text-2xl text-black mb-2" />
                 <span className="text-2xl font-bold text-gray-900 dark:text-white">
                   {stats?.subscriptions || 0}
                 </span>
@@ -250,7 +250,7 @@ const Profile = () => {
                 to="/favorites"
                 className="flex flex-col items-center p-4 bg-gray-50 dark: bg-gray-900 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
               >
-                <FiHeart className="text-2xl text-red-500 mb-2" />
+                <FiHeart className="text-2xl text-slate-900 mb-2" />
                 <span className="text-2xl font-bold text-gray-900 dark:text-white">
                   {stats?.favorites || 0}
                 </span>
@@ -263,7 +263,7 @@ const Profile = () => {
                 to="/wallet"
                 className="flex flex-col items-center p-4 bg-gray-50 dark: bg-gray-900 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
               >
-                <FiDollarSign className="text-2xl text-green-600 mb-2" />
+                <FiDollarSign className="text-2xl text-slate-800 mb-2" />
                 <span className="text-2xl font-bold text-gray-900 dark:text-white">
                   {formatCurrency(stats?.totalSpent || 0)}
                 </span>

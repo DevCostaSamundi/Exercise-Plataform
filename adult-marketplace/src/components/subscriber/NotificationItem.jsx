@@ -22,23 +22,23 @@ const NotificationItem = ({ notification, onClick }) => {
   const getIcon = (type) => {
     switch (type) {
       case NOTIFICATION_TYPES.NEW_POST:
-        return <FiImage className="text-purple-600" />;
+        return <FiImage className="text-black" />;
       case NOTIFICATION_TYPES.NEW_PPV:
-        return <FiLock className="text-yellow-600" />;
+        return <FiLock className="text-slate-600" />;
       case NOTIFICATION_TYPES.NEW_MESSAGE:
-        return <FiMail className="text-blue-600" />;
+        return <FiMail className="text-black" />;
       case NOTIFICATION_TYPES.COMMENT_REPLY:
-        return <FiMessageCircle className="text-green-600" />;
+        return <FiMessageCircle className="text-slate-800" />;
       case NOTIFICATION_TYPES.COMMENT_LIKE:
-        return <FiHeart className="text-red-600" />;
+        return <FiHeart className="text-slate-900" />;
       case NOTIFICATION_TYPES.SUBSCRIPTION_RENEWAL:
-        return <FiClock className="text-orange-600" />;
+        return <FiClock className="text-slate-600" />;
       case NOTIFICATION_TYPES.SUBSCRIPTION_RENEWED:
-        return <FiCheckCircle className="text-green-600" />;
+        return <FiCheckCircle className="text-slate-800" />;
       case NOTIFICATION_TYPES.PAYMENT_FAILED:
-        return <FiAlertCircle className="text-red-600" />;
+        return <FiAlertCircle className="text-slate-900" />;
       case NOTIFICATION_TYPES.LIVE_STARTED:
-        return <FiVideo className="text-pink-600" />;
+        return <FiVideo className="text-slate-400" />;
       default:
         return <FiCheckCircle className="text-gray-600" />;
     }
@@ -56,7 +56,7 @@ const NotificationItem = ({ notification, onClick }) => {
       className={`flex items-start gap-3 p-4 rounded-lg cursor-pointer transition-all ${
         notification.read
           ? 'bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700'
-          : 'bg-purple-50 dark:bg-purple-900/20 hover:bg-purple-100 dark:hover:bg-purple-900/30'
+          : 'bg-black dark:bg-black/20 hover:bg-black dark:hover:bg-black/30'
       }`}
     >
       {/* Icon */}
@@ -113,7 +113,7 @@ const NotificationItem = ({ notification, onClick }) => {
 
       {/* Unread Indicator */}
       {!notification.read && (
-        <div className="flex-shrink-0 w-2 h-2 bg-purple-600 rounded-full mt-2" />
+        <div className="flex-shrink-0 w-2 h-2 bg-black rounded-full mt-2" />
       )}
     </div>
   );

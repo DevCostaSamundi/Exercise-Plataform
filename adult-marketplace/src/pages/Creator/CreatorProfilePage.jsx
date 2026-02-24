@@ -1,6 +1,7 @@
-import { useState, useEffect } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import PaymentModal from '../../components/PaymentModal.jsx';
+import api from '../../services/api';
+import { useUI } from '../../contexts/UIContext';
 
 export default function CreatorProfilePage() {
   const { id } = useParams();
@@ -31,50 +32,21 @@ export default function CreatorProfilePage() {
         setError(null);
 
         // Fetch creator profile
-        const creatorRes = await fetch(
-          `http://localhost:5000/api/v1/creators/${id}`,
-          {
-            credentials: 'include',
-            headers: { 'Content-Type': 'application/json' }
-          }
-        );
+        const response = await api.get(`/creators/${id}`);
+        const creatorData = response.data?.data;
 
-        if (!creatorRes.ok) {
-          if (creatorRes.status === 404) {
-            setError('Criador não encontrado');
-          } else if (creatorRes.status === 400) {
-            setError('ID do criador inválido');
-          } else {
-            setError('Erro ao carregar perfil do criador');
-          }
-          setIsLoading(false);
-          return;
-        }
-
-        const creatorData = await creatorRes.json();
-
-        if (!creatorData.data) {
+        if (!creatorData) {
           setError('Dados do criador inválidos');
           setIsLoading(false);
           return;
         }
 
-        setCreator(creatorData.data);
+        setCreator(creatorData);
 
         // Fetch creator posts
         try {
-          const postsRes = await fetch(
-            `http://localhost:5000/api/v1/creators/${id}/posts?limit=12`,
-            {
-              credentials: 'include',
-              headers: { 'Content-Type': 'application/json' }
-            }
-          );
-
-          if (postsRes.ok) {
-            const postsData = await postsRes.json();
-            setPosts(postsData.data || []);
-          }
+          const postsResponse = await api.get(`/creators/${id}/posts?limit=12`);
+          setPosts(postsResponse.data?.data || []);
         } catch (postsErr) {
           console.warn('Erro ao carregar posts:', postsErr);
           // Continua mesmo se posts falhar
@@ -84,18 +56,8 @@ export default function CreatorProfilePage() {
         const token = localStorage.getItem('authToken');
         if (token) {
           try {
-            const subRes = await fetch(
-              `http://localhost:5000/api/v1/subscriptions/check/${id}`,
-              {
-                credentials: 'include',
-                headers: { 'Content-Type': 'application/json' }
-              }
-            );
-
-            if (subRes.ok) {
-              const subData = await subRes.json();
-              setIsSubscribed(subData.data?.isSubscribed || false);
-            }
+            const subRes = await api.get(`/subscriptions/check/${id}`);
+            setIsSubscribed(subRes.data?.data?.isSubscribed || false);
           } catch (subErr) {
             console.warn('Erro ao verificar inscrição:', subErr);
           }
@@ -147,7 +109,7 @@ export default function CreatorProfilePage() {
     return (
       <div className="flex min-h-screen bg-slate-50 dark:bg-slate-950 items-center justify-center">
         <div className="text-center">
-          <svg className="animate-spin h-12 w-12 text-indigo-600 mx-auto mb-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+          <svg className="animate-spin h-12 w-12 text-black mx-auto mb-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
             <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
             <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
           </svg>
@@ -162,7 +124,7 @@ export default function CreatorProfilePage() {
     return (
       <div className="flex min-h-screen bg-slate-50 dark:bg-slate-950 items-center justify-center p-4">
         <div className="text-center">
-          <svg xmlns="http://www.w3.org/2000/svg" className="h-16 w-16 text-red-500 mx-auto mb-4" viewBox="0 0 20 20" fill="currentColor">
+          <svg xmlns="http://www.w3.org/2000/svg" className="h-16 w-16 text-slate-900 mx-auto mb-4" viewBox="0 0 20 20" fill="currentColor">
             <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
           </svg>
           <h2 className="text-2xl font-bold text-slate-900 dark:text-white mb-2">
@@ -171,7 +133,7 @@ export default function CreatorProfilePage() {
           <p className="text-slate-600 dark:text-slate-400 mb-4">
             {!id || id === 'undefined' ? 'ID do criador não foi fornecido na URL.' : 'O criador que você procura não existe.'}
           </p>
-          <Link to="/" className="inline-block text-indigo-600 dark:text-indigo-400 hover:underline font-medium">
+          <Link to="/" className="inline-block text-black dark:text-black hover:underline font-medium">
             ← Voltar à página inicial
           </Link>
         </div>
@@ -186,7 +148,7 @@ export default function CreatorProfilePage() {
         {/* Cover Image */}
         <div className="relative h-64 md:h-80 bg-slate-200 dark:bg-slate-900">
           <img
-            src={creator.cover || 'https://placehold.co/1200x400/6366F1/white?text=Cover'}
+            src={creator.cover || 'https://placehold.co/1200x400/1e293b/white?text=Cover'}
             alt="Cover"
             className="w-full h-full object-cover"
             onError={(e) => {
@@ -228,20 +190,18 @@ export default function CreatorProfilePage() {
               <div className="flex flex-col md:flex-row items-start md:items-end -mt-16 md:-mt-20">
                 <div className="relative">
                   <img
-                    src={creator.avatar || 'https://placehold.co/200x200/8B7FE8/white?text=' + creator.displayName?.[0]}
+                    src={creator.avatar || 'https://placehold.co/200x200/0f172a/white?text=' + creator.displayName?.[0]}
                     alt={creator.displayName}
                     className="w-32 h-32 md:w-40 md:h-40 rounded-full border-4 border-white dark:border-slate-950 bg-slate-100 dark:bg-slate-900 shadow-xl object-cover"
                     onError={(e) => {
                       e.target.src = 'https://placehold.co/200x200/8B7FE8/white?text=Creator';
                     }}
                   />
-                  {creator.isVerified && (
-                    <div className="absolute bottom-2 right-2 w-10 h-10 bg-indigo-600 rounded-full flex items-center justify-center border-4 border-white dark:border-slate-950 shadow-lg">
-                      <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-white" viewBox="0 0 20 20" fill="currentColor">
-                        <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-                      </svg>
-                    </div>
-                  )}
+                  <div className="absolute bottom-2 right-2 w-10 h-10 bg-black dark:bg-white rounded-full flex items-center justify-center border-4 border-white dark:border-slate-950 shadow-lg">
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-white dark:text-black" viewBox="0 0 20 20" fill="currentColor">
+                      <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                    </svg>
+                  </div>
                 </div>
 
                 {/* Name & Stats */}
@@ -286,7 +246,7 @@ export default function CreatorProfilePage() {
                         </svg>
                         <span>Inscrito</span>
                       </button>
-                      <button className="flex items-center space-x-2 bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-3 rounded-lg font-semibold transition-colors">
+                      <button className="flex items-center space-x-2 bg-black hover:bg-black text-white px-6 py-3 rounded-lg font-semibold transition-colors">
                         <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
                           <path fillRule="evenodd" d="M18 10c0 3.866-3.582 7-8 7a8.841 8.841 0 01-4.083-.98L2 17l1.338-3.123C2.493 12.767 2 11.434 2 10c0-3.866 3.582-7 8-7s8 3.134 8 7zM7 9H5v2h2V9zm8 0h-2v2h2V9zM9 9h2v2H9V9z" clipRule="evenodd" />
                         </svg>
@@ -297,7 +257,7 @@ export default function CreatorProfilePage() {
                     <>
                       <button
                         onClick={handleSubscribe}
-                        className="flex items-center space-x-2 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white px-8 py-3 rounded-lg font-bold transition-all shadow-lg hover:shadow-xl"
+                        className="flex items-center space-x-2 bg-black dark:bg-white text-white dark:text-black px-8 py-3 rounded-lg font-bold transition-all shadow-lg hover:scale-105 active:scale-95"
                       >
                         <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
                           <path d="M8 9a3 3 0 100-6 3 3 0 000 6zM8 11a6 6 0 016 6H2a6 6 0 016-6zM16 7a1 1 0 10-2 0v1h-1a1 1 0 100 2h1v1a1 1 0 102 0v-1h1a1 1 0 100-2h-1V7z" />
@@ -325,7 +285,7 @@ export default function CreatorProfilePage() {
               {creator.tags && creator.tags.length > 0 && (
                 <div className="flex flex-wrap gap-2">
                   {creator.tags.map(tag => (
-                    <span key={tag} className="bg-indigo-100 dark:bg-indigo-900/20 text-indigo-700 dark:text-indigo-400 px-3 py-1 rounded-full text-sm font-medium">
+                    <span key={tag} className="bg-black dark:bg-black/20 text-black dark:text-black px-3 py-1 rounded-full text-sm font-medium">
                       #{tag}
                     </span>
                   ))}
@@ -356,12 +316,12 @@ export default function CreatorProfilePage() {
               {creator.socialLinks && Object.keys(creator.socialLinks).length > 0 && (
                 <div className="flex items-center space-x-3">
                   {creator.socialLinks.instagram && (
-                    <a href={creator.socialLinks.instagram} target="_blank" rel="noopener noreferrer" className="p-2 bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:text-pink-600 dark:hover:text-pink-400 rounded-lg transition-colors">
+                    <a href={creator.socialLinks.instagram} target="_blank" rel="noopener noreferrer" className="p-2 bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:text-slate-400 dark:hover:text-slate-400 rounded-lg transition-colors">
                       <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073z" /></svg>
                     </a>
                   )}
                   {creator.socialLinks.twitter && (
-                    <a href={creator.socialLinks.twitter} target="_blank" rel="noopener noreferrer" className="p-2 bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:text-blue-600 dark:hover:text-blue-400 rounded-lg transition-colors">
+                    <a href={creator.socialLinks.twitter} target="_blank" rel="noopener noreferrer" className="p-2 bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:text-black dark:hover:text-black rounded-lg transition-colors">
                       <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M23.953 4.57a10 10 0 01-2.825.775 4.958 4.958 0 002.163-2.723c-.951.555-2.005.959-3.127 1.184a4.92 4.92 0 00-8.384 4.482C7.69 8.095 4.067 6.13 1.64 3.162a4.822 4.822 0 00-.666 2.475c0 1.71.87 3.213 2.188 4.096a4.904 4.904 0 01-2.228-.616v.06a4.923 4.923 0 003.946 4.827 4.996 4.996 0 01-2.212.085 4.936 4.936 0 004.604 3.417a9.867 9.867 0 01-6.102 2.105c-.39 0-.779-.023-1.17-.067a13.995 13.995 0 007.557 2.209c9.053 0 13.998-7.496 13.998-13.985 0-.21 0-.42-.015-.63A9.935 9.935 0 0024 4.59z" /></svg>
                     </a>
                   )}
@@ -379,7 +339,7 @@ export default function CreatorProfilePage() {
               <button
                 onClick={() => setActiveTab('posts')}
                 className={`flex items-center space-x-2 px-6 py-4 font-medium text-sm border-b-2 transition-colors ${activeTab === 'posts'
-                  ? 'border-indigo-600 text-indigo-600'
+                  ? 'border-black dark:border-white text-black dark:text-white'
                   : 'border-transparent text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-300'
                   }`}
               >
@@ -391,7 +351,7 @@ export default function CreatorProfilePage() {
               <button
                 onClick={() => setActiveTab('about')}
                 className={`flex items-center space-x-2 px-6 py-4 font-medium text-sm border-b-2 transition-colors ${activeTab === 'about'
-                  ? 'border-indigo-600 text-indigo-600'
+                  ? 'border-black dark:border-white text-black'
                   : 'border-transparent text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-300'
                   }`}
               >
@@ -418,7 +378,7 @@ export default function CreatorProfilePage() {
                       {posts.map(post => (
                         <div key={post.id} className="relative aspect-square group cursor-pointer">
                           <img
-                            src={post.thumbnail || post.media?.[0]?.url || 'https://placehold.co/300x300/8B7FE8/white?text=Post'}
+                            src={post.thumbnail || post.media?.[0]?.url || 'https://placehold.co/300x300/1e293b/white?text=Post'}
                             alt="Post"
                             className="w-full h-full object-cover rounded-lg"
                             onError={(e) => {
@@ -475,7 +435,7 @@ export default function CreatorProfilePage() {
                     <h3 className="font-bold text-lg text-slate-900 dark:text-white mb-4">Assinatura</h3>
                     <div className="flex items-center justify-between">
                       <div>
-                        <p className="text-2xl font-bold text-indigo-600 dark:text-indigo-400">
+                        <p className="text-2xl font-bold text-black dark:text-black">
                           {formatPrice(creator.subscriptionPrice || 9.90)}
                         </p>
                         <p className="text-sm text-slate-500 dark:text-slate-400">por mês</p>
@@ -483,7 +443,7 @@ export default function CreatorProfilePage() {
                       {!isSubscribed && (
                         <button
                           onClick={handleSubscribe}
-                          className="bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white px-6 py-3 rounded-lg font-bold transition-all"
+                          className="bg-black dark:bg-white text-white dark:text-black px-6 py-3 rounded-lg font-bold transition-all hover:scale-105"
                         >
                           Assinar Agora
                         </button>

@@ -2,48 +2,39 @@ import dotenv from 'dotenv';
 dotenv.config();
 
 /**
- * Web3 Configuration
- * 100% Crypto Native - No Fiat On-Ramp, No Intermediaries
- * Settings for blockchain interaction and Web3Auth
+ * Web3 Configuration — FlowConnect
+ * 100% Crypto Native · Gasless Transactions · Fiat On-Ramp
  */
 
 export const web3Config = {
-    // Polygon Mainnet Configuration
+    // Polygon Mainnet
     polygon: {
         rpcUrl: process.env.POLYGON_RPC_URL || 'https://polygon-rpc.com',
         chainId: 137,
-        chainName: 'Polygon Mainnet',
-        nativeCurrency: {
-            name: 'MATIC',
-            symbol: 'MATIC',
-            decimals: 18,
-        },
+        chainName: 'Polygon',
+        nativeCurrency: { name: 'POL', symbol: 'POL', decimals: 18 },
         blockExplorer: 'https://polygonscan.com',
     },
 
-    // Polygon Amoy Testnet Configuration
+    // Polygon Amoy Testnet
     amoy: {
         rpcUrl: process.env.POLYGON_AMOY_RPC_URL || 'https://rpc-amoy.polygon.technology',
         chainId: 80002,
-        chainName: 'Polygon Amoy Testnet',
-        nativeCurrency: {
-            name: 'MATIC',
-            symbol: 'MATIC',
-            decimals: 18,
-        },
+        chainName: 'Polygon Amoy (Testnet)',
+        nativeCurrency: { name: 'POL', symbol: 'POL', decimals: 18 },
         blockExplorer: 'https://amoy.polygonscan.com',
     },
 
-    // Smart Contract Configuration
+    // Smart Contract
     contract: {
         address: process.env.PAYMENT_CONTRACT_ADDRESS,
-        // ABI will be loaded from artifacts
+        // ABI completa em /contracts/artifacts/PaymentSplitter.json
     },
 
-    // USDC Token Configuration
+    // USDC Token
     usdc: {
         polygon: {
-            address: '0x3c499c542cEF5E3811e1192ce70d8cC03d5c3359', // Native USDC on Polygon
+            address: '0x3c499c542cEF5E3811e1192ce70d8cC03d5c3359', // Native USDC
             decimals: 6,
             symbol: 'USDC',
         },
@@ -54,155 +45,198 @@ export const web3Config = {
         },
     },
 
-    // Platform Wallet (receives 10% fees)
+    // Gasless Transactions (EIP-2771 / Biconomy / OpenGSN)
+    gasless: {
+        enabled: process.env.GASLESS_ENABLED === 'true',
+
+        // Biconomy (recomendado para Polygon)
+        biconomy: {
+            apiKey: process.env.BICONOMY_API_KEY,
+            // Paymaster — quem paga o gas em nome do usuário
+            paymasterUrl: process.env.BICONOMY_PAYMASTER_URL,
+        },
+
+        // Fallback: Gelato Relay
+        gelato: {
+            apiKey: process.env.GELATO_API_KEY,
+            relayUrl: 'https://relay.gelato.digital',
+        },
+
+        // Endereço do Trusted Forwarder (ERC2771)
+        // Biconomy Mainnet: 0x84a0856b038eaAd1cC7E297cF34A7e72685A8693
+        // Biconomy Amoy:    0x69fb8Dca8067A5D38703b9e8b39cf2D51473E4b4
+        trustedForwarder: process.env.TRUSTED_FORWARDER_ADDRESS,
+    },
+
+    // Fiat On-Ramp (Comprar USDC com cartão/PIX)
+    fiatOnRamp: {
+        // Moonpay — integração via widget
+        moonpay: {
+            enabled: process.env.MOONPAY_ENABLED === 'true',
+            apiKey: process.env.MOONPAY_API_KEY,
+            secretKey: process.env.MOONPAY_SECRET_KEY, // Para assinar URLs
+            widgetUrl: 'https://buy.moonpay.com',
+            defaultCurrency: 'usdc_polygon',
+        },
+
+        // Transak — alternativa com suporte a PIX
+        transak: {
+            enabled: process.env.TRANSAK_ENABLED === 'true',
+            apiKey: process.env.TRANSAK_API_KEY,
+            environment: process.env.NODE_ENV === 'production' ? 'PRODUCTION' : 'STAGING',
+            widgetUrl: process.env.NODE_ENV === 'production'
+                ? 'https://global.transak.com'
+                : 'https://global-stg.transak.com',
+            defaultCryptoCurrency: 'USDC',
+            defaultNetwork: 'polygon',
+        },
+    },
+
+    // Carteira da plataforma (recebe 10% de fee)
     platformWallet: process.env.PLATFORM_WALLET_ADDRESS,
 
-    // Web3Auth Configuration (Social Login → Wallet)
+    // Web3Auth (Login social → carteira automática)
     web3auth: {
         clientId: process.env.WEB3AUTH_CLIENT_ID,
         network: process.env.WEB3AUTH_NETWORK || 'sapphire_mainnet',
         chainConfig: {
             chainNamespace: 'eip155',
-            chainId: '0x89', // Polygon (137 in hex)
+            chainId: '0x89', // Polygon (137 em hex)
             rpcTarget: process.env.POLYGON_RPC_URL,
-            displayName: 'Polygon Mainnet',
+            displayName: 'Polygon',
             blockExplorer: 'https://polygonscan.com',
-            ticker: 'MATIC',
+            ticker: 'POL',
             tickerName: 'Polygon',
         },
     },
 
-    // Alchemy Configuration (RPC + Webhooks)
+    // Alchemy (RPC + Webhooks)
     alchemy: {
         apiKey: process.env.ALCHEMY_API_KEY,
         webhookSecret: process.env.ALCHEMY_SIGNING_KEY,
         webhookId: process.env.ALCHEMY_WEBHOOK_ID,
     },
 
-    // Blockchain Monitoring
+    // Monitoramento de Blockchain
     monitoring: {
         confirmationsRequired: parseInt(process.env.CONFIRMATIONS_REQUIRED || '2'),
-        pollingInterval: parseInt(process.env.POLLING_INTERVAL || '30000'), // 30 seconds
+        pollingInterval: parseInt(process.env.POLLING_INTERVAL || '15000'), // 15 segundos
         maxRetries: parseInt(process.env.MAX_RETRIES || '5'),
+        webhookTimeoutMs: 30000, // 30 segundos
     },
 
-    // Payment Settings
+    // Configurações de Pagamento
     payment: {
-        minAmount: parseFloat(process.env.MIN_PAYMENT_AMOUNT || '1'), // $1 USD minimum
-        maxAmount: parseFloat(process.env.MAX_PAYMENT_AMOUNT || '10000'), // $10,000 USD maximum
-        platformFeePercent: 10, // 10% platform fee (hardcoded in smart contract)
-        expirationMinutes: parseInt(process.env.PAYMENT_EXPIRATION_MINUTES || '30'), // 30 minutes
+        minAmount: parseFloat(process.env.MIN_PAYMENT_AMOUNT || '1'),       // $1 mínimo
+        maxAmount: parseFloat(process.env.MAX_PAYMENT_AMOUNT || '10000'),   // $10.000 máximo
+        platformFeePercent: 10,                                               // 10% (hardcoded no contrato)
+        expirationMinutes: parseInt(process.env.PAYMENT_EXPIRATION_MINUTES || '30'),
+    },
+
+    // Renovação de Assinaturas
+    subscriptions: {
+        // Dias antes do vencimento para enviar lembrete
+        reminderDaysBeforeExpiry: [7, 3, 1],
+        // Janela de graça após vencimento (em horas)
+        gracePeriodHours: 24,
+        // Máximo de tentativas de cobrança automática (se carteira habilitada)
+        maxRenewalAttempts: 3,
     },
 };
 
-/**
- * Validate required configuration
- */
+// ============================================
+// VALIDAÇÃO DE CONFIGURAÇÃO
+// ============================================
+
 export function validateWeb3Config() {
-    // Core required for crypto payments
     const requiredCore = [
         'POLYGON_RPC_URL',
         'PAYMENT_CONTRACT_ADDRESS',
         'PLATFORM_WALLET_ADDRESS',
     ];
 
-    // Optional but recommended
     const recommended = [
         'WEB3AUTH_CLIENT_ID',
         'ALCHEMY_API_KEY',
         'ALCHEMY_SIGNING_KEY',
+        'TRUSTED_FORWARDER_ADDRESS',
     ];
 
-    const missingCore = requiredCore.filter((key) => !process.env[key]);
-
+    const missingCore = requiredCore.filter((k) => !process.env[k]);
     if (missingCore.length > 0) {
         throw new Error(
-            `❌ Missing required Web3 configuration: ${missingCore.join(', ')}\n` +
-            'Please update your .env file with these values.\n' +
-            'See .env.example for details.'
+            `❌ Configurações Web3 obrigatórias faltando: ${missingCore.join(', ')}\n` +
+            'Atualize seu arquivo .env. Veja .env.example para detalhes.'
         );
     }
 
-    // Warn about missing recommended config
-    const missingRecommended = recommended.filter((key) => !process.env[key]);
+    const missingRecommended = recommended.filter((k) => !process.env[k]);
     if (missingRecommended.length > 0) {
-        console.warn(`⚠️  Optional configuration missing: ${missingRecommended.join(', ')}`);
-        console.warn('   Some features may have limited functionality.');
+        console.warn(`⚠️  Configurações opcionais faltando: ${missingRecommended.join(', ')}`);
+        console.warn('   Algumas funcionalidades podem ser limitadas.');
     }
 
-    // Validate address format
     const addressRegex = /^0x[a-fA-F0-9]{40}$/;
-
     if (!addressRegex.test(process.env.PAYMENT_CONTRACT_ADDRESS)) {
-        throw new Error('❌ Invalid PAYMENT_CONTRACT_ADDRESS format. Must be a valid Ethereum address.');
+        throw new Error('❌ PAYMENT_CONTRACT_ADDRESS inválido. Use um endereço Ethereum válido.');
     }
-
     if (!addressRegex.test(process.env.PLATFORM_WALLET_ADDRESS)) {
-        throw new Error('❌ Invalid PLATFORM_WALLET_ADDRESS format. Must be a valid Ethereum address.');
+        throw new Error('❌ PLATFORM_WALLET_ADDRESS inválido. Use um endereço Ethereum válido.');
     }
 
-    console.log('✅ Web3 configuration validated successfully');
-    console.log(`📍 Network: ${process.env.NODE_ENV === 'production' ? 'Polygon Mainnet' : 'Polygon Amoy Testnet'}`);
-    console.log(`📄 Contract: ${process.env.PAYMENT_CONTRACT_ADDRESS}`);
-    console.log(`💰 Platform Wallet: ${process.env.PLATFORM_WALLET_ADDRESS}`);
+    const isProduction = process.env.NODE_ENV === 'production';
+    const network = isProduction ? 'Polygon Mainnet' : 'Polygon Amoy Testnet';
+
+    console.log('✅ Configuração Web3 validada com sucesso');
+    console.log(`📍 Rede: ${network}`);
+    console.log(`📄 Contrato: ${process.env.PAYMENT_CONTRACT_ADDRESS}`);
+    console.log(`💰 Carteira da Plataforma: ${process.env.PLATFORM_WALLET_ADDRESS}`);
+    console.log(`⛽ Gasless: ${web3Config.gasless.enabled ? 'Ativado' : 'Desativado'}`);
 }
 
-/**
- * Get current network configuration
- */
+// ============================================
+// HELPERS
+// ============================================
+
 export function getCurrentNetwork() {
-    const env = process.env.NODE_ENV;
-    const network = process.env.NETWORK || 'amoy';
-    
-    if (network === 'polygon' || env === 'production') {
-        return web3Config.polygon;
-    }
-    
-    return web3Config.amoy;
+    const isProd = process.env.NODE_ENV === 'production' || process.env.NETWORK === 'polygon';
+    return isProd ? web3Config.polygon : web3Config.amoy;
 }
 
-/**
- * Get USDC configuration for current network
- */
 export function getUSDCConfig() {
-    const env = process.env.NODE_ENV;
-    const network = process.env.NETWORK || 'amoy';
-    
-    if (network === 'polygon' || env === 'production') {
-        return web3Config.usdc.polygon;
-    }
-    
-    return web3Config.usdc.amoy;
+    const isProd = process.env.NODE_ENV === 'production' || process.env.NETWORK === 'polygon';
+    return isProd ? web3Config.usdc.polygon : web3Config.usdc.amoy;
 }
 
-/**
- * Get contract address for current network
- */
 export function getContractAddress() {
     return process.env.PAYMENT_CONTRACT_ADDRESS;
 }
 
-/**
- * Get platform wallet address
- */
 export function getPlatformWallet() {
     return process.env.PLATFORM_WALLET_ADDRESS;
 }
 
-/**
- * Check if Web3Auth is configured
- */
-export function isWeb3AuthEnabled() {
-    return !!(process.env.WEB3AUTH_CLIENT_ID && 
-              process.env.WEB3AUTH_CLIENT_ID !== 'your_web3auth_client_id');
+export function isGaslessEnabled() {
+    return web3Config.gasless.enabled && !!web3Config.gasless.trustedForwarder;
 }
 
-/**
- * Check if Alchemy webhooks are configured
- */
+export function isWeb3AuthEnabled() {
+    return !!(process.env.WEB3AUTH_CLIENT_ID &&
+        process.env.WEB3AUTH_CLIENT_ID !== 'your_web3auth_client_id');
+}
+
 export function isAlchemyWebhookEnabled() {
-    return !!(process.env.ALCHEMY_WEBHOOK_ID && 
-              process.env.ALCHEMY_SIGNING_KEY);
+    return !!(process.env.ALCHEMY_WEBHOOK_ID && process.env.ALCHEMY_SIGNING_KEY);
+}
+
+export function getFiatOnRampConfig() {
+    return {
+        moonpay: web3Config.fiatOnRamp.moonpay,
+        transak: web3Config.fiatOnRamp.transak,
+        anyEnabled:
+            web3Config.fiatOnRamp.moonpay.enabled ||
+            web3Config.fiatOnRamp.transak.enabled,
+    };
 }
 
 export default web3Config;

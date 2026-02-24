@@ -77,7 +77,7 @@ export default function PaymentStatus() {
                     {/* Loading */}
                     {status === 'loading' && (
                         <div className="text-center">
-                            <Loader2 className="animate-spin mx-auto mb-4 text-purple-600" size={64} />
+                            <Loader2 className="animate-spin mx-auto mb-4 text-black" size={64} />
                             <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
                                 Loading Payment...
                             </h2>
@@ -90,7 +90,7 @@ export default function PaymentStatus() {
                     {/* Pending/Confirming */}
                     {(status === 'pending' || status === 'confirming') && (
                         <div className="text-center">
-                            <Loader2 className="animate-spin mx-auto mb-4 text-blue-600" size={64} />
+                            <Loader2 className="animate-spin mx-auto mb-4 text-black" size={64} />
                             <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
                                 {status === 'pending' ? 'Processing Payment...' : 'Confirming Payment...'}
                             </h2>
@@ -111,7 +111,7 @@ export default function PaymentStatus() {
                                         </div>
                                         <div className="flex justify-between">
                                             <span className="text-gray-600 dark:text-gray-400">Status:</span>
-                                            <span className="font-medium text-blue-600">
+                                            <span className="font-medium text-black">
                                                 {payment.status}
                                             </span>
                                         </div>
@@ -129,7 +129,7 @@ export default function PaymentStatus() {
                                                 <a href={`https://polygonscan.com/tx/${payment.web3TxHash}`}
                                                     target="_blank"
                                                     rel="noopener noreferrer"
-                                                    className="text-purple-600 hover:text-purple-700 text-xs flex items-center gap-1">
+                                                    className="text-black hover:text-black text-xs flex items-center gap-1">
                                                     View on Polygonscan
                                                     <ExternalLink size={12} />
                                                 </a>
@@ -148,7 +148,7 @@ export default function PaymentStatus() {
                     {/* Success */}
                     {status === 'success' && (
                         <div className="text-center">
-                            <CheckCircle className="mx-auto mb-4 text-green-600" size={64} />
+                            <CheckCircle className="mx-auto mb-4 text-slate-800" size={64} />
                             <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
                                 Payment Successful! 🎉
                             </h2>
@@ -157,11 +157,11 @@ export default function PaymentStatus() {
                             </p>
 
                             {payment && (
-                                <div className="bg-green-50 dark:bg-green-900/20 rounded-lg p-4 mb-6">
+                                <div className="bg-slate-800 dark:bg-slate-800/20 rounded-lg p-4 mb-6">
                                     <div className="space-y-2 text-sm">
                                         <div className="flex justify-between">
                                             <span className="text-gray-600 dark:text-gray-400">Amount Paid:</span>
-                                            <span className="font-bold text-green-600">
+                                            <span className="font-bold text-slate-800">
                                                 ${payment.amountUSD}
                                             </span>
                                         </div>
@@ -177,7 +177,7 @@ export default function PaymentStatus() {
                                                 <a href={`https://polygonscan.com/tx/${payment.web3TxHash}`}
                                                     target="_blank"
                                                     rel="noopener noreferrer"
-                                                    className="text-green-600 hover:text-green-700 text-xs flex items-center justify-center gap-1">
+                                                    className="text-slate-800 hover:text-slate-800 text-xs flex items-center justify-center gap-1">
                                                     View Transaction
                                                     <ExternalLink size={12} />
                                                 </a>
@@ -189,7 +189,7 @@ export default function PaymentStatus() {
 
                             <button
                                 onClick={handleContinue}
-                                className="w-full bg-purple-600 hover:bg-purple-700 text-white py-3 rounded-lg font-medium"
+                                className="w-full bg-black hover:bg-black text-white py-3 rounded-lg font-medium"
                             >
                                 Continue to Content
                             </button>
@@ -201,11 +201,11 @@ export default function PaymentStatus() {
                     {
                         status === 'failed' && (
                             <div className="text-center">
-                                <XCircle className="mx-auto mb-4 text-red-600" size={64} />
+                                <XCircle className="mx-auto mb-4 text-slate-900" size={64} />
                                 <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
                                     Payment Failed
                                 </h2>
-                                <p className="text-red-600 dark:text-red-400 mb-6">
+                                <p className="text-slate-900 dark:text-slate-900 mb-6">
                                     {payment?.status === 'EXPIRED'
                                         ? 'Payment expired. Please try again.'
                                         : 'Something went wrong with your payment.'}
@@ -214,7 +214,7 @@ export default function PaymentStatus() {
                                 <div className="space-y-3">
                                     <button
                                         onClick={() => navigate(-1)}
-                                        className="w-full bg-purple-600 hover:bg-purple-700 text-white py-3 rounded-lg font-medium"
+                                        className="w-full bg-black hover:bg-black text-white py-3 rounded-lg font-medium"
                                     >
                                         Try Again
                                     </button>
@@ -233,16 +233,16 @@ export default function PaymentStatus() {
                     {
                         status === 'error' && (
                             <div className="text-center">
-                                <XCircle className="mx-auto mb-4 text-red-600" size={64} />
+                                <XCircle className="mx-auto mb-4 text-slate-900" size={64} />
                                 <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
                                     Error Loading Payment
                                 </h2>
-                                <p className="text-red-600 dark:text-red-400 mb-6">
+                                <p className="text-slate-900 dark:text-slate-900 mb-6">
                                     {error}
                                 </p>
                                 <button
                                     onClick={() => navigate('/')}
-                                    className="bg-purple-600 hover:bg-purple-700 text-white px-6 py-3 rounded-lg font-medium"
+                                    className="bg-black hover:bg-black text-white px-6 py-3 rounded-lg font-medium"
                                 >
                                     Go Home
                                 </button>

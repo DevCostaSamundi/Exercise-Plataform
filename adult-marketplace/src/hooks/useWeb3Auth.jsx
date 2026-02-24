@@ -22,12 +22,18 @@ export const Web3AuthProvider = ({ children }) => {
             try {
                 setLoading(true);
                 console.log('🔄 Initializing Web3Auth...');
-                
+
                 const web3authInstance = createWeb3AuthInstance();
-                
+
+                if (!web3authInstance) {
+                    console.warn('⚠️ Web3Auth instance not available. Initialization skipped.');
+                    setLoading(false);
+                    return;
+                }
+
                 // ✅ CORRIGIDO: v8 usa init() ao invés de initModal()
                 await web3authInstance.init();
-                
+
                 setWeb3auth(web3authInstance);
                 setIsInitialized(true);
                 console.log('✅ Web3Auth initialized');
@@ -52,7 +58,7 @@ export const Web3AuthProvider = ({ children }) => {
     const handleConnectedState = async (web3authInstance) => {
         try {
             const web3Provider = web3authInstance.provider;
-            
+
             if (!web3Provider) {
                 console.error('❌ No provider available');
                 return;
@@ -104,7 +110,7 @@ export const Web3AuthProvider = ({ children }) => {
             );
 
             const { token, user } = response.data.data;
-            
+
             // Store token
             localStorage.setItem('token', token);
             setAuthToken(token);
@@ -129,10 +135,10 @@ export const Web3AuthProvider = ({ children }) => {
             setError(null);
 
             console.log('🔐 Starting Web3Auth login...');
-            
+
             // ✅ CORRIGIDO: v8 usa connect() que retorna o provider
             const web3Provider = await web3auth.connect();
-            
+
             if (!web3Provider) {
                 throw new Error('Failed to connect - no provider returned');
             }
@@ -159,12 +165,12 @@ export const Web3AuthProvider = ({ children }) => {
         try {
             console.log('🔓 Logging out...');
             await web3auth.logout();
-            
+
             setProvider(null);
             setAddress('');
             setUserInfo(null);
             setIsConnected(false);
-            
+
             localStorage.removeItem('token');
             setAuthToken(null);
 
@@ -196,7 +202,7 @@ export const Web3AuthProvider = ({ children }) => {
         try {
             const ethersProvider = new ethers.BrowserProvider(provider);
             const usdcAddress = import.meta.env.VITE_USDC_ADDRESS;
-            
+
             if (!usdcAddress) {
                 console.warn('⚠️ USDC address not configured');
                 return '0';

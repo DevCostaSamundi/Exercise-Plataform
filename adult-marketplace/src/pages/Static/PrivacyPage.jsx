@@ -33,7 +33,7 @@ function PageHeader() {
     <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-8">
       <Link
         to="/"
-        className="inline-flex items-center space-x-2 text-indigo-600 dark:text-indigo-400 hover:text-indigo-700 dark:hover:text-indigo-300 font-medium transition-colors"
+        className="inline-flex items-center space-x-2 text-black dark:text-black hover:text-black dark:hover:text-black font-medium transition-colors"
       >
         <svg xmlns="http://www.w3. org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
           <path fillRule="evenodd" d="M9.707 16.707a1 1 0 01-1.414 0l-6-6a1 1 0 010-1.414l6-6a1 1 0 011.414 1.414L5.414 9H17a1 1 0 110 2H5.414l4.293 4.293a1 1 0 010 1.414z" clipRule="evenodd" />
@@ -58,7 +58,7 @@ function TitleSection() {
   return (
     <header className="text-center mb-8 pb-8 border-b border-slate-200 dark:border-slate-800">
       {/* Logo */}
-      <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-2xl mb-4 shadow-lg">
+      <div className="inline-flex items-center justify-center w-16 h-16 bg-black dark:bg-slate-800 rounded-2xl mb-4 shadow-lg">
         <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8 text-white" viewBox="0 0 20 20" fill="currentColor">
           <path fillRule="evenodd" d="M2.166 4.999A11.954 11.954 0 0010 1.944 11.954 11.954 0 0017.834 5c.11.65.166 1.32.166 2.001 0 5.225-3.34 9.67-8 11.317C5.34 16.67 2 12.225 2 7c0-.682.057-1.35.166-2.001zm11.541 3.708a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
         </svg>
@@ -69,7 +69,7 @@ function TitleSection() {
       </h1>
 
       <p className="text-slate-600 dark:text-slate-400 mb-2">
-        PrideConnect — Plataforma de Conteúdo para a Comunidade LGBT+
+        FlowConnect — Plataforma de Conteúdo para a Comunidade LGBT+
       </p>
 
       <p className="text-sm text-slate-500 dark:text-slate-500">
@@ -81,19 +81,19 @@ function TitleSection() {
 
 function AlertBanner() {
   return (
-    <div className="mb-8 rounded-xl border border-amber-200 dark:border-amber-800/50 bg-amber-50 dark:bg-amber-900/20 p-5">
+    <div className="mb-8 rounded-xl border border-amber-200 dark:border-amber-800/50 bg-slate-600 dark:bg-slate-600/20 p-5">
       <div className="flex items-start space-x-4">
         <div className="flex-shrink-0">
           <span className="text-2xl">⚠️</span>
         </div>
         <div>
-          <h3 className="font-semibold text-amber-900 dark:text-amber-200 mb-1">
+          <h3 className="font-semibold text-slate-600 dark:text-slate-600 mb-1">
             Aviso Importante
           </h3>
-          <p className="text-sm text-amber-800 dark:text-amber-300 leading-relaxed">
-            Esta política descreve como coletamos, usamos e protegemos seus dados pessoais 
-            no PrideConnect. Por ser uma plataforma de conteúdo adulto, aplicamos medidas 
-            adicionais de segurança, privacidade e verificação de idade.  Este documento 
+          <p className="text-sm text-slate-600 dark:text-slate-600 leading-relaxed">
+            Esta política descreve como coletamos, usamos e protegemos seus dados pessoais
+            no FlowConnect. Por ser uma plataforma de conteúdo adulto, aplicamos medidas
+            adicionais de segurança, privacidade e verificação de idade.  Este documento
             tem caráter informativo e não constitui aconselhamento jurídico.
           </p>
         </div>
@@ -115,7 +115,7 @@ function TableOfContents() {
           <a
             key={item.id}
             href={`#${item.id}`}
-            className="flex items-center space-x-2 px-3 py-2 rounded-lg text-sm text-slate-700 dark:text-slate-300 hover:bg-white dark:hover:bg-slate-700 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors group"
+            className="flex items-center space-x-2 px-3 py-2 rounded-lg text-sm text-slate-700 dark:text-slate-300 hover:bg-white dark:hover:bg-slate-700 hover:text-black dark:hover:text-black transition-colors group"
           >
             <span className="text-base">{item.icon}</span>
             <span className="group-hover:underline">
@@ -158,7 +158,7 @@ function BulletList({ items }) {
     <ul className="space-y-2 ml-1">
       {items.map((item, index) => (
         <li key={index} className="flex items-start space-x-3">
-          <span className="text-indigo-500 mt-1.5">•</span>
+          <span className="text-black mt-1.5">•</span>
           <span>{item}</span>
         </li>
       ))}
@@ -168,9 +168,9 @@ function BulletList({ items }) {
 
 function HighlightBox({ type = 'info', children }) {
   const styles = {
-    info: 'border-blue-200 dark:border-blue-800/50 bg-blue-50 dark:bg-blue-900/20 text-blue-900 dark:text-blue-200',
-    warning: 'border-amber-200 dark:border-amber-800/50 bg-amber-50 dark:bg-amber-900/20 text-amber-900 dark:text-amber-200',
-    success: 'border-green-200 dark:border-green-800/50 bg-green-50 dark:bg-green-900/20 text-green-900 dark:text-green-200',
+    info: 'border-blue-200 dark:border-blue-800/50 bg-black dark:bg-black/20 text-black dark:text-black',
+    warning: 'border-amber-200 dark:border-amber-800/50 bg-slate-600 dark:bg-slate-600/20 text-slate-600 dark:text-slate-600',
+    success: 'border-green-200 dark:border-green-800/50 bg-slate-800 dark:bg-slate-800/20 text-slate-800 dark:text-slate-800',
   };
 
   return (
@@ -184,7 +184,7 @@ function InternalLink({ to, children }) {
   return (
     <Link
       to={to}
-      className="text-indigo-600 dark:text-indigo-400 hover:text-indigo-700 dark:hover:text-indigo-300 underline underline-offset-2"
+      className="text-black dark:text-black hover:text-black dark:hover:text-black underline underline-offset-2"
     >
       {children}
     </Link>
@@ -196,8 +196,8 @@ function FooterNote() {
     <footer className="mt-12 pt-8 border-t border-slate-200 dark:border-slate-800">
       <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
         <p className="text-sm text-slate-500 dark:text-slate-400 text-center sm:text-left">
-          🏳️‍🌈 PrideConnect — Comprometido com a privacidade, inclusão e 
-          segurança da comunidade LGBT+. 
+          🏳️‍🌈 FlowConnect — Comprometido com a privacidade, inclusão e
+          segurança da comunidade LGBT+.
         </p>
 
         <div className="flex items-center space-x-4 text-sm">
@@ -218,12 +218,12 @@ export default function PrivacyPage() {
   return (
     <div className="min-h-screen bg-slate-50 dark:bg-slate-950 py-8 px-4">
       <div className="mx-auto w-full">
-        
+
         <PageHeader />
 
         {/* Card Principal */}
         <article className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-6 sm:p-10 shadow-sm">
-          
+
           <TitleSection />
           <AlertBanner />
           <TableOfContents />
@@ -233,21 +233,21 @@ export default function PrivacyPage() {
           {/* 1. Introdução */}
           <Section id="introducao" icon="📋" title="1. Introdução e Escopo">
             <p>
-              O <strong>PrideConnect</strong> é uma plataforma que conecta criadores e 
-              assinantes de conteúdo adulto de forma segura, inclusiva e respeitosa. 
-              Nossa missão é proporcionar um espaço onde a comunidade LGBT+ possa se 
+              O <strong>FlowConnect</strong> é uma plataforma que conecta criadores e
+              assinantes de conteúdo adulto de forma segura, inclusiva e respeitosa.
+              Nossa missão é proporcionar um espaço onde a comunidade LGBT+ possa se
               expressar livremente enquanto mantém total controle sobre sua privacidade.
             </p>
-            
+
             <p>
-              Esta Política de Privacidade se aplica ao website, aplicativos móveis, 
-              APIs e todos os serviços relacionados ao PrideConnect.  Ao utilizar nossa 
+              Esta Política de Privacidade se aplica ao website, aplicativos móveis,
+              APIs e todos os serviços relacionados ao FlowConnect.  Ao utilizar nossa
               plataforma, você concorda com as práticas descritas neste documento.
             </p>
 
             <HighlightBox type="info">
-              <strong>Aplicabilidade:</strong> Esta política se aplica a todos os 
-              usuários, incluindo visitantes, assinantes e criadores de conteúdo, 
+              <strong>Aplicabilidade:</strong> Esta política se aplica a todos os
+              usuários, incluindo visitantes, assinantes e criadores de conteúdo,
               independentemente de sua localização geográfica.
             </HighlightBox>
           </Section>
@@ -255,9 +255,9 @@ export default function PrivacyPage() {
           {/* 2. Bases Legais */}
           <Section id="bases-legais" icon="⚖️" title="2.  Bases Legais (LGPD/GDPR)">
             <p>
-              Tratamos seus dados pessoais de acordo com a Lei Geral de Proteção de 
-              Dados (LGPD - Brasil), o Regulamento Geral de Proteção de Dados (GDPR - 
-              União Europeia) e outras legislações aplicáveis. As bases legais que 
+              Tratamos seus dados pessoais de acordo com a Lei Geral de Proteção de
+              Dados (LGPD - Brasil), o Regulamento Geral de Proteção de Dados (GDPR -
+              União Europeia) e outras legislações aplicáveis. As bases legais que
               utilizamos incluem:
             </p>
 
@@ -275,7 +275,7 @@ export default function PrivacyPage() {
           {/* 3. Dados Coletados */}
           <Section id="dados-coletados" icon="📊" title="3. Dados que Coletamos">
             <p>
-              Coletamos diferentes tipos de dados dependendo de como você interage 
+              Coletamos diferentes tipos de dados dependendo de como você interage
               com nossa plataforma:
             </p>
 
@@ -312,8 +312,8 @@ export default function PrivacyPage() {
                 ]}
               />
               <HighlightBox type="warning">
-                <strong>Segurança KYC:</strong> Documentos de verificação são 
-                armazenados em servidores seguros com acesso restrito e são 
+                <strong>Segurança KYC:</strong> Documentos de verificação são
+                armazenados em servidores seguros com acesso restrito e são
                 utilizados exclusivamente para fins de compliance.
               </HighlightBox>
             </SubSection>
@@ -364,7 +364,7 @@ export default function PrivacyPage() {
           {/* 5. Compartilhamento */}
           <Section id="compartilhamento" icon="🤝" title="5. Compartilhamento de Dados">
             <p>
-              Compartilhamos seus dados apenas quando necessário e com as seguintes 
+              Compartilhamos seus dados apenas quando necessário e com as seguintes
               categorias de destinatários:
             </p>
 
@@ -391,15 +391,15 @@ export default function PrivacyPage() {
 
             <SubSection title="5.3 Autoridades">
               <p>
-                Podemos compartilhar dados com autoridades governamentais quando 
-                exigido por lei, ordem judicial ou para proteger direitos, 
-                propriedade ou segurança. 
+                Podemos compartilhar dados com autoridades governamentais quando
+                exigido por lei, ordem judicial ou para proteger direitos,
+                propriedade ou segurança.
               </p>
             </SubSection>
 
             <HighlightBox type="success">
-              <strong>Garantia:</strong> Todos os nossos parceiros e provedores são 
-              contratualmente obrigados a proteger seus dados com o mesmo nível de 
+              <strong>Garantia:</strong> Todos os nossos parceiros e provedores são
+              contratualmente obrigados a proteger seus dados com o mesmo nível de
               segurança que aplicamos internamente.
             </HighlightBox>
           </Section>
@@ -407,7 +407,7 @@ export default function PrivacyPage() {
           {/* 6.  Retenção */}
           <Section id="retencao" icon="🗄️" title="6. Retenção e Exclusão de Dados">
             <p>
-              Mantemos seus dados pelo tempo necessário para cumprir as finalidades 
+              Mantemos seus dados pelo tempo necessário para cumprir as finalidades
               descritas nesta política e atender requisitos legais:
             </p>
 
@@ -422,8 +422,8 @@ export default function PrivacyPage() {
             />
 
             <p>
-              Você pode solicitar a exclusão de seus dados a qualquer momento, 
-              sujeito a limitações legais (obrigações fiscais, prevenção a fraudes, 
+              Você pode solicitar a exclusão de seus dados a qualquer momento,
+              sujeito a limitações legais (obrigações fiscais, prevenção a fraudes,
               disputas pendentes).
             </p>
           </Section>
@@ -431,7 +431,7 @@ export default function PrivacyPage() {
           {/* 7. Direitos */}
           <Section id="direitos" icon="✊" title="7. Seus Direitos de Privacidade">
             <p>
-              De acordo com a LGPD, GDPR e outras leis aplicáveis, você possui os 
+              De acordo com a LGPD, GDPR e outras leis aplicáveis, você possui os
               seguintes direitos:
             </p>
 
@@ -445,7 +445,7 @@ export default function PrivacyPage() {
                 { icon: '🚫', title: 'Oposição', desc: 'Opor-se ao processamento baseado em legítimo interesse.' },
                 { icon: '🔄', title: 'Revogação', desc: 'Retirar consentimentos previamente concedidos.' },
                 { icon: '🤖', title: 'Revisão', desc: 'Solicitar revisão de decisões automatizadas.' },
-              ]. map((right) => (
+              ].map((right) => (
                 <div
                   key={right.title}
                   className="flex items-start space-x-3 p-4 bg-slate-50 dark:bg-slate-800/50 rounded-lg"
@@ -464,8 +464,8 @@ export default function PrivacyPage() {
             </div>
 
             <p className="mt-4">
-              Para exercer qualquer um desses direitos, entre em contato através da 
-              nossa página de <InternalLink to="/support">Suporte</InternalLink>. 
+              Para exercer qualquer um desses direitos, entre em contato através da
+              nossa página de <InternalLink to="/support">Suporte</InternalLink>.
               Podemos solicitar verificação de identidade para proteger sua conta.
             </p>
           </Section>
@@ -473,7 +473,7 @@ export default function PrivacyPage() {
           {/* 8. Segurança */}
           <Section id="seguranca" icon="🔒" title="8.  Segurança da Informação">
             <p>
-              Implementamos medidas técnicas e organizacionais robustas para 
+              Implementamos medidas técnicas e organizacionais robustas para
               proteger seus dados:
             </p>
 
@@ -489,8 +489,8 @@ export default function PrivacyPage() {
             />
 
             <HighlightBox type="warning">
-              <strong>Importante:</strong> Nenhum sistema é 100% seguro.  Em caso de 
-              incidente de segurança, notificaremos os usuários afetados e as 
+              <strong>Importante:</strong> Nenhum sistema é 100% seguro.  Em caso de
+              incidente de segurança, notificaremos os usuários afetados e as
               autoridades competentes conforme exigido por lei.
             </HighlightBox>
           </Section>
@@ -498,7 +498,7 @@ export default function PrivacyPage() {
           {/* 9.  Cookies */}
           <Section id="cookies" icon="🍪" title="9. Cookies e Tecnologias Similares">
             <p>
-              Utilizamos cookies e tecnologias similares para melhorar sua 
+              Utilizamos cookies e tecnologias similares para melhorar sua
               experiência:
             </p>
 
@@ -522,11 +522,10 @@ export default function PrivacyPage() {
                         {cookie.desc}
                       </p>
                     </div>
-                    <span className={`text-xs px-2 py-1 rounded-full ${
-                      cookie.required
-                        ? 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400'
+                    <span className={`text-xs px-2 py-1 rounded-full ${cookie.required
+                        ? 'bg-slate-800 dark:bg-slate-800/30 text-slate-800 dark:text-slate-800'
                         : 'bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-slate-400'
-                    }`}>
+                      }`}>
                       {cookie.required ? 'Obrigatório' : 'Opcional'}
                     </span>
                   </div>
@@ -535,8 +534,8 @@ export default function PrivacyPage() {
             </SubSection>
 
             <p className="mt-4">
-              Você pode gerenciar cookies através das configurações do seu navegador. 
-              Note que desabilitar cookies essenciais pode afetar o funcionamento 
+              Você pode gerenciar cookies através das configurações do seu navegador.
+              Note que desabilitar cookies essenciais pode afetar o funcionamento
               da plataforma.
             </p>
           </Section>
@@ -544,7 +543,7 @@ export default function PrivacyPage() {
           {/* 10. Conteúdo Adulto */}
           <Section id="conteudo-adulto" icon="🔞" title="10. Conteúdo Adulto e Proteção de Menores">
             <p>
-              O PrideConnect é uma plataforma exclusivamente para maiores de 18 anos. 
+              O FlowConnect é uma plataforma exclusivamente para maiores de 18 anos.
               Implementamos medidas rigorosas para proteger menores:
             </p>
 
@@ -559,9 +558,9 @@ export default function PrivacyPage() {
             />
 
             <HighlightBox type="warning">
-              <strong>Tolerância Zero:</strong> Qualquer conteúdo que explore, abuse 
-              ou envolva menores de idade resultará em ação imediata, incluindo 
-              banimento permanente, exclusão de dados e comunicação às autoridades 
+              <strong>Tolerância Zero:</strong> Qualquer conteúdo que explore, abuse
+              ou envolva menores de idade resultará em ação imediata, incluindo
+              banimento permanente, exclusão de dados e comunicação às autoridades
               competentes.
             </HighlightBox>
           </Section>
@@ -569,7 +568,7 @@ export default function PrivacyPage() {
           {/* 11. Criadores */}
           <Section id="criadores" icon="🎨" title="11.  Informações para Criadores">
             <p>
-              Se você é um criador de conteúdo, coletamos dados adicionais para 
+              Se você é um criador de conteúdo, coletamos dados adicionais para
               operar sua conta profissional:
             </p>
 
@@ -609,7 +608,7 @@ export default function PrivacyPage() {
           {/* 12. Pagamentos */}
           <Section id="pagamentos" icon="💰" title="12. Pagamentos e Criptomoedas">
             <p>
-              Processamos pagamentos através de diversos métodos, priorizando sua 
+              Processamos pagamentos através de diversos métodos, priorizando sua
               privacidade:
             </p>
 
@@ -624,7 +623,7 @@ export default function PrivacyPage() {
             <SubSection title="12.2 Privacidade em Pagamentos">
               <BulletList
                 items={[
-                  'Extratos bancários mostram nomes genéricos, não "PrideConnect"',
+                  'Extratos bancários mostram nomes genéricos, não "FlowConnect"',
                   'Criptomoedas oferecem maior nível de privacidade',
                   'Monero (XMR) disponível para máxima privacidade',
                   'Não compartilhamos dados de pagamento com terceiros desnecessários',
@@ -633,8 +632,8 @@ export default function PrivacyPage() {
             </SubSection>
 
             <HighlightBox type="info">
-              <strong>Discrição:</strong> Entendemos a importância da privacidade 
-              financeira. Nossos pagamentos são processados de forma discreta e 
+              <strong>Discrição:</strong> Entendemos a importância da privacidade
+              financeira. Nossos pagamentos são processados de forma discreta e
               não revelarão a natureza da plataforma em extratos bancários.
             </HighlightBox>
           </Section>
@@ -642,7 +641,7 @@ export default function PrivacyPage() {
           {/* 13.  Transferências */}
           <Section id="transferencias" icon="🌍" title="13. Transferências Internacionais">
             <p>
-              Podemos processar dados em servidores localizados fora do seu país de 
+              Podemos processar dados em servidores localizados fora do seu país de
               residência.  Quando isso ocorre:
             </p>
 
@@ -659,8 +658,8 @@ export default function PrivacyPage() {
           {/* 14. Alterações */}
           <Section id="alteracoes" icon="📝" title="14. Alterações nesta Política">
             <p>
-              Podemos atualizar esta Política de Privacidade periodicamente para 
-              refletir mudanças em nossas práticas ou requisitos legais. 
+              Podemos atualizar esta Política de Privacidade periodicamente para
+              refletir mudanças em nossas práticas ou requisitos legais.
             </p>
 
             <BulletList
@@ -676,18 +675,18 @@ export default function PrivacyPage() {
           {/* 15. Contato */}
           <Section id="contato" icon="📧" title="15. Contato e Suporte">
             <p>
-              Se você tiver dúvidas, preocupações ou quiser exercer seus direitos 
+              Se você tiver dúvidas, preocupações ou quiser exercer seus direitos
               de privacidade, entre em contato conosco:
             </p>
 
-            <div className="mt-4 p-6 bg-gradient-to-br from-indigo-50 to-purple-50 dark:from-indigo-900/20 dark:to-purple-900/20 rounded-xl border border-indigo-200 dark:border-indigo-800/50">
+            <div className="mt-4 p-6 bg-slate-50 dark:bg-slate-900/40 rounded-xl border border-slate-200 dark:border-slate-800">
               <div className="grid sm:grid-cols-2 gap-6">
                 <div>
                   <h4 className="font-semibold text-slate-900 dark:text-white mb-2">
                     📬 Página de Suporte
                   </h4>
                   <p className="text-sm text-slate-600 dark:text-slate-400 mb-3">
-                    Para solicitações gerais, dúvidas e exercício de direitos. 
+                    Para solicitações gerais, dúvidas e exercício de direitos.
                   </p>
                   <InternalLink to="/support">
                     Acessar Suporte →
@@ -709,9 +708,9 @@ export default function PrivacyPage() {
             </div>
 
             <p className="mt-4 text-sm text-slate-600 dark:text-slate-400">
-              <strong>Tempo de resposta:</strong> Respondemos solicitações de 
-              privacidade em até 15 dias úteis, conforme exigido pela LGPD.  
-              Solicitações complexas podem requerer prazo adicional, do qual 
+              <strong>Tempo de resposta:</strong> Respondemos solicitações de
+              privacidade em até 15 dias úteis, conforme exigido pela LGPD.
+              Solicitações complexas podem requerer prazo adicional, do qual
               você será informado.
             </p>
           </Section>

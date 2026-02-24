@@ -55,7 +55,7 @@ const Subscriptions = () => {
 
   const handlePause = async (subscriptionId) => {
     try {
-      const token = localStorage.getItem('pride_connect_token');
+      const token = localStorage.getItem('flow_connect_token');
       await axios.put(
         `${API_BASE_URL}/subscriptions/${subscriptionId}/pause`,
         {},
@@ -91,7 +91,7 @@ const Subscriptions = () => {
       {/* Header */}
       <div className="mb-6">
         <div className="flex items-center gap-2 mb-4">
-          <FiList className="text-3xl text-purple-600" />
+          <FiList className="text-3xl text-black" />
           <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
             Minhas Assinaturas
           </h1>
@@ -103,19 +103,17 @@ const Subscriptions = () => {
             <button
               key={option.value}
               onClick={() => setFilter(option.value)}
-              className={`flex items-center gap-2 px-4 py-2 rounded-lg font-semibold whitespace-nowrap transition-all ${
-                filter === option.value
-                  ? 'bg-purple-600 text-white'
+              className={`flex items-center gap-2 px-4 py-2 rounded-lg font-semibold whitespace-nowrap transition-all ${filter === option.value
+                  ? 'bg-black text-white'
                   : 'bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-300 dark:hover:bg-gray-600'
-              }`}
+                }`}
             >
-              {option. label}
+              {option.label}
               <span
-                className={`px-2 py-0.5 rounded-full text-xs ${
-                  filter === option.value
+                className={`px-2 py-0.5 rounded-full text-xs ${filter === option.value
                     ? 'bg-white/20'
                     : 'bg-gray-300 dark:bg-gray-600'
-                }`}
+                  }`}
               >
                 {option.count}
               </span>
@@ -125,11 +123,11 @@ const Subscriptions = () => {
       </div>
 
       {/* Loading */}
-      {loading ?  (
+      {loading ? (
         <div className="text-center py-12">
-          <div className="inline-block w-8 h-8 border-4 border-purple-600 border-t-transparent rounded-full animate-spin" />
+          <div className="inline-block w-8 h-8 border-4 border-black dark:border-white border-t-transparent rounded-full animate-spin" />
         </div>
-      ) : subscriptions.length === 0 ?  (
+      ) : subscriptions.length === 0 ? (
         /* Empty State */
         <div className="text-center py-12">
           <div className="w-24 h-24 mx-auto mb-4 bg-gray-100 dark:bg-gray-800 rounded-full flex items-center justify-center">
@@ -139,17 +137,17 @@ const Subscriptions = () => {
             {filter === 'active'
               ? 'Nenhuma assinatura ativa'
               : filter === 'paused'
-              ? 'Nenhuma assinatura pausada'
-              : filter === 'cancelled'
-              ?  'Nenhuma assinatura cancelada'
-              : 'Nenhuma assinatura'}
+                ? 'Nenhuma assinatura pausada'
+                : filter === 'cancelled'
+                  ? 'Nenhuma assinatura cancelada'
+                  : 'Nenhuma assinatura'}
           </h3>
           <p className="text-gray-600 dark:text-gray-400 mb-4">
-            Assine criadores para ter acesso a conteúdo exclusivo! 
+            Assine criadores para ter acesso a conteúdo exclusivo!
           </p>
           <a
             href="/explore"
-            className="inline-block px-6 py-3 bg-purple-600 hover:bg-purple-700 text-white rounded-lg font-semibold transition-colors"
+            className="inline-block px-6 py-3 bg-black hover:bg-black text-white rounded-lg font-semibold transition-colors"
           >
             Explorar Criadores
           </a>

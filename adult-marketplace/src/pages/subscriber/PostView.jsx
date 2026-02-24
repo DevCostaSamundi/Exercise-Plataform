@@ -89,7 +89,7 @@ const PostView = () => {
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-[60vh]">
-        <div className="w-12 h-12 border-4 border-purple-600 border-t-transparent rounded-full animate-spin" />
+        <div className="w-12 h-12 border-4 border-black dark:border-white border-t-transparent rounded-full animate-spin" />
       </div>
     );
   }
@@ -131,7 +131,7 @@ const PostView = () => {
               <p className="font-semibold text-gray-900 dark:text-white">
                 {post.creator.name}
                 {post.creator.isVerified && (
-                  <span className="ml-1 text-blue-500">✓</span>
+                  <span className="ml-1 text-black">✓</span>
                 )}
               </p>
               <p className="text-sm text-gray-500 dark:text-gray-400">
@@ -178,7 +178,7 @@ const PostView = () => {
                   </p>
                   <button
                     onClick={() => setShowPPVModal(true)}
-                    className="px-8 py-3 bg-purple-600 hover:bg-purple-700 text-white rounded-full font-bold text-lg transition-colors"
+                    className="px-8 py-3 bg-black hover:bg-black text-white rounded-full font-bold text-lg transition-colors"
                   >
                     Desbloquear Agora
                   </button>
@@ -219,11 +219,10 @@ const PostView = () => {
           <button
             onClick={handleLike}
             disabled={isPPV}
-            className={`flex items-center gap-2 transition-colors ${
-              isLiked
-                ? 'text-red-500'
-                : 'text-gray-600 dark:text-gray-400 hover:text-red-500'
-            } ${isPPV ? 'opacity-50 cursor-not-allowed' : ''}`}
+            className={`flex items-center gap-2 transition-colors ${isLiked
+                ? 'text-slate-900'
+                : 'text-gray-600 dark:text-gray-400 hover:text-slate-900'
+              } ${isPPV ? 'opacity-50 cursor-not-allowed' : ''}`}
           >
             <FiHeart
               className={`text-2xl ${isLiked ? 'fill-current' : ''}`}

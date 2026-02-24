@@ -77,7 +77,7 @@ export default function SafetyPage() {
       <Sidebar />
       <div className="flex-1 flex flex-col min-w-0">
         {/* Header */}
-        <header className="bg-gradient-to-br from-indigo-600 to-purple-700 text-white">
+        <header className="bg-black dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 text-white">
           <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
             <div className="flex items-center gap-3 mb-4">
               <svg className="w-12 h-12" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -90,7 +90,7 @@ export default function SafetyPage() {
               </svg>
               <h1 className="text-4xl font-bold">Diretrizes de Segurança</h1>
             </div>
-            <p className="text-xl text-indigo-100 max-w-3xl">
+            <p className="text-xl text-slate-300 max-w-3xl">
               Sua segurança é nossa prioridade. Siga estas diretrizes para uma experiência segura e positiva na plataforma.
             </p>
           </div>
@@ -100,9 +100,9 @@ export default function SafetyPage() {
         <div className="flex-1 overflow-y-auto">
           <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
             {/* Emergency Banner */}
-            <div className="bg-red-50 dark:bg-red-900/20 border-l-4 border-red-500 rounded-lg p-6 mb-12">
+            <div className="bg-slate-900 dark:bg-slate-900/20 border-l-4 border-red-500 rounded-lg p-6 mb-12">
               <div className="flex items-start gap-4">
-                <svg className="w-6 h-6 text-red-600 dark:text-red-400 flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
+                <svg className="w-6 h-6 text-slate-900 dark:text-slate-900 flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
                   <path
                     fillRule="evenodd"
                     d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z"
@@ -110,15 +110,15 @@ export default function SafetyPage() {
                   />
                 </svg>
                 <div>
-                  <h3 className="font-bold text-red-900 dark:text-red-100 mb-2">
+                  <h3 className="font-bold text-slate-900 dark:text-slate-900 mb-2">
                     Emergência ou Situação Perigosa?
                   </h3>
-                  <p className="text-red-800 dark:text-red-200 mb-3">
+                  <p className="text-slate-900 dark:text-slate-900 mb-3">
                     Se você estiver em perigo imediato, contate as autoridades locais (190) antes de nos contatar.
                   </p>
                   <Link
                     to="/support"
-                    className="inline-flex items-center gap-2 px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg font-medium transition-colors"
+                    className="inline-flex items-center gap-2 px-4 py-2 bg-slate-900 hover:bg-slate-900 text-white rounded-lg font-medium transition-colors"
                   >
                     Reportar Urgência ao Suporte
                   </Link>
@@ -145,7 +145,7 @@ export default function SafetyPage() {
                         key={itemIndex}
                         className="flex items-start gap-2 text-slate-600 dark:text-slate-400"
                       >
-                        <svg className="w-5 h-5 text-green-500 flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
+                        <svg className="w-5 h-5 text-black dark:text-white flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
                           <path
                             fillRule="evenodd"
                             d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
@@ -197,16 +197,16 @@ export default function SafetyPage() {
             </div>
 
             {/* Contact CTA */}
-            <div className="bg-gradient-to-br from-indigo-500 to-purple-600 rounded-2xl p-8 text-center">
+            <div className="bg-black dark:bg-slate-900 rounded-2xl p-8 text-center">
               <h2 className="text-2xl font-bold text-white mb-2">
                 Viu algo suspeito ou preocupante?
               </h2>
-              <p className="text-indigo-100 mb-6">
+              <p className="text-slate-300 mb-6">
                 Reporte imediatamente. Sua denúncia é anônima e ajuda a manter a comunidade segura.
               </p>
               <Link
                 to="/support"
-                className="inline-flex items-center gap-2 px-6 py-3 bg-white hover:bg-slate-100 text-indigo-600 rounded-lg font-medium transition-colors"
+                className="inline-flex items-center gap-2 px-6 py-3 bg-white hover:bg-slate-100 text-black rounded-lg font-medium transition-colors"
               >
                 <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path
@@ -222,10 +222,10 @@ export default function SafetyPage() {
 
             {/* Last Updated */}
             <p className="text-center text-sm text-slate-500 dark:text-slate-400 mt-8">
-              Última atualização: {new Date(APP_INFO.LAST_UPDATED).toLocaleDateString('pt-BR', { 
-                day: '2-digit', 
-                month: 'long', 
-                year: 'numeric' 
+              Última atualização: {new Date(APP_INFO.LAST_UPDATED).toLocaleDateString('pt-BR', {
+                day: '2-digit',
+                month: 'long',
+                year: 'numeric'
               })}
             </p>
           </div>

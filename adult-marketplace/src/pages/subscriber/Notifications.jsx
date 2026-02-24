@@ -25,7 +25,7 @@ export default function Notifications() {
           {unreadCount > 0 && (
             <button
               onClick={markAllAsRead}
-              className="text-sm bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg font-medium"
+              className="text-sm bg-black hover:bg-black text-white px-4 py-2 rounded-lg font-medium"
             >
               Marcar todas como lidas
             </button>
@@ -33,7 +33,7 @@ export default function Notifications() {
         </div>
         {loading && notifications.length === 0 && (
           <div className="text-center py-12">
-            <div className="w-12 h-12 border-4 border-purple-600 border-t-transparent rounded-full animate-spin mx-auto mb-4" />
+            <div className="w-12 h-12 border-4 border-black dark:border-white border-t-transparent rounded-full animate-spin mx-auto mb-4" />
             <p>Carregando notificações...</p>
           </div>
         )}
@@ -46,7 +46,7 @@ export default function Notifications() {
           {notifications.map((n) => (
             <li
               key={n._id}
-              className={`p-4 rounded-lg shadow-sm border ${n.read ? 'bg-gray-50 dark:bg-gray-900' : 'bg-indigo-50 dark:bg-indigo-900/20 border-indigo-200 dark:border-indigo-800'}`}
+              className={`p-4 rounded-lg shadow-sm border ${n.read ? 'bg-gray-50 dark:bg-gray-900' : 'bg-slate-100 dark:bg-slate-800 border-slate-200 dark:border-slate-700'}`}
             >
               <div className="flex items-center justify-between">
                 <div>
@@ -57,7 +57,7 @@ export default function Notifications() {
                 {!n.read && (
                   <button
                     onClick={() => markAsRead(n._id)}
-                    className="ml-4 text-xs bg-indigo-600 hover:bg-indigo-700 text-white px-3 py-1 rounded"
+                    className="ml-4 text-xs bg-black hover:bg-black text-white px-3 py-1 rounded"
                   >
                     Marcar como lida
                   </button>
@@ -71,7 +71,7 @@ export default function Notifications() {
             <button
               onClick={loadMore}
               disabled={loading}
-              className="bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-2 rounded-lg font-medium disabled:opacity-50"
+              className="bg-black hover:bg-black text-white px-6 py-2 rounded-lg font-medium disabled:opacity-50"
             >
               {loading ? 'Carregando...' : 'Carregar mais'}
             </button>

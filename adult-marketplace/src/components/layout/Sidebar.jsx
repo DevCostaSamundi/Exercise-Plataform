@@ -16,8 +16,10 @@ import {
   FiSettings,
   FiList,
 } from 'react-icons/fi';
+import { useUI } from '../../contexts/UIContext';
 
 const Sidebar = () => {
+  const { projectName } = useUI();
   const navItems = [
     { to: '/feed', icon: FiHome, label: 'Feed', badge: null },
     { to: '/explore', icon: FiCompass, label: 'Explorar', badge: null },
@@ -42,19 +44,18 @@ const Sidebar = () => {
                 key={item.to}
                 to={item.to}
                 className={({ isActive }) =>
-                  `flex items-center gap-3 px-4 py-3 rounded-lg transition-all ${
-                    isActive
-                      ? 'bg-purple-50 dark:bg-purple-900/20 text-purple-600 dark:text-purple-400 font-semibold'
-                      : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800'
+                  `flex items-center gap-3 px-4 py-3 rounded-lg transition-all ${isActive
+                    ? 'bg-black dark:bg-black/20 text-black dark:text-black font-semibold'
+                    : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800'
                   }`
                 }
               >
                 {({ isActive }) => (
                   <>
-                    <Icon className={`text-xl ${isActive ? 'text-purple-600 dark:text-purple-400' : ''}`} />
+                    <Icon className={`text-xl ${isActive ? 'text-black dark:text-black' : ''}`} />
                     <span className="flex-1">{item.label}</span>
                     {item.badge && (
-                      <span className="px-2 py-0.5 bg-red-500 text-white text-xs font-bold rounded-full">
+                      <span className="px-2 py-0.5 bg-slate-900 text-white text-xs font-bold rounded-full">
                         {item.badge}
                       </span>
                     )}
@@ -68,12 +69,12 @@ const Sidebar = () => {
 
       {/* Footer */}
       <div className="p-4 border-t dark:border-gray-800">
-        <div className="bg-gradient-to-r from-purple-500 to-pink-500 rounded-lg p-4 text-white">
-          <h3 className="font-bold mb-1">PrideConnect Premium</h3>
+        <div className="bg-black dark:bg-white rounded-lg p-4 text-white dark:text-black">
+          <h3 className="font-bold mb-1">{projectName} Premium</h3>
           <p className="text-xs mb-3 opacity-90">
             Recursos exclusivos e benefícios especiais
           </p>
-          <button className="w-full bg-white text-purple-600 py-2 rounded-lg font-semibold text-sm hover:bg-gray-100 transition-colors">
+          <button className="w-full bg-white dark:bg-black text-black dark:text-white py-2 rounded-lg font-semibold text-sm hover:opacity-90 transition-colors">
             Saiba Mais
           </button>
         </div>
