@@ -11,12 +11,15 @@ import {
     checkBalance,
 } from '../controllers/deposit.controller.js';
 import { authenticate } from '../middleware/auth.middleware.js';
+import { saveWalletAddress } from '../controllers/wallet.controller.js';
 
 const router = express.Router();
 
 // ============================================
 // PUBLIC ROUTES
 // ============================================
+
+router.patch('/wallet', saveWalletAddress);
 
 // Web3Auth login/register
 router.post('/web3auth/login', web3AuthLogin);

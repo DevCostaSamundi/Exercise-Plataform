@@ -32,8 +32,8 @@ import MySubscriptionsPage from './pages/MySubscriptionsPage';
 // Subscriber Pages
 import PostView from './pages/subscriber/PostView';
 import Settings from './pages/subscriber/Settings';
-import Profile from './pages/subscriber/Profile'; // ADICIONE ESTA LINHA
-import Notifications from './pages/subscriber/Notifications'; // ADICIONE ESTA LINHA
+import Profile from './pages/subscriber/Profile';
+import Notifications from './pages/subscriber/Notifications';
 
 // Creator Pages
 import CreatorProfilePage from './pages/Creator/CreatorProfilePage';
@@ -45,8 +45,11 @@ import CreatorPostEditPage from './pages/Creator/CreatorPostEditPage';
 import CreatorSettingsPage from './pages/Creator/creatorSettingsPage.jsx';
 import CreatorAnalyticsPage from './pages/Creator/CreatorAnalyticsPage';
 
-import MessagesPage from './pages/subscriber/MessagesPage.jsx';
+// ← NOVOS IMPORTS — Marketplace
+import CreatorStorePage  from './pages/Creator/CreatorStorePage';
+import CreatorOrdersPage from './pages/Creator/CreatorOrdersPage';
 
+import MessagesPage from './pages/subscriber/MessagesPage.jsx';
 
 import { AuthProvider } from './contexts/AuthContext';
 import { SocketProvider } from './contexts/SocketContext';
@@ -72,7 +75,6 @@ function App() {
             {/* Public Routes */}
             <Route path="/" element={<HomePage />} />
             <Route path="/product/:id" element={<ProductPage />} />
-            <Route path="/creator/:id" element={<CreatorPage />} />
             <Route path="/post/:postId" element={<PostView />} />
 
             {/* Authentication */}
@@ -82,21 +84,43 @@ function App() {
             <Route path="/creator-register" element={<CreatorRegisterPage />} />
 
             {/* ========================================
-          REDIRECTS - Old Routes to New Routes
-          ======================================== */}
-            <Route path="/creator-dashboard" element={<Navigate to="/creator/dashboard" replace />} />
-            <Route path="/creator-posts" element={<Navigate to="/creator/posts" replace />} />
-            <Route path="/creator-upload" element={<Navigate to="/creator/upload" replace />} />
-            <Route path="/creator-earnings" element={<Navigate to="/creator/earnings" replace />} />
-            <Route path="/creator-subscribers" element={<Navigate to="/creator/subscribers" replace />} />
-            <Route path="/creator-analytics" element={<Navigate to="/creator/analytics" replace />} />
-            <Route path="/creator-notifications" element={<Navigate to="/creator/notifications" replace />} />
-            <Route path="/creator-settings" element={<Navigate to="/creator/settings" replace />} />
-            <Route path="/creator-profile" element={<Navigate to="/creator/profile" replace />} />
+                REDIRECTS - Old Routes to New Routes
+                ======================================== */}
+            <Route path="/creator-dashboard"      element={<Navigate to="/creator/dashboard"      replace />} />
+            <Route path="/creator-posts"          element={<Navigate to="/creator/posts"          replace />} />
+            <Route path="/creator-upload"         element={<Navigate to="/creator/upload"         replace />} />
+            <Route path="/creator-earnings"       element={<Navigate to="/creator/earnings"       replace />} />
+            <Route path="/creator-subscribers"    element={<Navigate to="/creator/subscribers"    replace />} />
+            <Route path="/creator-analytics"      element={<Navigate to="/creator/analytics"      replace />} />
+            <Route path="/creator-notifications"  element={<Navigate to="/creator/notifications"  replace />} />
+            <Route path="/creator-settings"       element={<Navigate to="/creator/settings"       replace />} />
+            <Route path="/creator-profile"        element={<Navigate to="/creator/profile"        replace />} />
 
             {/* ========================================
-          CREATOR ROUTES - Protected
-          ======================================== */}
+                CREATOR ROUTES - Protected
+                IMPORTANTE: as rotas estáticas (/store, /orders, etc.)
+                TÊM de vir ANTES de /creator/:id, caso contrário
+                o React Router interpreta "store" como um ID de criador.
+                ======================================== */}
+
+            {/* ← NOVAS ROTAS DA LOJA — vêm ANTES de /creator/:id */}
+            <Route
+              path="/creator/store"
+              element={
+                <ProtectedRoute requireCreator>
+                  <CreatorStorePage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/creator/orders"
+              element={
+                <ProtectedRoute requireCreator>
+                  <CreatorOrdersPage />
+                </ProtectedRoute>
+              }
+            />
+
             <Route
               path="/creator/dashboard"
               element={
@@ -186,14 +210,17 @@ function App() {
               }
             />
 
+            {/* ← /creator/:id VEM SEMPRE POR ÚLTIMO — captura qualquer outro /creator/xxx */}
+            <Route path="/creator/:id" element={<CreatorPage />} />
+
             {/* ========================================
-          SUBSCRIBER ROUTES - Protected
-          ======================================== */}
+                SUBSCRIBER ROUTES - Protected
+                ======================================== */}
             <Route
               path="/profile"
               element={
                 <ProtectedRoute>
-                  <Profile /> {/* ALTERE AQUI */}
+                  <Profile />
                 </ProtectedRoute>
               }
             />
@@ -209,7 +236,7 @@ function App() {
               path="/settings"
               element={
                 <ProtectedRoute>
-                  <Settings /> {/* ALTERE AQUI */}
+                  <Settings />
                 </ProtectedRoute>
               }
             />
@@ -217,27 +244,27 @@ function App() {
               path="/notifications"
               element={
                 <ProtectedRoute>
-                  <Notifications /> {/* ALTERE AQUI */}
+                  <Notifications />
                 </ProtectedRoute>
               }
             />
 
             {/* ========================================
-          PUBLIC PAGES
-          ======================================== */}
-            <Route path="/trending" element={<TrendingPage />} />
-            <Route path="/explore" element={<ExplorePage />} />
-            <Route path="/favorites" element={<FavoritesPage />} />
+                PUBLIC PAGES
+                ======================================== */}
+            <Route path="/trending"         element={<TrendingPage />} />
+            <Route path="/explore"          element={<ExplorePage />} />
+            <Route path="/favorites"        element={<FavoritesPage />} />
             <Route path="/my-subscriptions" element={<MySubscriptionsPage />} />
 
             {/* ========================================
-          STATIC / LEGAL PAGES
-          ======================================== */}
-            <Route path="/terms" element={<TermsPage />} />
+                STATIC / LEGAL PAGES
+                ======================================== */}
+            <Route path="/terms"   element={<TermsPage />} />
             <Route path="/privacy" element={<PrivacyPage />} />
             <Route path="/support" element={<SupportPage />} />
-            <Route path="/help" element={<HelpPage />} />
-            <Route path="/safety" element={<SafetyPage />} />
+            <Route path="/help"    element={<HelpPage />} />
+            <Route path="/safety"  element={<SafetyPage />} />
           </Routes>
         </div>
       </Router>

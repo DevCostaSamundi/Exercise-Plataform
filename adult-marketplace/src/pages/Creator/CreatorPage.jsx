@@ -5,6 +5,9 @@ import TipModal from '../../components/TipModal';
 import creatorService from '../../services/creatorService';
 import subscriptionService from '../../services/subscriptionService';
 import messageService from '../../services/messageService';
+import StoreTab from '../../components/store/StoreTab';
+import BuyProductModal from '../../components/store/BuyProductModal';
+
 
 export default function CreatorPage() {
   const { id } = useParams();
@@ -27,10 +30,13 @@ export default function CreatorPage() {
     fetchCreatorData();
   }, [id]);
 
+  // true quando a criadora autenticada está a ver o seu próprio perfil
+  const isOwnProfile = currentUser?.creatorId === creator?.id
+    || currentUser?.username === creator?.username;
+
   const fetchCreatorData = async () => {
     setLoading(true);
     try {
-      // ✅ TENTAR BUSCAR POR ID PRIMEIRO
       console.log(`🔍 Buscando perfil do criador: ${id}`);
       let profileResponse;
       try {
@@ -40,7 +46,6 @@ export default function CreatorPage() {
         profileResponse = { success: false };
       }
 
-      // ✅ SE NÃO ENCONTRAR OU SE FOR UM USERNAME (neoadr), TENTAR POR USERNAME
       if (!profileResponse?.success || (typeof id === 'string' && !id.includes('-'))) {
         console.log(`💡 Tentando busca por username: ${id}`);
         profileResponse = await creatorService.getCreatorProfileByUsername(id);
@@ -49,7 +54,6 @@ export default function CreatorPage() {
       if (profileResponse?.success) {
         setCreator(profileResponse.data);
 
-        // ✅ BUSCAR POSTS
         let postsResponse;
         try {
           postsResponse = await creatorService.getCreatorPosts(profileResponse.data.id, { limit: 20 });
@@ -129,6 +133,20 @@ export default function CreatorPage() {
     setShowPaymentModal(true);
   };
 
+  const [selectedProduct, setSelectedProduct] = useState(null);
+  const [showBuyModal,    setShowBuyModal]    = useState(false);
+
+  // ─── NOVO: handler para compra na loja ───────────────────
+  const handleBuyProduct = (product) => {
+    if (!currentUser || !currentUser.id) {
+      alert('Precisas de estar autenticado para comprar!');
+      navigate('/login');
+      return;
+    }
+    setSelectedProduct(product);
+    setShowBuyModal(true);
+  };
+
   const handleShareProfile = () => {
     if (!creator) return;
     const url = window.location.href;
@@ -142,7 +160,6 @@ export default function CreatorPage() {
       alert('Link copiado para a área de transferência!');
     }
   };
-
 
   const formatPrice = (price, currency = 'USD') => {
     return new Intl.NumberFormat('en-US', {
@@ -241,7 +258,6 @@ export default function CreatorPage() {
         />
         <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent"></div>
 
-        {/* Subscription Badge */}
         {isSubscribed && (
           <div className="absolute top-4 right-4 bg-slate-800 text-white px-4 py-2 rounded-full text-sm font-semibold flex items-center space-x-2 shadow-lg">
             <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
@@ -281,8 +297,6 @@ export default function CreatorPage() {
                   <span>{creator.displayName}</span>
                 </h1>
                 <p className="text-slate-600 dark:text-slate-400 mb-3">@{creator.username}</p>
-
-                {/* Stats */}
                 <div className="flex items-center gap-4 sm:gap-6 text-sm flex-wrap">
                   <div>
                     <span className="font-bold text-slate-900 dark: text-white">{creator.posts}</span>
@@ -313,8 +327,6 @@ export default function CreatorPage() {
             <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark: border-slate-800 p-6">
               <h2 className="text-lg font-bold text-slate-900 dark: text-white mb-3">Sobre</h2>
               <p className="text-slate-600 dark:text-slate-400 leading-relaxed mb-4 whitespace-pre-line">{creator.description}</p>
-
-              {/* Tags */}
               <div className="flex flex-wrap gap-2 mb-4">
                 {creator.tags.map(tag => (
                   <span key={tag} className="bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 text-sm px-3 py-1 rounded-full font-medium">
@@ -322,8 +334,6 @@ export default function CreatorPage() {
                   </span>
                 ))}
               </div>
-
-              {/* Info Grid */}
               <div className="grid grid-cols-2 gap-4 pt-4 border-t border-slate-200 dark:border-slate-800">
                 <div>
                   <p className="text-xs text-slate-500 dark: text-slate-400 mb-1">Identidade</p>
@@ -365,6 +375,18 @@ export default function CreatorPage() {
                 >
                   Mídia ({creator.photos + creator.videos})
                 </button>
+
+                {/* ─── BOTÃO LOJA ADICIONADO AQUI ─────────── */}
+                <button
+                  onClick={() => setActiveTab('store')}
+                  className={`pb-3 border-b-2 font-medium text-sm transition-colors ${activeTab === 'store'
+                    ? 'border-black dark:border-white text-black dark:text-white'
+                    : 'border-transparent text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-300'
+                    }`}
+                >
+                  🛍️ Loja
+                </button>
+
                 <button
                   onClick={() => setActiveTab('about')}
                   className={`pb-3 border-b-2 font-medium text-sm transition-colors ${activeTab === 'about'
@@ -432,8 +454,6 @@ export default function CreatorPage() {
                             alt={`Post ${post.id}`}
                             className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                           />
-
-                          {/* Overlay */}
                           <div className="absolute inset-0 bg-black/0 group-hover:bg-black/40 transition-colors flex items-center justify-center">
                             <div className="opacity-0 group-hover:opacity-100 transition-opacity flex items-center space-x-4 text-white">
                               <div className="flex items-center space-x-1">
@@ -450,8 +470,6 @@ export default function CreatorPage() {
                               </div>
                             </div>
                           </div>
-
-                          {/* Lock overlay for locked content */}
                           {post.isLocked && !isSubscribed && (
                             <div className="absolute inset-0 bg-black/60 backdrop-blur-sm flex flex-col items-center justify-center">
                               <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8 text-white mb-2" viewBox="0 0 20 20" fill="currentColor">
@@ -471,8 +489,6 @@ export default function CreatorPage() {
                               )}
                             </div>
                           )}
-
-                          {/* Video indicator */}
                           {post.type === 'video' && (!post.isLocked || isSubscribed) && (
                             <div className="absolute top-2 right-2 bg-black/70 rounded-lg px-2 py-1">
                               <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 text-white" viewBox="0 0 20 20" fill="currentColor">
@@ -499,8 +515,6 @@ export default function CreatorPage() {
                         alt={`Post ${post.id}`}
                         className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                       />
-
-                      {/* Overlay */}
                       <div className="absolute inset-0 bg-black/0 group-hover:bg-black/40 transition-colors flex items-center justify-center">
                         <div className="opacity-0 group-hover:opacity-100 transition-opacity flex items-center space-x-4 text-white">
                           <div className="flex items-center space-x-1">
@@ -517,8 +531,6 @@ export default function CreatorPage() {
                           </div>
                         </div>
                       </div>
-
-                      {/* Lock overlay */}
                       {post.isLocked && !isSubscribed && (
                         <div className="absolute inset-0 bg-black/60 backdrop-blur-sm flex flex-col items-center justify-center">
                           <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8 text-white mb-2" viewBox="0 0 20 20" fill="currentColor">
@@ -532,8 +544,6 @@ export default function CreatorPage() {
                           )}
                         </div>
                       )}
-
-                      {/* Video indicator */}
                       {post.type === 'video' && (!post.isLocked || isSubscribed) && (
                         <div className="absolute top-2 right-2 bg-black/70 rounded-lg px-2 py-1">
                           <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 text-white" viewBox="0 0 20 20" fill="currentColor">
@@ -547,12 +557,53 @@ export default function CreatorPage() {
               </div>
             )}
 
+            {/* ─── CONTEÚDO DA LOJA ───────────────────────── */}
+            {activeTab === 'store' && (
+              <div className="space-y-4">
+                {/* Botão "Gerir loja" — visível APENAS para a própria criadora */}
+                {isOwnProfile && (
+                  <div className="bg-gradient-to-r from-violet-50 to-indigo-50 dark:from-violet-900/20 dark:to-indigo-900/20 border border-violet-200 dark:border-violet-800 rounded-2xl p-5">
+                    <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+                      <div>
+                        <p className="font-semibold text-slate-900 dark:text-white">Gestão da loja</p>
+                        <p className="text-sm text-slate-500 dark:text-slate-400 mt-0.5">
+                          Adiciona produtos, cria NFTs e gere as tuas encomendas.
+                        </p>
+                      </div>
+                      <div className="flex gap-2 flex-shrink-0">
+                        <button
+                          onClick={() => navigate('/creator/store')}
+                          className="flex items-center gap-2 bg-black dark:bg-white text-white dark:text-black px-5 py-2.5 rounded-xl text-sm font-semibold hover:opacity-90 transition-opacity whitespace-nowrap"
+                        >
+                          <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
+                            <path fillRule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clipRule="evenodd"/>
+                          </svg>
+                          + Adicionar produto
+                        </button>
+                        <button
+                          onClick={() => navigate('/creator/orders')}
+                          className="flex items-center gap-2 bg-slate-100 dark:bg-slate-800 text-slate-800 dark:text-slate-200 px-4 py-2.5 rounded-xl text-sm font-semibold hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors whitespace-nowrap"
+                        >
+                          📦 Encomendas
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* Lista pública de produtos */}
+                <StoreTab
+                  creatorId={creator.id}
+                  onBuyProduct={handleBuyProduct}
+                />
+              </div>
+            )}
+
             {/* About Tab */}
             {activeTab === 'about' && (
               <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 p-6">
                 <h2 className="text-xl font-bold text-slate-900 dark:text-white mb-4">Sobre {creator.displayName}</h2>
                 <p className="text-slate-600 dark:text-slate-400 leading-relaxed mb-6 whitespace-pre-line">{creator.description}</p>
-
                 <div className="space-y-4">
                   <div className="grid grid-cols-2 gap-4">
                     <div>
@@ -572,7 +623,6 @@ export default function CreatorPage() {
                       <p className="font-medium text-slate-900 dark:text-white">{creator.joinDate}</p>
                     </div>
                   </div>
-
                   <div className="pt-4 border-t border-slate-200 dark:border-slate-800">
                     <p className="text-sm text-slate-500 dark:text-slate-400 mb-2">Categorias</p>
                     <div className="flex flex-wrap gap-2">
@@ -590,22 +640,47 @@ export default function CreatorPage() {
 
           {/* Sidebar */}
           <div className="space-y-4">
-            {/* Subscription Card */}
-            {!isSubscribed ? (
+            {/* Se é o próprio perfil → atalhos de criadora */}
+            {isOwnProfile ? (
+              <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 p-5 space-y-3">
+                <p className="text-sm font-semibold text-slate-700 dark:text-slate-300 mb-1">A minha loja</p>
+                <button
+                  onClick={() => navigate('/creator/store')}
+                  className="w-full flex items-center gap-3 bg-black dark:bg-white text-white dark:text-black py-3 px-4 rounded-xl font-semibold text-sm hover:opacity-90 transition-opacity"
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                    <path fillRule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clipRule="evenodd"/>
+                  </svg>
+                  + Adicionar produto / NFT
+                </button>
+                <button
+                  onClick={() => navigate('/creator/orders')}
+                  className="w-full flex items-center gap-3 bg-slate-100 dark:bg-slate-800 text-slate-800 dark:text-slate-200 py-3 px-4 rounded-xl font-semibold text-sm hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors"
+                >
+                  📦 Gerir encomendas
+                </button>
+                <button
+                  onClick={() => navigate('/creator/store')}
+                  className="w-full flex items-center gap-3 bg-slate-100 dark:bg-slate-800 text-slate-800 dark:text-slate-200 py-3 px-4 rounded-xl font-semibold text-sm hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors"
+                >
+                  ⚙️ Configurações da loja
+                </button>
+              </div>
+            ) : (
+              /* Subscription Card — só para visitantes */
+              !isSubscribed ? (
               <div className="bg-black dark:bg-white border border-slate-200 dark:border-slate-800 rounded-xl p-6 text-white dark:text-black shadow-xl">
                 <div className="text-center mb-4">
                   <p className="text-sm font-medium opacity-90 mb-1">Assine por apenas</p>
                   <p className="text-4xl font-bold">{formatPrice(creator.subscriptionPrice || 30)}</p>
                   <p className="text-sm opacity-75">por mês</p>
                 </div>
-
                 <button
                   onClick={handleSubscribe}
                   className="w-full bg-white text-black hover:bg-slate-50 py-3 px-6 rounded-lg font-semibold shadow-lg transition-all hover:shadow-xl mb-3"
                 >
                   Assinar Agora
                 </button>
-
                 <div className="space-y-2 text-sm">
                   {benefits.map((benefit, idx) => (
                     <div key={idx} className="flex items-start space-x-2">
@@ -630,7 +705,7 @@ export default function CreatorPage() {
                   <p className="text-sm text-slate-600 dark: text-slate-400">Aproveite todo o conteúdo exclusivo</p>
                 </div>
               </div>
-            )}
+            ))}
 
             {/* Redes Sociais */}
             {creator.socialLinks && Object.keys(creator.socialLinks).filter(key => creator.socialLinks[key]).length > 0 && (
@@ -643,60 +718,36 @@ export default function CreatorPage() {
                 </h2>
                 <div className="grid grid-cols-2 gap-2">
                   {creator.socialLinks.twitter && (
-                    <a
-                      href={creator.socialLinks.twitter}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="flex items-center justify-center space-x-2 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 py-3 px-4 rounded-lg transition-colors"
-                    >
+                    <a href={creator.socialLinks.twitter} target="_blank" rel="noopener noreferrer"
+                      className="flex items-center justify-center space-x-2 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 py-3 px-4 rounded-lg transition-colors">
                       <span className="text-xl">𝕏</span>
                       <span className="text-sm font-medium text-slate-700 dark:text-slate-300">Twitter</span>
                     </a>
                   )}
-
                   {creator.socialLinks.instagram && (
-                    <a
-                      href={creator.socialLinks.instagram}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="flex items-center justify-center space-x-2 bg-slate-900 hover:bg-black py-3 px-4 rounded-lg transition-all text-white"
-                    >
+                    <a href={creator.socialLinks.instagram} target="_blank" rel="noopener noreferrer"
+                      className="flex items-center justify-center space-x-2 bg-slate-900 hover:bg-black py-3 px-4 rounded-lg transition-all text-white">
                       <span className="text-xl">📸</span>
                       <span className="text-sm font-medium">Instagram</span>
                     </a>
                   )}
-
                   {creator.socialLinks.tiktok && (
-                    <a
-                      href={creator.socialLinks.tiktok}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="flex items-center justify-center space-x-2 bg-slate-900 hover:bg-slate-800 dark:bg-slate-100 dark:hover:bg-slate-200 py-3 px-4 rounded-lg transition-colors"
-                    >
+                    <a href={creator.socialLinks.tiktok} target="_blank" rel="noopener noreferrer"
+                      className="flex items-center justify-center space-x-2 bg-slate-900 hover:bg-slate-800 dark:bg-slate-100 dark:hover:bg-slate-200 py-3 px-4 rounded-lg transition-colors">
                       <span className="text-xl">🎵</span>
                       <span className="text-sm font-medium text-white dark:text-slate-900">TikTok</span>
                     </a>
                   )}
-
                   {creator.socialLinks.youtube && (
-                    <a
-                      href={creator.socialLinks.youtube}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="flex items-center justify-center space-x-2 bg-slate-900 hover:bg-slate-900 py-3 px-4 rounded-lg transition-colors text-white"
-                    >
+                    <a href={creator.socialLinks.youtube} target="_blank" rel="noopener noreferrer"
+                      className="flex items-center justify-center space-x-2 bg-slate-900 hover:bg-slate-900 py-3 px-4 rounded-lg transition-colors text-white">
                       <span className="text-xl">▶️</span>
                       <span className="text-sm font-medium">YouTube</span>
                     </a>
                   )}
-
                   {creator.website && (
-                    <a
-                      href={creator.website}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="flex items-center justify-center space-x-2 bg-black dark:bg-white hover:bg-black/90 dark:hover:bg-white/90 py-3 px-4 rounded-lg transition-colors"
-                    >
+                    <a href={creator.website} target="_blank" rel="noopener noreferrer"
+                      className="flex items-center justify-center space-x-2 bg-black dark:bg-white hover:bg-black/90 dark:hover:bg-white/90 py-3 px-4 rounded-lg transition-colors">
                       <span className="text-xl">🌐</span>
                       <span className="text-sm font-medium text-white dark:text-black">Website</span>
                     </a>
@@ -716,7 +767,6 @@ export default function CreatorPage() {
                 </svg>
                 <span>Enviar Mensagem</span>
               </button>
-
               <button
                 onClick={handleSendTip}
                 className="w-full bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-900 dark:text-white py-3 px-4 rounded-lg font-semibold transition-colors flex items-center justify-center space-x-2"
@@ -770,13 +820,9 @@ export default function CreatorPage() {
             setShowPaymentModal(false);
             setPaymentData(null);
             setSelectedPost(null);
-
-            // Atualizar status de assinatura se foi SUBSCRIPTION
             if (paymentData.type === 'SUBSCRIPTION') {
               setIsSubscribed(true);
             }
-
-            // Recarregar dados do criador
             fetchCreatorData();
           }}
         />
@@ -795,6 +841,25 @@ export default function CreatorPage() {
           onSuccess={() => {
             setShowTipModal(false);
             alert('Gorjeta enviada com sucesso!  🎉');
+          }}
+        />
+      )}
+
+      {/* ← MODAL DE COMPRA NA LOJA */}
+      {showBuyModal && selectedProduct && (
+        <BuyProductModal
+          isOpen={showBuyModal}
+          product={selectedProduct}
+          creator={{
+            id:                  creator.id,
+            shipsFrom:           creator.storeProfile?.shipsFrom || '',
+            shipsInternationally: creator.storeProfile?.shipsInternationally ?? true,
+          }}
+          onClose={() => { setShowBuyModal(false); setSelectedProduct(null); }}
+          onSuccess={(order) => {
+            setShowBuyModal(false);
+            setSelectedProduct(null);
+            navigate('/orders');
           }}
         />
       )}
