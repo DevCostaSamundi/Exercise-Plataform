@@ -3,7 +3,7 @@
 // ============================================================
 
 import { Router } from 'express';
-import { auth } from '../middleware/auth.middleware.js';
+import { authenticate as auth } from '../middleware/auth.middleware.js';
 import {
     sendMessage,
     getHistory,

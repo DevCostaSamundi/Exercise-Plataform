@@ -1,10 +1,10 @@
 // ============================================================
-// AI CREATE PAGE — Criador cria/edita AI Companion
+// AI CREATE PAGE — Dark premium adult aesthetic
 // ============================================================
 
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, Sparkles, Bot, Save, Loader2, Eye } from 'lucide-react';
+import { ArrowLeft, Sparkles, Loader2 } from 'lucide-react';
 import aiService from '../../services/aiService';
 
 const PERSONALITY_TRAITS = [
@@ -12,235 +12,250 @@ const PERSONALITY_TRAITS = [
     'Atrevida', 'Misteriosa', 'Divertida', 'Romântica', 'Intelectual',
     'Rebelde', 'Inocente', 'Sedutora', 'Brincalhona', 'Intensa',
 ];
-
 const TAGS = [
     'Roleplay', 'Girlfriend Experience', 'BDSM', 'Feet', 'Cosplay',
     'Fantasy', 'Romance', 'Dirty Talk', 'Joi', 'Domination',
 ];
-
 const TONES = ['Casual', 'Sensual', 'Provocante', 'Formal', 'Tímido'];
 const BODY_TYPES = ['Slim', 'Athletic', 'Curvy', 'Petite', 'Plus-size'];
 const HAIR_COLORS = ['Preto', 'Castanho', 'Loiro', 'Ruivo', 'Rosa', 'Azul', 'Branco'];
 const EYE_COLORS = ['Castanhos', 'Azuis', 'Verdes', 'Âmbar', 'Cinzentos', 'Violeta'];
 const SKIN_TONES = ['Clara', 'Média', 'Morena', 'Escura'];
 
+const T = {
+    pt: {
+        title: 'Criar AI Companion',
+        subtitle: 'Define a personalidade, aparência e estilo.',
+        basicInfo: 'Informação Básica',
+        name: 'Nome do Companion',
+        namePh: 'Ex: Luna, Mia, Sakura...',
+        desc: 'Descrição pública',
+        descPh: 'Uma breve descrição para o catálogo...',
+        price: 'Preço mensal (USD)',
+        nsfw: 'Nível NSFW',
+        personality: 'Personalidade',
+        traits: 'Traços de personalidade',
+        tone: 'Tom de conversa',
+        backstory: 'Backstory',
+        backstoryPh: 'Conta a história deste personagem... Quem é, o que gosta, como fala...',
+        themes: 'Tags / Temas',
+        appearance: 'Aparência',
+        skin: 'Tom de pele', body: 'Tipo de corpo', hair: 'Cor do cabelo', eyes: 'Cor dos olhos',
+        cancel: 'Cancelar',
+        create: 'Criar AI Companion',
+        creating: 'A criar...',
+        errName: 'Nome é obrigatório.',
+        errBackstory: 'Backstory é obrigatória.',
+        errTraits: 'Seleciona pelo menos um traço.',
+        errGeneral: 'Erro ao criar companion.',
+    },
+    en: {
+        title: 'Create AI Companion',
+        subtitle: 'Define the personality, appearance and style.',
+        basicInfo: 'Basic Information',
+        name: 'Companion Name',
+        namePh: 'Ex: Luna, Mia, Sakura...',
+        desc: 'Public description',
+        descPh: 'A short description for the catalog...',
+        price: 'Monthly price (USD)',
+        nsfw: 'NSFW Level',
+        personality: 'Personality',
+        traits: 'Personality traits',
+        tone: 'Conversation tone',
+        backstory: 'Backstory',
+        backstoryPh: 'Tell this character\'s story... Who they are, what they like, how they talk...',
+        themes: 'Tags / Themes',
+        appearance: 'Appearance',
+        skin: 'Skin tone', body: 'Body type', hair: 'Hair color', eyes: 'Eye color',
+        cancel: 'Cancel',
+        create: 'Create AI Companion',
+        creating: 'Creating...',
+        errName: 'Name is required.',
+        errBackstory: 'Backstory is required.',
+        errTraits: 'Select at least one trait.',
+        errGeneral: 'Error creating companion.',
+    },
+};
+
+// Styled components
+const inputStyle = {
+    background: '#1a1a1a', border: '1px solid rgba(255,255,255,0.06)', color: '#eee',
+    borderRadius: '12px', padding: '12px 16px', fontSize: '14px', width: '100%',
+    outline: 'none', transition: 'border-color 0.2s',
+};
+const sectionStyle = {
+    background: '#111', border: '1px solid rgba(255,255,255,0.06)', borderRadius: '16px', padding: '24px',
+};
+
 export default function AiCreatePage() {
     const navigate = useNavigate();
+    const [lang] = useState(() => navigator.language?.startsWith('pt') ? 'pt' : 'en');
+    const t = T[lang] || T.pt;
     const [saving, setSaving] = useState(false);
     const [error, setError] = useState('');
-
     const [form, setForm] = useState({
-        name: '',
-        description: '',
-        language: 'pt',
-        languages: ['pt', 'en'],
-        nsfwLevel: 'explicit',
-        monthlyPrice: '9.99',
-        messageLimit: '200',
-        personality: {
-            traits: [],
-            tone: 'Sensual',
-            backstory: '',
-            fetishes: [],
-        },
-        appearance: {
-            skinTone: '',
-            bodyType: '',
-            hairColor: '',
-            hairStyle: '',
-            eyeColor: '',
-        },
+        name: '', description: '', language: 'pt', languages: ['pt', 'en'],
+        nsfwLevel: 'explicit', monthlyPrice: '9.99', messageLimit: '200',
+        personality: { traits: [], tone: 'Sensual', backstory: '', fetishes: [] },
+        appearance: { skinTone: '', bodyType: '', hairColor: '', hairStyle: '', eyeColor: '' },
         tags: [],
     });
 
-    function updateField(field, value) {
-        setForm(f => ({ ...f, [field]: value }));
-    }
+    const updateField = (f, v) => setForm(prev => ({ ...prev, [f]: v }));
+    const updatePersonality = (f, v) => setForm(prev => ({ ...prev, personality: { ...prev.personality, [f]: v } }));
+    const updateAppearance = (f, v) => setForm(prev => ({ ...prev, appearance: { ...prev.appearance, [f]: v } }));
 
-    function updatePersonality(field, value) {
-        setForm(f => ({ ...f, personality: { ...f.personality, [field]: value } }));
-    }
-
-    function updateAppearance(field, value) {
-        setForm(f => ({ ...f, appearance: { ...f.appearance, [field]: value } }));
-    }
-
-    function toggleTag(arr, field, val) {
-        const current = field === 'tags' ? form.tags : form.personality[field === 'traits' ? 'traits' : 'fetishes'];
-        const next = current.includes(val) ? current.filter(t => t !== val) : [...current, val];
-        if (field === 'tags') {
-            updateField('tags', next);
-        } else {
-            updatePersonality(field === 'traits' ? 'traits' : 'fetishes', next);
-        }
-    }
+    const toggleIn = (arr, val) => arr.includes(val) ? arr.filter(x => x !== val) : [...arr, val];
 
     async function handleSubmit(e) {
-        e.preventDefault();
-        setError('');
-
-        if (!form.name.trim()) return setError('Nome é obrigatório.');
-        if (!form.personality.backstory.trim()) return setError('Backstory é obrigatória.');
-        if (form.personality.traits.length === 0) return setError('Seleciona pelo menos um traço de personalidade.');
-
+        e.preventDefault(); setError('');
+        if (!form.name.trim()) return setError(t.errName);
+        if (!form.personality.backstory.trim()) return setError(t.errBackstory);
+        if (form.personality.traits.length === 0) return setError(t.errTraits);
         setSaving(true);
         try {
             const res = await aiService.createCompanion({
-                ...form,
-                monthlyPrice: parseFloat(form.monthlyPrice),
-                messageLimit: parseInt(form.messageLimit),
+                ...form, monthlyPrice: parseFloat(form.monthlyPrice), messageLimit: parseInt(form.messageLimit),
             });
             navigate(`/ai/${res.data.slug || res.data.id}`);
-        } catch (err) {
-            setError(err.response?.data?.message || 'Erro ao criar companion.');
-        } finally {
-            setSaving(false);
-        }
+        } catch (err) { setError(err.response?.data?.message || t.errGeneral); }
+        finally { setSaving(false); }
     }
 
+    const Chip = ({ active, onClick, children }) => (
+        <button type="button" onClick={onClick}
+            className="px-3 py-1.5 rounded-full text-xs font-medium transition-all hover:scale-105"
+            style={{
+                background: active ? 'linear-gradient(135deg, #ff2d78, #d946ef)' : 'rgba(255,255,255,0.04)',
+                color: active ? '#fff' : '#888',
+                border: '1px solid ' + (active ? 'transparent' : 'rgba(255,255,255,0.06)'),
+            }}>
+            {children}
+        </button>
+    );
+
+    const PillSelect = ({ active, onClick, children }) => (
+        <button type="button" onClick={onClick}
+            className="px-4 py-2 rounded-xl text-sm font-medium transition-all hover:scale-105"
+            style={{
+                background: active ? '#fff' : 'rgba(255,255,255,0.04)',
+                color: active ? '#0a0a0a' : '#888',
+                border: '1px solid ' + (active ? 'transparent' : 'rgba(255,255,255,0.06)'),
+            }}>
+            {children}
+        </button>
+    );
+
     return (
-        <div className="min-h-screen bg-slate-50 dark:bg-slate-950 py-8 px-4">
+        <div className="min-h-screen py-8 px-4" style={{ background: '#0a0a0a' }}>
             <div className="max-w-3xl mx-auto">
                 {/* Header */}
                 <div className="flex items-center gap-3 mb-8">
-                    <button onClick={() => navigate(-1)} className="p-2 rounded-lg hover:bg-slate-200 dark:hover:bg-slate-800 transition-colors">
-                        <ArrowLeft className="w-5 h-5 text-slate-600 dark:text-slate-400" />
+                    <button onClick={() => navigate(-1)} className="p-2 rounded-lg transition-colors"
+                        style={{ color: '#888' }}>
+                        <ArrowLeft className="w-5 h-5" />
                     </button>
                     <div>
-                        <h1 className="text-2xl font-black text-slate-900 dark:text-white flex items-center gap-2">
-                            <Sparkles className="w-6 h-6 text-violet-500" />
-                            Criar AI Companion
+                        <h1 className="text-2xl font-black text-white flex items-center gap-2">
+                            <Sparkles className="w-6 h-6" style={{ color: '#ff2d78' }} />
+                            {t.title}
                         </h1>
-                        <p className="text-sm text-slate-500 mt-1">Define a personalidade, aparência e estilo do teu companion.</p>
+                        <p className="text-sm mt-1" style={{ color: '#666' }}>{t.subtitle}</p>
                     </div>
                 </div>
 
-                <form onSubmit={handleSubmit} className="space-y-8">
-                    {/* ── Informação Básica ──────────────────────────────── */}
-                    <section className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-6 space-y-5">
-                        <h2 className="text-lg font-bold text-slate-900 dark:text-white">📋 Informação Básica</h2>
-
+                <form onSubmit={handleSubmit} className="space-y-6">
+                    {/* Basic Info */}
+                    <section style={sectionStyle} className="space-y-5">
+                        <h2 className="text-base font-bold text-white">📋 {t.basicInfo}</h2>
                         <div>
-                            <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">Nome do Companion *</label>
-                            <input
-                                type="text" value={form.name} onChange={e => updateField('name', e.target.value)}
-                                placeholder="Ex: Luna, Mia, Sakura..."
-                                className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-sm text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-violet-500"
-                            />
+                            <label className="block text-xs font-medium mb-1.5" style={{ color: '#888' }}>{t.name} *</label>
+                            <input type="text" value={form.name} onChange={e => updateField('name', e.target.value)}
+                                placeholder={t.namePh} style={inputStyle}
+                                onFocus={e => e.target.style.borderColor = 'rgba(255,45,120,0.3)'}
+                                onBlur={e => e.target.style.borderColor = 'rgba(255,255,255,0.06)'} />
                         </div>
-
                         <div>
-                            <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">Descrição pública</label>
-                            <textarea
-                                value={form.description} onChange={e => updateField('description', e.target.value)}
-                                rows={3} placeholder="Uma breve descrição para o catálogo..."
-                                className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-sm text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-violet-500 resize-none"
-                            />
+                            <label className="block text-xs font-medium mb-1.5" style={{ color: '#888' }}>{t.desc}</label>
+                            <textarea value={form.description} onChange={e => updateField('description', e.target.value)}
+                                rows={3} placeholder={t.descPh}
+                                style={{ ...inputStyle, resize: 'none' }}
+                                onFocus={e => e.target.style.borderColor = 'rgba(255,45,120,0.3)'}
+                                onBlur={e => e.target.style.borderColor = 'rgba(255,255,255,0.06)'} />
                         </div>
-
                         <div className="grid grid-cols-2 gap-4">
                             <div>
-                                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">Preço mensal (USD)</label>
-                                <input
-                                    type="number" step="0.01" min="0" value={form.monthlyPrice}
-                                    onChange={e => updateField('monthlyPrice', e.target.value)}
-                                    className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-sm text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-violet-500"
-                                />
+                                <label className="block text-xs font-medium mb-1.5" style={{ color: '#888' }}>{t.price}</label>
+                                <input type="number" step="0.01" min="0" value={form.monthlyPrice}
+                                    onChange={e => updateField('monthlyPrice', e.target.value)} style={inputStyle} />
                             </div>
                             <div>
-                                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">Nível NSFW</label>
-                                <select
-                                    value={form.nsfwLevel} onChange={e => updateField('nsfwLevel', e.target.value)}
-                                    className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-sm text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-violet-500"
-                                >
-                                    <option value="soft">🌸 Suave</option>
-                                    <option value="moderate">🔥 Moderado</option>
-                                    <option value="explicit">💋 Explícito</option>
+                                <label className="block text-xs font-medium mb-1.5" style={{ color: '#888' }}>{t.nsfw}</label>
+                                <select value={form.nsfwLevel} onChange={e => updateField('nsfwLevel', e.target.value)}
+                                    style={inputStyle}>
+                                    <option value="soft">🌸 Soft</option>
+                                    <option value="moderate">🔥 Moderate</option>
+                                    <option value="explicit">💋 Explicit</option>
                                 </select>
                             </div>
                         </div>
                     </section>
 
-                    {/* ── Personalidade ──────────────────────────────────── */}
-                    <section className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-6 space-y-5">
-                        <h2 className="text-lg font-bold text-slate-900 dark:text-white">🎭 Personalidade</h2>
-
+                    {/* Personality */}
+                    <section style={sectionStyle} className="space-y-5">
+                        <h2 className="text-base font-bold text-white">🎭 {t.personality}</h2>
                         <div>
-                            <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">Traços de personalidade *</label>
+                            <label className="block text-xs font-medium mb-2" style={{ color: '#888' }}>{t.traits} *</label>
                             <div className="flex flex-wrap gap-2">
-                                {PERSONALITY_TRAITS.map(trait => (
-                                    <button key={trait} type="button" onClick={() => toggleTag(null, 'traits', trait)}
-                                        className={`px-3 py-1.5 rounded-full text-xs font-medium transition-all ${form.personality.traits.includes(trait)
-                                            ? 'bg-violet-600 text-white' : 'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-violet-100 dark:hover:bg-violet-900/30'
-                                            }`}>
-                                        {trait}
-                                    </button>
+                                {PERSONALITY_TRAITS.map(tr => (
+                                    <Chip key={tr} active={form.personality.traits.includes(tr)}
+                                        onClick={() => updatePersonality('traits', toggleIn(form.personality.traits, tr))}>{tr}</Chip>
                                 ))}
                             </div>
                         </div>
-
                         <div>
-                            <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">Tom de conversa</label>
+                            <label className="block text-xs font-medium mb-2" style={{ color: '#888' }}>{t.tone}</label>
                             <div className="flex flex-wrap gap-2">
                                 {TONES.map(tone => (
-                                    <button key={tone} type="button" onClick={() => updatePersonality('tone', tone)}
-                                        className={`px-4 py-2 rounded-xl text-sm font-medium transition-all ${form.personality.tone === tone
-                                            ? 'bg-black dark:bg-white text-white dark:text-black' : 'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300'
-                                            }`}>
-                                        {tone}
-                                    </button>
+                                    <PillSelect key={tone} active={form.personality.tone === tone}
+                                        onClick={() => updatePersonality('tone', tone)}>{tone}</PillSelect>
                                 ))}
                             </div>
                         </div>
-
                         <div>
-                            <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">Backstory *</label>
-                            <textarea
-                                value={form.personality.backstory} onChange={e => updatePersonality('backstory', e.target.value)}
-                                rows={4} placeholder="Conta a história deste personagem... Quem é, o que gosta, como fala..."
-                                className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-sm text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-violet-500 resize-none"
-                            />
+                            <label className="block text-xs font-medium mb-1.5" style={{ color: '#888' }}>{t.backstory} *</label>
+                            <textarea value={form.personality.backstory} onChange={e => updatePersonality('backstory', e.target.value)}
+                                rows={4} placeholder={t.backstoryPh}
+                                style={{ ...inputStyle, resize: 'none' }}
+                                onFocus={e => e.target.style.borderColor = 'rgba(255,45,120,0.3)'}
+                                onBlur={e => e.target.style.borderColor = 'rgba(255,255,255,0.06)'} />
                         </div>
-
                         <div>
-                            <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">Tags / Temas</label>
+                            <label className="block text-xs font-medium mb-2" style={{ color: '#888' }}>{t.themes}</label>
                             <div className="flex flex-wrap gap-2">
                                 {TAGS.map(tag => (
-                                    <button key={tag} type="button"
-                                        className={`px-3 py-1.5 rounded-full text-xs font-medium transition-all ${form.tags.includes(tag)
-                                            ? 'bg-purple-600 text-white' : 'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-purple-100 dark:hover:bg-purple-900/30'
-                                            }`}
-                                        onClick={() => {
-                                            const next = form.tags.includes(tag) ? form.tags.filter(t => t !== tag) : [...form.tags, tag];
-                                            updateField('tags', next);
-                                        }}>
-                                        {tag}
-                                    </button>
+                                    <Chip key={tag} active={form.tags.includes(tag)}
+                                        onClick={() => updateField('tags', toggleIn(form.tags, tag))}>{tag}</Chip>
                                 ))}
                             </div>
                         </div>
                     </section>
 
-                    {/* ── Aparência ──────────────────────────────────────── */}
-                    <section className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-6 space-y-5">
-                        <h2 className="text-lg font-bold text-slate-900 dark:text-white">👤 Aparência</h2>
-
+                    {/* Appearance */}
+                    <section style={sectionStyle} className="space-y-5">
+                        <h2 className="text-base font-bold text-white">👤 {t.appearance}</h2>
                         {[
-                            { label: 'Tom de pele', field: 'skinTone', options: SKIN_TONES },
-                            { label: 'Tipo de corpo', field: 'bodyType', options: BODY_TYPES },
-                            { label: 'Cor do cabelo', field: 'hairColor', options: HAIR_COLORS },
-                            { label: 'Cor dos olhos', field: 'eyeColor', options: EYE_COLORS },
+                            { label: t.skin, field: 'skinTone', options: SKIN_TONES },
+                            { label: t.body, field: 'bodyType', options: BODY_TYPES },
+                            { label: t.hair, field: 'hairColor', options: HAIR_COLORS },
+                            { label: t.eyes, field: 'eyeColor', options: EYE_COLORS },
                         ].map(({ label, field, options }) => (
                             <div key={field}>
-                                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">{label}</label>
+                                <label className="block text-xs font-medium mb-2" style={{ color: '#888' }}>{label}</label>
                                 <div className="flex flex-wrap gap-2">
                                     {options.map(opt => (
-                                        <button key={opt} type="button" onClick={() => updateAppearance(field, opt)}
-                                            className={`px-4 py-2 rounded-xl text-sm font-medium transition-all ${form.appearance[field] === opt
-                                                ? 'bg-black dark:bg-white text-white dark:text-black' : 'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300'
-                                                }`}>
-                                            {opt}
-                                        </button>
+                                        <PillSelect key={opt} active={form.appearance[field] === opt}
+                                            onClick={() => updateAppearance(field, opt)}>{opt}</PillSelect>
                                     ))}
                                 </div>
                             </div>
@@ -249,20 +264,22 @@ export default function AiCreatePage() {
 
                     {/* Error + Submit */}
                     {error && (
-                        <div className="bg-rose-50 dark:bg-rose-900/20 border border-rose-200 dark:border-rose-800 rounded-xl px-4 py-3 text-sm text-rose-700 dark:text-rose-400">
+                        <div className="rounded-xl px-4 py-3 text-sm"
+                            style={{ background: 'rgba(239,68,68,0.08)', border: '1px solid rgba(239,68,68,0.15)', color: '#ef4444' }}>
                             {error}
                         </div>
                     )}
-
                     <div className="flex gap-3">
                         <button type="button" onClick={() => navigate(-1)}
-                            className="flex-1 py-3.5 border border-slate-300 dark:border-slate-700 rounded-xl text-sm font-medium text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors">
-                            Cancelar
+                            className="flex-1 py-3.5 rounded-xl text-sm font-medium transition-colors"
+                            style={{ border: '1px solid rgba(255,255,255,0.08)', color: '#888', background: 'transparent' }}>
+                            {t.cancel}
                         </button>
                         <button type="submit" disabled={saving}
-                            className="flex-[2] py-3.5 bg-gradient-to-r from-violet-600 to-purple-600 text-white rounded-xl text-sm font-bold hover:opacity-90 disabled:opacity-50 transition-all flex items-center justify-center gap-2">
+                            className="flex-[2] py-3.5 rounded-xl text-sm font-bold text-white transition-all hover:scale-[1.01] disabled:opacity-50 flex items-center justify-center gap-2"
+                            style={{ background: 'linear-gradient(135deg, #ff2d78, #d946ef)', boxShadow: '0 4px 20px rgba(255,45,120,0.3)' }}>
                             {saving ? <Loader2 className="w-5 h-5 animate-spin" /> : <Sparkles className="w-5 h-5" />}
-                            {saving ? 'A criar...' : 'Criar AI Companion'}
+                            {saving ? t.creating : t.create}
                         </button>
                     </div>
                 </form>

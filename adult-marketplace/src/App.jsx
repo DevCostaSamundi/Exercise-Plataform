@@ -155,7 +155,7 @@ function App() {
 
               {/* ── AI Protected Routes ────────────────────────────────────────── */}
               <Route path="/ai/:companionId/chat" element={<ProtectedRoute><AiChatPage /></ProtectedRoute>} />
-              <Route path="/creator/ai/new" element={<ProtectedRoute requireCreator><AiCreatePage /></ProtectedRoute>} />
+              <Route path="/creator/ai/new" element={<ProtectedRoute><AiCreatePage /></ProtectedRoute>} />
 
               <Route path="/trending" element={<TrendingPage />} />
               <Route path="/explore" element={<ExplorePage />} />

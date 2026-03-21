@@ -13,16 +13,31 @@ export const createCompanion = async (req, res) => {
     try {
         const userId = req.user.id;
 
-        // Verificar se é um criador
-        const creator = await prisma.creator.findUnique({
+        // Buscar ou criar Creator automaticamente (AI Creators desde o início)
+        let creator = await prisma.creator.findUnique({
             where: { userId },
             select: { id: true },
         });
 
         if (!creator) {
-            return res.status(403).json({
-                success: false,
-                message: 'Apenas criadores podem criar AI Companions.',
+            // Auto-criar Creator para utilizadores que querem criar AI companions
+            const user = await prisma.user.findUnique({
+                where: { id: userId },
+                select: { username: true, displayName: true },
+            });
+
+            creator = await prisma.creator.create({
+                data: {
+                    userId,
+                    displayName: user?.displayName || user?.username || 'AI Creator',
+                },
+                select: { id: true },
+            });
+
+            // Actualizar role do user para CREATOR
+            await prisma.user.update({
+                where: { id: userId },
+                data: { role: 'CREATOR' },
             });
         }
 
