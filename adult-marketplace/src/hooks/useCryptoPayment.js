@@ -1,6 +1,7 @@
-import { useState, useCallback, useEffect } from 'react';
+import { useState, useCallback } from 'react';
 import { ethers } from 'ethers';
 import axios from 'axios';
+import { useWeb3Auth } from './useWeb3Auth';
 
 const API_URL = import.meta.env.VITE_API_URL;
 
@@ -73,17 +74,17 @@ export const STEP_MESSAGES = {
         tip: 'Estamos confirmando que você tem USDC suficiente.',
     },
     approving: {
-        title: 'Autorize o pagamento na sua carteira',
-        description: 'Uma janela do MetaMask vai aparecer. Clique em "Confirmar" para continuar.',
+        title: 'Autorizando pagamento...',
+        description: 'Aprovando o uso do seu USDC para este pagamento.',
         tip: '🔐 Isso é seguro e necessário apenas uma vez por valor.',
     },
     paying: {
-        title: 'Confirme o pagamento na sua carteira',
-        description: 'O MetaMask vai mostrar os detalhes. Clique em "Confirmar" para pagar.',
+        title: 'Processando pagamento...',
+        description: 'A transação está sendo enviada para a blockchain.',
         tip: '⚡ A taxa de rede é de apenas alguns centavos.',
     },
     confirming: {
-        title: 'Processando na blockchain...',
+        title: 'Confirmando na blockchain...',
         description: 'Sua transação foi enviada e está sendo confirmada.',
         tip: '⏱ Normalmente leva menos de 30 segundos na Polygon.',
     },
@@ -100,155 +101,33 @@ export const STEP_MESSAGES = {
 };
 
 // ============================================
-// HOOK PRINCIPAL
+// HOOK PRINCIPAL — Web3Auth Wallet (sem MetaMask)
 // ============================================
 
 export const useCryptoPayment = () => {
+    const { provider: web3authProvider, address: walletAddress, isConnected: walletConnected } = useWeb3Auth();
+
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState(null);
     const [currentStep, setCurrentStep] = useState('idle');
     const [currentPayment, setCurrentPayment] = useState(null);
-    const [isConnected, setIsConnected] = useState(false);
-    const [userAddress, setUserAddress] = useState(null);
     const [usdcBalance, setUsdcBalance] = useState(null);
 
-    // Verifica conexão ao montar (sem popup)
-    useEffect(() => {
-        checkConnectionSilently();
-
-        if (window.ethereum) {
-            window.ethereum.on('accountsChanged', handleAccountsChanged);
-            window.ethereum.on('chainChanged', () => window.location.reload());
-        }
-
-        return () => {
-            if (window.ethereum) {
-                window.ethereum.removeListener('accountsChanged', handleAccountsChanged);
-            }
-        };
-    }, []);
-
-    const handleAccountsChanged = (accounts) => {
-        if (accounts.length === 0) {
-            setIsConnected(false);
-            setUserAddress(null);
-            setUsdcBalance(null);
-        } else {
-            setIsConnected(true);
-            setUserAddress(accounts[0]);
-        }
-    };
-
-    const checkConnectionSilently = async () => {
-        if (!window.ethereum) return;
-        try {
-            const accounts = await window.ethereum.request({ method: 'eth_accounts' });
-            if (accounts?.length > 0) {
-                setIsConnected(true);
-                setUserAddress(accounts[0]);
-            }
-        } catch {
-            // Silenciosamente ignora — esperado quando não conectado
-        }
-    };
-
     // ============================================
-    // CONECTAR CARTEIRA
-    // ============================================
-
-    const connectWallet = useCallback(async () => {
-        if (!window.ethereum) {
-            throw new Error('MetaMask não encontrado. Instale a extensão para continuar.');
-        }
-
-        try {
-            const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
-
-            if (!accounts?.length) {
-                throw new Error('Nenhuma conta encontrada na carteira');
-            }
-
-            setIsConnected(true);
-            setUserAddress(accounts[0]);
-            return accounts[0];
-
-        } catch (err) {
-            if (err.code === 4001) {
-                throw new Error('Você recusou a conexão. Aprove no MetaMask para continuar.');
-            }
-            throw err;
-        }
-    }, []);
-
-    // ============================================
-    // VERIFICAR REDE (Polygon)
-    // ============================================
-
-    const ensurePolygonNetwork = useCallback(async () => {
-        if (!window.ethereum) return;
-
-        const chainIdHex = await window.ethereum.request({ method: 'eth_chainId' });
-        const chainId = parseInt(chainIdHex, 16);
-
-        const expectedChainId = import.meta.env.VITE_NETWORK === 'polygon' ? 137 : 80002;
-        const networkName = expectedChainId === 137 ? 'Polygon' : 'Polygon Amoy (Testnet)';
-
-        if (chainId !== expectedChainId) {
-            try {
-                await window.ethereum.request({
-                    method: 'wallet_switchEthereumChain',
-                    params: [{ chainId: `0x${expectedChainId.toString(16)}` }],
-                });
-            } catch (switchError) {
-                if (switchError.code === 4902) {
-                    // Rede não adicionada — adiciona automaticamente
-                    await window.ethereum.request({
-                        method: 'wallet_addEthereumChain',
-                        params: [{
-                            chainId: `0x${expectedChainId.toString(16)}`,
-                            chainName: networkName,
-                            nativeCurrency: { name: 'POL', symbol: 'POL', decimals: 18 },
-                            rpcUrls: [import.meta.env.VITE_POLYGON_RPC_URL || 'https://polygon-rpc.com'],
-                            blockExplorerUrls: [
-                                expectedChainId === 137
-                                    ? 'https://polygonscan.com'
-                                    : 'https://amoy.polygonscan.com',
-                            ],
-                        }],
-                    });
-                } else {
-                    throw new Error(`Por favor, troque a rede para ${networkName} no MetaMask.`);
-                }
-            }
-        }
-    }, []);
-
-    // ============================================
-    // PROVIDER & SIGNER
+    // PROVIDER & SIGNER (via Web3Auth — sem MetaMask)
     // ============================================
 
     const getProviderAndSigner = useCallback(async () => {
-        if (!window.ethereum) {
-            throw new Error('Carteira não encontrada. Por favor, instale o MetaMask.');
+        if (!web3authProvider) {
+            throw new Error('Carteira não conectada. Faça login primeiro.');
         }
 
-        let accounts = await window.ethereum.request({ method: 'eth_accounts' });
+        const ethersProvider = new ethers.BrowserProvider(web3authProvider);
+        const signer = await ethersProvider.getSigner();
+        const address = await signer.getAddress();
 
-        if (!accounts?.length) {
-            accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
-        }
-
-        if (!accounts?.length) {
-            throw new Error('Conecte sua carteira para continuar.');
-        }
-
-        await ensurePolygonNetwork();
-
-        const provider = new ethers.BrowserProvider(window.ethereum);
-        const signer = await provider.getSigner();
-
-        return { provider, signer, address: accounts[0] };
-    }, [ensurePolygonNetwork]);
+        return { provider: ethersProvider, signer, address };
+    }, [web3authProvider]);
 
     // ============================================
     // VERIFICAR SALDO USDC
@@ -283,9 +162,9 @@ export const useCryptoPayment = () => {
 
         try {
             const response = await axios.post(
-                `${API_URL}/payments/crypto/create-order`,
+                `${API_URL}/api/v1/crypto-payment/crypto/create-order`,
                 paymentData,
-                { headers: { Authorization: `Bearer ${localStorage.getItem('authToken') || localStorage.getItem('flow_connect_token')}` } }
+                { headers: { Authorization: `Bearer ${localStorage.getItem('authToken') || localStorage.getItem('token')}` } }
             );
 
             const order = response.data.data;
@@ -326,7 +205,7 @@ export const useCryptoPayment = () => {
 
         } catch (err) {
             if (err.code === 'ACTION_REJECTED' || err.code === 4001) {
-                throw new Error('Aprovação cancelada. Você precisa aprovar para continuar.');
+                throw new Error('Aprovação cancelada.');
             }
             throw new Error(err.reason || err.message || 'Falha na aprovação do USDC');
         }
@@ -362,7 +241,7 @@ export const useCryptoPayment = () => {
 
         } catch (err) {
             if (err.code === 'ACTION_REJECTED' || err.code === 4001) {
-                throw new Error('Pagamento cancelado. Confirme a transação no MetaMask para continuar.');
+                throw new Error('Pagamento cancelado.');
             }
             throw new Error(err.reason || err.message || 'Falha no pagamento');
         }
@@ -375,13 +254,13 @@ export const useCryptoPayment = () => {
     const verifyWithBackend = useCallback(async (paymentId, txHash) => {
         try {
             const response = await axios.post(
-                `${API_URL}/payments/crypto/verify`,
+                `${API_URL}/api/v1/crypto-payment/crypto/verify`,
                 { paymentId, txHash },
-                { headers: { Authorization: `Bearer ${localStorage.getItem('authToken') || localStorage.getItem('flow_connect_token')}` } }
+                { headers: { Authorization: `Bearer ${localStorage.getItem('authToken') || localStorage.getItem('token')}` } }
             );
             return response.data;
         } catch {
-            // Não crítico — o webhook do Alchemy fará a confirmação
+            // Não crítico — o webhook confirmará
             return null;
         }
     }, []);
@@ -395,13 +274,11 @@ export const useCryptoPayment = () => {
             setLoading(true);
             setError(null);
 
-            if (!window.ethereum) {
-                throw new Error('Instale o MetaMask para pagar com cripto.');
+            if (!web3authProvider) {
+                throw new Error('Carteira não conectada. Faça login para continuar.');
             }
 
             const { address } = await getProviderAndSigner();
-            setIsConnected(true);
-            setUserAddress(address);
 
             // 1. Cria ordem
             const order = await createPaymentOrder(paymentData);
@@ -416,9 +293,10 @@ export const useCryptoPayment = () => {
             // 4. Executa pagamento
             const txHash = await executePayment(order);
 
-            // 5. Notifica backend (opcional — webhook fará o trabalho real)
+            // 5. Notifica backend
             await verifyWithBackend(order.paymentId, txHash);
 
+            setCurrentStep('success');
             return { paymentId: order.paymentId, txHash, orderId: order.orderId };
 
         } catch (err) {
@@ -428,7 +306,7 @@ export const useCryptoPayment = () => {
         } finally {
             setLoading(false);
         }
-    }, [getProviderAndSigner, createPaymentOrder, checkUSDCBalance, approveUSDC, executePayment, verifyWithBackend]);
+    }, [web3authProvider, getProviderAndSigner, createPaymentOrder, checkUSDCBalance, approveUSDC, executePayment, verifyWithBackend]);
 
     // ============================================
     // POLLING DE STATUS
@@ -436,14 +314,14 @@ export const useCryptoPayment = () => {
 
     const checkPaymentStatus = useCallback(async (paymentId) => {
         const response = await axios.get(
-            `${API_URL}/payments/crypto/${paymentId}/status`,
-            { headers: { Authorization: `Bearer ${localStorage.getItem('authToken') || localStorage.getItem('flow_connect_token')}` } }
+            `${API_URL}/api/v1/crypto-payment/crypto/${paymentId}/status`,
+            { headers: { Authorization: `Bearer ${localStorage.getItem('authToken') || localStorage.getItem('token')}` } }
         );
         return response.data.data;
     }, []);
 
     const pollPaymentStatus = useCallback(async (paymentId, onUpdate) => {
-        const maxAttempts = 60; // 5 minutos
+        const maxAttempts = 60;
         let attempts = 0;
 
         return new Promise((resolve, reject) => {
@@ -474,25 +352,20 @@ export const useCryptoPayment = () => {
                     clearInterval(interval);
                     reject(err);
                 }
-            }, 5000); // A cada 5 segundos
+            }, 5000);
         });
     }, [checkPaymentStatus]);
 
     // ============================================
-    // URL DE FIAT ON-RAMP
+    // CONECTAR CARTEIRA (noop — Web3Auth já conecta)
     // ============================================
 
-    const getOnRampUrl = useCallback(async ({ provider = 'moonpay', amountUSD, walletAddress }) => {
-        try {
-            const response = await axios.get(`${API_URL}/payments/crypto/onramp-url`, {
-                params: { provider, amountUSD, walletAddress },
-                headers: { Authorization: `Bearer ${localStorage.getItem('authToken') || localStorage.getItem('flow_connect_token')}` },
-            });
-            return response.data.data.url;
-        } catch (err) {
-            throw new Error('Não foi possível gerar o link de compra com cartão');
+    const connectWallet = useCallback(async () => {
+        if (!walletConnected) {
+            throw new Error('Faça login para conectar sua carteira.');
         }
-    }, []);
+        return walletAddress;
+    }, [walletConnected, walletAddress]);
 
     return {
         // Estado
@@ -500,8 +373,8 @@ export const useCryptoPayment = () => {
         error,
         currentStep,
         currentPayment,
-        isConnected,
-        userAddress,
+        isConnected: walletConnected,
+        userAddress: walletAddress,
         usdcBalance,
 
         // Mensagens amigáveis
@@ -516,7 +389,6 @@ export const useCryptoPayment = () => {
         approveUSDC,
         executePayment,
         checkUSDCBalance,
-        getOnRampUrl,
 
         // Reset
         reset: () => {

@@ -86,12 +86,11 @@ class Web3Service {
      */
     getMinimalABI() {
         return [
-            'event PaymentReceived(address indexed payer, address indexed creator, string orderId, uint256 totalAmount, uint256 creatorAmount, uint256 platformFee, uint256 timestamp)',
-            'function processPayment(address creator, uint256 amount, string orderId)',
-            'function getUSDCBalance() view returns (uint256)',
-            'function calculateSplit(uint256 amount) view returns (uint256 creatorAmount, uint256 platformFee)',
+            'event PaymentProcessed(string indexed orderId, address indexed payer, address indexed creator, uint256 totalAmount, uint256 creatorAmount, uint256 platformFee)',
+            'function pay(address creator, uint256 amount, string orderId)',
             'function platformWallet() view returns (address)',
-            'function minPaymentAmount() view returns (uint256)',
+            'function platformFeePercent() view returns (uint256)',
+            'function usdc() view returns (address)',
         ];
     }
 
@@ -185,7 +184,7 @@ class Web3Service {
                         data: log.data,
                     });
 
-                    if (parsedLog && parsedLog.name === 'PaymentReceived') {
+                    if (parsedLog && parsedLog.name === 'PaymentProcessed') {
                         return {
                             payer: parsedLog.args.payer,
                             creator: parsedLog.args.creator,
@@ -193,7 +192,6 @@ class Web3Service {
                             totalAmount: parsedLog.args.totalAmount.toString(),
                             creatorAmount: parsedLog.args.creatorAmount.toString(),
                             platformFee: parsedLog.args.platformFee.toString(),
-                            timestamp: parsedLog.args.timestamp.toString(),
                         };
                     }
                 } catch (e) {

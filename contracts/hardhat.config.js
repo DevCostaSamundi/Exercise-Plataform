@@ -1,5 +1,9 @@
 require("@nomicfoundation/hardhat-toolbox");
-require("dotenv/config");
+require("dotenv").config({ path: "../backend/.env" });
+
+const DEPLOYER_PRIVATE_KEY = process.env.DEPLOYER_PRIVATE_KEY || "0000000000000000000000000000000000000000000000000000000000000001";
+const POLYGON_AMOY_RPC_URL = process.env.POLYGON_AMOY_RPC_URL || "";
+const POLYGON_RPC_URL = process.env.POLYGON_RPC_URL || "";
 
 /** @type import('hardhat/config').HardhatUserConfig */
 module.exports = {
@@ -13,32 +17,15 @@ module.exports = {
     },
   },
   networks: {
-    hardhat: {
-      chainId: 31337,
+    amoy: {
+      url: POLYGON_AMOY_RPC_URL,
+      accounts: [DEPLOYER_PRIVATE_KEY],
+      chainId: 80002,
     },
     polygon: {
-      url: process.env.POLYGON_RPC_URL || "https://polygon-rpc.com",
-      accounts: process.env.DEPLOYER_PRIVATE_KEY ? [process.env.DEPLOYER_PRIVATE_KEY] : [],
+      url: POLYGON_RPC_URL,
+      accounts: [DEPLOYER_PRIVATE_KEY],
       chainId: 137,
-      gasPrice: 50000000000, // 50 gwei
     },
-    mumbai: {
-      url: process.env.MUMBAI_RPC_URL || "https://rpc-mumbai.maticvigil.com",
-      accounts: process.env.DEPLOYER_PRIVATE_KEY ? [process.env.DEPLOYER_PRIVATE_KEY] : [],
-      chainId: 80001,
-      gasPrice: 20000000000, // 20 gwei
-    },
-  },
-  etherscan: {
-    apiKey: {
-      polygon: process.env.POLYGONSCAN_API_KEY || "",
-      polygonMumbai: process.env.POLYGONSCAN_API_KEY || "",
-    },
-  },
-  paths: {
-    sources: "./contracts",
-    tests: "./test",
-    cache: "./cache",
-    artifacts: "./artifacts",
   },
 };

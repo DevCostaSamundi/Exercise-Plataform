@@ -712,7 +712,7 @@ function AccountSection({ account, setAccount, onSave, saving, toast }) {
 }
 
 function SubscriptionSection({ subscription, setSubscription, onSave, saving }) {
-  const creatorEarnings = (subscription.monthlyPrice || 0) * 0.8;
+  const creatorEarnings = (subscription.monthlyPrice || 0) * 0.9;
 
   return (
     <>
@@ -905,10 +905,49 @@ function PaymentsSection({ payments, setPayments, onSave, saving }) {
         </div>
       </SettingsCard>
 
-      {/* Web3 Wallet Config */}
+      {/* Web3 Wallet Config — com guia amigável */}
       {payments.withdrawMethod === 'web3' && (
-        <SettingsCard title="Configuração Web3 Wallet" description="Endereço da sua carteira para receber USDC">
-          <FormGroup label="Endereço da Wallet (Polygon)" htmlFor="payoutWallet" required>
+        <SettingsCard title="Configurar Recebimentos" description="Configure sua carteira para receber pagamentos dos seus assinantes">
+
+          {/* Guia passo a passo */}
+          <div className="bg-slate-50 dark:bg-slate-800 rounded-2xl p-5 mb-6 space-y-4">
+            <h4 className="font-semibold text-slate-900 dark:text-white text-sm">📖 Como configurar em 3 passos simples:</h4>
+
+            <div className="space-y-3">
+              <div className="flex gap-3">
+                <div className="w-7 h-7 rounded-full bg-black text-white flex items-center justify-center text-xs font-bold flex-shrink-0 mt-0.5">1</div>
+                <div>
+                  <p className="font-medium text-slate-900 dark:text-white text-sm">Crie uma carteira digital gratuita</p>
+                  <p className="text-xs text-slate-500 mt-0.5">
+                    Baixe o app <strong>MetaMask</strong> ou <strong>Trust Wallet</strong> no seu celular (disponível na App Store e Google Play). Crie uma conta seguindo as instruções do app — leva menos de 2 minutos.
+                  </p>
+                </div>
+              </div>
+
+              <div className="flex gap-3">
+                <div className="w-7 h-7 rounded-full bg-black text-white flex items-center justify-center text-xs font-bold flex-shrink-0 mt-0.5">2</div>
+                <div>
+                  <p className="font-medium text-slate-900 dark:text-white text-sm">Copie o endereço da sua carteira</p>
+                  <p className="text-xs text-slate-500 mt-0.5">
+                    No app, toque no endereço que começa com <strong>0x...</strong> para copiar. Certifique-se de estar na <strong>rede Polygon</strong> (em alguns apps precisa adicionar a rede manualmente).
+                  </p>
+                </div>
+              </div>
+
+              <div className="flex gap-3">
+                <div className="w-7 h-7 rounded-full bg-black text-white flex items-center justify-center text-xs font-bold flex-shrink-0 mt-0.5">3</div>
+                <div>
+                  <p className="font-medium text-slate-900 dark:text-white text-sm">Cole aqui embaixo e salve</p>
+                  <p className="text-xs text-slate-500 mt-0.5">
+                    Pronto! A partir daí, todos os pagamentos que receber vão direto para a sua carteira, sem intermediários.
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Campo da wallet */}
+          <FormGroup label="Endereço da sua carteira" htmlFor="payoutWallet" required hint="Começa com 0x e tem 42 caracteres">
             <Input
               id="payoutWallet"
               value={payments.payoutWallet || ''}
@@ -917,10 +956,18 @@ function PaymentsSection({ payments, setPayments, onSave, saving }) {
             />
           </FormGroup>
 
-          <div className="bg-black dark:bg-black/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4 mt-4">
-            <p className="text-sm text-black dark:text-black">
-              ℹ️ <strong>Importante:</strong> Use apenas endereços da rede Polygon. Pagamentos são feitos em USDC.
-            </p>
+          {/* Avisos importantes */}
+          <div className="mt-4 space-y-3">
+            <div className="bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-lg p-3">
+              <p className="text-xs text-amber-800 dark:text-amber-300">
+                ⚠️ <strong>Atenção:</strong> Confira que o endereço está correto antes de salvar. Pagamentos enviados para um endereço errado não podem ser recuperados.
+              </p>
+            </div>
+            <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-3">
+              <p className="text-xs text-blue-800 dark:text-blue-300">
+                💡 <strong>Dica:</strong> Você recebe em <strong>USDC</strong> (dólar digital) na rede Polygon. Pode converter para dinheiro real a qualquer momento no app da sua carteira ou em uma exchange como Binance.
+              </p>
+            </div>
           </div>
         </SettingsCard>
       )}

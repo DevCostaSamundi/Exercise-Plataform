@@ -2,68 +2,48 @@ import { useState, useEffect } from 'react';
 import {
     X,
     Wallet,
-    CreditCard,
     Loader2,
     AlertCircle,
     CheckCircle,
     ArrowRight,
-    ShoppingCart,
-    ChevronDown,
-    ChevronUp,
+    ExternalLink,
+    Copy,
+    CreditCard,
 } from 'lucide-react';
 import { useBalancePayment } from '../hooks/useBalancePayment';
 import { useCryptoPayment } from '../hooks/useCryptoPayment';
 
 /**
  * PaymentModal — FlowConnect
- * Modal unificado de pagamento (saldo, crypto ou cartão)
- *
- * Props:
- * - isOpen: boolean
- * - onClose: () => void
- * - paymentData: { creatorId, type, amountUSD, subscriptionId?, postId?, messageId? }
- * - onSuccess: (result) => void
+ * Modal unificado de pagamento (crypto via Web3Auth wallet)
  */
 export default function PaymentModal({ isOpen, onClose, paymentData, onSuccess }) {
-    const { balance: rawBalance, getBalance, payWithBalance, loading: balanceLoading } = useBalancePayment();
+    const { balance: rawBalance, getBalance, payWithBalance } = useBalancePayment();
     const balance = Number(rawBalance) || 0;
     const cryptoPayment = useCryptoPayment();
 
-    const [selectedMethod, setSelectedMethod] = useState(null);
     const [processing, setProcessing] = useState(false);
     const [success, setSuccess] = useState(false);
     const [error, setError] = useState(null);
-    const [showCardOption, setShowCardOption] = useState(false);
-    const [onRampLoading, setOnRampLoading] = useState(false);
+    const [copied, setCopied] = useState(false);
 
     const isWalletConnected = cryptoPayment?.isConnected || false;
+    const amountUSD = Number(paymentData?.amountUSD || 0);
+    const userAddress = cryptoPayment?.userAddress || '';
 
-    // Carrega saldo ao abrir
     useEffect(() => {
         if (isOpen) {
-            getBalance();
+            getBalance().catch(() => { });
             setError(null);
             setSuccess(false);
-            setSelectedMethod(null);
+            setCopied(false);
         }
     }, [isOpen]);
 
-    // Seleciona método padrão baseado no saldo
-    useEffect(() => {
-        if (balance >= paymentData?.amountUSD) {
-            setSelectedMethod('balance');
-        } else {
-            setSelectedMethod('crypto');
-        }
-    }, [balance, paymentData?.amountUSD]);
-
     if (!isOpen || !paymentData) return null;
 
-    const hasEnoughBalance = balance >= paymentData.amountUSD;
-
-    // ============================================
-    // TÍTULO DO PAGAMENTO
-    // ============================================
+    const hasEnoughBalance = balance >= amountUSD;
+    const missingAmount = Math.max(0, amountUSD - balance);
 
     const paymentTitle = {
         SUBSCRIPTION: 'Assinar criador',
@@ -77,82 +57,70 @@ export default function PaymentModal({ isOpen, onClose, paymentData, onSuccess }
     // HANDLERS
     // ============================================
 
-    const handlePayment = async () => {
-        if (!selectedMethod) return;
-
+    const handleCryptoPayment = async () => {
         try {
             setProcessing(true);
             setError(null);
 
-            if (selectedMethod === 'balance') {
-                const result = await payWithBalance(paymentData);
-                setSuccess(true);
-                setTimeout(() => {
-                    if (onSuccess) onSuccess(result);
-                    onClose();
-                }, 2000);
+            const paymentResult = await cryptoPayment.processPayment(paymentData);
 
-            } else if (selectedMethod === 'crypto') {
-                if (!isWalletConnected) {
-                    await cryptoPayment.connectWallet();
-                }
-
-                const paymentResult = await cryptoPayment.processPayment(paymentData);
-                const finalStatus = await cryptoPayment.pollPaymentStatus(
-                    paymentResult.paymentId,
-                    () => { }
-                );
-
-                setSuccess(true);
-                setTimeout(() => {
-                    if (onSuccess) onSuccess({ ...paymentResult, ...finalStatus });
-                    onClose();
-                }, 2000);
-            }
-
+            setSuccess(true);
+            setTimeout(() => {
+                if (onSuccess) onSuccess(paymentResult);
+                onClose();
+            }, 2000);
         } catch (err) {
-            setError(err.message || 'Não foi possível processar o pagamento. Tente novamente.');
+            setError(err.message || 'Não foi possível processar o pagamento.');
         } finally {
             setProcessing(false);
         }
     };
 
-    const handleBuyWithCard = async () => {
-        setOnRampLoading(true);
+    const handleBalancePayment = async () => {
         try {
-            const url = await cryptoPayment.getOnRampUrl({
-                provider: 'moonpay',
-                amountUSD: paymentData.amountUSD,
-                walletAddress: cryptoPayment.userAddress || '',
-            });
-            window.open(url, '_blank', 'width=500,height=700');
-        } catch {
-            window.open(
-                `https://buy.moonpay.com?currencyCode=usdc_polygon&baseCurrencyAmount=${paymentData.amountUSD}`,
-                '_blank'
-            );
+            setProcessing(true);
+            setError(null);
+
+            const result = await payWithBalance(paymentData);
+            setSuccess(true);
+            setTimeout(() => {
+                if (onSuccess) onSuccess(result);
+                onClose();
+            }, 2000);
+        } catch (err) {
+            setError(err.message || 'Não foi possível processar o pagamento.');
         } finally {
-            setOnRampLoading(false);
+            setProcessing(false);
         }
     };
 
-    // Mensagem da etapa atual do crypto
+    const copyAddress = () => {
+        if (userAddress) {
+            navigator.clipboard.writeText(userAddress);
+            setCopied(true);
+            setTimeout(() => setCopied(false), 2000);
+        }
+    };
+
+    const openOnRamp = (provider) => {
+        const amount = Math.ceil(missingAmount);
+        const urls = {
+            moonpay: `https://buy.moonpay.com?currencyCode=usdc_polygon&walletAddress=${userAddress}&baseCurrencyAmount=${amount}&colorCode=%239333ea`,
+            ramp: `https://buy.ramp.network/?defaultAsset=USDC_POLYGON&userAddress=${userAddress}&fiatValue=${amount}&fiatCurrency=USD&hostAppName=FlowConnect`,
+            transak: `https://global.transak.com/?cryptoCurrencyCode=USDC&network=polygon&walletAddress=${userAddress}&fiatAmount=${amount}&fiatCurrency=USD&themeColor=9333ea&hideMenu=true`,
+            onramper: `https://buy.onramper.com/?mode=buy&onlyCryptos=usdc_polygon&wallets=usdc_polygon:${userAddress}&defaultAmount=${amount}&defaultFiat=USD&themeName=dark`,
+        };
+        window.open(urls[provider] || urls.moonpay, '_blank', 'width=500,height=700');
+    };
+
     const cryptoStepMsg = cryptoPayment?.stepMessage?.title || '';
 
-    // Botão desabilitado?
-    const isButtonDisabled =
-        processing ||
-        success ||
-        !selectedMethod ||
-        (selectedMethod === 'balance' && !hasEnoughBalance) ||
-        (selectedMethod === 'crypto' && balanceLoading);
-
-    // Texto do botão
     const buttonText = () => {
         if (success) return 'Pagamento realizado!';
-        if (processing && selectedMethod === 'crypto' && cryptoStepMsg) return cryptoStepMsg;
+        if (processing && cryptoStepMsg) return cryptoStepMsg;
         if (processing) return 'Processando...';
-        return `Pagar $${Number(paymentData.amountUSD || 0).toFixed(2)} USDC`;
+        if (!hasEnoughBalance) return `Comprar USDC para pagar`;
+        return `Pagar $${amountUSD.toFixed(2)} USDC`;
     };
 
     // ============================================
@@ -180,17 +148,142 @@ export default function PaymentModal({ isOpen, onClose, paymentData, onSuccess }
                     {/* Valor */}
                     <div className="bg-black rounded-2xl p-5 text-white">
                         <p className="text-gray-400 text-sm mb-1">Valor total</p>
-                        <p className="text-4xl font-bold">${Number(paymentData.amountUSD || 0).toFixed(2)}</p>
+                        <p className="text-4xl font-bold">${amountUSD.toFixed(2)}</p>
                         <p className="text-gray-500 text-xs mt-2">USDC · Polygon · Seguro e instantâneo</p>
                     </div>
 
                     {/* Saldo disponível */}
                     <div className="flex items-center justify-between bg-gray-50 rounded-xl px-4 py-3">
                         <span className="text-sm text-gray-600">Seu saldo</span>
-                        <span className={`text-sm font-bold ${hasEnoughBalance ? 'text-gray-900' : 'text-red-500'}`}>
+                        <span className={`text-sm font-bold ${hasEnoughBalance ? 'text-green-600' : 'text-red-500'}`}>
                             ${balance.toFixed(2)} USDC
                         </span>
                     </div>
+
+                    {/* Wallet conectada */}
+                    {isWalletConnected && userAddress && (
+                        <div className="flex items-center justify-between bg-gray-50 rounded-xl px-4 py-3">
+                            <span className="text-sm text-gray-600">Carteira</span>
+                            <button onClick={copyAddress} className="flex items-center gap-1 text-sm font-mono text-gray-700 hover:text-black transition-colors">
+                                {userAddress.slice(0, 6)}...{userAddress.slice(-4)}
+                                {copied ? <CheckCircle size={14} className="text-green-500" /> : <Copy size={14} />}
+                            </button>
+                        </div>
+                    )}
+
+                    {/* ============================================ */}
+                    {/* SALDO INSUFICIENTE → OPÇÕES DE COMPRA */}
+                    {/* ============================================ */}
+                    {!hasEnoughBalance && !success && (
+                        <div className="space-y-4">
+                            {/* Aviso */}
+                            <div className="bg-amber-50 border border-amber-200 rounded-2xl p-4 flex items-start gap-3">
+                                <AlertCircle className="text-amber-500 flex-shrink-0 mt-0.5" size={18} />
+                                <div>
+                                    <p className="font-semibold text-gray-900 text-sm">Adicione fundos para continuar</p>
+                                    <p className="text-xs text-gray-600 mt-1">
+                                        Faltam <strong>${missingAmount.toFixed(2)}</strong> para completar o pagamento. Escolha como deseja adicionar:
+                                    </p>
+                                </div>
+                            </div>
+
+                            {/* Opções de compra */}
+                            <div className="space-y-2">
+                                <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide px-1">Pagar com cartão de crédito</p>
+
+                                {/* Moonpay */}
+                                <button
+                                    onClick={() => openOnRamp('moonpay')}
+                                    className="w-full flex items-center gap-3 p-3.5 rounded-xl border-2 border-gray-200 hover:border-purple-400 hover:bg-purple-50/50 transition-all text-left group"
+                                >
+                                    <div className="w-10 h-10 rounded-lg bg-purple-600 flex items-center justify-center text-white font-bold text-sm flex-shrink-0">
+                                        M
+                                    </div>
+                                    <div className="flex-1 min-w-0">
+                                        <p className="font-medium text-gray-900 text-sm">Moonpay</p>
+                                        <p className="text-xs text-gray-500">Visa, Mastercard, Apple Pay</p>
+                                    </div>
+                                    <ExternalLink size={15} className="text-gray-300 group-hover:text-purple-500 transition-colors" />
+                                </button>
+
+                                {/* Ramp Network */}
+                                <button
+                                    onClick={() => openOnRamp('ramp')}
+                                    className="w-full flex items-center gap-3 p-3.5 rounded-xl border-2 border-gray-200 hover:border-green-400 hover:bg-green-50/50 transition-all text-left group"
+                                >
+                                    <div className="w-10 h-10 rounded-lg bg-green-600 flex items-center justify-center text-white font-bold text-sm flex-shrink-0">
+                                        R
+                                    </div>
+                                    <div className="flex-1 min-w-0">
+                                        <p className="font-medium text-gray-900 text-sm">Ramp</p>
+                                        <p className="text-xs text-gray-500">Cartão, transferência bancária</p>
+                                    </div>
+                                    <ExternalLink size={15} className="text-gray-300 group-hover:text-green-500 transition-colors" />
+                                </button>
+
+                                {/* Transak */}
+                                <button
+                                    onClick={() => openOnRamp('transak')}
+                                    className="w-full flex items-center gap-3 p-3.5 rounded-xl border-2 border-gray-200 hover:border-blue-400 hover:bg-blue-50/50 transition-all text-left group"
+                                >
+                                    <div className="w-10 h-10 rounded-lg bg-blue-600 flex items-center justify-center text-white font-bold text-sm flex-shrink-0">
+                                        T
+                                    </div>
+                                    <div className="flex-1 min-w-0">
+                                        <p className="font-medium text-gray-900 text-sm">Transak</p>
+                                        <p className="text-xs text-gray-500">Cartão, PIX, transferência</p>
+                                    </div>
+                                    <ExternalLink size={15} className="text-gray-300 group-hover:text-blue-500 transition-colors" />
+                                </button>
+
+                                {/* Onramper (Agregador) */}
+                                <button
+                                    onClick={() => openOnRamp('onramper')}
+                                    className="w-full flex items-center gap-3 p-3.5 rounded-xl border-2 border-gray-200 hover:border-orange-400 hover:bg-orange-50/50 transition-all text-left group"
+                                >
+                                    <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-orange-500 to-pink-500 flex items-center justify-center text-white font-bold text-sm flex-shrink-0">
+                                        O
+                                    </div>
+                                    <div className="flex-1 min-w-0">
+                                        <p className="font-medium text-gray-900 text-sm">Onramper</p>
+                                        <p className="text-xs text-gray-500">Compara preços · Vários métodos</p>
+                                    </div>
+                                    <ExternalLink size={15} className="text-gray-300 group-hover:text-orange-500 transition-colors" />
+                                </button>
+                            </div>
+
+                            {/* Transferir de outra carteira */}
+                            <div className="space-y-2">
+                                <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide px-1">Ou transferir de outra carteira</p>
+                                <div className="p-3.5 rounded-xl border-2 border-gray-200 space-y-2.5">
+                                    <p className="text-xs text-gray-600">Envie USDC (rede Polygon) para o endereço abaixo:</p>
+                                    {userAddress && (
+                                        <button
+                                            onClick={copyAddress}
+                                            className="w-full flex items-center justify-between bg-gray-100 rounded-lg px-3 py-2.5 hover:bg-gray-200 transition-colors"
+                                        >
+                                            <span className="text-xs font-mono text-gray-700 truncate mr-2">
+                                                {userAddress}
+                                            </span>
+                                            {copied ? (
+                                                <span className="text-xs text-green-600 font-medium flex-shrink-0">Copiado!</span>
+                                            ) : (
+                                                <Copy size={14} className="text-gray-400 flex-shrink-0" />
+                                            )}
+                                        </button>
+                                    )}
+                                </div>
+                            </div>
+
+                            {/* Verificar saldo */}
+                            <button
+                                onClick={() => getBalance().catch(() => { })}
+                                className="w-full py-3 rounded-xl text-sm font-medium text-gray-600 hover:text-black hover:bg-gray-100 transition-all"
+                            >
+                                🔄 Já adicionei fundos — verificar saldo
+                            </button>
+                        </div>
+                    )}
 
                     {/* Erro */}
                     {error && (
@@ -205,8 +298,8 @@ export default function PaymentModal({ isOpen, onClose, paymentData, onSuccess }
 
                     {/* Sucesso */}
                     {success && (
-                        <div className="bg-gray-50 border border-gray-100 rounded-xl p-4 flex gap-3 items-center">
-                            <CheckCircle className="text-black flex-shrink-0" size={20} />
+                        <div className="bg-green-50 border border-green-100 rounded-xl p-4 flex gap-3 items-center">
+                            <CheckCircle className="text-green-600 flex-shrink-0" size={20} />
                             <div className="text-sm">
                                 <p className="font-semibold text-gray-900">Pagamento confirmado!</p>
                                 <p className="text-gray-600 text-xs mt-0.5">O conteúdo já está disponível.</p>
@@ -214,130 +307,39 @@ export default function PaymentModal({ isOpen, onClose, paymentData, onSuccess }
                         </div>
                     )}
 
-                    {/* Métodos de pagamento */}
-                    {!success && (
-                        <div className="space-y-2">
-                            <p className="text-xs font-medium text-gray-500 uppercase tracking-wide">
-                                Forma de pagamento
-                            </p>
-
-                            {/* Opção: Saldo */}
+                    {/* Botão principal — só aparece quando tem saldo */}
+                    {!success && hasEnoughBalance && (
+                        <div className="space-y-3">
                             <button
-                                onClick={() => setSelectedMethod('balance')}
-                                disabled={!hasEnoughBalance || processing}
-                                className={`w-full p-4 rounded-2xl border-2 transition-all text-left ${selectedMethod === 'balance'
-                                    ? 'border-black bg-black/5'
-                                    : 'border-gray-200 hover:border-gray-300'
-                                    } ${!hasEnoughBalance ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}
+                                onClick={handleCryptoPayment}
+                                disabled={processing || !isWalletConnected}
+                                className="w-full py-4 rounded-2xl font-semibold text-base transition-all flex items-center justify-center gap-2 bg-black hover:bg-gray-900 text-white disabled:bg-gray-300 disabled:cursor-not-allowed"
                             >
-                                <div className="flex items-center gap-3">
-                                    <div className={`p-2.5 rounded-xl ${selectedMethod === 'balance' ? 'bg-black text-white' : 'bg-gray-100 text-gray-500'}`}>
-                                        <Wallet size={18} />
-                                    </div>
-                                    <div className="flex-1">
-                                        <p className="font-medium text-gray-900 text-sm">Saldo da conta</p>
-                                        <p className="text-xs text-gray-500 mt-0.5">
-                                            {hasEnoughBalance
-                                                ? 'Pagamento instantâneo'
-                                                : `Faltam $${(paymentData.amountUSD - balance).toFixed(2)}`
-                                            }
-                                        </p>
-                                    </div>
-                                    {selectedMethod === 'balance' && (
-                                        <CheckCircle size={18} className="text-black" />
-                                    )}
-                                </div>
-                            </button>
-
-                            {/* Opção: Carteira Crypto */}
-                            <button
-                                onClick={() => setSelectedMethod('crypto')}
-                                disabled={processing}
-                                className={`w-full p-4 rounded-2xl border-2 transition-all text-left ${selectedMethod === 'crypto'
-                                    ? 'border-black bg-black/5'
-                                    : 'border-gray-200 hover:border-gray-300'
-                                    } cursor-pointer`}
-                            >
-                                <div className="flex items-center gap-3">
-                                    <div className={`p-2.5 rounded-xl ${selectedMethod === 'crypto' ? 'bg-black text-white' : 'bg-gray-100 text-gray-500'}`}>
-                                        <CreditCard size={18} />
-                                    </div>
-                                    <div className="flex-1">
-                                        <p className="font-medium text-gray-900 text-sm">Carteira cripto (MetaMask)</p>
-                                        <p className="text-xs text-gray-500 mt-0.5">
-                                            {isWalletConnected
-                                                ? `Conectada: ${cryptoPayment.userAddress?.slice(0, 6)}...${cryptoPayment.userAddress?.slice(-4)}`
-                                                : 'Pague com USDC direto da sua carteira'
-                                            }
-                                        </p>
-                                    </div>
-                                    {selectedMethod === 'crypto' && (
-                                        <CheckCircle size={18} className="text-black" />
-                                    )}
-                                </div>
-                            </button>
-
-                            {/* Opção: Cartão (expansível) */}
-                            <div className="border-2 border-gray-200 rounded-2xl overflow-hidden">
-                                <button
-                                    onClick={() => setShowCardOption(!showCardOption)}
-                                    disabled={processing}
-                                    className="w-full p-4 text-left flex items-center gap-3 hover:bg-gray-50 transition-colors"
-                                >
-                                    <div className="p-2.5 rounded-xl bg-gray-100 text-gray-500">
-                                        <ShoppingCart size={18} />
-                                    </div>
-                                    <div className="flex-1">
-                                        <p className="font-medium text-gray-900 text-sm">Comprar USDC com cartão ou PIX</p>
-                                        <p className="text-xs text-gray-500 mt-0.5">Via Moonpay ou Transak</p>
-                                    </div>
-                                    {showCardOption ? <ChevronUp size={16} className="text-gray-400" /> : <ChevronDown size={16} className="text-gray-400" />}
-                                </button>
-
-                                {showCardOption && (
-                                    <div className="px-4 pb-4 border-t border-gray-100 pt-3">
-                                        <p className="text-xs text-gray-600 mb-3">
-                                            Compre USDC com cartão de crédito ou PIX. O valor cai direto na sua carteira e você paga em seguida.
-                                        </p>
-                                        <button
-                                            onClick={handleBuyWithCard}
-                                            disabled={onRampLoading}
-                                            className="w-full flex items-center justify-center gap-2 py-3 bg-black text-white rounded-xl text-sm font-medium"
-                                        >
-                                            {onRampLoading ? (
-                                                <Loader2 size={16} className="animate-spin" />
-                                            ) : (
-                                                <>
-                                                    Comprar USDC agora
-                                                    <ArrowRight size={16} />
-                                                </>
-                                            )}
-                                        </button>
-                                    </div>
+                                {processing ? (
+                                    <>
+                                        <Loader2 className="animate-spin" size={20} />
+                                        {buttonText()}
+                                    </>
+                                ) : (
+                                    <>
+                                        {hasEnoughBalance ? <Wallet size={18} /> : <CreditCard size={18} />}
+                                        {buttonText()}
+                                        <ArrowRight size={18} />
+                                    </>
                                 )}
-                            </div>
-                        </div>
-                    )}
+                            </button>
 
-                    {/* Botão de confirmar */}
-                    {!success && (
-                        <button
-                            onClick={handlePayment}
-                            disabled={isButtonDisabled}
-                            className="w-full py-4 rounded-2xl font-semibold text-base transition-all flex items-center justify-center gap-2 bg-black hover:bg-gray-900 text-white disabled:bg-gray-300 disabled:cursor-not-allowed"
-                        >
-                            {processing ? (
-                                <>
-                                    <Loader2 className="animate-spin" size={20} />
-                                    {buttonText()}
-                                </>
-                            ) : (
-                                <>
-                                    {buttonText()}
-                                    <ArrowRight size={18} />
-                                </>
+                            {/* Opção secundária: saldo interno */}
+                            {hasEnoughBalance && (
+                                <button
+                                    onClick={handleBalancePayment}
+                                    disabled={processing}
+                                    className="w-full py-3 rounded-xl font-medium text-sm transition-all border-2 border-gray-200 hover:border-gray-300 text-gray-700 disabled:opacity-50"
+                                >
+                                    Pagar com saldo da conta (${balance.toFixed(2)})
+                                </button>
                             )}
-                        </button>
+                        </div>
                     )}
 
                     {/* Rodapé */}

@@ -55,11 +55,10 @@ export default function Sidebar() {
 
       {/* Sidebar */}
       <aside
-        className={`fixed md:sticky top-0 left-0 h-screen bg-white dark:bg-slate-900 border-r border-slate-200 dark:border-slate-800 z-40 transition-all duration-300 ${
-          isCollapsed
+        className={`fixed md:sticky top-0 left-0 h-screen bg-white dark:bg-slate-900 border-r border-slate-200 dark:border-slate-800 z-40 transition-all duration-300 ${isCollapsed
             ? '-translate-x-full md:translate-x-0 md:w-20'
             : 'translate-x-0 w-64'
-        }`}
+          }`}
       >
         <div className="flex flex-col h-full py-4 px-3">
           {/* Logo */}
@@ -157,6 +156,20 @@ export default function Sidebar() {
                 {!isCollapsed && <span>Seguindo</span>}
               </NavLink>
             )}
+
+            {/* AI Companions */}
+            <NavLink
+              to={isCreator ? '/creator/ai/new' : '/ai'}
+              className={({ isActive }) =>
+                `${linkBase} ${isActive ? linkActive : linkInactive}`
+              }
+              title="AI Companions"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 flex-shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M12 8V4H8" /><rect width="16" height="12" x="4" y="8" rx="2" /><path d="M2 14h2" /><path d="M20 14h2" /><path d="M15 13v2" /><path d="M9 13v2" />
+              </svg>
+              {!isCollapsed && <span>🤖 AI Companions</span>}
+            </NavLink>
 
             {/* Posts (creator only) */}
             {isCreator && (

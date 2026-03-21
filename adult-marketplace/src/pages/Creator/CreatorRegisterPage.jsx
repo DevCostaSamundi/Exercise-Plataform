@@ -149,12 +149,6 @@ export default function CreatorRegisterPage() {
 
   const validateStep3 = () => {
     const newErrors = {};
-    if (formData.contentTypes.length === 0) {
-      newErrors.contentTypes = 'Selecione pelo menos um tipo de conteúdo';
-    }
-    if (formData.aesthetic.length === 0) {
-      newErrors.aesthetic = 'Selecione pelo menos uma estética';
-    }
     const price = Number(formData.subscriptionPrice);
     if (isNaN(price) || price === 0) {
       newErrors.subscriptionPrice = 'Defina um preço válido';
@@ -252,7 +246,7 @@ export default function CreatorRegisterPage() {
       payload.append('contentOwnership', formData.contentOwnership ? 'true' : 'false');
 
       // Arrays
-      payload.append('contentTypes', JSON.stringify(formData.contentTypes));
+      payload.append('contentTypes', JSON.stringify([]));
       payload.append('aesthetic', JSON.stringify(formData.aesthetic));
 
       // Arquivos
@@ -384,7 +378,7 @@ export default function CreatorRegisterPage() {
   const stepTitles = [
     'Informações da Conta',
     'Perfil Público',
-    'Tipo de Conteúdo',
+    'Preço da Assinatura',
     'Dados de Pagamento',
     'Verificação de Identidade'
   ];
@@ -658,57 +652,13 @@ export default function CreatorRegisterPage() {
               </div>
             )}
 
-            {/* Step 3: Tipo de Conteúdo */}
+            {/* Step 3: Preço da Assinatura */}
             {step === 3 && (
               <div className="space-y-6">
                 <div className="bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg p-4 mb-6">
                   <p className="text-sm text-slate-700 dark:text-slate-300">
-                    💰 <strong>Monetização Global:</strong> Defina seu preço em USD (equivalente aceito em crypto/BRL). Você pode alterar depois!
+                    💰 <strong>Monetização:</strong> Defina o preço que seus assinantes vão pagar. Você pode alterar depois a qualquer momento!
                   </p>
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-3">
-                    Tipo de Conteúdo (selecione todos que se aplicam)
-                  </label>
-                  <div className="grid grid-cols-2 gap-3">
-                    {contentTypeOptions.map(type => (
-                      <button
-                        key={type}
-                        type="button"
-                        onClick={() => handleMultiSelect('contentTypes', type)}
-                        className={`px-4 py-3 rounded-lg text-sm font-medium transition-all ${formData.contentTypes.includes(type)
-                          ? 'bg-black text-white'
-                          : 'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700 hover:border-black'
-                          }`}
-                      >
-                        {type}
-                      </button>
-                    ))}
-                  </div>
-                  {errors.contentTypes && <p className="mt-2 text-sm text-slate-900">{errors.contentTypes}</p>}
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-3">
-                    Estética / Vibe
-                  </label>
-                  <div className="grid grid-cols-2 gap-3">
-                    {aestheticOptions.map(aes => (
-                      <button
-                        key={aes}
-                        type="button"
-                        onClick={() => handleMultiSelect('aesthetic', aes)}
-                        className={`px-4 py-3 rounded-lg text-sm font-medium transition-all ${formData.aesthetic.includes(aes)
-                          ? 'bg-black text-white'
-                          : 'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700 hover:border-black'
-                          }`}
-                      >
-                        {aes}
-                      </button>
-                    ))}
-                  </div>
-                  {errors.aesthetic && <p className="mt-2 text-sm text-slate-900">{errors.aesthetic}</p>}
                 </div>
 
                 <div>
@@ -731,7 +681,7 @@ export default function CreatorRegisterPage() {
                   </div>
                   {errors.subscriptionPrice && <p className="mt-1 text-sm text-slate-900">{errors.subscriptionPrice}</p>}
                   <p className="mt-1 text-xs text-slate-500">
-                    Preço em USD.  Fãs podem pagar com Crypto. (conversão automática)
+                    Os seus assinantes pagam em USDC (dólar digital). Você recebe 90% do valor.
                   </p>
 
                   {/* Previsão de Ganhos */}
@@ -741,25 +691,22 @@ export default function CreatorRegisterPage() {
                       <div className="flex justify-between">
                         <span>10 assinantes:</span>
                         <span className="font-bold text-slate-900 dark:text-white">
-                          ${(priceNumber(formData.subscriptionPrice) * 10 * 0.8).toFixed(2)}/mês
+                          ${(priceNumber(formData.subscriptionPrice) * 10 * 0.9).toFixed(2)}/mês
                         </span>
                       </div>
                       <div className="flex justify-between">
                         <span>50 assinantes:</span>
                         <span className="font-bold text-slate-900 dark:text-white">
-                          ${(priceNumber(formData.subscriptionPrice) * 50 * 0.8).toFixed(2)}/mês
+                          ${(priceNumber(formData.subscriptionPrice) * 50 * 0.9).toFixed(2)}/mês
                         </span>
                       </div>
                       <div className="flex justify-between">
                         <span>100 assinantes:</span>
-                        <span className="font-bold text-black dark:text-black">
-                          ${(priceNumber(formData.subscriptionPrice) * 100 * 0.8).toFixed(2)}/mês
+                        <span className="font-bold text-slate-900 dark:text-white">
+                          ${(priceNumber(formData.subscriptionPrice) * 100 * 0.9).toFixed(2)}/mês
                         </span>
                       </div>
                     </div>
-                    <p className="mt-2 text-xs text-slate-500">
-                      🌍 Valores em USD. Pagos em crypto conforme preferência do usuário
-                    </p>
                   </div>
                 </div>
               </div>

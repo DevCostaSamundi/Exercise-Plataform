@@ -72,8 +72,60 @@ const TransactionRow = ({ transaction }) => {
   };
 
   const handleDownloadReceipt = () => {
-    // Implementar download de recibo
-    console.log('Download receipt:', transaction._id);
+    const date = new Date(transaction.createdAt);
+    const formattedDate = date.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric' });
+    const formattedTime = date.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+    const amount = typeof transaction.amount === 'number' ? `$${transaction.amount.toFixed(2)}` : formatCurrency(transaction.amount);
+
+    const receiptHTML = `
+      <!DOCTYPE html>
+      <html><head><title>Recibo - ${transaction._id || transaction.id}</title>
+      <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; padding: 40px; max-width: 600px; margin: 0 auto; color: #1a1a1a; }
+        .header { text-align: center; border-bottom: 2px solid #000; padding-bottom: 20px; margin-bottom: 24px; }
+        .header h1 { font-size: 22px; font-weight: 800; letter-spacing: -0.5px; }
+        .header p { font-size: 12px; color: #666; margin-top: 4px; }
+        .badge { display: inline-block; padding: 4px 12px; border-radius: 20px; font-size: 11px; font-weight: 600; }
+        .badge-ok { background: #f0fdf4; color: #166534; border: 1px solid #bbf7d0; }
+        .badge-pending { background: #fefce8; color: #854d0e; border: 1px solid #fde68a; }
+        .badge-fail { background: #fef2f2; color: #991b1b; border: 1px solid #fecaca; }
+        .row { display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid #f1f1f1; font-size: 14px; }
+        .row .label { color: #666; }
+        .row .value { font-weight: 600; text-align: right; }
+        .total { border-top: 2px solid #000; margin-top: 12px; padding-top: 12px; font-size: 18px; }
+        .footer { text-align: center; margin-top: 32px; font-size: 11px; color: #999; }
+        @media print { body { padding: 20px; } }
+      </style></head><body>
+        <div class="header">
+          <h1>FlowConnect</h1>
+          <p>Recibo de Pagamento</p>
+        </div>
+        <div style="text-align: center; margin-bottom: 20px;">
+          <span class="badge ${transaction.status === 'COMPLETED' ? 'badge-ok' : transaction.status === 'PENDING' ? 'badge-pending' : 'badge-fail'}">
+            ${getStatusText(transaction.status)}
+          </span>
+        </div>
+        <div class="row"><span class="label">ID da Transação</span><span class="value" style="font-family: monospace; font-size: 12px;">${transaction._id || transaction.id}</span></div>
+        <div class="row"><span class="label">Data</span><span class="value">${formattedDate} às ${formattedTime}</span></div>
+        <div class="row"><span class="label">Tipo</span><span class="value">${getTypeText(transaction.type)}</span></div>
+        ${transaction.creator ? `<div class="row"><span class="label">Criador</span><span class="value">${transaction.creator.name || ''} ${transaction.creator.username ? '@' + transaction.creator.username : ''}</span></div>` : ''}
+        <div class="row"><span class="label">Método</span><span class="value">${(transaction.paymentMethod || 'USDC').replace('_', ' ')}</span></div>
+        ${transaction.txHash ? `<div class="row"><span class="label">Hash Blockchain</span><span class="value" style="font-family: monospace; font-size: 11px; max-width: 250px; word-break: break-all;">${transaction.txHash}</span></div>` : ''}
+        <div class="row total"><span class="label">Total</span><span class="value">${amount} USDC</span></div>
+        <div class="footer">
+          <p>Este documento serve como comprovante de pagamento.</p>
+          <p style="margin-top: 4px;">FlowConnect · Pagamentos descentralizados · Polygon Network</p>
+        </div>
+        <script>window.onload = () => window.print();</script>
+      </body></html>
+    `;
+
+    const win = window.open('', '_blank', 'width=650,height=800');
+    if (win) {
+      win.document.write(receiptHTML);
+      win.document.close();
+    }
   };
 
   return (

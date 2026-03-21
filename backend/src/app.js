@@ -27,6 +27,8 @@ import web3authRoutes from './routes/web3auth.routes.js';
 import cryptoPaymentRoutes from './routes/crypto-payment.routes.js';
 import marketplaceRoutes from './routes/marketplace.routes.js';
 import shippingRoutes from './routes/shipping.routes.js';
+import aiCompanionRoutes from './routes/ai-companion.routes.js';
+import aiChatRoutes from './routes/ai-chat.routes.js';
 
 import errorMiddleware from './middleware/error.middleware.js';
 import logger from './utils/logger.js';
@@ -156,6 +158,10 @@ app.use(`${API}/shipping`, shippingRoutes);
 
 // Pagamentos crypto
 app.use(`${API}/crypto-payment`, cryptoPaymentRoutes);
+
+// AI Companions
+app.use(`${API}/ai`, aiCompanionRoutes);
+app.use(`${API}/ai`, aiChatRoutes);
 
 // ── 404 ───────────────────────────────────────────────────────────────────────
 app.use('/api', (req, res) => {

@@ -1,0 +1,319 @@
+# 🤖 FlowConnect AI — Estratégia de Implementação
+
+## Visão Geral
+
+A FlowConnect deixa de ser apenas uma plataforma de criadores humanos +18 e passa a incluir **AI Companions** — personagens virtuais inteligentes com personalidade, memória, aparência e voz personalizáveis. Tanto criadores humanos como criadores de IA podem monetizar na plataforma.
+
+---
+
+## 1. Como Funciona — Experiência do Utilizador
+
+### Para o Assinante (quem paga)
+
+```mermaid
+flowchart LR
+    A[Descobre AI] --> B[Personaliza]
+    B --> C[Conversa & Interage]
+    C --> D[AI Aprende & Melhora]
+    D --> C
+```
+
+1. **Navega** no catálogo de AI Companions (ou cria o seu próprio do zero)
+2. **Personaliza** — tom de pele, corpo, cabelo, voz, personalidade, fetiches
+3. **Conversa** — chat com texto, áudio, e pedidos de fotos/vídeos gerados
+4. **A AI lembra** — de preferências, erros passados, e evolui com cada conversa
+
+### Para o Criador de AI (quem ganha)
+
+1. **Cria** um personagem AI com aparência e personalidade base
+2. **Treina** com exemplos de diálogo e estilo
+3. **Publica** no catálogo — assinantes pagam para interagir
+4. **Ganha 90%** de cada assinatura (mesma estrutura que criadores humanos)
+
+---
+
+## 2. Stack de Modelos AI
+
+### 2.1 Chat & Personalidade (Texto)
+
+| Modelo | Uso | Por quê |
+|--------|-----|---------|
+| **Mistral Large / Mixtral 8x22B** | Motor principal de conversa | Open-weight, sem censura NSFW, excelente em roleplay, suporta fine-tuning |
+| **LLaMA 3.1 70B (via vLLM/TGI)** | Alternativa/fallback | Meta's best, fine-tunable, boa geração criativa |
+| **Fine-tune LoRA** por personagem | Personalidade única | Cada AI tem um adaptador LoRA treinado no seu estilo de fala |
+
+> [!IMPORTANT]
+> **Não usar OpenAI/Anthropic/Google** — recusam conteúdo NSFW e podem banir a conta. Servir modelos open-source auto-hospedados (ou via providers como **Together AI**, **Fireworks AI**, ou **Replicate** que permitem NSFW com fine-tune).
+
+**Inference hosting:**
+- **Together AI** — API compatível com OpenAI, suporta fine-tunes, $0.90/M tokens (Mixtral)
+- **Runpod / Vast.ai** — GPUs baratas para self-hosting com vLLM
+- **Self-hosted vLLM** — custo mais baixo a longo prazo, controle total
+
+### 2.2 Geração de Imagens
+
+| Modelo | Uso | Por quê |
+|--------|-----|---------|
+| **Stable Diffusion XL** + **LoRA customizado** | Fotos do personagem | Consistência visual entre fotos via LoRA treinado |
+| **Flux.1 Pro** | Fotos de alta qualidade | Fotorrealismo superior, bom para retratos |
+| **IP-Adapter + InstantID** | Manter rosto consistente | Usa imagem de referência para gerar novas poses mantendo o rosto |
+| **ControlNet** | Poses específicas | Permite controlar pose, profundidade, composição |
+
+**Fluxo de geração:**
+```mermaid
+flowchart TD
+    U["Utilizador pede foto"] --> P["Prompt Engine\n(traduz pedido em prompt técnico)"]
+    P --> G["SD XL + LoRA do personagem\n+ IP-Adapter (rosto)\n+ ControlNet (pose)"]
+    G --> Q["Quality Check\n(verifica consistência)"]
+    Q -->|OK| R["Entrega ao utilizador"]
+    Q -->|Erro detectado| E["Regista erro no Data Moat\n(ex: cor errada, rosto diferente)"]
+    E --> G
+```
+
+**Hosting de imagens:**
+- **Replicate** — API simples, paga por segundo, suporta custom models
+- **Runpod Serverless** — mais barato para volume, GPUs A100/H100
+- **ComfyUI API** — self-hosted, controle total do pipeline
+
+### 2.3 Voz
+
+| Modelo | Uso | Por quê |
+|--------|-----|---------|
+| **ElevenLabs** | Voz de alta qualidade | Melhor qualidade do mercado, voice cloning em 30s de áudio |
+| **XTTS v2 (Coqui)** | Alternativa self-hosted | Open-source, voice cloning, multilingue |
+| **RVC v2** | Voice conversion barata | Converte qualquer TTS numa voz custom |
+
+**Recomendação:** Começar com **ElevenLabs API** (rápido de integrar), migrar para XTTS self-hosted quando o volume justificar.
+
+---
+
+## 3. Data Moat — Memória & Aprendizagem
+
+> [!TIP]
+> O **Data Moat** é a vantagem competitiva — quanto mais o utilizador usa, melhor a AI fica, tornando impossível trocar de plataforma.
+
+### 3.1 Camadas de Memória
+
+```mermaid
+flowchart TB
+    subgraph Short["Memória Curta (Sessão)"]
+        S1["Últimas 50 mensagens\n(context window)"]
+    end
+    subgraph Long["Memória Longa (Vector DB)"]
+        L1["Preferências aprendidas"]
+        L2["Fetiches e gostos"]
+        L3["Detalhes pessoais partilhados"]
+        L4["Estilo de conversa preferido"]
+    end
+    subgraph Meta["Meta-Memória (Erros & Melhoria)"]
+        M1["Fotos rejeitadas + motivo"]
+        M2["Feedback do utilizador"]
+        M3["Ajustes de personalidade"]
+    end
+    Short --> Long
+    Long --> Meta
+```
+
+### 3.2 Implementação Técnica
+
+| Componente | Tecnologia | Função |
+|------------|------------|--------|
+| **Vector Store** | Qdrant ou Pinecone | Armazena embeddings de conversas e preferências |
+| **Embedding Model** | `text-embedding-3-small` (OpenAI) ou `bge-m3` (open) | Converte texto em vetores para busca semântica |
+| **User Profile DB** | PostgreSQL (já existente) | Atributos explícitos: nome, fetiches, aparência preferida |
+| **Error Registry** | PostgreSQL + JSON | Regista fotos rejeitadas, feedback negativo, correções |
+| **RAG Pipeline** | LangChain / LlamaIndex | Busca memórias relevantes antes de cada resposta |
+
+### 3.3 Como a Memória Funciona na Prática
+
+```
+Utilizador: "Gera uma foto tua de bikini na praia"
+
+→ RAG busca no vector store:
+  - "Utilizador prefere tom de pele moreno"
+  - "Última foto de praia teve erro: fundo muito escuro"  
+  - "Utilizador gosta de biquínis vermelhos"
+
+→ Prompt gerado para SD XL:
+  "beautiful woman, tan skin, red bikini, beach, 
+   bright sunny background, [LoRA:character_xyz:0.8]"
+
+→ Foto gerada → consistente com preferências e sem erros passados
+```
+
+---
+
+## 4. Personalização do Personagem AI
+
+### 4.1 Atributos Visuais (configuráveis)
+
+| Categoria | Opções |
+|-----------|--------|
+| **Tom de pele** | Escala contínua (claro → escuro) |
+| **Tipo de corpo** | Slim, Athletic, Curvy, Plus-size, Custom |
+| **Cabelo** | Cor, comprimento, estilo (liso, ondulado, cacheado) |
+| **Olhos** | Cor, forma |
+| **Rosto** | Upload de referência ou geração a partir de descrição |
+| **Tatuagens/Piercings** | Editáveis |
+| **Roupa padrão** | Estilo base (casual, elegante, provocante) |
+
+> Cada combinação gera um **LoRA model** treinado com ~20 imagens sintéticas do personagem, garantindo consistência visual.
+
+### 4.2 Atributos de Personalidade
+
+| Atributo | Tipo | Exemplo |
+|----------|------|---------|
+| **Nome** | Texto | "Luna" |
+| **Idade aparente** | Número (18-60) | 24 |
+| **Personalidade** | Tags + descrição livre | Tímida, Provocante, Dominante, Submissa |
+| **Tom de conversa** | Escala | Casual ← → Formal |
+| **Nível de ousadia** | Escala | Suave ← → Explícito |
+| **Idiomas** | Multi-select | PT, EN, ES |
+| **Backstory** | Texto livre | "Estudante de arte que adora..." |
+| **Fetiches suportados** | Tags | Feet, BDSM, Roleplay, etc. |
+
+### 4.3 Voz
+
+- Upload de referência (30s de áudio) → voice clone via ElevenLabs
+- Ou selecionar de catálogo de vozes pré-feitas
+- Ajustes: pitch, velocidade, "breathiness"
+
+---
+
+## 5. Planos & Monetização
+
+### 5.1 Para Assinantes
+
+| Plano | Preço/mês | Chat | Fotos | Áudio | Memória |
+|-------|-----------|------|-------|-------|---------|
+| **Free** | $0 | 20 msgs/dia | 3 fotos/dia | ❌ | Sessão apenas |
+| **Basic** | $9.99 | 200 msgs/dia | 20 fotos/dia | 10 msgs/dia | 30 dias |
+| **Premium** | $24.99 | Ilimitado | 50 fotos/dia | Ilimitado | Permanente |
+| **Ultra** | $49.99 | Ilimitado + prioridade | Ilimitado + HD | Ilimitado + voice clone | Permanente + export |
+
+### 5.2 Para Criadores de AI
+
+| Plano Criador | Preço/mês | Limite de personagens | Revenue share |
+|---------------|-----------|----------------------|---------------|
+| **Starter** | $0 | 1 personagem | 70% |
+| **Pro** | $19.99 | 10 personagens | 85% |
+| **Business** | $49.99 | Ilimitado | 90% |
+
+### 5.3 Compras Avulsas (Pay-per-use)
+
+| Item | Preço |
+|------|-------|
+| Foto HD extra | $0.50 |
+| Vídeo curto (10s) | $2.00 |
+| Voice clone custom | $5.00 |
+| LoRA training (personagem novo) | $10.00 |
+
+---
+
+## 6. Arquitectura Técnica
+
+```mermaid
+flowchart TB
+    subgraph Frontend["Frontend (React)"]
+        Chat["Chat Interface"]
+        Gallery["Galeria de Fotos"]
+        Creator["Painel do Criador AI"]
+        Customize["Customização do Personagem"]
+    end
+
+    subgraph Backend["Backend (Node.js)"]
+        API["API Gateway"]
+        Auth["Auth (Web3Auth)"]
+        Billing["Billing (USDC)"]
+        Queue["Job Queue (BullMQ)"]
+    end
+
+    subgraph AI["AI Services (Python/FastAPI)"]
+        LLM["LLM Service\n(vLLM / Together AI)"]
+        IMG["Image Service\n(ComfyUI / Replicate)"]
+        Voice["Voice Service\n(ElevenLabs / XTTS)"]
+        Memory["Memory Service\n(RAG + Qdrant)"]
+    end
+
+    subgraph Storage["Storage"]
+        PG["PostgreSQL"]
+        VDB["Qdrant (Vectors)"]
+        S3["S3 / Cloudinary\n(Media)"]
+        Redis["Redis (Cache)"]
+    end
+
+    Frontend --> Backend
+    Backend --> AI
+    AI --> Storage
+    Queue --> AI
+```
+
+### Serviços necessários (novos):
+
+| Serviço | Tecnologia | Função |
+|---------|------------|--------|
+| `ai-chat-service` | Python + FastAPI | Gerir conversas, RAG, prompt engineering |
+| `ai-image-service` | Python + ComfyUI API | Pipeline de geração de imagens |
+| `ai-voice-service` | Python + ElevenLabs/XTTS | TTS e voice cloning |
+| `ai-memory-service` | Python + Qdrant | Vector store, embeddings, busca semântica |
+| `ai-training-service` | Python + diffusers | Treino de LoRAs para personagens |
+
+---
+
+## 7. Fases de Implementação
+
+### Fase 1 — MVP Chat (4-6 semanas)
+- [ ] Chat texto com Mixtral/LLaMA via Together AI
+- [ ] Sistema de personalidade (system prompt dinâmico)
+- [ ] Memória curta (context window)
+- [ ] UI de chat no frontend
+- [ ] Plano Basic funcional
+
+### Fase 2 — Imagens (3-4 semanas)
+- [ ] Geração de fotos via Replicate/ComfyUI
+- [ ] LoRA training pipeline (um LoRA por personagem)
+- [ ] IP-Adapter para consistência de rosto
+- [ ] Galeria de fotos geradas
+
+### Fase 3 — Data Moat (2-3 semanas)
+- [ ] Qdrant deployment
+- [ ] RAG pipeline com memória longa
+- [ ] Error registry (fotos rejeitadas)
+- [ ] User preference learning
+
+### Fase 4 — Voz (2 semanas)
+- [ ] Integração ElevenLabs API
+- [ ] Voice messages no chat
+- [ ] Custom voice cloning
+
+### Fase 5 — Criador AI (2-3 semanas)
+- [ ] Painel de criação de personagem
+- [ ] Training wizard (personalidade + aparência)
+- [ ] Catálogo público de AI Companions
+- [ ] Revenue tracking para criadores AI
+
+---
+
+## 8. Custos Estimados (por 1000 utilizadores activos)
+
+| Serviço | Custo/mês estimado |
+|---------|-------------------|
+| LLM (Together AI, Mixtral) | ~$200-500 |
+| Image Generation (Replicate) | ~$300-800 |
+| Voice (ElevenLabs) | ~$100-300 |
+| Vector DB (Qdrant Cloud) | ~$50-100 |
+| GPU Servers (Runpod, quando self-host) | ~$500-1500 |
+| **Total estimado** | **~$1,150-3,200/mês** |
+
+> [!NOTE]
+> Com 1000 utilizadores pagando média de $20/mês = **$20,000 receita**, os custos AI representam ~6-16% da receita. Escalável.
+
+---
+
+## 9. Decisões que Precisam da Tua Aprovação
+
+1. **Hosting dos modelos:** Together AI (rápido, mais caro) vs Self-hosted em Runpod (mais barato, mais trabalho)?
+2. **Prioridade:** Começar pela Fase 1 (Chat) ou pela Fase 2 (Imagens)?
+3. **Preços dos planos:** Os valores sugeridos estão OK?
+4. **Criadores AI:** Permitir desde o início ou só criadores humanos primeiro?
+5. **Idioma principal:** Português + Inglês ou só Inglês?

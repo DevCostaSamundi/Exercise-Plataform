@@ -53,7 +53,7 @@ export const createCryptoOrder = async (req, res) => {
         if (!creator.payoutWallet) {
             return res.status(400).json({
                 success: false,
-                message: 'Este criador ainda não configurou a carteira de recebimento',
+                message: 'Este criador ainda não está a aceitar pagamentos. Tenta novamente mais tarde — ele será notificado para ativar os recebimentos.',
             });
         }
 

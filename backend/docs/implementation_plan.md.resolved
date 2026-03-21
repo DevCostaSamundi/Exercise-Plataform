@@ -1,0 +1,293 @@
+# Fase 1 — MVP Chat AI: Plano de Implementação
+
+## Objectivo
+Chat de texto funcional com AI Companions usando Mixtral via Together AI. Personalidade configurável, memória de sessão, catálogo público, e billing integrado com USDC.
+
+---
+
+## Decisões Técnicas Fixadas
+- **LLM Provider:** Together AI (Mixtral 8x22B)
+- **Idiomas:** PT + EN
+- **Criadores AI:** Activos desde o início
+- **Documentação:** Documento de conclusão obrigatório antes da Fase 2
+
+---
+
+## Proposed Changes
+
+### Database — Novos Modelos
+
+#### [MODIFY] [schema.prisma](file:///home/devcosta/Music/Exercise-Plataform/backend/prisma/schema.prisma)
+
+Adicionar os seguintes modelos:
+
+```prisma
+// ── AI COMPANION ──
+model AiCompanion {
+  id              String   @id @default(uuid())
+  creatorId       String                        // Criador que criou esta AI
+  name            String                        // "Luna"
+  slug            String   @unique              // "luna-123"
+  avatar          String?                       // URL da imagem
+  coverImage      String?
+  description     String?                       // Bio pública
+  personality     Json                          // { traits, tone, backstory, ... }
+  appearance      Json?                         // { skinTone, bodyType, hair, ... }
+  language        String   @default("pt")       // Idioma principal
+  languages       String[] @default(["pt","en"])
+  nsfwLevel       String   @default("explicit") // soft, moderate, explicit
+  tags            String[] @default([])
+  isPublic        Boolean  @default(true)
+  isActive        Boolean  @default(true)
+  monthlyPrice    Float    @default(9.99)
+  messageLimit    Int      @default(200)        // msgs/dia no plano base
+  
+  // Stats (desnormalizados para performance)
+  subscriberCount Int      @default(0)
+  messageCount    Int      @default(0)
+  rating          Float    @default(0)
+  
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  
+  creator         Creator       @relation(fields: [creatorId], references: [id])
+  conversations   AiConversation[]
+  subscriptions   AiSubscription[]
+}
+
+model AiConversation {
+  id            String   @id @default(uuid())
+  userId        String
+  companionId   String
+  title         String?
+  isActive      Boolean  @default(true)
+  messageCount  Int      @default(0)
+  lastMessageAt DateTime?
+  
+  // Memória de sessão — resumo das últimas interacções
+  sessionMemory Json?    // { summary, preferences, mood }
+  
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  
+  user          User          @relation(fields: [userId], references: [id])
+  companion     AiCompanion   @relation(fields: [companionId], references: [id])
+  messages      AiMessage[]
+  
+  @@unique([userId, companionId])
+}
+
+model AiMessage {
+  id             String   @id @default(uuid())
+  conversationId String
+  role           String   // "user" | "assistant" | "system"
+  content        String
+  
+  // Metadata
+  tokensUsed     Int?
+  modelUsed      String?
+  responseTimeMs Int?
+  
+  createdAt      DateTime @default(now())
+  
+  conversation   AiConversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+}
+
+model AiSubscription {
+  id           String   @id @default(uuid())
+  userId       String
+  companionId  String
+  plan         String   @default("basic")  // free, basic, premium, ultra
+  status       String   @default("active") // active, cancelled, expired
+  priceUSD     Float
+  
+  // Limites do plano
+  dailyMsgLimit  Int    @default(200)
+  dailyMsgsUsed  Int    @default(0)
+  lastResetAt    DateTime @default(now())
+  
+  startedAt    DateTime @default(now())
+  expiresAt    DateTime
+  cancelledAt  DateTime?
+  
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+  
+  user         User          @relation(fields: [userId], references: [id])
+  companion    AiCompanion   @relation(fields: [companionId], references: [id])
+  
+  @@unique([userId, companionId])
+}
+```
+
+Também adicionar relações nos modelos existentes:
+- [User](file:///home/devcosta/Music/Exercise-Plataform/backend/src/controllers/creator.controller.js#105-243) → `aiConversations AiConversation[]`, `aiSubscriptions AiSubscription[]`
+- [Creator](file:///home/devcosta/Music/Exercise-Plataform/adult-marketplace/src/pages/Creator/CreatorPage.jsx#12-865) → `aiCompanions AiCompanion[]`
+
+---
+
+### Backend — Novos Ficheiros
+
+#### [NEW] [ai-chat.controller.js](file:///home/devcosta/Music/Exercise-Plataform/backend/src/controllers/ai-chat.controller.js)
+
+Endpoints:
+- `POST /api/v1/ai/chat/:companionId/message` — Enviar mensagem e receber resposta
+- `GET /api/v1/ai/chat/:companionId/history` — Histórico de mensagens (paginado)
+- `DELETE /api/v1/ai/chat/:companionId` — Limpar conversa
+
+Lógica:
+1. Verificar se user tem subscrição activa para o companion
+2. Verificar limite diário de mensagens
+3. Buscar últimas N mensagens (context window ~50 msgs)
+4. Construir system prompt dinâmico (personalidade + memória)
+5. Chamar Together AI (Mixtral)
+6. Guardar mensagem + resposta
+7. Retornar resposta ao frontend
+
+#### [NEW] [ai-companion.controller.js](file:///home/devcosta/Music/Exercise-Plataform/backend/src/controllers/ai-companion.controller.js)
+
+Endpoints:
+- `POST /api/v1/ai/companions` — Criar companion (criador)
+- `GET /api/v1/ai/companions` — Listar catálogo público
+- `GET /api/v1/ai/companions/:id` — Detalhes do companion
+- `PATCH /api/v1/ai/companions/:id` — Editar companion (criador)
+- `DELETE /api/v1/ai/companions/:id` — Desactivar companion
+
+#### [NEW] [ai-subscription.controller.js](file:///home/devcosta/Music/Exercise-Plataform/backend/src/controllers/ai-subscription.controller.js)
+
+Endpoints:
+- `POST /api/v1/ai/subscribe/:companionId` — Assinar companion
+- `GET /api/v1/ai/subscriptions` — Minhas subscrições AI
+- `DELETE /api/v1/ai/subscribe/:companionId` — Cancelar
+
+#### [NEW] [together-ai.service.js](file:///home/devcosta/Music/Exercise-Plataform/backend/src/services/together-ai.service.js)
+
+Serviço que encapsula chamadas à API Together AI:
+- `chat(messages, options)` — Chat completion com Mixtral
+- `buildSystemPrompt(companion, userPrefs)` — Construir prompt dinâmico
+- Rate limiting e retry logic
+- Token counting
+
+#### [NEW] [ai-chat.routes.js](file:///home/devcosta/Music/Exercise-Plataform/backend/src/routes/ai-chat.routes.js)
+#### [NEW] [ai-companion.routes.js](file:///home/devcosta/Music/Exercise-Plataform/backend/src/routes/ai-companion.routes.js)
+
+#### [MODIFY] [app.js](file:///home/devcosta/Music/Exercise-Plataform/backend/src/app.js)
+- Registar novas rotas `/api/v1/ai/*`
+
+#### [MODIFY] [.env](file:///home/devcosta/Music/Exercise-Plataform/backend/.env)
+- Adicionar `TOGETHER_AI_API_KEY`
+- Adicionar `TOGETHER_AI_MODEL=mistralai/Mixtral-8x22B-Instruct-v0.1`
+
+---
+
+### Frontend — Novos Ficheiros
+
+#### [NEW] [AiChatPage.jsx](file:///home/devcosta/Music/Exercise-Plataform/adult-marketplace/src/pages/subscriber/AiChatPage.jsx)
+
+Interface de chat similar a apps de mensagens:
+- Lista de mensagens (bolhas user/AI)
+- Input de texto + botão enviar
+- Typing indicator enquanto AI responde
+- Sidebar com info do companion
+- Indicador de mensagens restantes/dia
+
+#### [NEW] [AiCatalogPage.jsx](file:///home/devcosta/Music/Exercise-Plataform/adult-marketplace/src/pages/AiCatalogPage.jsx)
+
+Catálogo de AI Companions:
+- Grid de cards com avatar, nome, tags, preço
+- Filtros: idioma, personalidade, preço
+- Pesquisa por nome/tags
+- CTA "Assinar" → PaymentModal
+
+#### [NEW] [AiCompanionProfilePage.jsx](file:///home/devcosta/Music/Exercise-Plataform/adult-marketplace/src/pages/AiCompanionProfilePage.jsx)
+
+Perfil detalhado do AI Companion:
+- Avatar grande, bio, personalidade
+- Planos disponíveis
+- Botões: Assinar / Iniciar conversa
+- Reviews de outros utilizadores
+
+#### [NEW] [AiCreatePage.jsx](file:///home/devcosta/Music/Exercise-Plataform/adult-marketplace/src/pages/Creator/AiCreatePage.jsx)
+
+Formulário para criadores criarem AI Companions:
+- Nome, avatar, descrição
+- Personalidade (tags + texto)
+- Aparência (selectores visuais)
+- Preço mensal
+- Pré-visualização de chat
+
+#### [NEW] [aiService.js](file:///home/devcosta/Music/Exercise-Plataform/adult-marketplace/src/services/aiService.js)
+
+API client para endpoints AI:
+- `sendMessage(companionId, message)`
+- `getHistory(companionId, page)`
+- `getCompanions(filters)`
+- `createCompanion(data)`
+- `subscribe(companionId, plan)`
+
+#### [MODIFY] [App.jsx](file:///home/devcosta/Music/Exercise-Plataform/adult-marketplace/src/App.jsx)
+- Adicionar rotas: `/ai`, `/ai/:id`, `/ai/:id/chat`, `/creator/ai/new`
+
+#### [MODIFY] [Sidebar.jsx](file:///home/devcosta/Music/Exercise-Plataform/adult-marketplace/src/components/Sidebar.jsx)
+- Adicionar link "🤖 AI Companions" na navegação
+
+---
+
+## System Prompt Engine
+
+O system prompt é construído dinamicamente para cada conversa:
+
+```
+[IDENTIDADE]
+Tu és {name}, {backstory}.
+Personalidade: {traits}.
+Tom: {tone}.
+
+[APARÊNCIA]
+{appearance_description}
+
+[REGRAS]
+- Respondes em {language}
+- Nível de ousadia: {nsfwLevel}
+- Fetiches suportados: {tags}
+- Nunca quebres personagem
+- Nunca mencionas que és uma AI
+
+[CONTEXTO DO UTILIZADOR]
+- Nome: {user_displayName}
+- Preferências conhecidas: {session_memory}
+
+[CONVERSA ANTERIOR]
+{últimas 50 mensagens}
+```
+
+---
+
+## Verification Plan
+
+### Testes Automatizados
+```bash
+# Backend
+npm test -- --grep "ai-chat"
+npm test -- --grep "ai-companion"
+
+# Verificar schema
+npx prisma validate
+npx prisma migrate dev
+```
+
+### Testes Manuais
+1. Criar AI Companion como criador
+2. Listar no catálogo como assinante
+3. Assinar companion
+4. Enviar 5+ mensagens e verificar personalidade consistente
+5. Verificar que memória de sessão funciona (referência a msgs anteriores)
+6. Verificar limite diário de mensagens
+7. Verificar que billing USDC funciona para subscrição AI
+
+### Documento de Conclusão
+Ao completar todos os testes, criar `fase1_conclusao.md` com:
+- Screenshots/logs dos testes
+- Endpoints funcionais
+- Issues conhecidos
+- Métricas (latência, tokens/msg média)
