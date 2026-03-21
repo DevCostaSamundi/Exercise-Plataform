@@ -1,12 +1,9 @@
 /**
- * NotificationContext — usa o singleton do SocketService.
- * NÃO cria io() próprio. Partilha o mesmo socket que o SocketContext.
+ * NotificationContext — usa window.__app_socket__ via SocketService.
+ * NÃO cria io() próprio. Partilha o singleton com SocketContext.
  */
 
-import {
-  createContext, useContext, useState,
-  useEffect, useCallback,
-} from 'react';
+import { createContext, useContext, useState, useEffect, useCallback, useRef } from 'react';
 import { connectSocket, getSocket } from '../services/SocketService';
 import { getAuthToken } from '../services/api';
 import api from '../services/api';
@@ -25,12 +22,17 @@ export const NotificationProvider = ({ children }) => {
   const [unreadCount, setUnreadCount]     = useState(0);
   const [loading, setLoading]             = useState(false);
   const [connected, setConnected]         = useState(() => !!getSocket()?.connected);
+  const initialized = useRef(false);
 
   useEffect(() => {
+    if (initialized.current) return;
+
     const token = getAuthToken();
     if (!token) return;
 
-    // Reutiliza o singleton — não cria nova ligação
+    initialized.current = true;
+
+    // Reutiliza o singleton — connectSocket é idempotente
     const s = connectSocket(token);
     if (!s) return;
 
@@ -48,11 +50,11 @@ export const NotificationProvider = ({ children }) => {
     s.on('disconnect',       onDisconnect);
     s.on('notification:new', onNew);
 
-    // Apenas remover listeners — NUNCA disconnect()
     return () => {
       s.off('connect',          onConnect);
       s.off('disconnect',       onDisconnect);
       s.off('notification:new', onNew);
+      initialized.current = false;
     };
   }, []);
 
@@ -61,10 +63,9 @@ export const NotificationProvider = ({ children }) => {
       setLoading(true);
       const params = new URLSearchParams();
       if (filters.type && filters.type !== 'all') params.append('type', filters.type);
-      if (filters.unread)  params.append('unread', 'true');
-      if (filters.page)    params.append('page',   filters.page);
-      if (filters.limit)   params.append('limit',  filters.limit);
-
+      if (filters.unread) params.append('unread', 'true');
+      if (filters.page)   params.append('page',   filters.page);
+      if (filters.limit)  params.append('limit',  filters.limit);
       const res = await api.get(`/notifications?${params.toString()}`);
       setNotifications(res.data.data.notifications);
       setUnreadCount(res.data.data.unreadCount);

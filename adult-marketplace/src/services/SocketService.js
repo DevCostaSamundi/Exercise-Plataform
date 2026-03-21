@@ -1,27 +1,47 @@
 /**
- * SocketService — Singleton global verdadeiro.
- * Sobrevive ao double-mount do React StrictMode.
- * Um único socket para toda a app.
+ * SocketService — Singleton verdadeiro via window.__socket__
+ * Sobrevive a HMR do Vite, double-mount do StrictMode,
+ * e múltiplas importações do mesmo módulo.
+ *
+ * REGRA: connectSocket() é idempotente — devolve sempre o mesmo socket.
+ *        disconnectSocket() só deve ser chamado no LOGOUT.
  */
 
 import { io } from 'socket.io-client';
 import { getAuthToken } from './api';
 
-// Guardado fora do módulo React — não é afetado por re-renders ou unmounts
-let socket = null;
-let connectCalled = false;
+// Guardar no window para sobreviver a HMR e múltiplas instâncias do módulo
+const SOCKET_KEY = '__app_socket__';
 
+function getStoredSocket() {
+  return window[SOCKET_KEY] || null;
+}
+
+function storeSocket(s) {
+  window[SOCKET_KEY] = s;
+}
+
+function clearStoredSocket() {
+  window[SOCKET_KEY] = null;
+}
+
+/**
+ * Retorna o socket existente se ligado, ou cria um novo.
+ * Seguro chamar de qualquer lugar — nunca cria duplicados.
+ */
 export function connectSocket(token) {
-  // Se já existe e está ligado — devolver imediatamente
-  if (socket?.connected) return socket;
+  const existing = getStoredSocket();
 
-  // Se existe mas está a ligar — devolver o mesmo
-  if (socket && !socket.disconnected) return socket;
+  // Já existe e está ligado ou a ligar — devolver
+  if (existing && (existing.connected || existing.active)) {
+    return existing;
+  }
 
-  // Se existe mas foi desligado explicitamente (logout) — limpar
-  if (socket) {
-    socket.removeAllListeners();
-    socket = null;
+  // Existe mas está desligado — destruir antes de criar novo
+  if (existing) {
+    existing.removeAllListeners();
+    existing.disconnect();
+    clearStoredSocket();
   }
 
   const authToken = token || getAuthToken();
@@ -35,58 +55,65 @@ export function connectSocket(token) {
     import.meta.env.VITE_API_URL ||
     window.location.origin;
 
-  if (import.meta.env.DEV) console.log('[Socket] A criar ligação para', url);
+  if (import.meta.env.DEV) console.log('[Socket] A criar singleton para', url);
 
-  socket = io(url, {
+  const s = io(url, {
     transports: ['websocket', 'polling'],
     auth: { token: authToken },
     autoConnect: true,
     reconnection: true,
     reconnectionAttempts: 10,
-    reconnectionDelay: 1000,
-    reconnectionDelayMax: 8000,
+    reconnectionDelay: 1500,
+    reconnectionDelayMax: 10000,
     closeOnBeforeunload: false,
+    // Timeout mais alto para evitar desconexões por ping lento
+    pingTimeout: 60000,
+    pingInterval: 25000,
   });
 
-  socket.on('connect', () => {
-    if (import.meta.env.DEV) console.log('✅ [Socket] Ligado:', socket.id);
+  s.on('connect', () => {
+    if (import.meta.env.DEV) console.log('✅ [Socket] Ligado:', s.id);
   });
 
-  socket.on('connect_error', (err) => {
+  s.on('connect_error', (err) => {
     if (import.meta.env.DEV) console.error('❌ [Socket] Erro:', err.message);
   });
 
-  socket.on('disconnect', (reason) => {
+  s.on('disconnect', (reason) => {
     if (import.meta.env.DEV) console.log('⚠️ [Socket] Desligado:', reason);
-    // Reconectar automaticamente só se o servidor fechou (não se foi o cliente)
+    // Só reconectar se foi o servidor a fechar — não se foi o cliente
     if (reason === 'io server disconnect') {
-      setTimeout(() => socket?.connect(), 1000);
+      setTimeout(() => getStoredSocket()?.connect(), 1000);
     }
   });
 
-  return socket;
+  storeSocket(s);
+  return s;
 }
 
 /**
- * Chamar APENAS no logout — nunca em cleanup de componentes
+ * Chamar APENAS no logout.
+ * Nunca chamar em cleanup de useEffect ou unmount de componentes.
  */
 export function disconnectSocket() {
-  if (socket) {
+  const s = getStoredSocket();
+  if (s) {
     if (import.meta.env.DEV) console.log('[Socket] Logout — a fechar ligação');
-    socket.removeAllListeners();
-    socket.disconnect();
-    socket = null;
+    s.removeAllListeners();
+    s.disconnect();
+    clearStoredSocket();
   }
 }
 
 export function getSocket() {
-  return socket;
+  return getStoredSocket();
 }
 
 export function emitEvent(event, payload) {
   return new Promise((resolve, reject) => {
-    if (!socket?.connected) return reject(new Error('Socket não ligado'));
-    socket.timeout(5000).emit(event, payload, (err, res) => {
+    const s = getStoredSocket();
+    if (!s?.connected) return reject(new Error('Socket não ligado'));
+    s.timeout(5000).emit(event, payload, (err, res) => {
       if (err) return reject(err);
       resolve(res);
     });

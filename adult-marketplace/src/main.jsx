@@ -8,12 +8,8 @@ import { ChatProvider } from './contexts/ChatContext';
 import App from './App';
 import './index.css';
 
-// Pré-criar o socket antes do React montar
-// Isto garante que o singleton existe antes do double-mount do StrictMode
-import { connectSocket } from './services/SocketService';
-import { getAuthToken } from './services/api';
-const existingToken = getAuthToken();
-if (existingToken) connectSocket(existingToken);
+// NÃO chamar connectSocket() aqui — o SocketProvider trata disso.
+// Chamar aqui causa múltiplas instâncias em HMR do Vite.
 
 function AppWithSocket() {
   const { user } = useAuth();
@@ -35,9 +31,7 @@ const queryClient = new QueryClient({
   },
 });
 
-// ⚠️ StrictMode removido em dev para evitar double-connect no socket.
-// Para re-activar em produção (onde StrictMode não faz double-mount),
-// podes envolver apenas <App /> com StrictMode se necessário.
+// StrictMode removido — causa double-mount que conflitua com sockets
 ReactDOM.createRoot(document.getElementById('root')).render(
   <QueryClientProvider client={queryClient}>
     <Web3AuthProvider>
