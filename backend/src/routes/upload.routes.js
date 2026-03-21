@@ -1,37 +1,18 @@
-// backend/src/routes/upload.routes.js
 import express from 'express';
-import multer from 'multer';
 import { authenticate } from '../middleware/auth.middleware.js';
+import { uploadMedia } from '../middleware/upload.middleware.js';
 import cloudinaryService from '../services/cloudinary.service.js';
 import ApiResponse from '../utils/response.js';
 import logger from '../utils/logger.js';
 
 const router = express.Router();
 
-// Configurar multer para memória (não salva em disco)
-const storage = multer.memoryStorage();
-const upload = multer({
-  storage,
-  limits: {
-    fileSize: 10 * 1024 * 1024, // 10MB
-  },
-  fileFilter: (req, file, cb) => {
-    const allowedTypes = ['image/jpeg', 'image/png', 'image/gif', 'video/mp4', 'video/quicktime'];
-    
-    if (allowedTypes.includes(file.mimetype)) {
-      cb(null, true);
-    } else {
-      cb(new Error('Tipo de arquivo não permitido'));
-    }
-  },
-});
-
 /**
- * @route   POST /api/v1/upload/media
- * @desc    Upload de mídia para Cloudinary
- * @access  Protegido
+ * POST /api/v1/upload/media
+ * Upload de mídia para Cloudinary
+ * uploadMedia: imagens + vídeos, até 100MB, com fileFilter centralizado
  */
-router.post('/media', authenticate, upload.single('file'), async (req, res, next) => {
+router.post('/media', authenticate, uploadMedia.single('file'), async (req, res, next) => {
   try {
     if (!req.file) {
       return ApiResponse.error(res, 'Nenhum arquivo enviado', 400);
@@ -48,20 +29,16 @@ router.post('/media', authenticate, upload.single('file'), async (req, res, next
       mediaType,
     });
 
-    // Determinar pasta no Cloudinary
-    const folder = mediaType === 'video' 
-      ? `creators/${userId}/videos` 
+    const folder = mediaType === 'video'
+      ? `creators/${userId}/videos`
       : `creators/${userId}/photos`;
-
-    // Upload para Cloudinary
-    const uploadOptions = {
-      folder,
-      resource_type: mediaType === 'video' ? 'video' : 'image',
-    };
 
     const result = await cloudinaryService.uploadBufferToCloudinary(
       req.file.buffer,
-      uploadOptions
+      {
+        folder,
+        resource_type: mediaType === 'video' ? 'video' : 'image',
+      }
     );
 
     logger.info('✅ Upload successful:', {
@@ -69,11 +46,9 @@ router.post('/media', authenticate, upload.single('file'), async (req, res, next
       publicId: result.public_id,
     });
 
-    // Gerar thumbnail para vídeos
-    let thumbnail = null;
-    if (mediaType === 'video') {
-      thumbnail = cloudinaryService.getVideoThumbnail(result.public_id);
-    }
+    const thumbnail = mediaType === 'video'
+      ? cloudinaryService.getVideoThumbnail(result.public_id)
+      : null;
 
     return ApiResponse.success(res, {
       url: result.secure_url,
@@ -93,16 +68,12 @@ router.post('/media', authenticate, upload.single('file'), async (req, res, next
 });
 
 /**
- * @route   DELETE /api/v1/upload/media/:publicId
- * @desc    Deletar mídia do Cloudinary
- * @access  Protegido
+ * DELETE /api/v1/upload/media/:publicId
+ * Deletar mídia do Cloudinary
  */
 router.delete('/media/:publicId', authenticate, async (req, res, next) => {
   try {
-    const { publicId } = req.params;
-    
-    // Decodificar publicId (vem encoded da URL)
-    const decodedPublicId = decodeURIComponent(publicId);
+    const decodedPublicId = decodeURIComponent(req.params.publicId);
 
     logger.info('🗑️  Delete request:', {
       userId: req.user.id,
@@ -111,10 +82,7 @@ router.delete('/media/:publicId', authenticate, async (req, res, next) => {
 
     await cloudinaryService.deleteFromCloudinary(decodedPublicId);
 
-    logger.info('✅ Delete successful');
-
     return ApiResponse.success(res, null, 'Mídia deletada com sucesso');
-
   } catch (error) {
     logger.error('❌ Delete error:', error);
     next(error);

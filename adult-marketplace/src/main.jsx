@@ -4,12 +4,25 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { WagmiProvider } from 'wagmi';
 import { wagmiConfig } from './config/wagmi.config.js';
 import { Web3AuthProvider } from './hooks/useWeb3Auth';
-import { AuthProvider } from './contexts/AuthContext';
+import { AuthProvider, useAuth } from './contexts/AuthContext';
 import { SocketProvider } from './contexts/SocketContext';
+import { ChatProvider } from './contexts/ChatContext';
 import App from './App';
 import './index.css';
 
-// Create a client
+// ✅ Wrapper para injectar user no SocketProvider e ChatProvider
+// SocketContext.jsx espera { children, user } — sem user o socket nunca conecta
+function AppWithSocket() {
+  const { user } = useAuth();
+  return (
+    <SocketProvider user={user}>
+      <ChatProvider>
+        <App />
+      </ChatProvider>
+    </SocketProvider>
+  );
+}
+
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
@@ -25,9 +38,7 @@ ReactDOM.createRoot(document.getElementById('root')).render(
       <WagmiProvider config={wagmiConfig}>
         <Web3AuthProvider>
           <AuthProvider>
-            <SocketProvider>
-              <App />
-            </SocketProvider>
+            <AppWithSocket />
           </AuthProvider>
         </Web3AuthProvider>
       </WagmiProvider>

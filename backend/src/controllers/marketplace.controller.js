@@ -3,14 +3,14 @@
  * CRUD de produtos, gestão da loja, listagem pública.
  */
 
-import prisma from '../config/prisma.js';
+import prisma from '../config/database.js';
 import {
   HTTP_STATUS,
   MARKETPLACE,
   STORE_STATUS,
   NOTIFICATION_TYPES,
   PAGINATION,
-} from '../constants/constants.js';
+} from '../config/constants.js';
 
 // ─────────────────────────────────────────────
 // LOJA PÚBLICA — Ver produtos de uma criadora

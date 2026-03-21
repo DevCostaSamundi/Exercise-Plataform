@@ -1,20 +1,19 @@
-// src/components/AgeGate.jsx
 import { useState } from 'react';
 
 export default function AgeGate({ onVerify }) {
-  const [day, setDay] = useState('');
+  const [day,   setDay]   = useState('');
   const [month, setMonth] = useState('');
-  const [year, setYear] = useState('');
+  const [year,  setYear]  = useState('');
   const [error, setError] = useState('');
 
-  const years = Array.from({ length: 100 }, (_, i) => new Date().getFullYear() - i);
-  const days = Array.from({ length: 31 }, (_, i) => i + 1);
-  const months = Array.from({ length: 12 }, (_, i) => i + 1);
+  const years  = Array.from({ length: 100 }, (_, i) => new Date().getFullYear() - i);
+  const days   = Array.from({ length: 31  }, (_, i) => i + 1);
+  const months = Array.from({ length: 12  }, (_, i) => i + 1);
 
   const handleSubmit = (e) => {
     e.preventDefault();
     const birthDate = new Date(year, month - 1, day);
-    const today = new Date();
+    const today     = new Date();
     let age = today.getFullYear() - birthDate.getFullYear();
     const m = today.getMonth() - birthDate.getMonth();
     if (m < 0 || (m === 0 && today.getDate() < birthDate.getDate())) age--;
@@ -23,6 +22,7 @@ export default function AgeGate({ onVerify }) {
       localStorage.setItem('adultVerified', 'true');
       onVerify();
     } else {
+      // ⚠️  CORRIGIDO: text-red-400 visível sobre fundo dark bg-gray-800
       setError('Você deve ter pelo menos 18 anos para acessar este conteúdo.');
     }
   };
@@ -35,47 +35,43 @@ export default function AgeGate({ onVerify }) {
           Este site contém conteúdo para maiores de 18 anos. Por favor, confirme sua data de nascimento.
         </p>
 
-        {error && <p className="text-slate-900 text-center mb-4">{error}</p>}
+        {error && (
+          <p className="text-red-400 text-center mb-4 text-sm font-medium">{error}</p>
+        )}
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="grid grid-cols-3 gap-3">
             <select
               value={day}
               onChange={(e) => setDay(e.target.value)}
-              className="bg-gray-700 border border-gray-600 rounded-lg p-2 text-center focus:ring-black focus:outline-none"
+              className="bg-gray-700 border border-gray-600 rounded-lg p-2 text-center focus:ring-2 focus:ring-white focus:outline-none"
             >
               <option value="">Dia</option>
-              {days.map((d) => (
-                <option key={d} value={d}>{d}</option>
-              ))}
+              {days.map((d) => <option key={d} value={d}>{d}</option>)}
             </select>
 
             <select
               value={month}
               onChange={(e) => setMonth(e.target.value)}
-              className="bg-gray-700 border border-gray-600 rounded-lg p-2 text-center focus:ring-black focus:outline-none"
+              className="bg-gray-700 border border-gray-600 rounded-lg p-2 text-center focus:ring-2 focus:ring-white focus:outline-none"
             >
               <option value="">Mês</option>
-              {months.map((m) => (
-                <option key={m} value={m}>{m}</option>
-              ))}
+              {months.map((m) => <option key={m} value={m}>{m}</option>)}
             </select>
 
             <select
               value={year}
               onChange={(e) => setYear(e.target.value)}
-              className="bg-gray-700 border border-gray-600 rounded-lg p-2 text-center focus:ring-black focus:outline-none"
+              className="bg-gray-700 border border-gray-600 rounded-lg p-2 text-center focus:ring-2 focus:ring-white focus:outline-none"
             >
               <option value="">Ano</option>
-              {years.map((y) => (
-                <option key={y} value={y}>{y}</option>
-              ))}
+              {years.map((y) => <option key={y} value={y}>{y}</option>)}
             </select>
           </div>
 
           <button
             type="submit"
-            className="w-full bg-black hover:bg-black py-3 rounded-lg font-semibold transition duration-200"
+            className="w-full bg-white hover:bg-gray-100 text-black py-3 rounded-lg font-semibold transition duration-200"
           >
             Confirmar e Entrar
           </button>

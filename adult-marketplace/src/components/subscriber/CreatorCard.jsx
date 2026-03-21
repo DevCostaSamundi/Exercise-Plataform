@@ -1,8 +1,3 @@
-/**
- * Card de Criador para Exploração
- * Exibe preview do criador com botão de assinar
- */
-
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { FiCheck, FiHeart, FiMessageCircle } from 'react-icons/fi';
@@ -10,17 +5,14 @@ import { formatCurrency, formatNumber, truncateText } from '../../utils/formatte
 
 const CreatorCard = ({ creator, onSubscribe, isSubscribed: initialSubscribed = false }) => {
   const [isSubscribed, setIsSubscribed] = useState(initialSubscribed);
-  const [loading, setLoading] = useState(false);
+  const [loading,      setLoading]      = useState(false);
 
   const handleSubscribe = async (e) => {
     e.preventDefault();
     e.stopPropagation();
-
     setLoading(true);
     try {
-      if (onSubscribe) {
-        await onSubscribe(creator._id, !isSubscribed);
-      }
+      await onSubscribe?.(creator._id, !isSubscribed);
       setIsSubscribed(!isSubscribed);
     } catch (error) {
       console.error('Erro ao assinar:', error);
@@ -34,23 +26,16 @@ const CreatorCard = ({ creator, onSubscribe, isSubscribed: initialSubscribed = f
       to={`/creator/${creator.username}`}
       className="block bg-white dark:bg-gray-800 rounded-lg shadow-md hover:shadow-xl transition-all overflow-hidden group"
     >
-      {/* Cover Image */}
+      {/* Cover */}
       <div className="relative h-32 bg-slate-200 dark:bg-slate-700">
         {creator.coverImage ? (
-          <img
-            src={creator.coverImage}
-            alt={`${creator.name} cover`}
-            className="w-full h-full object-cover"
-          />
+          <img src={creator.coverImage} alt={`${creator.name} cover`} className="w-full h-full object-cover" />
         ) : (
           <div className="w-full h-full bg-slate-300 dark:bg-slate-600" />
         )}
-
-        {/* Verified Badge */}
         {creator.isVerified && (
           <div className="absolute top-3 right-3 bg-black text-white px-2 py-1 rounded-full text-xs font-semibold flex items-center gap-1">
-            <FiCheck className="text-sm" />
-            Verificado
+            <FiCheck className="text-sm" /> Verificado
           </div>
         )}
       </div>
@@ -67,22 +52,16 @@ const CreatorCard = ({ creator, onSubscribe, isSubscribed: initialSubscribed = f
       {/* Info */}
       <div className="px-4 pb-4">
         <div className="mb-3">
-          <h3 className="font-bold text-lg text-gray-900 dark:text-white truncate">
-            {creator.name}
-          </h3>
-          <p className="text-gray-500 dark:text-gray-400 text-sm">
-            @{creator.username}
-          </p>
+          <h3 className="font-bold text-lg text-gray-900 dark:text-white truncate">{creator.name}</h3>
+          <p className="text-gray-500 dark:text-gray-400 text-sm">@{creator.username}</p>
         </div>
 
-        {/* Bio */}
         {creator.bio && (
           <p className="text-gray-700 dark:text-gray-300 text-sm mb-3 line-clamp-2">
             {truncateText(creator.bio, 80)}
           </p>
         )}
 
-        {/* Stats */}
         <div className="flex items-center gap-4 mb-4 text-sm">
           <div className="flex items-center gap-1 text-gray-600 dark:text-gray-400">
             <FiHeart className="text-slate-900" />
@@ -97,31 +76,28 @@ const CreatorCard = ({ creator, onSubscribe, isSubscribed: initialSubscribed = f
           </div>
         </div>
 
-        {/* Subscribe Button */}
+        {/* ⚠️  CORRIGIDO: era 'py-2. 5' com espaço — classe Tailwind inválida */}
         <button
           onClick={handleSubscribe}
           disabled={loading}
-          className={`w-full py-2. 5 rounded-lg font-semibold transition-all ${isSubscribed
+          className={`w-full py-2.5 rounded-lg font-semibold transition-all ${
+            isSubscribed
               ? 'bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-300 dark:hover:bg-gray-600'
               : 'bg-black dark:bg-white text-white dark:text-black hover:scale-105 active:scale-95'
-            } ${loading ? 'opacity-50 cursor-not-allowed' : ''}`}
+          } ${loading ? 'opacity-50 cursor-not-allowed' : ''}`}
         >
-          {loading ? (
-            'Processando...'
-          ) : isSubscribed ? (
-            'Assinando'
-          ) : (
+          {loading ? 'Processando...' : isSubscribed ? 'Assinando' : (
             <>Assinar · {formatCurrency(creator.subscriptionPrice || 0)}/mês</>
           )}
         </button>
       </div>
 
-      {/* Preview Posts (hover effect) */}
+      {/* Preview Posts */}
       {creator.previewPosts && creator.previewPosts.length > 0 && (
         <div className="border-t dark:border-gray-700 grid grid-cols-3 gap-px bg-gray-200 dark:bg-gray-700">
           {creator.previewPosts.slice(0, 3).map((post, index) => (
             <div key={index} className="aspect-square bg-gray-100 dark:bg-gray-900 overflow-hidden">
-              {post.media && post.media[0] ? (
+              {post.media?.[0] ? (
                 <img
                   src={post.media[0].thumbnail || post.media[0].url}
                   alt={`Preview ${index + 1}`}

@@ -43,11 +43,6 @@ export default function CreatorPostsPage() {
         limit: 50,
       });
 
-      // ✅ DEBUG COMPLETO
-      console.log('📦 Response completa:', response);
-      console.log('📦 Primeiro post:', response?.data?.[0]);
-      console.log('📦 Thumbnail do primeiro post:', response?.data?.[0]?.thumbnail);
-
       const postsData = response?.data || [];
       const statsData = response?.stats || {
         all: 0,
@@ -57,13 +52,7 @@ export default function CreatorPostsPage() {
       };
 
       // ✅ Validar cada post individualmente
-      const validatedPosts = postsData.map((post, index) => {
-        console.log(`📦 Post #${index + 1}:`, {
-          id: post.id,
-          title: post.title,
-          thumbnail: post.thumbnail,
-          thumbnailType: typeof post.thumbnail
-        });
+      const validatedPosts = postsData.map((post) => {
 
         return {
           ...post,
@@ -71,8 +60,6 @@ export default function CreatorPostsPage() {
           thumbnail: post.thumbnail || null
         };
       });
-
-      console.log('✅ Posts validados:', validatedPosts.length);
 
       setPosts(Array.isArray(validatedPosts) ? validatedPosts : []);
       setStats(statsData);
@@ -160,10 +147,10 @@ export default function CreatorPostsPage() {
   };
 
   const formatCurrency = (value) => {
-    return new Intl.NumberFormat('pt-BR', {
+    return new Intl.NumberFormat('en-US', { // ✅ CORRIGIDO: era pt-BR
       style: 'currency',
-      currency: 'BRL',
-    }).format(value * 5.5);
+      currency: 'USD',
+    }).format(value);
   };
 
   const formatNumber = (num) => {
@@ -438,8 +425,8 @@ export default function CreatorPostsPage() {
 
                   {/* Informações do post */}
                   <div className="p-4">
-                    <h3 className="font-bold text-slate-900 dark: text-white mb-1 truncate">{post.title}</h3>
-                    <p className="text-sm text-slate-500 dark: text-slate-400 line-clamp-2 mb-3">{post.description}</p>
+                    <h3 className="font-bold text-slate-900 dark:text-white mb-1 truncate">{post.title}</h3>
+                    <p className="text-sm text-slate-500 dark:text-slate-400 line-clamp-2 mb-3">{post.description}</p>
 
                     {/* Tags */}
                     {post.tags && post.tags.length > 0 && (
@@ -635,14 +622,14 @@ export default function CreatorPostsPage() {
                         </td>
                         <td className="px-6 py-4">
                           {post.earnings > 0 ? (
-                            <span className="font-bold text-slate-800 dark: text-slate-800">
+                            <span className="font-bold text-slate-800 dark:text-slate-800">
                               {formatCurrency(post.earnings)}
                             </span>
                           ) : (
                             <span className="text-slate-400">-</span>
                           )}
                         </td>
-                        <td className="px-6 py-4 text-sm text-slate-500 dark: text-slate-400">
+                        <td className="px-6 py-4 text-sm text-slate-500 dark:text-slate-400">
                           {post.status === 'published' && post.publishedAt && formatDate(post.publishedAt)}
                           {post.status === 'scheduled' && post.scheduledFor && (
                             <span className="text-black dark:text-black">
@@ -692,7 +679,7 @@ export default function CreatorPostsPage() {
                 </svg>
               </div>
 
-              <h3 className="text-lg font-bold text-slate-900 dark: text-white text-center mb-2">
+              <h3 className="text-lg font-bold text-slate-900 dark:text-white text-center mb-2">
                 Deletar Post?
               </h3>
               <p className="text-sm text-slate-600 dark:text-slate-400 text-center mb-6">

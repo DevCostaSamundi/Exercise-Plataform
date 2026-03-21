@@ -58,12 +58,12 @@ export default function HelpPage() {
         {
           id: 8,
           question: 'Como recebo meus ganhos?',
-          answer: 'Você pode solicitar saques quando atingir o valor mínimo de $ 100. Os pagamentos são processados em até 5 dias úteis via transferência bancária.',
+          answer: 'Podes solicitar saques a partir de $10 USDC. Os pagamentos são processados em até 3 dias úteis directamente para a tua carteira.',
         },
         {
           id: 9,
           question: 'Qual é a taxa da plataforma?',
-          answer: 'Cobramos uma taxa de 10% sobre os ganhos dos criadores. Os criadores recebem 80% do valor das assinaturas.',
+          answer: 'Cobramos uma taxa de 10% sobre os ganhos dos criadores. Os criadores recebem 90% do valor das assinaturas.',
         },
       ],
     },

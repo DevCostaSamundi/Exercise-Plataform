@@ -11,7 +11,7 @@ let io;
 export const initializeSocket = (server) => {
   io = new Server(server, {
     cors: {
-      origin:  process.env.FRONTEND_URL || 'http://localhost:5173',
+      origin: process.env.FRONTEND_URL || 'http://localhost:5173',
       credentials: true,
       methods: ['GET', 'POST'],
     },
@@ -22,21 +22,21 @@ export const initializeSocket = (server) => {
   // Middleware de autenticação
   io.use((socket, next) => {
     try {
-      const token = socket. handshake.auth.token;
-      
+      const token = socket.handshake.auth.token;
+
       if (!token) {
         logger.warn('Socket connection attempt without token');
         return next(new Error('Authentication token required'));
       }
 
       const decoded = jwt.verify(token, jwtConfig.secret);
-      socket.userId = decoded.userId;
+      socket.userId = decoded.userId || decoded.id;
       socket.userEmail = decoded.email;
-      
-      logger.info(`✅ Socket authenticated:  User ${socket.userId}`);
+
+      logger.info(`✅ Socket authenticated: User ${socket.userId}`);
       next();
     } catch (err) {
-      logger.error('Socket authentication error:', err. message);
+      logger.error('Socket authentication error:', err.message);
       next(new Error('Invalid authentication token'));
     }
   });
@@ -45,12 +45,12 @@ export const initializeSocket = (server) => {
   io.on('connection', (socket) => {
     logger.info(`🔌 User connected: ${socket.userId} (${socket.id})`);
 
-    // Entrar na sala pessoal do usuário
-    socket.join(`user: ${socket.userId}`);
-    
+    // Entrar na sala pessoal do utilizador
+    socket.join(`user:${socket.userId}`);
+
     // Confirmar conexão
     socket.emit('connected', {
-      userId: socket. userId,
+      userId: socket.userId,
       message: 'Connected to notification server',
     });
 
@@ -65,7 +65,7 @@ export const initializeSocket = (server) => {
     });
   });
 
-  logger.info('✅ Socket. IO initialized successfully');
+  logger.info('✅ Socket.IO initialized successfully');
   return io;
 };
 
@@ -74,9 +74,18 @@ export const initializeSocket = (server) => {
  */
 export const getIO = () => {
   if (!io) {
-    throw new Error('Socket.IO not initialized.  Call initializeSocket() first.');
+    throw new Error('Socket.IO not initialized. Call initializeSocket() first.');
   }
   return io;
 };
 
-export default { initializeSocket, getIO };
+/**
+ * Enviar notificação para um utilizador específico
+ * Usar em vez de io.to() directamente para consistência do room name
+ */
+export const notifyUser = (userId, event, data) => {
+  const ioInstance = getIO();
+  ioInstance.to(`user:${userId}`).emit(event, data);
+};
+
+export default { initializeSocket, getIO, notifyUser };

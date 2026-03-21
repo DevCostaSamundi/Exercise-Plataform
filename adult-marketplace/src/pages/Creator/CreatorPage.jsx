@@ -37,17 +37,14 @@ export default function CreatorPage() {
   const fetchCreatorData = async () => {
     setLoading(true);
     try {
-      console.log(`🔍 Buscando perfil do criador: ${id}`);
       let profileResponse;
       try {
         profileResponse = await creatorService.getCreatorProfile(id);
       } catch (err) {
-        console.warn('ID lookup failed, falling back to username');
         profileResponse = { success: false };
       }
 
       if (!profileResponse?.success || (typeof id === 'string' && !id.includes('-'))) {
-        console.log(`💡 Tentando busca por username: ${id}`);
         profileResponse = await creatorService.getCreatorProfileByUsername(id);
       }
 
@@ -90,7 +87,7 @@ export default function CreatorPage() {
     setPaymentData({
       creatorId: creator.id,
       type: 'SUBSCRIPTION',
-      amountUSD: creator.subscriptionPrice || 30,
+      amountUSD: creator.subscriptionPrice ?? 0,
     });
     setShowPaymentModal(true);
   };
@@ -134,7 +131,7 @@ export default function CreatorPage() {
   };
 
   const [selectedProduct, setSelectedProduct] = useState(null);
-  const [showBuyModal,    setShowBuyModal]    = useState(false);
+  const [showBuyModal, setShowBuyModal] = useState(false);
 
   // ─── NOVO: handler para compra na loja ───────────────────
   const handleBuyProduct = (product) => {
@@ -293,13 +290,13 @@ export default function CreatorPage() {
             {/* Name & Stats */}
             <div className="flex-1 w-full">
               <div className="bg-white/90 dark:bg-slate-900/90 backdrop-blur-sm rounded-xl p-4 shadow-lg border border-slate-200 dark:border-slate-800">
-                <h1 className="text-2xl sm:text-3xl font-bold text-slate-900 dark: text-white mb-1 flex items-center space-x-2">
+                <h1 className="text-2xl sm:text-3xl font-bold text-slate-900 dark:text-white mb-1 flex items-center space-x-2">
                   <span>{creator.displayName}</span>
                 </h1>
                 <p className="text-slate-600 dark:text-slate-400 mb-3">@{creator.username}</p>
                 <div className="flex items-center gap-4 sm:gap-6 text-sm flex-wrap">
                   <div>
-                    <span className="font-bold text-slate-900 dark: text-white">{creator.posts}</span>
+                    <span className="font-bold text-slate-900 dark:text-white">{creator.posts}</span>
                     <span className="text-slate-500 dark:text-slate-400 ml-1">Posts</span>
                   </div>
                   <div>
@@ -324,8 +321,8 @@ export default function CreatorPage() {
           {/* Main Content */}
           <div className="lg:col-span-2 space-y-6">
             {/* Bio */}
-            <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark: border-slate-800 p-6">
-              <h2 className="text-lg font-bold text-slate-900 dark: text-white mb-3">Sobre</h2>
+            <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 p-6">
+              <h2 className="text-lg font-bold text-slate-900 dark:text-white mb-3">Sobre</h2>
               <p className="text-slate-600 dark:text-slate-400 leading-relaxed mb-4 whitespace-pre-line">{creator.description}</p>
               <div className="flex flex-wrap gap-2 mb-4">
                 {creator.tags.map(tag => (
@@ -336,11 +333,11 @@ export default function CreatorPage() {
               </div>
               <div className="grid grid-cols-2 gap-4 pt-4 border-t border-slate-200 dark:border-slate-800">
                 <div>
-                  <p className="text-xs text-slate-500 dark: text-slate-400 mb-1">Identidade</p>
+                  <p className="text-xs text-slate-500 dark:text-slate-400 mb-1">Identidade</p>
                   <p className="text-sm font-medium text-slate-900 dark:text-white">{creator.genderIdentity}</p>
                 </div>
                 <div>
-                  <p className="text-xs text-slate-500 dark: text-slate-400 mb-1">Orientação</p>
+                  <p className="text-xs text-slate-500 dark:text-slate-400 mb-1">Orientação</p>
                   <p className="text-sm font-medium text-slate-900 dark:text-white">{creator.orientation}</p>
                 </div>
                 <div>
@@ -349,7 +346,7 @@ export default function CreatorPage() {
                 </div>
                 <div>
                   <p className="text-xs text-slate-500 dark:text-slate-400 mb-1">Membro desde</p>
-                  <p className="text-sm font-medium text-slate-900 dark: text-white">{creator.joinDate}</p>
+                  <p className="text-sm font-medium text-slate-900 dark:text-white">{creator.joinDate}</p>
                 </div>
               </div>
             </div>
@@ -370,7 +367,7 @@ export default function CreatorPage() {
                   onClick={() => setActiveTab('media')}
                   className={`pb-3 border-b-2 font-medium text-sm transition-colors ${activeTab === 'media'
                     ? 'border-black dark:border-white text-black dark:text-white'
-                    : 'border-transparent text-slate-500 hover: text-slate-700 dark: text-slate-400 dark: hover:text-slate-300'
+                    : 'border-transparent text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-300'
                     }`}
                 >
                   Mídia ({creator.photos + creator.videos})
@@ -391,7 +388,7 @@ export default function CreatorPage() {
                   onClick={() => setActiveTab('about')}
                   className={`pb-3 border-b-2 font-medium text-sm transition-colors ${activeTab === 'about'
                     ? 'border-black dark:border-white text-black'
-                    : 'border-transparent text-slate-500 hover: text-slate-700 dark: text-slate-400 dark: hover:text-slate-300'
+                    : 'border-transparent text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-300'
                     }`}
                 >
                   Sobre
@@ -415,7 +412,7 @@ export default function CreatorPage() {
                   onClick={() => setFilterType('photos')}
                   className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${filterType === 'photos'
                     ? 'bg-black text-white'
-                    : 'bg-slate-100 dark: bg-slate-800 text-slate-700 dark:text-slate-300'
+                    : 'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300'
                     }`}
                 >
                   📸 Fotos ({creator.photos})
@@ -576,7 +573,7 @@ export default function CreatorPage() {
                           className="flex items-center gap-2 bg-black dark:bg-white text-white dark:text-black px-5 py-2.5 rounded-xl text-sm font-semibold hover:opacity-90 transition-opacity whitespace-nowrap"
                         >
                           <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
-                            <path fillRule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clipRule="evenodd"/>
+                            <path fillRule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clipRule="evenodd" />
                           </svg>
                           + Adicionar produto
                         </button>
@@ -616,7 +613,7 @@ export default function CreatorPage() {
                     </div>
                     <div>
                       <p className="text-sm text-slate-500 dark:text-slate-400 mb-1">Localização</p>
-                      <p className="font-medium text-slate-900 dark: text-white">{creator.location}</p>
+                      <p className="font-medium text-slate-900 dark:text-white">{creator.location}</p>
                     </div>
                     <div>
                       <p className="text-sm text-slate-500 dark:text-slate-400 mb-1">Membro desde</p>
@@ -649,7 +646,7 @@ export default function CreatorPage() {
                   className="w-full flex items-center gap-3 bg-black dark:bg-white text-white dark:text-black py-3 px-4 rounded-xl font-semibold text-sm hover:opacity-90 transition-opacity"
                 >
                   <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                    <path fillRule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clipRule="evenodd"/>
+                    <path fillRule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clipRule="evenodd" />
                   </svg>
                   + Adicionar produto / NFT
                 </button>
@@ -669,43 +666,43 @@ export default function CreatorPage() {
             ) : (
               /* Subscription Card — só para visitantes */
               !isSubscribed ? (
-              <div className="bg-black dark:bg-white border border-slate-200 dark:border-slate-800 rounded-xl p-6 text-white dark:text-black shadow-xl">
-                <div className="text-center mb-4">
-                  <p className="text-sm font-medium opacity-90 mb-1">Assine por apenas</p>
-                  <p className="text-4xl font-bold">{formatPrice(creator.subscriptionPrice || 30)}</p>
-                  <p className="text-sm opacity-75">por mês</p>
-                </div>
-                <button
-                  onClick={handleSubscribe}
-                  className="w-full bg-white text-black hover:bg-slate-50 py-3 px-6 rounded-lg font-semibold shadow-lg transition-all hover:shadow-xl mb-3"
-                >
-                  Assinar Agora
-                </button>
-                <div className="space-y-2 text-sm">
-                  {benefits.map((benefit, idx) => (
-                    <div key={idx} className="flex items-start space-x-2">
-                      <span className="text-lg">{benefit.icon}</span>
-                      <div>
-                        <p className="font-semibold">{benefit.title}</p>
-                        <p className="text-xs opacity-75">{benefit.description}</p>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            ) : (
-              <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 p-6">
-                <div className="text-center mb-4">
-                  <div className="w-16 h-16 bg-slate-800 dark:bg-slate-800/20 rounded-full flex items-center justify-center mx-auto mb-3">
-                    <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8 text-slate-800 dark:text-slate-800" viewBox="0 0 20 20" fill="currentColor">
-                      <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-                    </svg>
+                <div className="bg-black dark:bg-white border border-slate-200 dark:border-slate-800 rounded-xl p-6 text-white dark:text-black shadow-xl">
+                  <div className="text-center mb-4">
+                    <p className="text-sm font-medium opacity-90 mb-1">Assine por apenas</p>
+                    <p className="text-4xl font-bold">{formatPrice(creator.subscriptionPrice ?? 0)}</p>
+                    <p className="text-sm opacity-75">por mês</p>
                   </div>
-                  <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-1">Você é assinante! </h3>
-                  <p className="text-sm text-slate-600 dark: text-slate-400">Aproveite todo o conteúdo exclusivo</p>
+                  <button
+                    onClick={handleSubscribe}
+                    className="w-full bg-white text-black hover:bg-slate-50 py-3 px-6 rounded-lg font-semibold shadow-lg transition-all hover:shadow-xl mb-3"
+                  >
+                    Assinar Agora
+                  </button>
+                  <div className="space-y-2 text-sm">
+                    {benefits.map((benefit, idx) => (
+                      <div key={idx} className="flex items-start space-x-2">
+                        <span className="text-lg">{benefit.icon}</span>
+                        <div>
+                          <p className="font-semibold">{benefit.title}</p>
+                          <p className="text-xs opacity-75">{benefit.description}</p>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
                 </div>
-              </div>
-            ))}
+              ) : (
+                <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 p-6">
+                  <div className="text-center mb-4">
+                    <div className="w-16 h-16 bg-slate-800 dark:bg-slate-800/20 rounded-full flex items-center justify-center mx-auto mb-3">
+                      <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8 text-slate-800 dark:text-slate-800" viewBox="0 0 20 20" fill="currentColor">
+                        <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                      </svg>
+                    </div>
+                    <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-1">Você é assinante! </h3>
+                    <p className="text-sm text-slate-600 dark:text-slate-400">Aproveite todo o conteúdo exclusivo</p>
+                  </div>
+                </div>
+              ))}
 
             {/* Redes Sociais */}
             {creator.socialLinks && Object.keys(creator.socialLinks).filter(key => creator.socialLinks[key]).length > 0 && (
@@ -792,7 +789,7 @@ export default function CreatorPage() {
                   <span className="font-semibold text-slate-900 dark:text-white">{creator.photos}</span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-slate-600 dark: text-slate-400">Vídeos</span>
+                  <span className="text-slate-600 dark:text-slate-400">Vídeos</span>
                   <span className="font-semibold text-slate-900 dark:text-white">{creator.videos}</span>
                 </div>
                 <div className="flex justify-between">
@@ -816,7 +813,6 @@ export default function CreatorPage() {
             setSelectedPost(null);
           }}
           onSuccess={(payment) => {
-            console.log('✅ Payment successful:', payment);
             setShowPaymentModal(false);
             setPaymentData(null);
             setSelectedPost(null);
@@ -851,8 +847,8 @@ export default function CreatorPage() {
           isOpen={showBuyModal}
           product={selectedProduct}
           creator={{
-            id:                  creator.id,
-            shipsFrom:           creator.storeProfile?.shipsFrom || '',
+            id: creator.id,
+            shipsFrom: creator.storeProfile?.shipsFrom || '',
             shipsInternationally: creator.storeProfile?.shipsInternationally ?? true,
           }}
           onClose={() => { setShowBuyModal(false); setSelectedProduct(null); }}

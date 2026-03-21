@@ -4,7 +4,7 @@ import api from './api';
 class CreatorPostService {
   async uploadMedia(file, mediaType = 'photo') {
     try {
-      console.log('📤 Starting upload via backend:', {
+      if (import.meta.env.DEV) console.log('📤 Starting upload via backend:', {
         name: file.name,
         size: file.size,
         type: file.type,
@@ -23,7 +23,7 @@ class CreatorPostService {
           const percentCompleted = Math.round(
             (progressEvent.loaded * 100) / progressEvent.total
           );
-          console.log(`📊 Upload progress: ${percentCompleted}%`);
+          if (import.meta.env.DEV) console.log(`📊 Upload progress: ${percentCompleted}%`);
         },
       });
 
@@ -32,7 +32,7 @@ class CreatorPostService {
         throw new Error(response.data?.message || 'Upload failed');
       }
 
-      console.log('✅ Upload successful:', response.data.data);
+      if (import.meta.env.DEV) console.log('✅ Upload successful:', response.data.data);
 
       return {
         url: response.data.data.url,
@@ -53,7 +53,7 @@ class CreatorPostService {
 
   async createPost(postData) {
     try {
-      console.log('📝 Creating post:', postData);
+      if (import.meta.env.DEV) console.log('📝 Creating post:', postData);
 
       const response = await api.post('/posts', postData);
 
@@ -61,7 +61,7 @@ class CreatorPostService {
         throw new Error(response.data?.message || 'Falha ao criar post');
       }
 
-      console.log('✅ Post created successfully:', response.data.data);
+      if (import.meta.env.DEV) console.log('✅ Post created successfully:', response.data.data);
       return response.data.data;
 
     } catch (error) {

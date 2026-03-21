@@ -1,18 +1,17 @@
 import { Server } from 'socket.io';
 import jwt from 'jsonwebtoken';
 import logger from '../utils/logger.js';
+import jwtConfig from '../config/jwt.js';
 import { setupMessageSocket } from './messageSocket.js';
 
-// JWT authentication middleware for Socket.IO
+// Middleware de autenticação JWT para Socket.IO
 const authenticateSocket = (socket, next) => {
   try {
-    // Tentar pegar token do auth
     let token = socket.handshake.auth.token;
-    
+
     // Fallback para authorization header
     if (!token && socket.handshake.headers.authorization) {
-      const authHeader = socket.handshake.headers.authorization;
-      const parts = authHeader.split(' ');
+      const parts = socket.handshake.headers.authorization.split(' ');
       if (parts.length === 2 && parts[0] === 'Bearer') {
         token = parts[1];
       }
@@ -23,17 +22,17 @@ const authenticateSocket = (socket, next) => {
       return next(new Error('Authentication required'));
     }
 
-    // Verificar token
-    const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    
-    // ✅ Aceitar tanto 'userId' quanto 'id'
-    socket.userId = decoded.userId || decoded.id;
-    
+    // Usa jwtConfig — nunca process.env directamente
+    const decoded = jwt.verify(token, jwtConfig.secret);
+
+    // Suporta tokens assinados com 'id' (Web3Auth) e 'userId' (email/password)
+    socket.userId = decoded.id || decoded.userId;
+
     if (!socket.userId) {
-      logger.error('Socket authentication failed: userId missing in token', decoded);
-      return next(new Error('Authentication error: userId missing'));
+      logger.error('Socket authentication failed: user identifier missing in token');
+      return next(new Error('Authentication error: user identifier missing'));
     }
-    
+
     logger.info(`✅ Socket authenticated: ${socket.id} (User: ${socket.userId})`);
     next();
   } catch (error) {
@@ -45,28 +44,30 @@ const authenticateSocket = (socket, next) => {
 const initSocket = (server) => {
   const io = new Server(server, {
     cors: {
-      origin: process.env.CLIENT_URL || 'http://localhost:5173',
+      origin:      process.env.FRONTEND_URL || 'http://localhost:5173',
       credentials: true,
-      methods: ['GET', 'POST'],
+      methods:     ['GET', 'POST'],
     },
-    transports: ['websocket', 'polling'],
-    pingTimeout: 60000,
-    pingInterval: 25000,
+    transports:    ['websocket', 'polling'],
+    pingTimeout:   60000,
+    pingInterval:  25000,
   });
 
-  // ✅ Aplicar autenticação no namespace principal
+  // Autenticação no namespace principal
   io.use(authenticateSocket);
 
-  // Setup de namespaces
+  // Setup namespace de mensagens
   const messageNamespace = setupMessageSocket(io);
-  
-  // ✅ Aplicar autenticação também no namespace de mensagens
+
+  // Autenticação também no namespace de mensagens
   messageNamespace.use(authenticateSocket);
 
   io.on('connection', (socket) => {
     logger.info(`✅ Socket connected: ${socket.id} (User: ${socket.userId})`);
 
-    // Emitir evento de conexão bem-sucedida
+    // Room consistente: 'user:${id}'
+    socket.join(`user:${socket.userId}`);
+
     socket.emit('authenticated', { userId: socket.userId });
 
     socket.on('disconnect', (reason) => {

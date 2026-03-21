@@ -285,7 +285,7 @@ export const useCryptoPayment = () => {
             const response = await axios.post(
                 `${API_URL}/payments/crypto/create-order`,
                 paymentData,
-                { headers: { Authorization: `Bearer ${localStorage.getItem('token')}` } }
+                { headers: { Authorization: `Bearer ${localStorage.getItem('authToken') || localStorage.getItem('flow_connect_token')}` } }
             );
 
             const order = response.data.data;
@@ -377,7 +377,7 @@ export const useCryptoPayment = () => {
             const response = await axios.post(
                 `${API_URL}/payments/crypto/verify`,
                 { paymentId, txHash },
-                { headers: { Authorization: `Bearer ${localStorage.getItem('token')}` } }
+                { headers: { Authorization: `Bearer ${localStorage.getItem('authToken') || localStorage.getItem('flow_connect_token')}` } }
             );
             return response.data;
         } catch {
@@ -437,7 +437,7 @@ export const useCryptoPayment = () => {
     const checkPaymentStatus = useCallback(async (paymentId) => {
         const response = await axios.get(
             `${API_URL}/payments/crypto/${paymentId}/status`,
-            { headers: { Authorization: `Bearer ${localStorage.getItem('token')}` } }
+            { headers: { Authorization: `Bearer ${localStorage.getItem('authToken') || localStorage.getItem('flow_connect_token')}` } }
         );
         return response.data.data;
     }, []);
@@ -486,7 +486,7 @@ export const useCryptoPayment = () => {
         try {
             const response = await axios.get(`${API_URL}/payments/crypto/onramp-url`, {
                 params: { provider, amountUSD, walletAddress },
-                headers: { Authorization: `Bearer ${localStorage.getItem('token')}` },
+                headers: { Authorization: `Bearer ${localStorage.getItem('authToken') || localStorage.getItem('flow_connect_token')}` },
             });
             return response.data.data.url;
         } catch (err) {

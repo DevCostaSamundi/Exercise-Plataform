@@ -1,7 +1,5 @@
-
-
 import { useState, useEffect } from 'react';
-import { CONTENT_TYPES } from '../../utils/constansts';
+import { CONTENT_TYPES } from '../../config/constants'; // ✅ CORRIGIDO: era '../../utils/constansts'
 import PostCard from '../../components/subscriber/PostCard';
 import FilterBar from '../../components/subscriber/FilterBar';
 import useInfiniteScroll from '../../hooks/useInfiniteScroll';

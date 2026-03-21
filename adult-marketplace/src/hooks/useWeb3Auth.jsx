@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, createContext, useContext } from 'react';
+import { useState, useEffect, useCallback, useRef, createContext, useContext } from 'react';
 import { createWeb3AuthInstance } from '../config/web3auth.config.js';
 import { ethers } from 'ethers';
 import axios from 'axios';
@@ -16,8 +16,16 @@ export const Web3AuthProvider = ({ children }) => {
     const [error, setError] = useState(null);
     const [authToken, setAuthToken] = useState(localStorage.getItem('token'));
 
+    // ✅ Ref para evitar dupla inicialização (React StrictMode)
+    const initRef = useRef(false);
+    const web3authRef = useRef(null);
+
     // Initialize Web3Auth
     useEffect(() => {
+        // Guard contra dupla inicialização do StrictMode
+        if (initRef.current) return;
+        initRef.current = true;
+
         const init = async () => {
             try {
                 setLoading(true);
@@ -31,9 +39,9 @@ export const Web3AuthProvider = ({ children }) => {
                     return;
                 }
 
-                // ✅ CORRIGIDO: v8 usa init() ao invés de initModal()
                 await web3authInstance.init();
 
+                web3authRef.current = web3authInstance;
                 setWeb3auth(web3authInstance);
                 setIsInitialized(true);
                 console.log('✅ Web3Auth initialized');
@@ -99,20 +107,23 @@ export const Web3AuthProvider = ({ children }) => {
     // Login to backend
     const loginToBackend = async (web3authInstance, walletAddress) => {
         try {
-            const idToken = await web3authInstance.authenticateUser();
+            // ✅ v10: usar getIdentityToken() em vez de authenticateUser()
+            const tokenResult = await web3authInstance.getIdentityToken();
 
             const response = await axios.post(
-                `${import.meta.env.VITE_API_URL}/auth/web3auth/login`,
+                `${import.meta.env.VITE_API_URL}/api/v1/auth/web3auth/login`,
                 {
-                    idToken: idToken.idToken,
+                    idToken: tokenResult.idToken,
                     walletAddress,
                 }
             );
 
             const { token, user } = response.data.data;
 
-            // Store token
-            localStorage.setItem('token', token);
+            // Store token and user for session & redirect
+            localStorage.setItem('authToken', token);
+            localStorage.setItem('token', token); // backward compat
+            localStorage.setItem('user', JSON.stringify(user));
             setAuthToken(token);
 
             console.log('✅ Logged in to backend:', user.email);
@@ -124,9 +135,10 @@ export const Web3AuthProvider = ({ children }) => {
         }
     };
 
-    // Login
-    const login = useCallback(async () => {
+    // Login with Email (more stable on devnet)
+    const loginWithEmail = useCallback(async (email) => {
         if (!web3auth) {
+            console.error('❌ Web3Auth not initialized yet');
             throw new Error('Web3Auth not initialized');
         }
 
@@ -134,15 +146,88 @@ export const Web3AuthProvider = ({ children }) => {
             setLoading(true);
             setError(null);
 
-            console.log('🔐 Starting Web3Auth login...');
+            console.log('🔐 Starting Email login...');
 
-            // ✅ CORRIGIDO: v8 usa connect() que retorna o provider
-            const web3Provider = await web3auth.connect();
+            // ✅ Use connectTo() with Email login provider
+            console.log('📧 Initiating email login (redirect mode)...');
+            const web3Provider = await web3auth.connectTo('email_passwordless', {
+                loginHint: email,
+            });
 
             if (!web3Provider) {
+                console.error('❌ Email login returned no provider');
                 throw new Error('Failed to connect - no provider returned');
             }
 
+            console.log('✅ Provider received from email login');
+            await handleConnectedState(web3auth);
+
+            return {
+                address,
+                userInfo,
+            };
+        } catch (err) {
+            console.error('❌ Email login error:', err);
+            setError(err.message);
+            throw err;
+        } finally {
+            setLoading(false);
+        }
+    }, [web3auth, address, userInfo]);
+
+    // ✅ Reinitialize Web3Auth (para recuperação de erros)
+    const reinitialize = useCallback(async () => {
+        try {
+            console.log('🔄 Re-initializing Web3Auth...');
+            setLoading(true);
+            setError(null);
+
+            const web3authInstance = createWeb3AuthInstance();
+            if (!web3authInstance) {
+                console.warn('⚠️ Web3Auth instance not available.');
+                return;
+            }
+
+            await web3authInstance.init();
+            web3authRef.current = web3authInstance;
+            setWeb3auth(web3authInstance);
+            setIsInitialized(true);
+            console.log('✅ Web3Auth re-initialized successfully');
+        } catch (err) {
+            console.error('❌ Web3Auth re-initialization error:', err);
+            setError(err.message);
+        } finally {
+            setLoading(false);
+        }
+    }, []);
+
+    // Login with Social (Google/Facebook - uses modal popup)
+    const login = useCallback(async () => {
+        if (!web3auth) {
+            console.error('❌ Web3Auth not initialized yet');
+            throw new Error('Web3Auth not initialized');
+        }
+
+        try {
+            setLoading(true);
+            setError(null);
+
+            console.log('🔐 Starting Web3Auth login via modal...');
+            console.log('   Web3Auth state:', {
+                connected: web3auth?.connected ?? 'unknown',
+                status: web3auth?.status,
+            });
+
+            // ✅ v10: Usar connect() que abre o modal com todas as opções
+            console.log('📱 Opening Web3Auth modal...');
+            const web3Provider = await web3auth.connect();
+
+            if (!web3Provider) {
+                console.error('❌ Login returned no provider');
+                throw new Error('Failed to connect - no provider returned');
+            }
+
+            console.log('✅ Provider received from login');
             await handleConnectedState(web3auth);
 
             return {
@@ -151,12 +236,27 @@ export const Web3AuthProvider = ({ children }) => {
             };
         } catch (err) {
             console.error('❌ Login error:', err);
+            console.error('   Error type:', err.name);
+            console.error('   Error message:', err.message);
+
+            // ⚠️ Se houver erro, fazer logout e reinitializar
+            try {
+                console.log('🔧 Attempting to reset Web3Auth after error...');
+                if (web3auth?.connected) {
+                    await web3auth.logout();
+                }
+                // Re-inicializar para próxima tentativa
+                await reinitialize();
+            } catch (recoveryErr) {
+                console.warn('⚠️ Error recovery failed:', recoveryErr);
+            }
+
             setError(err.message);
             throw err;
         } finally {
             setLoading(false);
         }
-    }, [web3auth, address, userInfo]);
+    }, [web3auth, address, userInfo, reinitialize]);
 
     // Logout
     const logout = useCallback(async () => {
@@ -270,7 +370,9 @@ export const Web3AuthProvider = ({ children }) => {
 
         // Methods
         login,
+        loginWithEmail,
         logout,
+        reinitialize,
         getBalance,
         getUSDCBalance,
         signMessage,

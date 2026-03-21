@@ -1,420 +1,584 @@
 /**
- * Backend Constants — PLATAFORMA
- * Configuração centralizada de toda a plataforma
- * Inclui: Marketplace, NFTs, Escrow, Moderação, Pagamentos
+ * Application Constants
+ * Centralized configuration values used throughout the application
  */
 
-// ============================================================
-// PLATAFORMA — TAXAS E LIMITES FINANCEIROS
-// ============================================================
+// ✅ CORRETO para backend
+export const API_BASE_URL = process.env.API_URL || 'http://localhost:5000';
+export const SOCKET_URL = process.env.VITE_SOCKET_URL || 'http://localhost:5000';
 
-export const PLATFORM_FEE_PERCENTAGE = 10; // 10% sobre todas as transações da loja
-
-export const MIN_WITHDRAWAL_AMOUNT = 100;  // Mínimo para saque em USD
-
-export const PLATFORM_WALLET_ADDRESS = process.env.PLATFORM_WALLET_ADDRESS || '';
-// Endereço Polygon da plataforma para receber os 10% de taxa
-
-// ============================================================
-// ESCROW — Custódia de Fundos On-Chain
-// ============================================================
-
-export const ESCROW = {
-  // Prazo para aprovação automática após entrega (em horas)
-  AUTO_RELEASE_HOURS_DIGITAL:  72,   // 72h para digital e custom
-  AUTO_RELEASE_HOURS_PHYSICAL: 120,  // 120h (5 dias) para físico
-
-  // Prazo para a criadora entregar após confirmação do pagamento (em horas)
-  CREATOR_DELIVERY_DEADLINE_HOURS_DIGITAL:  168,  // 7 dias para digital/custom
-  CREATOR_DELIVERY_DEADLINE_HOURS_PHYSICAL: 336,  // 14 dias para físico
-
-  // Prazo para fa confirmar recebimento de físico (em dias)
-  BUYER_CONFIRM_DEADLINE_DAYS: 5,
-
-  // Prazo para abrir disputa após entrega (em horas)
-  DISPUTE_WINDOW_HOURS_DIGITAL:  48,  // 48h para digital/custom
-  DISPUTE_WINDOW_HOURS_PHYSICAL: 120, // 120h para físico
-  DISPUTE_WINDOW_HOURS_SERVICE:  48,  // 48h para serviço
-
-  // Prazo para mediação da plataforma resolver disputa (em dias úteis)
-  DISPUTE_RESOLUTION_BUSINESS_DAYS: 5,
-
-  // Contrato de escrow Polygon
-  CONTRACT_ADDRESS: process.env.ESCROW_CONTRACT_ADDRESS || '',
-  NETWORK: 'polygon',
-  CURRENCY: 'USDC',
+export const API = {
+  BASE_URL: API_BASE_URL,
+  TIMEOUT: 15000, // 15 seconds
+  VERSION: 'v1',
 };
 
-// ============================================================
-// NFT — Configurações On-Chain
-// ============================================================
-
-export const NFT = {
-  // Royalties
-  MIN_ROYALTY_PERCENT: 5,
-  MAX_ROYALTY_PERCENT: 15,
-  DEFAULT_ROYALTY_PERCENT: 10,
-
-  // Rede
-  NETWORK: 'polygon',
-  CURRENCY: 'USDC',
-
-  // Contratos (endereços configurados via env)
-  ERC721_CONTRACT:  process.env.NFT_ERC721_CONTRACT  || '',  // Edições únicas (1/1)
-  ERC1155_CONTRACT: process.env.NFT_ERC1155_CONTRACT || '',  // Edições múltiplas
-  ROYALTY_STANDARD: 'ERC-2981',                              // Royalties on-chain
-
-  // Armazenamento
-  ARWEAVE_GATEWAY: process.env.ARWEAVE_GATEWAY || 'https://arweave.net',
-
-  // Tipos de NFT
-  TYPES: {
-    DIGITAL_CONTENT:  'DIGITAL_CONTENT',
-    ACCESS_PASS:      'ACCESS_PASS',
-    PHYSICAL_AUTH:    'PHYSICAL_AUTH',
-    ACHIEVEMENT:      'ACHIEVEMENT',
-    CUSTOM_CONTENT:   'CUSTOM_CONTENT',
-    COLLECTION:       'COLLECTION',
-  },
-
-  // Gatilhos de mint
-  MINT_TRIGGERS: {
-    DIGITAL_PURCHASE:   'digital_purchase',   // Compra de digital — mint imediato
-    CUSTOM_APPROVED:    'custom_approved',    // Custom aprovado pelo fa
-    PHYSICAL_DELIVERED: 'physical_delivered', // Item físico confirmado
-    ACCESS_PURCHASE:    'access_purchase',    // Compra de passe de acesso
-    ACHIEVEMENT:        'achievement',        // Marco especial — sem pagamento
-  },
+// Currency Configuration
+export const CURRENCY = {
+  USD_TO_BRL: 5.5,
+  USD_SYMBOL: '$',
 };
 
-// ============================================================
-// MARKETPLACE — Configurações da Loja
-// ============================================================
+// Upload limits
+export const MAX_IMAGE_SIZE_MB = 5;
+export const MAX_VIDEO_SIZE_MB = 100;
+export const MAX_IMAGES_PER_POST = 10;
 
-export const MARKETPLACE = {
-  // Moderação por avaliações negativas
-  NEGATIVE_REVIEW_MAX_RATING:          2,   // 1 ou 2 estrelas = avaliação negativa
-  ALERT_THRESHOLD:                     5,   // 5 negativas → alerta + email
-  SUSPENSION_THRESHOLD:                10,  // 10 negativas → suspensão automática
-  SUSPENSION_CONTEST_WINDOW_DAYS:      7,   // 7 dias para contestar suspensão
-
-  // Prazos de entrega para produtos físicos
-  PHYSICAL_DELIVERY_DAYS_OPTIONS: [3, 7, 14],
-  DEFAULT_DELIVERY_DAYS:          7,
-
-  // Tracking obrigatório (em horas após confirmação do pedido)
-  TRACKING_DEADLINE_HOURS:             72,  // 3 dias para inserir código de rastreio
-
-  // Itens físicos — limite de cancelamentos automáticos (30 dias)
-  MAX_FAILED_SHIPMENTS_30_DAYS:        3,   // 3 não-envios em 30 dias = suspensão
-
-  // NFT — edições
-  MAX_EDITION_SIZE:                    10000,
-  MIN_FLOOR_PRICE_USD:                 1,
-
-  // Custom
-  MAX_CUSTOM_DEADLINE_DAYS:            7,
-  CUSTOM_INSTRUCTION_MAX_CHARS:        2000,
-
-  // Fotos do produto
-  MAX_PRODUCT_IMAGES:                  10,
-  MAX_VIDEO_PROOF_SECONDS:             30,
-
-  // Categorias de produto permitidas
-  CATEGORIES: {
-    PHYSICAL_ITEM:    'PHYSICAL_ITEM',
-    DIGITAL_CONTENT:  'DIGITAL_CONTENT',
-    CUSTOM:           'CUSTOM',
-    EXPERIENCE:       'EXPERIENCE',
-    NFT_COLLECTION:   'NFT_COLLECTION',
-    BUNDLE:           'BUNDLE',
-    MERCHANDISE:      'MERCHANDISE',
-    OTHER:            'OTHER',
-  },
-
-  TYPES: {
-    PHYSICAL: 'PHYSICAL',
-    DIGITAL:  'DIGITAL',
-    SERVICE:  'SERVICE',
-    HYBRID:   'HYBRID',
-    CUSTOM:   'CUSTOM',
-  },
+// File Upload
+export const UPLOAD = {
+  MAX_FILE_SIZE_MB: 50,
+  ALLOWED_IMAGE_TYPES: ['image/jpeg', 'image/png', 'image/gif', 'image/webp'],
+  ALLOWED_VIDEO_TYPES: ['video/mp4', 'video/webm', 'video/quicktime'],
 };
 
-// ============================================================
-// PRIVACIDADE — Endereço do Comprador
-// ============================================================
-
-export const PRIVACY = {
-  // Algoritmo de criptografia do endereço de entrega
-  ADDRESS_ENCRYPTION_ALGO: 'AES-256-GCM',
-  ADDRESS_KEY_ENV:          'SHIPPING_ADDRESS_ENCRYPTION_KEY',
-
-  // Código anônimo de drop para a criadora
-  DROP_CODE_LENGTH:         8,
-  DROP_CODE_CHARS:          'ABCDEFGHJKLMNPQRSTUVWXYZ23456789', // Sem caracteres ambíguos
-
-  // A criadora NUNCA recebe: endereço completo, nome real do fa, email do fa
-  // A criadora recebe: código de drop + etiqueta gerada pela plataforma
-};
-
-// ============================================================
-// STORE STATUS
-// ============================================================
-
-export const STORE_STATUS = {
-  ACTIVE:    'ACTIVE',
-  WARNING:   'WARNING',
-  SUSPENDED: 'SUSPENDED',
-  BANNED:    'BANNED',
-  PAUSED:    'PAUSED',
-};
-
-// ============================================================
-// ORDER STATUS
-// ============================================================
-
-export const ORDER_STATUS = {
-  PENDING:           'PENDING',
-  CONFIRMED:         'CONFIRMED',
-  PROCESSING:        'PROCESSING',
-  SHIPPED:           'SHIPPED',
-  DELIVERED:         'DELIVERED',
-  AWAITING_APPROVAL: 'AWAITING_APPROVAL',
-  COMPLETED:         'COMPLETED',
-  DISPUTED:          'DISPUTED',
-  CANCELLED:         'CANCELLED',
-  REFUNDED:          'REFUNDED',
-};
-
-export const ESCROW_STATUS = {
-  PENDING:  'PENDING',
-  HELD:     'HELD',
-  RELEASED: 'RELEASED',
-  REFUNDED: 'REFUNDED',
-  DISPUTED: 'DISPUTED',
-};
-
-export const SHIPMENT_STATUS = {
-  AWAITING_SHIPMENT: 'AWAITING_SHIPMENT',
-  SHIPPED:           'SHIPPED',
-  IN_TRANSIT:        'IN_TRANSIT',
-  OUT_FOR_DELIVERY:  'OUT_FOR_DELIVERY',
-  DELIVERED:         'DELIVERED',
-  FAILED_DELIVERY:   'FAILED_DELIVERY',
-  RETURNED:          'RETURNED',
-  LOST:              'LOST',
-};
-
-export const DISPUTE_RESOLUTION = {
-  FAVOR_BUYER:   'FAVOR_BUYER',
-  FAVOR_CREATOR: 'FAVOR_CREATOR',
-  SPLIT:         'SPLIT',
-};
-
-// ============================================================
-// PAYMENT
-// ============================================================
-
-export const PAYMENT_STATUS = {
-  PENDING:       'PENDING',
-  WAITING:       'WAITING',
-  CONFIRMING:    'CONFIRMING',
-  COMPLETED:     'COMPLETED',
-  FAILED:        'FAILED',
-  EXPIRED:       'EXPIRED',
-  PARTIALLY_PAID:'PARTIALLY_PAID',
-  REFUNDED:      'REFUNDED',
-  CANCELLED:     'CANCELLED',
-};
-
-export const PAYMENT_TYPE = {
-  SUBSCRIPTION:         'SUBSCRIPTION',
-  SUBSCRIPTION_RENEWAL: 'SUBSCRIPTION_RENEWAL',
-  PPV_MESSAGE:          'PPV_MESSAGE',
-  PPV_POST:             'PPV_POST',
-  TIP:                  'TIP',
-  WALLET_DEPOSIT:       'WALLET_DEPOSIT',
-  GIFT:                 'GIFT',
-  MARKETPLACE_PURCHASE: 'MARKETPLACE_PURCHASE',
-  ESCROW_HOLD:          'ESCROW_HOLD',
-  ESCROW_RELEASE:       'ESCROW_RELEASE',
-  NFT_ROYALTY:          'NFT_ROYALTY',
-};
-
-export const PAYMENT_GATEWAY = {
-  WEB3_DIRECT:            'WEB3_DIRECT',
-  CRYPTO_DIRECT:          'CRYPTO_DIRECT',
-  BALANCE:                'BALANCE',
-  MANUAL:                 'MANUAL',
-  SMART_CONTRACT_ESCROW:  'SMART_CONTRACT_ESCROW',
-};
-
-export const PAYMENT_METHODS = {
-  CRYPTO:  'crypto',
-  BALANCE: 'balance',
-};
-
-// ============================================================
-// SUBSCRIPTION
-// ============================================================
-
-export const SUBSCRIPTION_STATUS = {
-  ACTIVE:    'ACTIVE',
-  CANCELLED: 'CANCELLED',
-  EXPIRED:   'EXPIRED',
-};
-
-// ============================================================
-// NOTIFICATIONS
-// ============================================================
-
-export const NOTIFICATION_TYPES = {
-  // Plataforma geral
-  SUBSCRIBER:           'SUBSCRIBER',
-  COMMENT:              'COMMENT',
-  TIP:                  'TIP',
-  LIKE:                 'LIKE',
-  MESSAGE:              'MESSAGE',
-  PAYMENT:              'PAYMENT',
-  MILESTONE:            'MILESTONE',
-  SYSTEM:               'SYSTEM',
-  WARNING:              'WARNING',
-
-  // Marketplace
-  NEW_ORDER:             'NEW_ORDER',
-  ORDER_DELIVERED:       'ORDER_DELIVERED',
-  ORDER_APPROVED:        'ORDER_APPROVED',
-  ORDER_DISPUTED:        'ORDER_DISPUTED',
-  DISPUTE_RESOLVED:      'DISPUTE_RESOLVED',
-  NFT_MINTED:            'NFT_MINTED',
-  NFT_ROYALTY_RECEIVED:  'NFT_ROYALTY_RECEIVED',
-  STORE_WARNING:         'STORE_WARNING',
-  STORE_SUSPENDED:       'STORE_SUSPENDED',
-  ESCROW_RELEASED:       'ESCROW_RELEASED',
-  SHIPMENT_UPDATE:       'SHIPMENT_UPDATE',
-  REVIEW_RECEIVED:       'REVIEW_RECEIVED',
-};
-
-// ============================================================
-// ROLES & CONTENT
-// ============================================================
-
-export const USER_ROLES = {
-  USER:    'USER',
-  CREATOR: 'CREATOR',
-  ADMIN:   'ADMIN',
-};
-
+// Tipos de conteúdo
 export const CONTENT_TYPES = {
-  ALL:    'all',
+  ALL: 'all',
   PHOTOS: 'photos',
   VIDEOS: 'videos',
+  LIVES: 'lives',
 };
 
-// ============================================================
-// UPLOAD LIMITS
-// ============================================================
-
-export const UPLOAD_LIMITS = {
-  MAX_IMAGE_SIZE_MB:       5,
-  MAX_VIDEO_SIZE_MB:       100,
-  MAX_IMAGES_PER_POST:     10,
-  MAX_PRODUCT_IMAGES:      10,
-  MAX_VIDEO_PROOF_SECONDS: 30,
-  MAX_ARWEAVE_FILE_SIZE_MB:500, // Limite para upload permanente no Arweave
+// Status de pagamento
+export const PAYMENT_STATUS = {
+  PENDING: 'pending',
+  COMPLETED: 'completed',
+  FAILED: 'failed',
+  REFUNDED: 'refunded',
+  CANCELLED: 'cancelled',
 };
 
-// ============================================================
-// PAGINATION
-// ============================================================
+// Métodos de pagamento
+export const PAYMENT_METHODS = {
+  CRYPTO: 'crypto',
+};
 
+// Tipos de transação
+export const TRANSACTION_TYPES = {
+  SUBSCRIPTION: 'subscription',
+  PPV_POST: 'ppv_post',
+  PPV_MESSAGE: 'ppv_message',
+  TIP: 'tip',
+};
+
+// Status de assinatura
+export const SUBSCRIPTION_STATUS = {
+  ACTIVE: 'active',
+  CANCELLED: 'cancelled',
+  EXPIRED: 'expired',
+  PAUSED: 'paused',
+};
+
+// Tipos de notificação
+export const NOTIFICATION_TYPES = {
+  NEW_POST: 'new_post',
+  NEW_PPV: 'new_ppv',
+  NEW_MESSAGE: 'new_message',
+  COMMENT_REPLY: 'comment_reply',
+  COMMENT_LIKE: 'comment_like',
+  SUBSCRIPTION_RENEWAL: 'subscription_renewal',
+  SUBSCRIPTION_RENEWED: 'subscription_renewed',
+  PAYMENT_FAILED: 'payment_failed',
+  LIVE_STARTED: 'live_started',
+};
+
+// Períodos de trending
+export const TRENDING_PERIODS = {
+  DAY: '24h',
+  WEEK: '7d',
+  MONTH: '30d',
+};
+
+// Ordenação
+export const SORT_OPTIONS = {
+  RECENT: 'recent',
+  POPULAR: 'popular',
+  ALPHABETICAL: 'alphabetical',
+  PRICE_LOW: 'price_low',
+  PRICE_HIGH: 'price_high',
+};
+
+// Breakpoints responsivos
+export const BREAKPOINTS = {
+  MOBILE: 768,
+  TABLET: 1024,
+  DESKTOP: 1280,
+};
+
+// Pagination
 export const PAGINATION = {
   DEFAULT_PAGE_SIZE: 20,
-  MAX_PAGE_SIZE:     100,
+  MAX_PAGE_SIZE: 100,
 };
 
-// ============================================================
-// HTTP STATUS
-// ============================================================
+// Paginação
+export const PAGE_SIZE = 20;
+export const INFINITE_SCROLL_THRESHOLD = 0.8;
 
+// Limites de texto
+export const TEXT_LIMITS = {
+  BIO: 500,
+  POST_CAPTION: 2000,
+  COMMENT: 500,
+  MESSAGE: 1000,
+  USERNAME: 20,
+};
+
+// Regex patterns
+export const PATTERNS = {
+  USERNAME: /^[a-zA-Z0-9_]+$/,
+  HASHTAG: /#[\w\u0080-\uFFFF]+/g,
+  MENTION: /@[\w\u0080-\uFFFF]+/g,
+  URL: /(https?:\/\/[^\s]+)/g,
+};
+
+// Cores de status
+export const STATUS_COLORS = {
+  success: 'text-slate-800 bg-slate-800',
+  warning: 'text-slate-600 bg-slate-600',
+  error: 'text-slate-900 bg-slate-900',
+  info: 'text-black bg-black',
+  pending: 'text-gray-600 bg-gray-100',
+};
+
+// Ícones de notificação (React Icons)
+export const NOTIFICATION_ICONS = {
+  new_post: 'FiImage',
+  new_ppv: 'FiLock',
+  new_message: 'FiMail',
+  comment_reply: 'FiMessageCircle',
+  comment_like: 'FiHeart',
+  subscription_renewal: 'FiClock',
+  subscription_renewed: 'FiCheckCircle',
+  payment_failed: 'FiAlertCircle',
+  live_started: 'FiVideo',
+};
+
+// Minimum withdrawal amount in USD
+export const MIN_WITHDRAWAL_AMOUNT = 10; // ✅ CORRIGIDO: era 100
+
+// Platform fee percentage
+export const PLATFORM_FEE_PERCENTAGE = 20;
+
+// Error Messages
+export const ERROR_MESSAGES = {
+  NETWORK_ERROR: 'Não foi possível conectar ao servidor. Verifique sua conexão.',
+  GENERIC_ERROR: 'Ocorreu um erro inesperado. Por favor, tente novamente.',
+  UNAUTHORIZED: 'Sua sessão expirou. Faça login novamente.',
+  FORBIDDEN: 'Você não tem permissão para acessar este recurso.',
+  NOT_FOUND: 'Recurso não encontrado.',
+  SERVER_ERROR: 'Erro no servidor. Tente novamente mais tarde.',
+  VALIDATION_ERROR: 'Dados inválidos. Verifique os campos.',
+};
+
+// Mensagens de sucesso padrão
+export const SUCCESS_MESSAGES = {
+  POST_LIKED: 'Post curtido! ',
+  POST_UNLIKED: 'Curtida removida.',
+  COMMENT_POSTED: 'Comentário publicado! ',
+  SUBSCRIBED: 'Assinatura realizada com sucesso!',
+  UNSUBSCRIBED: 'Assinatura cancelada.',
+  MESSAGE_SENT: 'Mensagem enviada! ',
+  PROFILE_UPDATED: 'Perfil atualizado! ',
+  SETTINGS_SAVED: 'Configurações salvas!',
+  PPV_UNLOCKED: 'Conteúdo desbloqueado!',
+};
+
+// Date Formats
+export const DATE_FORMATS = {
+  SHORT: 'DD/MM/YYYY',
+  LONG: 'DD de MMMM de YYYY',
+  WITH_TIME: 'DD/MM/YYYY HH:mm',
+};
+
+// Tempos de cache (em milissegundos)
+export const CACHE_TIMES = {
+  FEED: 5 * 60 * 1000, // 5 minutos
+  PROFILE: 10 * 60 * 1000, // 10 minutos
+  NOTIFICATIONS: 1 * 60 * 1000, // 1 minuto
+};
+
+// Debounce times (em milissegundos)
+export const DEBOUNCE_TIMES = {
+  SEARCH: 500,
+  INPUT: 300,
+  SCROLL: 200,
+};
+
+// LocalStorage keys
+export const STORAGE_KEYS = {
+  AUTH_TOKEN: 'flow_connect_token',
+  USER_DATA: 'flow_connect_user',
+  THEME: 'flow_connect_theme',
+  LANGUAGE: 'flow_connect_lang',
+};
+
+// Temas
+export const THEMES = {
+  LIGHT: 'light',
+  DARK: 'dark',
+};
+
+// Idiomas suportados
+export const LANGUAGES = {
+  PT_BR: 'pt-BR',
+  EN_US: 'en-US',
+  ES_ES: 'es-ES',
+};
+
+// App Metadata
+// ✅ CORRETO para backend
+export const APP_INFO = {
+  NAME: process.env.APP_NAME || 'FlowConnect',
+  VERSION: process.env.APP_VERSION || '1.0.0',
+  LAST_UPDATED: new Date().toISOString().split('T')[0],
+};
+
+// ============================================
+// ✅ UTILITY FUNCTIONS
+// ============================================
+
+/**
+ * Currency Formatter
+ * Formats amounts with proper currency symbol and formatting
+ * @param {number} amount - Amount to format
+ * @param {string} currency - Currency code ('USD' or 'BRL')
+ * @returns {string} Formatted currency string
+ */
+export const formatCurrency = (amount, currency = 'USD') => {
+  if (typeof amount !== 'number') {
+    amount = parseFloat(amount) || 0;
+  }
+
+  if (currency === 'BRL') {
+    const brlAmount = amount * CURRENCY.USD_TO_BRL;
+    return new Intl.NumberFormat('pt-BR', {
+      style: 'currency',
+      currency: 'BRL',
+    }).format(brlAmount);
+  }
+
+  // Default to USD
+  return new Intl.NumberFormat('en-US', {
+    style: 'currency',
+    currency: 'USD',
+  }).format(amount);
+};
+
+/**
+ * Date Formatter
+ * Formats date to Brazilian locale
+ * @param {string|Date} dateString - Date to format
+ * @param {string} format - Optional format ('short', 'long', 'time')
+ * @returns {string} Formatted date string
+ */
+export const formatDate = (dateString, format = 'short') => {
+  if (!dateString) return '';
+
+  const date = new Date(dateString);
+
+  if (format === 'long') {
+    return new Intl.DateTimeFormat('pt-BR', {
+      day: '2-digit',
+      month: 'long',
+      year: 'numeric',
+    }).format(date);
+  }
+
+  if (format === 'time') {
+    return new Intl.DateTimeFormat('pt-BR', {
+      hour: '2-digit',
+      minute: '2-digit',
+    }).format(date);
+  }
+
+  // Default:  short format
+  return new Intl.DateTimeFormat('pt-BR', {
+    day: '2-digit',
+    month: '2-digit',
+    year: 'numeric',
+  }).format(date);
+};
+
+/**
+ * Format date with time
+ * @param {string|Date} dateString - Date to format
+ * @returns {string} Formatted date string with time
+ */
+export const formatDateTime = (dateString) => {
+  if (!dateString) return '';
+
+  return new Intl.DateTimeFormat('pt-BR', {
+    day: '2-digit',
+    month: 'long',
+    year: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
+  }).format(new Date(dateString));
+};
+
+/**
+ * Format date only (no time)
+ * @param {string|Date} dateString - Date to format
+ * @returns {string} Formatted date string
+ */
+export const formatDateOnly = (dateString) => {
+  if (!dateString) return '';
+
+  return new Intl.DateTimeFormat('pt-BR', {
+    day: '2-digit',
+    month: '2-digit',
+    year: 'numeric',
+  }).format(new Date(dateString));
+};
+
+/**
+ * Format relative time (e.g., "2 hours ago")
+ * @param {string|Date} dateString - Date to format
+ * @returns {string} Relative time string
+ */
+export const formatRelativeTime = (dateString) => {
+  if (!dateString) return '';
+
+  const date = new Date(dateString);
+  const now = new Date();
+  const diffMs = now - date;
+  const diffSec = Math.floor(diffMs / 1000);
+  const diffMin = Math.floor(diffSec / 60);
+  const diffHour = Math.floor(diffMin / 60);
+  const diffDay = Math.floor(diffHour / 24);
+
+  if (diffSec < 60) return 'agora';
+  if (diffMin < 60) return `${diffMin}m atrás`;
+  if (diffHour < 24) return `${diffHour}h atrás`;
+  if (diffDay < 7) return `${diffDay}d atrás`;
+
+  return formatDate(dateString);
+};
+
+/**
+ * Format number with K/M suffixes
+ * @param {number} num - Number to format
+ * @returns {string} Formatted number string
+ */
+export const formatNumber = (num) => {
+  if (typeof num !== 'number') {
+    num = parseFloat(num) || 0;
+  }
+
+  if (num >= 1000000) {
+    return (num / 1000000).toFixed(1).replace(/\.0$/, '') + 'M';
+  }
+  if (num >= 1000) {
+    return (num / 1000).toFixed(1).replace(/\.0$/, '') + 'K';
+  }
+  return num.toString();
+};
+
+/**
+ * Truncate text with ellipsis
+ * @param {string} text - Text to truncate
+ * @param {number} maxLength - Maximum length
+ * @returns {string} Truncated text
+ */
+export const truncateText = (text, maxLength = 100) => {
+  if (!text || text.length <= maxLength) return text;
+  return text.substring(0, maxLength).trim() + '...';
+};
+
+/**
+ * Validate email format
+ * @param {string} email - Email to validate
+ * @returns {boolean} Is valid email
+ */
+export const isValidEmail = (email) => {
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  return emailRegex.test(email);
+};
+
+/**
+ * Validate username format
+ * @param {string} username - Username to validate
+ * @returns {boolean} Is valid username
+ */
+export const isValidUsername = (username) => {
+  return PATTERNS.USERNAME.test(username);
+};
+
+/**
+ * Get file extension
+ * @param {string} filename - Filename
+ * @returns {string} File extension
+ */
+export const getFileExtension = (filename) => {
+  if (!filename) return '';
+  return filename.split('.').pop().toLowerCase();
+};
+
+/**
+ * Check if file is an image
+ * @param {File|string} file - File object or filename
+ * @returns {boolean} Is image
+ */
+export const isImageFile = (file) => {
+  const ext = typeof file === 'string' ? getFileExtension(file) : file.type;
+  const imageExts = ['jpg', 'jpeg', 'png', 'gif', 'webp', 'svg'];
+  return imageExts.some(e => ext.includes(e));
+};
+
+/**
+ * Check if file is a video
+ * @param {File|string} file - File object or filename
+ * @returns {boolean} Is video
+ */
+export const isVideoFile = (file) => {
+  const ext = typeof file === 'string' ? getFileExtension(file) : file.type;
+  const videoExts = ['mp4', 'webm', 'mov', 'avi'];
+  return videoExts.some(e => ext.includes(e));
+};
+
+/**
+ * Format file size
+ * @param {number} bytes - File size in bytes
+ * @returns {string} Formatted file size
+ */
+export const formatFileSize = (bytes) => {
+  if (bytes === 0) return '0 Bytes';
+
+  const k = 1024;
+  const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+  const i = Math.floor(Math.log(bytes) / Math.log(k));
+
+  return Math.round(bytes / Math.pow(k, i) * 100) / 100 + ' ' + sizes[i];
+};
+
+/**
+ * Generate unique ID
+ * @returns {string} Unique ID
+ */
+export const generateId = () => {
+  return `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+};
+
+/**
+ * Sleep/delay function
+ * @param {number} ms - Milliseconds to sleep
+ * @returns {Promise} Promise that resolves after delay
+ */
+export const sleep = (ms) => {
+  return new Promise(resolve => setTimeout(resolve, ms));
+};
+
+/**
+ * Copy text to clipboard
+ * @param {string} text - Text to copy
+ * @returns {Promise<boolean>} Success status
+ */
+export const copyToClipboard = async (text) => {
+  try {
+    await navigator.clipboard.writeText(text);
+    return true;
+  } catch (error) {
+    console.error('Failed to copy:', error);
+    return false;
+  }
+};
+
+/**
+ * Get initials from name
+ * @param {string} name - Full name
+ * @returns {string} Initials
+ */
+export const getInitials = (name) => {
+  if (!name) return '';
+  return name
+    .split(' ')
+    .map(n => n[0])
+    .join('')
+    .toUpperCase()
+    .substring(0, 2);
+};
+
+// HTTP Status Codes
 export const HTTP_STATUS = {
-  OK:                    200,
-  CREATED:               201,
-  NO_CONTENT:            204,
-  BAD_REQUEST:           400,
-  UNAUTHORIZED:          401,
-  FORBIDDEN:             403,
-  NOT_FOUND:             404,
-  CONFLICT:              409,
-  UNPROCESSABLE_ENTITY:  422,
+  OK: 200,
+  CREATED: 201,
+  BAD_REQUEST: 400,
+  UNAUTHORIZED: 401,
+  FORBIDDEN: 403,
+  NOT_FOUND: 404,
+  CONFLICT: 409,
   INTERNAL_SERVER_ERROR: 500,
 };
 
-// ============================================================
-// RATE LIMITING
-// ============================================================
-
-export const RATE_LIMITS = {
-  WINDOW_MS:            15 * 60 * 1000,
-  MAX_REQUESTS:         100,
-  // Limites específicos para marketplace (mais restritivos)
-  MARKETPLACE_WINDOW_MS:    60 * 1000,
-  MARKETPLACE_MAX_REQUESTS: 20,
+// Marketplace & Store Status
+export const MARKETPLACE = {
+  TYPE_PRODUCT: 'product',
+  TYPE_SERVICE: 'service',
 };
 
-// ============================================================
-// CURRENCY
-// ============================================================
-
-export const CURRENCY = {
-  USD_TO_BRL: 5.5,
-  DEFAULT:    'USDC',
-  NETWORK:    'polygon',
+export const STORE_STATUS = {
+  ACTIVE: 'active',
+  BANNED: 'banned',
+  PAUSED: 'paused',
 };
 
-// ============================================================
-// BLOCKCHAIN — Polygon
-// ============================================================
-
-export const BLOCKCHAIN = {
-  NETWORK:       'polygon',
-  CHAIN_ID:      137,
-  CHAIN_ID_TEST: 80001, // Mumbai testnet
-  RPC_URL:       process.env.POLYGON_RPC_URL || 'https://polygon-rpc.com',
-  USDC_ADDRESS:  process.env.POLYGON_USDC_ADDRESS || '0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174',
-  EXPLORER:      'https://polygonscan.com',
-};
-
-// ============================================================
-// EXPORT DEFAULT
-// ============================================================
+// ============================================
+// ✅ DEFAULT EXPORT
+// ============================================
 
 export default {
-  PLATFORM_FEE_PERCENTAGE,
-  MIN_WITHDRAWAL_AMOUNT,
-  PLATFORM_WALLET_ADDRESS,
-  ESCROW,
-  NFT,
-  MARKETPLACE,
-  PRIVACY,
-  STORE_STATUS,
-  ORDER_STATUS,
-  ESCROW_STATUS,
-  SHIPMENT_STATUS,
-  DISPUTE_RESOLUTION,
+  API_BASE_URL,
+  SOCKET_URL,
+  API,
+  CURRENCY,
+  MAX_IMAGE_SIZE_MB,
+  MAX_VIDEO_SIZE_MB,
+  MAX_IMAGES_PER_POST,
+  UPLOAD,
+  CONTENT_TYPES,
   PAYMENT_STATUS,
-  PAYMENT_TYPE,
-  PAYMENT_GATEWAY,
   PAYMENT_METHODS,
+  TRANSACTION_TYPES,
   SUBSCRIPTION_STATUS,
   NOTIFICATION_TYPES,
-  USER_ROLES,
-  CONTENT_TYPES,
-  UPLOAD_LIMITS,
+  TRENDING_PERIODS,
+  SORT_OPTIONS,
+  BREAKPOINTS,
   PAGINATION,
-  HTTP_STATUS,
-  RATE_LIMITS,
-  CURRENCY,
-  BLOCKCHAIN,
+  PAGE_SIZE,
+  INFINITE_SCROLL_THRESHOLD,
+  TEXT_LIMITS,
+  PATTERNS,
+  STATUS_COLORS,
+  NOTIFICATION_ICONS,
+  MIN_WITHDRAWAL_AMOUNT,
+  PLATFORM_FEE_PERCENTAGE,
+  ERROR_MESSAGES,
+  SUCCESS_MESSAGES,
+  DATE_FORMATS,
+  CACHE_TIMES,
+  DEBOUNCE_TIMES,
+  STORAGE_KEYS,
+  THEMES,
+  LANGUAGES,
+  APP_INFO,
+  // Utility Functions
+  formatCurrency,
+  formatDate,
+  formatDateTime,
+  formatDateOnly,
+  formatRelativeTime,
+  formatNumber,
+  truncateText,
+  isValidEmail,
+  isValidUsername,
+  getFileExtension,
+  isImageFile,
+  isVideoFile,
+  formatFileSize,
+  generateId,
+  sleep,
+  copyToClipboard,
+  getInitials,
 };

@@ -44,10 +44,10 @@ export const NotificationProvider = ({ children }) => {
     });
 
     newSocket.on('connected', (data) => {
-      console. log('🔔 Notification server ready:', data);
+      console.log('🔔 Notification server ready:', data);
     });
 
-    newSocket.on('notification: new', (notification) => {
+    newSocket.on('notification:new', (notification) => {
       console.log('🔔 New notification:', notification);
       setNotifications((prev) => [notification, ...prev]);
       setUnreadCount((prev) => prev + 1);
@@ -62,14 +62,14 @@ export const NotificationProvider = ({ children }) => {
     });
 
     newSocket.on('connect_error', (error) => {
-      console.error('Connection error:', error. message);
+      console.error('Connection error:', error.message);
       setConnected(false);
     });
 
     setSocket(newSocket);
 
     return () => {
-      newSocket. disconnect();
+      newSocket.disconnect();
     };
   }, []);
 
@@ -79,14 +79,14 @@ export const NotificationProvider = ({ children }) => {
       setLoading(true);
       const params = new URLSearchParams();
       
-      if (filters. type && filters.type !== 'all') params.append('type', filters.type);
+      if (filters.type && filters.type !== 'all') params.append('type', filters.type);
       if (filters.unread) params.append('unread', 'true');
-      if (filters.page) params.append('page', filters. page);
-      if (filters. limit) params.append('limit', filters.limit);
+      if (filters.page) params.append('page', filters.page);
+      if (filters.limit) params.append('limit', filters.limit);
 
       const response = await api.get(`/notifications?${params.toString()}`);
       
-      setNotifications(response.data.data. notifications);
+      setNotifications(response.data.data.notifications);
       setUnreadCount(response.data.data.unreadCount);
       
       return response.data.data;
@@ -195,7 +195,7 @@ export const NotificationProvider = ({ children }) => {
 };
 
 NotificationProvider.propTypes = {
-  children: PropTypes.node. isRequired,
+  children: PropTypes.node.isRequired,
 };
 
 // Helper:  Notificação do navegador
@@ -212,7 +212,7 @@ function showBrowserNotification(notification) {
 
 // Solicitar permissão de notificações
 export const requestNotificationPermission = async () => {
-  if ('Notification' in window && Notification. permission === 'default') {
+  if ('Notification' in window && Notification.permission === 'default') {
     const permission = await Notification.requestPermission();
     return permission === 'granted';
   }

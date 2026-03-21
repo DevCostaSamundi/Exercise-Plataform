@@ -24,7 +24,6 @@ import {
 } from 'react-icons/fi';
 import { formatCurrency, formatNumber } from '../../utils/formatters';
 import PostCard from '../../components/subscriber/PostCard';
-import useInfiniteScroll from '../../hooks/useInfiniteScroll';
 
 const CreatorProfile = () => {
   const { username } = useParams();
@@ -38,6 +37,12 @@ const CreatorProfile = () => {
   const [isSubscribed, setIsSubscribed] = useState(false);
   const [isFavorited, setIsFavorited] = useState(false);
   const [subscribing, setSubscribing] = useState(false);
+
+  function loadMorePosts() {
+    if (!postsLoading && hasMore) {
+      fetchPosts(page + 1, true);
+    }
+  }
 
   const lastPostRef = useInfiniteScroll(loadMorePosts, hasMore, postsLoading);
 
@@ -204,7 +209,7 @@ const CreatorProfile = () => {
 
                 <Link
                   to={`/messages/${creator.userId}`}
-                  className="p-3 rounded-lg border-2 border-gray-300 dark:border-gray-600 hover:border-blue-500 text-gray-600 dark:text-gray-400 hover:text-black transition-all"
+                  className="p-3 rounded-lg border-2 border-gray-300 dark:border-gray-600 hover:border-black dark:hover:border-white text-gray-600 dark:text-gray-400 hover:text-black transition-all"
                   title="Enviar mensagem"
                 >
                   <FiMessageCircle />

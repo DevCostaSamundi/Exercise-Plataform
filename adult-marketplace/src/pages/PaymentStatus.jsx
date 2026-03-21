@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useParams, useNavigate, useSearchParams } from 'react-router-dom';
-import { useWeb3Payment } from '../hooks/useWeb3Payment';
+import { useWeb3Auth } from '../hooks/useWeb3Auth';
 import { CheckCircle, XCircle, Loader2, ExternalLink } from 'lucide-react';
 
 export default function PaymentStatus() {
@@ -10,7 +10,7 @@ export default function PaymentStatus() {
 
     const orderId = searchParams.get('orderId');
 
-    const { checkPaymentStatus, pollPaymentStatus } = useWeb3Payment();
+    const { checkPaymentStatus, pollPaymentStatus } = useWeb3Auth();
 
     const [status, setStatus] = useState('loading');
     const [payment, setPayment] = useState(null);

@@ -48,7 +48,6 @@ export default function CreatorProfilePage() {
           const postsResponse = await api.get(`/creators/${id}/posts?limit=12`);
           setPosts(postsResponse.data?.data || []);
         } catch (postsErr) {
-          console.warn('Erro ao carregar posts:', postsErr);
           // Continua mesmo se posts falhar
         }
 
@@ -59,7 +58,6 @@ export default function CreatorProfilePage() {
             const subRes = await api.get(`/subscriptions/check/${id}`);
             setIsSubscribed(subRes.data?.data?.isSubscribed || false);
           } catch (subErr) {
-            console.warn('Erro ao verificar inscrição:', subErr);
           }
         }
       } catch (err) {
@@ -73,7 +71,7 @@ export default function CreatorProfilePage() {
     fetchCreatorData();
   }, [id]);
 
-  const formatPrice = (price, currency = 'BRL') => {
+  const formatPrice = (price, currency = 'USD') => { // ✅ CORRIGIDO: era BRL
     const locale = currency === 'BRL' ? 'pt-BR' : 'en-US';
     return new Intl.NumberFormat(locale, {
       style: 'currency',

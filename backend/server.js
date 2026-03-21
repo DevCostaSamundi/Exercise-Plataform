@@ -1,99 +1,108 @@
-import dotenv from 'dotenv/config';
+import 'dotenv/config';
 import http from 'http';
 import app from './src/app.js';
 import logger from './src/utils/logger.js';
 import initSocket from './src/socket/index.js';
-import prisma from './src/config/database.js'; // 👈 FALTAVA IMPORTAR
-
+import prisma from './src/config/database.js';
 import web3Service from './src/services/web3.service.js';
 import { startBlockchainMonitor } from './src/jobs/blockchain-monitor.job.js';
 import { validateWeb3Config } from './src/config/web3.config.js';
-// Trust proxy (for production deployments behind nginx, etc)
+
+// Trust proxy (nginx, Railway, Render, etc.)
 app.set('trust proxy', 1);
 
-// Root endpoint
+// ── Endpoints de info ─────────────────────────────────────────────────────────
+const API_VERSION = process.env.API_VERSION || 'v1';
+
 app.get('/', (req, res) => {
-  res.redirect(`/api/${process.env.API_VERSION || 'v1'}`);
+  res.redirect(`/api/${API_VERSION}`);
 });
 
-// API info endpoint
-app.get(`/api/${process.env.API_VERSION || 'v1'}`, (req, res) => {
+app.get(`/api/${API_VERSION}`, (req, res) => {
   res.json({
-    status: 'OK',
-    message: 'PrideConnect API - v1',
-    version: process.env.API_VERSION || 'v1',
+    status:      'OK',
+    message:     'FlowConnect API',
+    version:     API_VERSION,
     environment: process.env.NODE_ENV || 'development',
     endpoints: {
-      health: '/health',
-      auth_register: '/api/v1/auth/register',
-      auth_login: '/api/v1/auth/login',
-      auth_creator_register: '/api/v1/auth/creator-register',
-      creators: '/api/v1/creators',
-      users: '/api/v1/users/profile',
-      posts: '/api/v1/posts',
-      subscriptions:  '/api/v1/subscriptions',
-      payments: '/api/v1/payments',
-      withdrawals: '/api/v1/withdrawals',
-      notifications: '/api/v1/notifications',
-      messages: '/api/v1/messages',
+      health:               '/health',
+      auth_register:        `/api/${API_VERSION}/auth/register`,
+      auth_login:           `/api/${API_VERSION}/auth/login`,
+      auth_creator_register:`/api/${API_VERSION}/auth/creator-register`,
+      auth_web3:            `/api/${API_VERSION}/auth/web3auth/login`,
+      creators:             `/api/${API_VERSION}/creators`,
+      posts:                `/api/${API_VERSION}/posts`,
+      subscriptions:        `/api/${API_VERSION}/subscriptions`,
+      marketplace:          `/api/${API_VERSION}/marketplace`,
+      notifications:        `/api/${API_VERSION}/notifications`,
+      messages:             `/api/${API_VERSION}/messages`,
     },
   });
 });
 
-const PORT = process.env.PORT || 5000;
-
+// ── Setup ─────────────────────────────────────────────────────────────────────
+const PORT   = process.env.PORT || 5000;
 const server = http.createServer(app);
 
-// Initialize Socket.IO
+// Inicializar Socket.IO
 initSocket(server);
 
-// Main server startup function
+// ── Arranque ──────────────────────────────────────────────────────────────────
 async function startServer() {
   try {
-    // Test database connection
+    // 1. Base de dados
     logger.info('🔄 Connecting to database...');
     await prisma.$connect();
-
     logger.info('✅ Database connected successfully');
 
-    // Start cron jobs for payments
-    logger.info('🕐 Starting payment cron jobs...');
+    // 2. Web3 — validar configuração
     try {
-      validateWeb3Config()
+      validateWeb3Config();
+      logger.info('✅ Web3 configuration validated');
     } catch (error) {
-      logger.warn('❌ Failed to validate Web3 configuration:', error.message);
-      logger.warn('⚠️ Web3 configuration is invalid:');
+      if (process.env.NODE_ENV === 'production') {
+        // Em produção, configuração inválida é fatal
+        logger.error('❌ Web3 configuration invalid — aborting startup:', error.message);
+        await prisma.$disconnect();
+        process.exit(1);
+      } else {
+        logger.warn('⚠️  Web3 configuration incomplete (development mode — continuing):', error.message);
+      }
     }
 
+    // 3. Web3 Service — inicializar
+    // ⚠️  CORRIGIDO: era web3Service.init() — método correcto é initialize()
     try {
-      await web3Service.init();
+      await web3Service.initialize();
       logger.info('✅ Web3 service initialized');
 
       startBlockchainMonitor();
       logger.info('✅ Blockchain monitor started');
-      } catch (error) {
-      logger.warn('❌ Failed to start blockchain monitor:', error.message);
-      logger.warn('⚠️ Blockchain monitor is invalid:');
+    } catch (error) {
+      logger.warn('⚠️  Web3 service failed to initialize:', error.message);
+      logger.warn('   Blockchain monitor not started — payments will not be auto-confirmed');
     }
 
-    // Start HTTP server
+    // 4. HTTP Server
     await new Promise((resolve, reject) => {
-      server.listen(PORT, () => {
-        logger. info(`🚀 Server running in ${process.env.NODE_ENV || 'development'} mode on port ${PORT}`);
-        logger.info(`📍 API available at http://localhost:${PORT}/api/${process.env.API_VERSION || 'v1'}`);
-        logger.info(`🌐 Frontend URL: ${process.env.FRONTEND_URL || 'http://localhost:5173'}`);
-        resolve();
-      }).on('error', (err) => {
-        if (err.code === 'EADDRINUSE') {
-          logger.error(`❌ Port ${PORT} is already in use`);
-          logger.error('💡 Try stopping the existing server or change PORT in .env');
+      server
+        .listen(PORT, () => {
+          logger.info(`🚀 Server running in ${process.env.NODE_ENV || 'development'} mode on port ${PORT}`);
+          logger.info(`📍 API available at http://localhost:${PORT}/api/${API_VERSION}`);
+          logger.info(`🌐 Frontend URL: ${process.env.FRONTEND_URL || 'http://localhost:5173'}`);
+          resolve();
+        })
+        .on('error', (err) => {
+          if (err.code === 'EADDRINUSE') {
+            logger.error(`❌ Port ${PORT} is already in use`);
+            logger.error('💡 Stop the existing server or change PORT in .env');
+          } else {
+            logger.error('❌ Server error:', err);
+          }
           reject(err);
-        } else {
-          logger.error('❌ Server error:', err);
-          reject(err);
-        }
-      });
+        });
     });
+
   } catch (error) {
     logger.error('❌ Failed to start server:', error);
     await prisma.$disconnect();
@@ -101,22 +110,16 @@ async function startServer() {
   }
 }
 
-
-
-
-// Graceful shutdown handler
+// ── Graceful Shutdown ─────────────────────────────────────────────────────────
 async function gracefulShutdown(signal) {
   logger.info(`${signal} received, shutting down gracefully...`);
 
-  // Stop accepting new connections
   server.close(async () => {
     logger.info('✅ HTTP server closed');
 
     try {
-      // Disconnect from database
       await prisma.$disconnect();
       logger.info('✅ Database disconnected');
-
       logger.info('👋 Graceful shutdown completed');
       process.exit(0);
     } catch (error) {
@@ -125,36 +128,29 @@ async function gracefulShutdown(signal) {
     }
   });
 
-  // Force shutdown after 10 seconds
+  // Forçar shutdown após 10 segundos
   setTimeout(() => {
-    logger.error('⚠️ Forced shutdown after timeout');
+    logger.error('⚠️  Forced shutdown after timeout');
     process.exit(1);
   }, 10000);
 }
 
-// Handle SIGTERM (Docker, Kubernetes, etc)
 process.on('SIGTERM', () => gracefulShutdown('SIGTERM'));
+process.on('SIGINT',  () => gracefulShutdown('SIGINT'));
 
-// Handle SIGINT (Ctrl+C)
-process.on('SIGINT', () => gracefulShutdown('SIGINT'));
-
-// Handle unhandled promise rejections
 process.on('unhandledRejection', (reason, promise) => {
   logger.error('❌ Unhandled Promise Rejection:', reason);
-  logger.error('Promise:', promise);
-  // Don't exit in development, just log
   if (process.env.NODE_ENV === 'production') {
     gracefulShutdown('UNHANDLED_REJECTION');
   }
 });
 
-// Handle uncaught exceptions
 process.on('uncaughtException', (error) => {
   logger.error('❌ Uncaught Exception:', error);
   gracefulShutdown('UNCAUGHT_EXCEPTION');
 });
 
-// Start the server
+// ── Start ─────────────────────────────────────────────────────────────────────
 startServer().catch((error) => {
   logger.error('❌ Fatal error during startup:', error);
   process.exit(1);

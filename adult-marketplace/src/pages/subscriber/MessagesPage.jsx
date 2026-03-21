@@ -51,8 +51,6 @@ export default function MessagesPage() {
 
   // Log para debug
   useEffect(() => {
-    console.log('📊 Current user:', currentUser);
-    console.log('🔌 Socket connected:', isConnected);
   }, [currentUser, isConnected]);
 
   // Buscar conversas ao montar componente
@@ -74,7 +72,6 @@ export default function MessagesPage() {
   // Lidar com nova mensagem via WebSocket
   useEffect(() => {
     if (newMessage) {
-      console.log('📨 New message received:', newMessage);
 
       // Verificar se é da conversa atual
       if (newMessage.conversationId === selectedConversationId) {
@@ -111,7 +108,6 @@ export default function MessagesPage() {
       setLoading(true);
       setError(null);
       const response = await messageService.getConversations();
-      console.log('📥 Conversations response:', response);
 
       setConversations(response.data || []);
       if (response.data && response.data.length > 0) {
@@ -140,7 +136,6 @@ export default function MessagesPage() {
   const fetchMessages = async (conversationId) => {
     try {
       const response = await messageService.getMessages(conversationId);
-      console.log('📥 Messages response:', response);
       setMessages(response.data || []);
     } catch (err) {
       console.error('Erro ao buscar mensagens:', err);
@@ -166,7 +161,6 @@ export default function MessagesPage() {
 
       // ✅ Usar WebSocket se conectado
       if (isConnected) {
-        console.log('📤 Sending via WebSocket');
         sendSocketMessage({
           conversationId: selectedConversationId,
           senderId: currentUser.id,
@@ -176,7 +170,6 @@ export default function MessagesPage() {
         });
       } else {
         // Fallback para HTTP
-        console.log('📤 Sending via HTTP (fallback)');
         const response = await messageService.sendMessage(
           selectedConversationId,
           selectedConv.otherUser.id,
@@ -349,7 +342,7 @@ export default function MessagesPage() {
               </h1>
             </div>
 
-            <div className="flex items-center space-x-2 text-xs text-slate-500 dark: text-slate-400">
+            <div className="flex items-center space-x-2 text-xs text-slate-500 dark:text-slate-400">
               <span className="inline-flex items-center space-x-1">
                 <span className={`w-2 h-2 rounded-full ${isConnected ? 'bg-slate-800' : 'bg-slate-900'}`} />
                 <span>{isConnected ? 'Online' : 'Offline'}</span>
@@ -370,7 +363,7 @@ export default function MessagesPage() {
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
                 placeholder="Buscar criador..."
-                className="w-full px-3 py-2 rounded-lg bg-slate-50 dark: bg-slate-800 border border-slate-200 dark:border-slate-700 text-sm"
+                className="w-full px-3 py-2 rounded-lg bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-sm"
               />
             </div>
 

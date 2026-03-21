@@ -55,14 +55,9 @@ const Subscriptions = () => {
 
   const handlePause = async (subscriptionId) => {
     try {
-      const token = localStorage.getItem('flow_connect_token');
-      await axios.put(
-        `${API_BASE_URL}/subscriptions/${subscriptionId}/pause`,
-        {},
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
+      // ✅ CORRIGIDO: axios e API_BASE_URL não estavam importados — usar subscriptionService
+      await subscriptionService.pauseSubscription(subscriptionId);
 
-      // Update list
       setSubscriptions((prev) =>
         prev.map((sub) =>
           sub._id === subscriptionId

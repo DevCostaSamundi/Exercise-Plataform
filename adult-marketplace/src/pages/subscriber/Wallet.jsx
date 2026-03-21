@@ -22,7 +22,7 @@ const Wallet = () => {
   const fetchWallet = async () => {
     try {
       setLoading(true);
-      const response = await walletService. getWallet({ period });
+      const response = await walletService.getWallet({ period });
       setWalletData(response);
     } catch (err) {
       console.error('Erro ao buscar carteira:', err);
@@ -41,7 +41,7 @@ const Wallet = () => {
 
   const stats = walletData?.stats || {};
   const breakdown = walletData?.breakdown || {};
-  const recentTransactions = walletData?. recentTransactions || [];
+  const recentTransactions = walletData?.recentTransactions || [];
 
   return (
     <div className="max-w-6xl mx-auto">
@@ -86,13 +86,13 @@ const Wallet = () => {
             <FiDollarSign className="text-4xl opacity-80" />
           </div>
           <h3 className="text-3xl font-bold mb-1">
-            {formatCurrency(stats. totalSpent || 0)}
+            {formatCurrency(stats.totalSpent || 0)}
           </h3>
           <p className="text-sm text-white/80">Total gasto no período</p>
         </div>
 
         {/* Transaction Count */}
-        <div className="bg-white dark:bg-gray-800 rounded-lg p-6 shadow border border-gray-200 dark: border-gray-700">
+        <div className="bg-white dark:bg-gray-800 rounded-lg p-6 shadow border border-gray-200 dark:border-gray-700">
           <div className="flex items-center justify-between mb-4">
             <FiCreditCard className="text-4xl text-black" />
           </div>
@@ -143,7 +143,7 @@ const Wallet = () => {
           <div className="space-y-3">
             {recentTransactions.map((transaction) => (
               <div
-                key={transaction. id}
+                key={transaction.id}
                 className="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-900 rounded-lg"
               >
                 <div className="flex items-center gap-3">
@@ -154,16 +154,16 @@ const Wallet = () => {
                     <p className="font-medium text-gray-900 dark:text-white">
                       {transaction.description}
                     </p>
-                    <p className="text-xs text-gray-500 dark: text-gray-400">
+                    <p className="text-xs text-gray-500 dark:text-gray-400">
                       {new Date(transaction.createdAt).toLocaleDateString()}
                     </p>
                   </div>
                 </div>
                 <div className="text-right">
-                  <p className="font-bold text-gray-900 dark: text-white">
+                  <p className="font-bold text-gray-900 dark:text-white">
                     {formatCurrency(transaction.amount)}
                   </p>
-                  <p className="text-xs text-gray-500 dark: text-gray-400">
+                  <p className="text-xs text-gray-500 dark:text-gray-400">
                     {transaction.status}
                   </p>
                 </div>

@@ -2,8 +2,7 @@ import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import CreatorSidebar from '../../components/CreatorSidebar';
 import WithdrawalModal from '../../components/WithdrawalModal';
-import withdrawalService from '../../services/withdrawalService';
-import paymentService from '../../services/paymentService';
+import api from '../../services/api'; // ✅ CORRIGIDO: withdrawalService e paymentService não existem
 
 export default function CreatorEarningsPage() {
   const [balance, setBalance] = useState(null);
@@ -40,11 +39,11 @@ export default function CreatorEarningsPage() {
 
   const fetchBalance = async () => {
     try {
-      const response = await withdrawalService.getBalance();
-      setBalance(response.data);
+      const response = await api.get('/api/v1/auth/wallet/balance');
+      setBalance(response.data.data);
       setStats(prev => ({
         ...prev,
-        thisMonth: response.data.monthlyEarnings,
+        thisMonth: response.data.data.monthlyEarnings,
       }));
     } catch (error) {
       console.error('Error fetching balance:', error);
@@ -53,17 +52,17 @@ export default function CreatorEarningsPage() {
 
   const fetchPayments = async () => {
     try {
-      const response = await paymentService.getUserPayments({
-        limit: 50,
-        status: 'COMPLETED',
+      const response = await api.get('/api/v1/payments/history', {
+        params: { limit: 50, status: 'COMPLETED' },
       });
-      setPayments(response.data);
+      const paymentsData = response.data.data || [];
+      setPayments(paymentsData);
 
       // Calcular estatísticas
-      const subscriptions = response.data.filter(p =>
+      const subscriptions = paymentsData.filter(p =>
         p.type === 'SUBSCRIPTION' || p.type === 'SUBSCRIPTION_RENEWAL'
       ).length;
-      const ppv = response.data.filter(p =>
+      const ppv = paymentsData.filter(p =>
         p.type === 'PPV_MESSAGE' || p.type === 'PPV_POST'
       ).length;
 
@@ -79,8 +78,8 @@ export default function CreatorEarningsPage() {
 
   const fetchWithdrawals = async () => {
     try {
-      const response = await withdrawalService.getWithdrawals({ limit: 20 });
-      setWithdrawals(response.data);
+      const response = await api.get('/api/v1/auth/wallet/withdrawals', { params: { limit: 20 } });
+      setWithdrawals(response.data.data || []);
     } catch (error) {
       console.error('Error fetching withdrawals:', error);
     }
@@ -95,7 +94,7 @@ export default function CreatorEarningsPage() {
     if (!confirm('Tem certeza que deseja cancelar este saque?')) return;
 
     try {
-      await withdrawalService.cancelWithdrawal(withdrawalId);
+      await api.delete(`/api/v1/auth/wallet/withdrawals/${withdrawalId}`);
       fetchData();
     } catch (error) {
       alert('Erro ao cancelar saque: ' + error.message);

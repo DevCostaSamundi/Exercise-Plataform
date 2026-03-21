@@ -1,12 +1,16 @@
 /**
  * Models index
- * 
- * This file exports Prisma client and models for easy import across the application.
- * All database models are defined in the Prisma schema at prisma/schema.prisma
+ *
+ * Exporta o Prisma client e enums para uso em toda a aplicação.
+ * Todos os modelos estão definidos em prisma/schema.prisma
+ *
+ * Enums confirmados no schema:
+ * UserRole, KYCStatus, MediaType, SubscriptionStatus,
+ * ProductCategory, ProductType, OrderStatus, PaymentStatus
  */
 
 import prisma from '../config/database.js';
-import { 
+import {
   UserRole,
   KYCStatus,
   MediaType,
@@ -19,7 +23,6 @@ import {
 
 export default prisma;
 
-// Re-export commonly used Prisma enums for convenience
 export {
   UserRole,
   KYCStatus,

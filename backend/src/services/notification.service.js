@@ -1,6 +1,6 @@
 import logger from '../utils/logger.js';
 import prisma from '../config/database.js';
-import { getIO } from '../config/socket.js'; // WebSocket (vamos criar)
+import { notifyUser } from '../config/socket.js';
 
 class NotificationService {
   /**
@@ -10,35 +10,23 @@ class NotificationService {
     try {
       const notification = await prisma.notification.create({
         data: {
-          userId: data.userId,
-          type: data.type,
-          title: data.title,
-          message: data.message,
-          metadata: data.metadata || {},
-          actionUrl: data. actionUrl,
+          userId:    data.userId,
+          type:      data.type,
+          title:     data.title,
+          message:   data.message,
+          metadata:  data.metadata || {},
+          actionUrl: data.actionUrl,
         },
       });
 
-      // Emitir via WebSocket (tempo real)
-      this.emitNotification(data. userId, notification);
+      // Emitir via WebSocket em tempo real
+      notifyUser(data.userId, 'notification:new', notification);
 
       logger.info(`✅ Notification created: ${data.type} for user ${data.userId}`);
       return notification;
     } catch (error) {
       logger.error('Error creating notification:', error);
       throw error;
-    }
-  }
-
-  /**
-   * Emitir notificação via WebSocket
-   */
-  emitNotification(userId, notification) {
-    try {
-      const io = getIO();
-      io.to(`user: ${userId}`).emit('notification:new', notification);
-    } catch (error) {
-      logger.error('Error emitting notification:', error);
     }
   }
 
@@ -50,16 +38,16 @@ class NotificationService {
       const sub = await prisma.subscription.findUnique({
         where: { id: subscription.id },
         include: {
-          user: { select: { username: true, displayName: true } },
+          user:    { select: { username: true, displayName: true } },
           creator: { include: { user: true } },
         },
       });
 
       await this.createNotification({
-        userId: sub.creator.userId,
-        type: 'SUBSCRIBER',
-        title: 'Novo assinante! ',
-        message: `${sub.user.displayName || sub.user.username} acabou de assinar seu plano. `,
+        userId:   sub.creator.userId,
+        type:     'SUBSCRIBER',
+        title:    'Novo assinante!',
+        message:  `${sub.user.displayName || sub.user.username} acabou de assinar o teu plano.`,
         metadata: { subscriptionId: sub.id, subscriberId: sub.userId },
         actionUrl: '/creator/subscribers',
       });
@@ -74,12 +62,12 @@ class NotificationService {
   async notifyNewComment(comment, post) {
     try {
       await this.createNotification({
-        userId: post.creatorId,
-        type: 'COMMENT',
-        title: 'Novo comentário',
-        message: `${comment.user.displayName} comentou no seu post "${post.title}".`,
+        userId:   post.creatorId,
+        type:     'COMMENT',
+        title:    'Novo comentário',
+        message:  `${comment.user.displayName} comentou no teu post "${post.title}".`,
         metadata: { commentId: comment.id, postId: post.id },
-        actionUrl: `/creator/posts? highlight=${post.id}`,
+        actionUrl: `/creator/posts?highlight=${post.id}`,
       });
     } catch (error) {
       logger.error('Error notifying new comment:', error);
@@ -92,10 +80,10 @@ class NotificationService {
   async notifyTipReceived(tip) {
     try {
       await this.createNotification({
-        userId: tip.creatorId,
-        type: 'TIP',
-        title:  'Gorjeta recebida! ',
-        message: `Você recebeu $${tip.amount} de gorjeta! `,
+        userId:   tip.creatorId,
+        type:     'TIP',
+        title:    'Gorjeta recebida!',
+        message:  `Recebeste $${tip.amount} de gorjeta!`,
         metadata: { tipId: tip.id, amount: tip.amount },
         actionUrl: '/creator/earnings',
       });
@@ -111,9 +99,9 @@ class NotificationService {
     try {
       await this.createNotification({
         userId,
-        type: 'MILESTONE',
-        title: `Marco atingido!  🎉`,
-        message: milestone.message,
+        type:     'MILESTONE',
+        title:    'Marco atingido! 🎉',
+        message:  milestone.message,
         metadata: milestone.data,
         actionUrl: '/creator/dashboard',
       });
@@ -135,10 +123,10 @@ class NotificationService {
       });
 
       await this.createNotification({
-        userId: paymentData.creator.userId,
-        type: 'PAYMENT',
-        title: 'Pagamento aprovado',
-        message: `Transferência de $${paymentData. amountUSD} foi aprovada. `,
+        userId:   paymentData.creator.userId,
+        type:     'PAYMENT',
+        title:    'Pagamento aprovado',
+        message:  `Transferência de $${paymentData.amountUSD} foi aprovada.`,
         metadata: { paymentId: payment.id, amount: paymentData.amountUSD },
         actionUrl: '/creator/earnings',
       });

@@ -265,7 +265,8 @@ export default function CreatorRegisterPage() {
 
       await new Promise((resolve, reject) => {
         const xhr = new XMLHttpRequest();
-        xhr.open('POST', 'http://localhost:5000/api/v1/auth/creator-register', true);
+        const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+        xhr.open('POST', `${API_URL}/api/v1/auth/creator-register`, true);
         xhr.withCredentials = true;
 
         xhr.upload.onprogress = (event) => {
@@ -337,7 +338,7 @@ export default function CreatorRegisterPage() {
       const existingToken = localStorage.getItem('authToken');
       if (!existingToken) {
         try {
-          const loginRes = await fetch('http://localhost:5000/api/v1/auth/login', {
+          const loginRes = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/v1/auth/login`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             credentials: 'include',
@@ -373,7 +374,7 @@ export default function CreatorRegisterPage() {
 
       navigate('/creator/dashboard', { state: { newCreator: true } });
     } catch (error) {
-      console.log("Erro no registro de criador", error);
+      console.error("Erro no registro de criador:", error);
       setErrors({ submit: 'Erro ao criar conta. Tente novamente.' });
     } finally {
       setIsLoading(false);

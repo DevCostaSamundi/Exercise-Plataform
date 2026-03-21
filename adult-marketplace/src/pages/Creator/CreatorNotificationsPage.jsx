@@ -149,7 +149,7 @@ export default function CreatorNotificationsPage() {
   }
 
   return (
-    <div className="min-h-screen bg-slate-50 dark: bg-slate-950 flex">
+    <div className="min-h-screen bg-slate-50 dark:bg-slate-950 flex">
       <CreatorSidebar />
 
       <div className="flex-1 flex flex-col">
@@ -208,7 +208,7 @@ export default function CreatorNotificationsPage() {
         <main className="flex-1 w-full px-4 sm:px-6 lg:px-8 py-6 space-y-4">
           {/* Stats rápidos */}
           <section className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-            <div className="bg-white dark:bg-slate-900 border border-slate-200 dark: border-slate-800 rounded-xl p-4">
+            <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-4">
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-xs text-slate-500 dark:text-slate-400">Não lidas</p>
@@ -287,7 +287,7 @@ export default function CreatorNotificationsPage() {
                     type="checkbox"
                     checked={showOnlyUnread}
                     onChange={(e) => setShowOnlyUnread(e.target.checked)}
-                    className="w-4 h-4 text-black bg-slate-100 dark:bg-slate-800 border-slate-300 dark:border-slate-600 rounded focus: ring-2 focus:ring-black dark:focus:ring-white"
+                    className="w-4 h-4 text-black bg-slate-100 dark:bg-slate-800 border-slate-300 dark:border-slate-600 rounded focus:ring-2 focus:ring-black dark:focus:ring-white"
                   />
                   <span className="text-slate-600 dark:text-slate-300">
                     Apenas não lidas
@@ -331,7 +331,7 @@ export default function CreatorNotificationsPage() {
                 <h3 className="text-lg font-semibold text-slate-900 dark:text-white mb-2">
                   Nenhuma notificação encontrada
                 </h3>
-                <p className="text-sm text-slate-500 dark: text-slate-400">
+                <p className="text-sm text-slate-500 dark:text-slate-400">
                   {showOnlyUnread
                     ? 'Você já leu todas as notificações!'
                     : 'Não há notificações para os filtros selecionados. '}
@@ -392,7 +392,7 @@ export default function CreatorNotificationsPage() {
                           <div className="mt-2 flex items-center gap-3 text-xs">
                             <button
                               onClick={() => handleToggleRead(notif.id)}
-                              className="text-slate-500 dark:text-slate-400 hover:text-black dark:hover: text-black transition-colors"
+                              className="text-slate-500 dark:text-slate-400 hover:text-black dark:hover:text-black transition-colors"
                             >
                               {notif.unread ? 'Marcar como lida' : 'Marcar como não lida'}
                             </button>

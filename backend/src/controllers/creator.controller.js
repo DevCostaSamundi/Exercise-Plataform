@@ -77,7 +77,7 @@ export const listCreators = async (req, res) => {
       cover: creator.coverImage || 'https://via.placeholder.com/1500x500',
       bio: creator.user.bio || creator.description || '',
       category: creator.category || 'Outros',
-      subscriptionPrice: parseFloat(creator.subscriptionPrice) || 9.99,
+      subscriptionPrice: creator.subscriptionPrice != null ? parseFloat(creator.subscriptionPrice) : 0,
       subscribers: creator._count.subscriptions,
       isVerified: creator.user.isVerified || false,
       posts: creator._count.posts,
@@ -215,7 +215,7 @@ export const getCreatorByUsername = async (req, res) => {
       videos: videosCount,
 
       // Assinatura
-      subscriptionPrice: parseFloat(creator.subscriptionPrice) || 9.99,
+      subscriptionPrice: creator.subscriptionPrice != null ? parseFloat(creator.subscriptionPrice) : 0,
       currency: 'USD',
 
       // Datas
@@ -350,7 +350,7 @@ export const getCreatorProfile = async (req, res) => {
       videos: videosCount,
 
       // Assinatura
-      subscriptionPrice: parseFloat(creator.subscriptionPrice) || 9.99,
+      subscriptionPrice: creator.subscriptionPrice != null ? parseFloat(creator.subscriptionPrice) : 0,
       currency: 'USD',
 
       // Datas

@@ -107,10 +107,11 @@ export default function CreatorDashboardPage() {
   };
 
 
+  // ✅ CORRIGIDO: era BRL — plataforma opera em USDC/USD
   const formatCurrency = (value) => {
-    return new Intl.NumberFormat('pt-BR', {
+    return new Intl.NumberFormat('en-US', {
       style: 'currency',
-      currency: 'BRL',
+      currency: 'USD',
     }).format(toNumber(value));
   };
 

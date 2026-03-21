@@ -1,16 +1,18 @@
 import React, { createContext, useContext, useEffect, useState, useRef } from 'react';
 import { connectSocket, disconnectSocket, getSocket } from '../services/SocketService';
 import api from '../services/api';
+import { getAuthToken } from '../services/api';
 import { useAuth } from './AuthContext';
 
 const ChatContext = createContext();
 
 export function ChatProvider({ children }) {
-  const { token, user } = useAuth();
+  const { user } = useAuth();
   const [chats, setChats] = useState({}); // { chatId: { messages:[], loading:false, meta:{} } }
   const socketRef = useRef(null);
 
   useEffect(() => {
+    const token = getAuthToken(); // ✅ CORRIGIDO: AuthContext não exporta 'token' — usar getAuthToken()
     if (token) {
       socketRef.current = connectSocket(token);
       const s = socketRef.current;
@@ -49,7 +51,7 @@ export function ChatProvider({ children }) {
     } else {
       disconnectSocket();
     }
-  }, [token]);
+  }, [user?._id]); // re-conecta quando utilizador muda
 
   async function loadChatHistory(chatId, page = 1, limit = 50) {
     setChats(prev => ({ ...prev, [chatId]: { ...(prev[chatId] || {}), loading: true } }));

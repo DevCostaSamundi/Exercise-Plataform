@@ -39,7 +39,7 @@ class MessageService {
       content,
       type,
     });
-    return response. data;
+    return response.data;
   }
 
   // Enviar mensagem paga

@@ -6,15 +6,9 @@ import PaymentModal from '../PaymentModal';
 const PPVModal = ({ content, onClose, onUnlock }) => {
   const [showPaymentModal, setShowPaymentModal] = useState(false);
 
-  const handleUnlock = () => {
-    setShowPaymentModal(true);
-  };
-
   const handlePaymentSuccess = async (payment) => {
     setShowPaymentModal(false);
-    if (onUnlock) {
-      await onUnlock(payment);
-    }
+    await onUnlock?.(payment);
     onClose();
   };
 
@@ -22,10 +16,11 @@ const PPVModal = ({ content, onClose, onUnlock }) => {
     <>
       <div className="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50 p-4">
         <div className="bg-white dark:bg-gray-800 rounded-2xl max-w-md w-full max-h-[90vh] overflow-y-auto">
+
           {/* Header */}
           <div className="flex items-center justify-between p-6 border-b dark:border-gray-700">
             <h2 className="text-xl font-bold text-gray-900 dark:text-white flex items-center gap-2">
-              <FiLock className="text-black" />
+              <FiLock className="text-black dark:text-white" />
               Desbloquear Conteúdo
             </h2>
             <button
@@ -39,13 +34,11 @@ const PPVModal = ({ content, onClose, onUnlock }) => {
           {/* Content Preview */}
           <div className="p-6 border-b dark:border-gray-700">
             <div className="flex items-start gap-4">
-              {/* Creator Avatar */}
               <img
                 src={content.creator.avatar || '/default-avatar.png'}
                 alt={content.creator.name}
                 className="w-12 h-12 rounded-full object-cover"
               />
-
               <div className="flex-1">
                 <p className="font-semibold text-gray-900 dark:text-white">
                   {content.creator.name}
@@ -53,7 +46,6 @@ const PPVModal = ({ content, onClose, onUnlock }) => {
                 <p className="text-sm text-gray-500 dark:text-gray-400">
                   @{content.creator.username}
                 </p>
-
                 {content.description && (
                   <p className="mt-2 text-gray-700 dark:text-gray-300 text-sm line-clamp-3">
                     {content.description}
@@ -62,7 +54,6 @@ const PPVModal = ({ content, onClose, onUnlock }) => {
               </div>
             </div>
 
-            {/* Preview Image/Video (Blurred) */}
             {content.preview && (
               <div className="mt-4 relative rounded-lg overflow-hidden">
                 <img
@@ -76,44 +67,44 @@ const PPVModal = ({ content, onClose, onUnlock }) => {
               </div>
             )}
 
-            {/* Price */}
-            <div className="mt-4 bg-black dark:bg-black/20 rounded-lg p-4">
+            {/* ⚠️  CORRIGIDO: fundo slate-100 + texto slate-900 — legível em light mode */}
+            <div className="mt-4 bg-slate-100 dark:bg-slate-700 rounded-lg p-4">
               <div className="flex items-center justify-between">
                 <span className="text-gray-700 dark:text-gray-300">Preço:</span>
-                <span className="text-2xl font-bold text-black dark:text-black">
+                <span className="text-2xl font-bold text-slate-900 dark:text-white">
                   {formatCurrency(content.price)}
                 </span>
               </div>
             </div>
           </div>
 
-          {/* Action Button */}
+          {/* Action */}
           <div className="p-6">
             <button
-              onClick={handleUnlock}
-              className="w-full py-3 px-4 bg-black dark:bg-white text-white dark:text-black rounded-lg font-semibold hover:scale-105 active:scale-95 transition-all flex items-center justify-center gap-2"
+              onClick={() => setShowPaymentModal(true)}
+              className="w-full py-3 px-4 bg-black dark:bg-white text-white dark:text-black rounded-lg font-semibold hover:opacity-90 active:scale-95 transition-all flex items-center justify-center gap-2"
             >
               <FiDollarSign />
               Desbloquear por {formatCurrency(content.price)}
             </button>
 
-            <p className="mt-4 text-xs text-center text-gray-500 dark: text-gray-400">
-              Ao desbloquear, você terá acesso permanente a este conteúdo.
+            {/* ⚠️  CORRIGIDO: espaço em 'dark: text-gray-400' removido */}
+            <p className="mt-4 text-xs text-center text-gray-500 dark:text-gray-400">
+              Ao desbloquear, terás acesso permanente a este conteúdo.
             </p>
           </div>
         </div>
       </div>
 
-      {/* Payment Modal */}
       {showPaymentModal && (
         <PaymentModal
           isOpen={showPaymentModal}
           onClose={() => setShowPaymentModal(false)}
           paymentData={{
             creatorId: content.creator.id,
-            type: content.type === 'post' ? 'PPV_POST' : 'PPV_MESSAGE',
+            type:      content.type === 'post' ? 'PPV_POST' : 'PPV_MESSAGE',
             amountUSD: content.price,
-            postId: content.type === 'post' ? content.id : undefined,
+            postId:    content.type === 'post'    ? content.id : undefined,
             messageId: content.type === 'message' ? content.id : undefined,
           }}
           onSuccess={handlePaymentSuccess}

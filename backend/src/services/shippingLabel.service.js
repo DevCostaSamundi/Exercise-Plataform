@@ -1,14 +1,8 @@
-// backend/services/shippingLabel.service.js
-// Gera etiqueta de envio PDF com endereço real descriptografado.
-// A criadora nunca vê o endereço directamente — descarrega o PDF
-// gerado pela plataforma.
+import crypto from 'crypto';
+import prisma from '../config/database.js';
 
-const crypto = require('crypto');
-const { prisma } = require('../lib/prisma');
-
-// ── Descriptografar endereço ─────────────────────────────────────
-// O endereço foi cifrado em AES-256-CBC no order.controller.js
-// formato: "iv_hex:encrypted_hex"
+// ── Desencriptar endereço ─────────────────────────────────────────────────────
+// Formato guardado: "iv_hex:encrypted_hex" (AES-256-CBC)
 
 function decryptAddress(encryptedShippingAddress) {
   const key = Buffer.from(process.env.ENCRYPTION_KEY, 'hex'); // 32 bytes
@@ -20,7 +14,7 @@ function decryptAddress(encryptedShippingAddress) {
   return JSON.parse(dec.toString('utf8'));
 }
 
-// ── Calcular zona de envio ───────────────────────────────────────
+// ── Calcular zona de envio ────────────────────────────────────────────────────
 
 const EU_COUNTRIES = new Set([
   'PT','ES','FR','DE','IT','NL','BE','AT','SE','DK','FI','NO','CH',
@@ -36,57 +30,45 @@ function getZone(fromCode, toCode) {
 }
 
 const ZONE_INFO = {
-  NATIONAL: { label: 'Nacional',       days: '2–4 dias úteis',   estimateMin: 3,  estimateMax: 6  },
-  EUROPE:   { label: 'Europa',          days: '5–10 dias úteis',  estimateMin: 8,  estimateMax: 15 },
-  WORLD:    { label: 'Internacional',   days: '10–21 dias úteis', estimateMin: 12, estimateMax: 25 },
+  NATIONAL: { label: 'Nacional',      days: '2–4 dias úteis',   estimateMin: 3,  estimateMax: 6  },
+  EUROPE:   { label: 'Europa',         days: '5–10 dias úteis',  estimateMin: 8,  estimateMax: 15 },
+  WORLD:    { label: 'Internacional',  days: '10–21 dias úteis', estimateMin: 12, estimateMax: 25 },
 };
 
-// ── Gerar PDF da etiqueta ────────────────────────────────────────
+// ── Gerar dados da etiqueta ───────────────────────────────────────────────────
 
 async function generateShippingLabelPDF(orderId, creatorId) {
-  // 1. Buscar pedido
   const order = await prisma.order.findUnique({
     where:   { id: orderId },
     include: {
-      items: { include: { product: true } },
+      items:    { include: { product: true } },
       shipment: true,
-      creator: { include: { storeProfile: true } },
+      creator:  { include: { storeProfile: true } },
     },
   });
 
-  if (!order)             throw new Error('Pedido não encontrado');
-  if (order.creatorId !== creatorId) throw new Error('Sem permissão');
+  if (!order)                          throw new Error('Pedido não encontrado');
+  if (order.creatorId !== creatorId)   throw new Error('Sem permissão');
   if (!order.encryptedShippingAddress) throw new Error('Pedido sem endereço de envio');
 
-  // 2. Descriptografar endereço
-  const addr = decryptAddress(order.encryptedShippingAddress);
-
-  // 3. Calcular zona
+  const addr      = decryptAddress(order.encryptedShippingAddress);
   const shipsFrom = order.creator?.storeProfile?.shipsFrom || '';
   const zone      = getZone(shipsFrom, addr.countryCode);
   const zoneInfo  = ZONE_INFO[zone];
 
-  // 4. Gerar PDF com PDFKit (node) OU retornar dados para o frontend gerar
-  // Usamos uma abordagem simples: retornamos os dados estruturados
-  // e o frontend usa jsPDF para gerar o PDF no browser.
-  // Assim evitamos dependências pesadas no servidor.
-
   return {
-    orderId:       order.id,
-    orderNumber:   order.orderNumber,
-    anonDropCode:  order.anonDropCode,
-    createdAt:     order.createdAt,
+    orderId:      order.id,
+    orderNumber:  order.orderNumber,
+    anonDropCode: order.anonDropCode,
+    createdAt:    order.createdAt,
 
-    // REMETENTE (criadora) — dados públicos da loja
     sender: {
       storeName: order.creator?.storeProfile?.storeDisplayName || 'Loja Anónima',
       country:   shipsFrom,
     },
 
-    // DESTINATÁRIO (fã) — endereço descriptografado
     recipient: {
-      // NOTA DE PRIVACIDADE: o nome real é substituído pelo anonDropCode
-      // O fã é identificado apenas pelo código no envelope
+      // Nome real substituído pelo código anónimo por privacidade
       displayName:  `REF: ${order.anonDropCode}`,
       addressLine1: addr.addressLine1,
       addressLine2: addr.addressLine2 || '',
@@ -96,22 +78,20 @@ async function generateShippingLabelPDF(orderId, creatorId) {
       phone:        addr.phone || '',
     },
 
-    // Info de envio
     shipping: {
-      zone:        zone,
-      zoneLabel:   zoneInfo.label,
-      days:        zoneInfo.days,
-      estimateMin: zoneInfo.estimateMin,
-      estimateMax: zoneInfo.estimateMax,
+      zone:         zone,
+      zoneLabel:    zoneInfo.label,
+      days:         zoneInfo.days,
+      estimateMin:  zoneInfo.estimateMin,
+      estimateMax:  zoneInfo.estimateMax,
       trackingCode: order.shipment?.trackingCode || null,
     },
 
-    // Produtos
-    items: order.items.map(i => ({
+    items: order.items.map((i) => ({
       name:     i.product?.name || 'Produto',
       quantity: i.quantity,
     })),
   };
 }
 
-module.exports = { generateShippingLabelPDF, getZone, ZONE_INFO };
+export { generateShippingLabelPDF, getZone, ZONE_INFO };

@@ -2,8 +2,8 @@ import { useState } from 'react';
 import PaymentModal from './PaymentModal';
 
 export default function TipModal({ isOpen, onClose, creator, onSuccess }) {
-  const [amount, setAmount] = useState(5);
-  const [message, setMessage] = useState('');
+  const [amount,      setAmount]      = useState(5);
+  const [message,     setMessage]     = useState('');
   const [showPayment, setShowPayment] = useState(false);
 
   const presetAmounts = [5, 10, 20, 50, 100];
@@ -38,14 +38,15 @@ export default function TipModal({ isOpen, onClose, creator, onSuccess }) {
               Escolha o valor
             </label>
             <div className="grid grid-cols-5 gap-2 mb-4">
-              {presetAmounts.map(preset => (
+              {presetAmounts.map((preset) => (
                 <button
                   key={preset}
                   onClick={() => setAmount(preset)}
-                  className={`py-2 rounded-lg font-medium transition-colors ${amount === preset
+                  className={`py-2 rounded-lg font-medium transition-colors ${
+                    amount === preset
                       ? 'bg-black text-white'
                       : 'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300'
-                    }`}
+                  }`}
                 >
                   ${preset}
                 </button>
@@ -66,7 +67,8 @@ export default function TipModal({ isOpen, onClose, creator, onSuccess }) {
           </div>
 
           <div className="mb-6">
-            <label className="block text-sm font-medium text-slate-700 dark: text-slate-300 mb-2">
+            {/* ⚠️  CORRIGIDO: espaço em 'dark: text-slate-300' removido */}
+            <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
               Mensagem (opcional)
             </label>
             <textarea
@@ -81,7 +83,7 @@ export default function TipModal({ isOpen, onClose, creator, onSuccess }) {
           <button
             onClick={handleContinue}
             disabled={amount < 1}
-            className="w-full bg-black dark:bg-white hover:bg-black/90 dark:hover:bg-white/90 disabled:opacity-50 disabled:cursor-not-allowed text-white dark:text-black font-bold py-3 rounded-lg transition-all"
+            className="w-full bg-black dark:bg-white hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed text-white dark:text-black font-bold py-3 rounded-lg transition-all"
           >
             Continuar para Pagamento
           </button>
@@ -94,12 +96,11 @@ export default function TipModal({ isOpen, onClose, creator, onSuccess }) {
           onClose={() => setShowPayment(false)}
           paymentData={{
             creatorId: creator.id,
-            type: 'TIP',
+            type:      'TIP',
             amountUSD: amount,
-            message,  // ✅ INCLUIR MENSAGEM
+            message,
           }}
           onSuccess={(payment) => {
-            console.log('✅ Tip sent:', payment);
             setShowPayment(false);
             onClose();
             onSuccess?.();

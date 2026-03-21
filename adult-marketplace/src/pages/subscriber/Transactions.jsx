@@ -113,7 +113,7 @@ const Transactions = () => {
 
         {/* Filters */}
         {showFilters && (
-          <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark: border-gray-700 p-4 mb-4">
+          <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-4 mb-4">
             <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
@@ -122,7 +122,7 @@ const Transactions = () => {
                 <select
                   value={filters.type}
                   onChange={(e) => setFilters({ ...filters, type: e.target.value })}
-                  className="w-full px-3 py-2 bg-gray-50 dark:bg-gray-900 border border-gray-300 dark: border-gray-600 rounded-lg text-gray-900 dark:text-white"
+                  className="w-full px-3 py-2 bg-gray-50 dark:bg-gray-900 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-900 dark:text-white"
                 >
                   <option value="">Todos</option>
                   {Object.entries(TRANSACTION_TYPES).map(([key, value]) => (
@@ -134,13 +134,13 @@ const Transactions = () => {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 dark: text-gray-300 mb-1">
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                   Status
                 </label>
                 <select
                   value={filters.status}
                   onChange={(e) => setFilters({ ...filters, status: e.target.value })}
-                  className="w-full px-3 py-2 bg-gray-50 dark: bg-gray-900 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-900 dark: text-white"
+                  className="w-full px-3 py-2 bg-gray-50 dark:bg-gray-900 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-900 dark:text-white"
                 >
                   <option value="">Todos</option>
                   {Object.entries(PAYMENT_STATUS).map(([key, value]) => (

@@ -46,7 +46,8 @@ export const useMessageSocket = (user) => { // ✅ Receber user object ao invés
     newSocket.on('connect', () => {
       console.log('✅ Connected to messages namespace:', newSocket.id);
       setIsConnected(true);
-      newSocket.emit('join', userId);
+      // ✅ CORRIGIDO: 'join' removido — o backend já faz socket.join(`user:${userId}`)
+      // automaticamente no handler 'connection' do messageSocket.js
     });
 
     newSocket.on('connect_error', (error) => {

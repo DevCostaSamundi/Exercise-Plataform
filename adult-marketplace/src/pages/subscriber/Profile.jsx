@@ -165,7 +165,7 @@ const Profile = () => {
                       />
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 dark: text-gray-300 mb-1">
+                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                         Bio
                       </label>
                       <textarea
@@ -248,7 +248,7 @@ const Profile = () => {
 
               <Link
                 to="/favorites"
-                className="flex flex-col items-center p-4 bg-gray-50 dark: bg-gray-900 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+                className="flex flex-col items-center p-4 bg-gray-50 dark:bg-gray-900 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
               >
                 <FiHeart className="text-2xl text-slate-900 mb-2" />
                 <span className="text-2xl font-bold text-gray-900 dark:text-white">
@@ -261,7 +261,7 @@ const Profile = () => {
 
               <Link
                 to="/wallet"
-                className="flex flex-col items-center p-4 bg-gray-50 dark: bg-gray-900 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+                className="flex flex-col items-center p-4 bg-gray-50 dark:bg-gray-900 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
               >
                 <FiDollarSign className="text-2xl text-slate-800 mb-2" />
                 <span className="text-2xl font-bold text-gray-900 dark:text-white">
@@ -274,7 +274,7 @@ const Profile = () => {
 
               <Link
                 to="/settings"
-                className="flex flex-col items-center p-4 bg-gray-50 dark: bg-gray-900 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+                className="flex flex-col items-center p-4 bg-gray-50 dark:bg-gray-900 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
               >
                 <FiSettings className="text-2xl text-gray-600 mb-2" />
                 <span className="text-sm text-gray-700 dark:text-gray-300 font-medium">

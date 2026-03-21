@@ -25,7 +25,8 @@ import { useCryptoPayment } from '../hooks/useCryptoPayment';
  * - onSuccess: (result) => void
  */
 export default function PaymentModal({ isOpen, onClose, paymentData, onSuccess }) {
-    const { balance, getBalance, payWithBalance, loading: balanceLoading } = useBalancePayment();
+    const { balance: rawBalance, getBalance, payWithBalance, loading: balanceLoading } = useBalancePayment();
+    const balance = Number(rawBalance) || 0;
     const cryptoPayment = useCryptoPayment();
 
     const [selectedMethod, setSelectedMethod] = useState(null);
@@ -151,7 +152,7 @@ export default function PaymentModal({ isOpen, onClose, paymentData, onSuccess }
         if (success) return 'Pagamento realizado!';
         if (processing && selectedMethod === 'crypto' && cryptoStepMsg) return cryptoStepMsg;
         if (processing) return 'Processando...';
-        return `Pagar $${paymentData.amountUSD.toFixed(2)} USDC`;
+        return `Pagar $${Number(paymentData.amountUSD || 0).toFixed(2)} USDC`;
     };
 
     // ============================================
@@ -179,7 +180,7 @@ export default function PaymentModal({ isOpen, onClose, paymentData, onSuccess }
                     {/* Valor */}
                     <div className="bg-black rounded-2xl p-5 text-white">
                         <p className="text-gray-400 text-sm mb-1">Valor total</p>
-                        <p className="text-4xl font-bold">${paymentData.amountUSD.toFixed(2)}</p>
+                        <p className="text-4xl font-bold">${Number(paymentData.amountUSD || 0).toFixed(2)}</p>
                         <p className="text-gray-500 text-xs mt-2">USDC · Polygon · Seguro e instantâneo</p>
                     </div>
 

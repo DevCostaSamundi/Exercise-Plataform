@@ -17,7 +17,8 @@ export const useBalancePayment = () => {
     const checkBalance = useCallback(async (amount) => {
         try {
             const res = await axios.post(
-                `${API_URL}/auth/wallet/check-balance`,
+                // ✅ CORRIGIDO: rota correcta com /api/v1/
+                `${API_URL}/api/v1/auth/wallet/check-balance`,
                 { amount },
                 {
                     headers: { Authorization: `Bearer ${authToken}` },
@@ -47,8 +48,9 @@ export const useBalancePayment = () => {
             }
 
             // 2. Create payment order
+            // ✅ CORRIGIDO: rota correcta — era /payments/balance/create
             const res = await axios.post(
-                `${API_URL}/payments/balance/create`,
+                `${API_URL}/api/v1/crypto-payment/balance/create-payment`,
                 paymentData,
                 {
                     headers: { Authorization: `Bearer ${authToken}` },
@@ -71,8 +73,9 @@ export const useBalancePayment = () => {
      */
     const getBalance = useCallback(async () => {
         try {
+            // ✅ CORRIGIDO: rota correcta com /api/v1/
             const res = await axios.get(
-                `${API_URL}/auth/wallet/balance`,
+                `${API_URL}/api/v1/auth/wallet/balance`,
                 {
                     headers: { Authorization: `Bearer ${authToken}` },
                 }

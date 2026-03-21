@@ -13,7 +13,7 @@ import { ptBR } from 'date-fns/locale';
 export const formatCurrency = (value) => {
   if (!value && value !== 0) return '$ 0,00';
   
-  return new Intl.NumberFormat('pt-BR', {
+  return new Intl.NumberFormat('en-US', { // ✅ CORRIGIDO: era pt-BR — plataforma opera em USD
     style: 'currency',
     currency: 'USD',
   }).format(value);
@@ -144,7 +144,7 @@ export const formatCPF = (cpf) => {
   const cleaned = cpf.replace(/\D/g, '');
   
   if (cleaned.length === 11) {
-    return `${cleaned.substring(0, 3)}.${cleaned.substring(3, 6)}.${cleaned. substring(6, 9)}-${cleaned.substring(9)}`;
+    return `${cleaned.substring(0, 3)}.${cleaned.substring(3, 6)}.${cleaned.substring(6, 9)}-${cleaned.substring(9)}`;
   }
   
   return cpf;
@@ -162,7 +162,7 @@ export const formatFileSize = (bytes) => {
   const sizes = ['Bytes', 'KB', 'MB', 'GB'];
   const i = Math.floor(Math.log(bytes) / Math.log(k));
   
-  return parseFloat((bytes / Math.pow(k, i)). toFixed(2)) + ' ' + sizes[i];
+  return parseFloat((bytes / Math.pow(k, i).toFixed(2)) + ' ' + sizes[i]);
 };
 
 /**

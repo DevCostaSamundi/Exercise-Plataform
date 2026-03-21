@@ -1,11 +1,10 @@
-// src/app.js
 import express from 'express';
 import cors from 'cors';
 import helmet from 'helmet';
 import rateLimit from 'express-rate-limit';
 import cookieParser from 'cookie-parser';
 
-// Import routes
+// ── Rotas ─────────────────────────────────────────────────────────────────────
 import authRoutes from './routes/auth.routes.js';
 import userRoutes from './routes/user.routes.js';
 import creatorRoutes from './routes/creator.routes.js';
@@ -26,16 +25,18 @@ import creatorSettingsRoutes from './routes/creatorSettings.routes.js';
 import subscriptionRoutes from './routes/subscription.routes.js';
 import web3authRoutes from './routes/web3auth.routes.js';
 import cryptoPaymentRoutes from './routes/crypto-payment.routes.js';
+import marketplaceRoutes from './routes/marketplace.routes.js';
+import shippingRoutes from './routes/shipping.routes.js';
 
 import errorMiddleware from './middleware/error.middleware.js';
 import logger from './utils/logger.js';
 
 const app = express();
 
-// Security middleware
+// ── Segurança ─────────────────────────────────────────────────────────────────
 app.use(helmet());
 
-// ------------------- CORS -------------------
+// ── CORS ──────────────────────────────────────────────────────────────────────
 const allowedOrigins = [
   process.env.FRONTEND_URL || 'http://localhost:5173',
   'http://localhost:5173',
@@ -43,15 +44,13 @@ const allowedOrigins = [
 ];
 
 const corsOptions = {
-  origin: function (origin, callback) {
+  origin: (origin, callback) => {
     if (!origin) return callback(null, true);
-    if (allowedOrigins.some(o => origin.startsWith(o))) {
-      return callback(null, true);
-    }
+    if (allowedOrigins.some((o) => origin.startsWith(o))) return callback(null, true);
     if (process.env.NODE_ENV !== 'production' && origin.includes('localhost')) {
       return callback(null, true);
     }
-    console.warn(`Blocked CORS request from origin: ${origin}`);
+    logger.warn(`Blocked CORS request from origin: ${origin}`);
     return callback(new Error('Not allowed by CORS'));
   },
   credentials: true,
@@ -63,28 +62,27 @@ const corsOptions = {
 
 app.use(cors(corsOptions));
 
-// ------------------- Rate Limiting -------------------
+// ── Rate Limiting ─────────────────────────────────────────────────────────────
 const limiter = rateLimit({
   windowMs: parseInt(process.env.RATE_LIMIT_WINDOW_MS, 10) || 15 * 60 * 1000,
-  max: parseInt(process.env.RATE_LIMIT_MAX_REQUESTS, 10) || 100,
+  max: parseInt(process.env.RATE_LIMIT_MAX_REQUESTS, 10) || 1000,
   message: 'Too many requests from this IP, please try again later.',
   standardHeaders: true,
   legacyHeaders: false,
 });
 app.use('/api', limiter);
 
-// ------------------- Middleware -------------------
+// ── Middleware base ───────────────────────────────────────────────────────────
 app.use(cookieParser());
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
-// Request logging
 app.use((req, res, next) => {
   logger.info(`${req.method} ${req.path}`);
   next();
 });
 
-// ------------------- Health Check -------------------
+// ── Health Check ──────────────────────────────────────────────────────────────
 app.get('/health', (req, res) => {
   res.status(200).json({
     status: 'success',
@@ -93,74 +91,73 @@ app.get('/health', (req, res) => {
   });
 });
 
-// ------------------- API Routes -------------------
+// ── Rotas API ─────────────────────────────────────────────────────────────────
 const API_VERSION = process.env.API_VERSION || 'v1';
+const API = `/api/${API_VERSION}`;
 
-// ============================================
-// ORDEM IMPORTANTE: Rotas mais específicas PRIMEIRO
-// ============================================
+// Auth (público)
+app.use(`${API}/auth`, authRoutes);
 
-// Auth routes (públicas)
-app.use(`/api/${API_VERSION}/auth`, authRoutes);
+// ⚠️  CORRIGIDO: web3auth montado em /auth para evitar path duplo
+// Internamente as rotas são /web3auth/login, /wallet, /wallet/balance, etc.
+// Path final: /api/v1/auth/web3auth/login ✅
+app.use(`${API}/auth`, web3authRoutes);
 
-// ✅ CRÍTICO:  Rotas de GERENCIAMENTO do criador (mais específicas)
-// Estas devem vir ANTES de /creators para evitar conflito
-app.use(`/api/${API_VERSION}/creator/settings`, creatorSettingsRoutes);
-app.use(`/api/${API_VERSION}/creator-dashboard`, creatorDashboardRoutes);
-app.use(`/api/${API_VERSION}/creator/posts`, creatorPostRoutes);
-app.use(`/api/${API_VERSION}/creator/subscribers`, creatorSubscribersRoutes);
+// Rotas de GESTÃO do criador — mais específicas, ANTES de /creators
+app.use(`${API}/creator/settings`, creatorSettingsRoutes);
+app.use(`${API}/creator-dashboard`, creatorDashboardRoutes);
+app.use(`${API}/creator/posts`, creatorPostRoutes);
+app.use(`${API}/creator/subscribers`, creatorSubscribersRoutes);
 
-// ✅ Rotas PÚBLICAS de criadores (menos específicas)
-// Esta deve vir DEPOIS das rotas de gerenciamento
-app.use(`/api/${API_VERSION}/creators`, creatorRoutes);
+// Rotas PÚBLICAS de criadores — menos específicas, DEPOIS
+app.use(`${API}/creators`, creatorRoutes);
 
-// User routes (protegidas)
-app.use(`/api/${API_VERSION}/user`, userRoutes);
+// User (protegido)
+app.use(`${API}/user`, userRoutes);
 
-// ✅ Subscription routes (ASSINANTE gerencia suas assinaturas)
-app.use(`/api/${API_VERSION}/subscriptions`, subscriptionRoutes);
+// Assinaturas
+app.use(`${API}/subscriptions`, subscriptionRoutes);
 
-// Favorites routes
-app.use(`/api/${API_VERSION}/favorites`, favoriteRoutes);
+// Favoritos
+app.use(`${API}/favorites`, favoriteRoutes);
 
-// Trending routes
-app.use(`/api/${API_VERSION}/trending`, trendingRoutes);
+// Trending
+app.use(`${API}/trending`, trendingRoutes);
 
-// Wallet and transaction routes
-app.use(`/api/${API_VERSION}`, transactionRoutes);
+// Wallet e transacções (monta /wallet e /transactions directamente)
+app.use(`${API}`, transactionRoutes);
 
-// Post routes (públicos)
-app.use(`/api/${API_VERSION}/posts`, postRoutes);
+// Posts
+app.use(`${API}/posts`, postRoutes);
 
-// Comment routes
-app.use(`/api/${API_VERSION}`, commentRoutes);
+// Comentários e likes (montam com prefixo /posts/:id internamente)
+app.use(`${API}`, commentRoutes);
+app.use(`${API}`, likeRoutes);
 
-// Like routes
-app.use(`/api/${API_VERSION}`, likeRoutes);
+// Mensagens
+app.use(`${API}/messages`, messageRoutes);
 
+// Chat
+app.use(`${API}/chat`, chatRoutes);
 
-// Message routes
-app.use(`/api/${API_VERSION}/messages`, messageRoutes);
+// Upload de média
+app.use(`${API}/upload`, uploadRoutes);
 
-// Chat routes
-app.use(`/api/${API_VERSION}/chat`, chatRoutes);
+// Notificações
+app.use(`${API}/notifications`, notificationRoutes);
 
-// Upload routes
-app.use(`/api/${API_VERSION}/upload`, uploadRoutes);
+// Marketplace
+// ⚠️  CORRIGIDO: estava em falta — todas as rotas de marketplace retornavam 404
+app.use(`${API}/marketplace`, marketplaceRoutes);
 
-// Notification routes
-app.use(`/api/${API_VERSION}/notifications`, notificationRoutes);
+// Shipping (etiquetas de envio)
+// ⚠️  CORRIGIDO: estava em falta
+app.use(`${API}/shipping`, shippingRoutes);
 
+// Pagamentos crypto
+app.use(`${API}/crypto-payment`, cryptoPaymentRoutes);
 
-
-// Web3 Upload routes
-
-// Web3 Auth routes
-app.use(`/api/${API_VERSION}/web3-auth`, web3authRoutes);
-
-app.use(`/api/${API_VERSION}/crypto-payment`, cryptoPaymentRoutes);
-
-// ------------------- 404 handler -------------------
+// ── 404 ───────────────────────────────────────────────────────────────────────
 app.use('/api', (req, res) => {
   res.status(404).json({
     status: 'error',
@@ -169,7 +166,7 @@ app.use('/api', (req, res) => {
   });
 });
 
-// ------------------- Error Handling Middleware -------------------
+// ── Error Handler ─────────────────────────────────────────────────────────────
 app.use(errorMiddleware);
 
 export default app;

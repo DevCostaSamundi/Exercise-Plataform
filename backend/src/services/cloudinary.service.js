@@ -2,27 +2,21 @@ import { v2 as cloudinary } from 'cloudinary';
 import streamifier from 'streamifier';
 import logger from '../utils/logger.js';
 
-/**
- * Cloudinary deve ser configurado UMA ÚNICA VEZ
- * dotenv já foi carregado no server.js
- */
 cloudinary.config({
   cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
-  api_key: process.env.CLOUDINARY_API_KEY,
+  api_key:    process.env.CLOUDINARY_API_KEY,
   api_secret: process.env.CLOUDINARY_API_SECRET,
 });
 
-console.log(process.env.CLOUDINARY_CLOUD_NAME);
-
-// Log seguro (sem expor segredo)
+// Log seguro — sem expor valores reais
 logger.info('☁️ Cloudinary config loaded', {
-  cloud_name: cloudinary.config().cloud_name,
-  api_key: cloudinary.config().api_key ? 'OK' : 'MISSING',
+  cloud_name: cloudinary.config().cloud_name || 'MISSING',
+  api_key:    cloudinary.config().api_key    ? 'OK' : 'MISSING',
   api_secret: cloudinary.config().api_secret ? 'OK' : 'MISSING',
 });
 
 /**
- * Upload buffer
+ * Upload de buffer para Cloudinary
  */
 export function uploadBufferToCloudinary(buffer, options = {}) {
   return new Promise((resolve, reject) => {
@@ -43,8 +37,8 @@ export function uploadBufferToCloudinary(buffer, options = {}) {
  */
 export function getVideoThumbnail(publicId) {
   return cloudinary.url(publicId, {
-    resource_type: 'video',
-    format: 'jpg',
+    resource_type:  'video',
+    format:         'jpg',
     transformation: [{ width: 400, crop: 'scale' }],
   });
 }
@@ -53,9 +47,7 @@ export function getVideoThumbnail(publicId) {
  * Deletar mídia
  */
 export async function deleteFromCloudinary(publicId) {
-  return cloudinary.uploader.destroy(publicId, {
-    resource_type: 'auto',
-  });
+  return cloudinary.uploader.destroy(publicId, { resource_type: 'auto' });
 }
 
 export default {

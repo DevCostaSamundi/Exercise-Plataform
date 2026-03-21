@@ -45,15 +45,19 @@ import CreatorPostEditPage from './pages/Creator/CreatorPostEditPage';
 import CreatorSettingsPage from './pages/Creator/creatorSettingsPage.jsx';
 import CreatorAnalyticsPage from './pages/Creator/CreatorAnalyticsPage';
 
-// ← NOVOS IMPORTS — Marketplace
 import CreatorStorePage  from './pages/Creator/CreatorStorePage';
 import CreatorOrdersPage from './pages/Creator/CreatorOrdersPage';
 
 import MessagesPage from './pages/subscriber/MessagesPage.jsx';
+import Chat         from './pages/subscriber/Chat.jsx';
+import Wallet       from './pages/subscriber/Wallet.jsx';
+import Transactions from './pages/subscriber/Transactions.jsx';
+import OrdersPage   from './pages/subscriber/OrdersPage.jsx';
+import Deposit      from './pages/Deposit.jsx';
+import PaymentStatus from './pages/PaymentStatus.jsx';
 
-import { AuthProvider } from './contexts/AuthContext';
-import { SocketProvider } from './contexts/SocketContext';
-import { UIProvider } from './contexts/UIContext';
+import { UIProvider }            from './contexts/UIContext';
+import { NotificationProvider }  from './contexts/NotificationContext';
 
 function App() {
   const [isVerified, setIsVerified] = useState(false);
@@ -69,6 +73,7 @@ function App() {
 
   return (
     <UIProvider>
+      <NotificationProvider>
       <Router>
         <div className="App">
           <Routes>
@@ -83,9 +88,7 @@ function App() {
             <Route path="/forgot-password" element={<ForgotPasswordPage />} />
             <Route path="/creator-register" element={<CreatorRegisterPage />} />
 
-            {/* ========================================
-                REDIRECTS - Old Routes to New Routes
-                ======================================== */}
+            {/* Redirects — rotas antigas */}
             <Route path="/creator-dashboard"      element={<Navigate to="/creator/dashboard"      replace />} />
             <Route path="/creator-posts"          element={<Navigate to="/creator/posts"          replace />} />
             <Route path="/creator-upload"         element={<Navigate to="/creator/upload"         replace />} />
@@ -96,170 +99,57 @@ function App() {
             <Route path="/creator-settings"       element={<Navigate to="/creator/settings"       replace />} />
             <Route path="/creator-profile"        element={<Navigate to="/creator/profile"        replace />} />
 
-            {/* ========================================
-                CREATOR ROUTES - Protected
-                IMPORTANTE: as rotas estáticas (/store, /orders, etc.)
-                TÊM de vir ANTES de /creator/:id, caso contrário
-                o React Router interpreta "store" como um ID de criador.
-                ======================================== */}
+            {/* ── Creator Routes (protegidas) ──────────────────────────────────
+                ⚠️  Rotas estáticas ANTES de /creator/:id para evitar conflito   */}
 
-            {/* ← NOVAS ROTAS DA LOJA — vêm ANTES de /creator/:id */}
-            <Route
-              path="/creator/store"
-              element={
-                <ProtectedRoute requireCreator>
-                  <CreatorStorePage />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/creator/orders"
-              element={
-                <ProtectedRoute requireCreator>
-                  <CreatorOrdersPage />
-                </ProtectedRoute>
-              }
-            />
+            <Route path="/creator/store"   element={<ProtectedRoute requireCreator><CreatorStorePage /></ProtectedRoute>} />
+            <Route path="/creator/orders"  element={<ProtectedRoute requireCreator><CreatorOrdersPage /></ProtectedRoute>} />
 
-            <Route
-              path="/creator/dashboard"
-              element={
-                <ProtectedRoute requireCreator>
-                  <CreatorDashboardPage />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/creator/posts"
-              element={
-                <ProtectedRoute requireCreator>
-                  <CreatorPostsPage />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/creator/posts/:id/edit"
-              element={
-                <ProtectedRoute requireCreator>
-                  <CreatorPostEditPage />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/creator/upload"
-              element={
-                <ProtectedRoute requireCreator>
-                  <UploadContentPage />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/creator/earnings"
-              element={
-                <ProtectedRoute requireCreator>
-                  <CreatorEarningsPage />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/creator/messages"
-              element={
-                <ProtectedRoute requireCreator>
-                  <CreatorMessagesPage />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/creator/subscribers"
-              element={
-                <ProtectedRoute requireCreator>
-                  <CreatorSubscribersPage />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/creator/analytics"
-              element={
-                <ProtectedRoute requireCreator>
-                  <CreatorAnalyticsPage />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/creator/notifications"
-              element={
-                <ProtectedRoute requireCreator>
-                  <CreatorNotificationsPage />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/creator/profile"
-              element={
-                <ProtectedRoute requireCreator>
-                  <CreatorProfilePage />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/creator/settings"
-              element={
-                <ProtectedRoute requireCreator>
-                  <CreatorSettingsPage />
-                </ProtectedRoute>
-              }
-            />
+            <Route path="/creator/dashboard"
+              element={<ProtectedRoute requireCreator><CreatorDashboardPage /></ProtectedRoute>} />
+            <Route path="/creator/posts"
+              element={<ProtectedRoute requireCreator><CreatorPostsPage /></ProtectedRoute>} />
+            <Route path="/creator/posts/:id/edit"
+              element={<ProtectedRoute requireCreator><CreatorPostEditPage /></ProtectedRoute>} />
+            <Route path="/creator/upload"
+              element={<ProtectedRoute requireCreator><UploadContentPage /></ProtectedRoute>} />
+            <Route path="/creator/earnings"
+              element={<ProtectedRoute requireCreator><CreatorEarningsPage /></ProtectedRoute>} />
+            <Route path="/creator/messages"
+              element={<ProtectedRoute requireCreator><CreatorMessagesPage /></ProtectedRoute>} />
+            <Route path="/creator/subscribers"
+              element={<ProtectedRoute requireCreator><CreatorSubscribersPage /></ProtectedRoute>} />
+            <Route path="/creator/analytics"
+              element={<ProtectedRoute requireCreator><CreatorAnalyticsPage /></ProtectedRoute>} />
+            <Route path="/creator/notifications"
+              element={<ProtectedRoute requireCreator><CreatorNotificationsPage /></ProtectedRoute>} />
+            <Route path="/creator/profile"
+              element={<ProtectedRoute requireCreator><CreatorProfilePage /></ProtectedRoute>} />
+            <Route path="/creator/settings"
+              element={<ProtectedRoute requireCreator><CreatorSettingsPage /></ProtectedRoute>} />
 
-            {/* ← /creator/:id VEM SEMPRE POR ÚLTIMO — captura qualquer outro /creator/xxx */}
+            {/* /creator/:id — SEMPRE por último */}
             <Route path="/creator/:id" element={<CreatorPage />} />
 
-            {/* ========================================
-                SUBSCRIBER ROUTES - Protected
-                ======================================== */}
-            <Route
-              path="/profile"
-              element={
-                <ProtectedRoute>
-                  <Profile />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/messages"
-              element={
-                <ProtectedRoute>
-                  <MessagesPage />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/settings"
-              element={
-                <ProtectedRoute>
-                  <Settings />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/notifications"
-              element={
-                <ProtectedRoute>
-                  <Notifications />
-                </ProtectedRoute>
-              }
-            />
+            {/* ── Subscriber Routes (protegidas) ───────────────────────────── */}
+            <Route path="/profile"       element={<ProtectedRoute><Profile /></ProtectedRoute>} />
+            <Route path="/messages"      element={<ProtectedRoute><MessagesPage /></ProtectedRoute>} />
+            <Route path="/messages/:userId" element={<ProtectedRoute><Chat /></ProtectedRoute>} />
+            <Route path="/settings"      element={<ProtectedRoute><Settings /></ProtectedRoute>} />
+            <Route path="/notifications" element={<ProtectedRoute><Notifications /></ProtectedRoute>} />
+            <Route path="/wallet"        element={<ProtectedRoute><Wallet /></ProtectedRoute>} />
+            <Route path="/transactions"  element={<ProtectedRoute><Transactions /></ProtectedRoute>} />
+            <Route path="/orders"        element={<ProtectedRoute><OrdersPage /></ProtectedRoute>} />
+            <Route path="/deposit"       element={<ProtectedRoute><Deposit /></ProtectedRoute>} />
+            <Route path="/payment-status/:paymentId" element={<ProtectedRoute><PaymentStatus /></ProtectedRoute>} />
 
-            {/* ========================================
-                PUBLIC PAGES
-                ======================================== */}
+            {/* ── Public Pages ─────────────────────────────────────────────── */}
             <Route path="/trending"         element={<TrendingPage />} />
             <Route path="/explore"          element={<ExplorePage />} />
             <Route path="/favorites"        element={<FavoritesPage />} />
             <Route path="/my-subscriptions" element={<MySubscriptionsPage />} />
 
-            {/* ========================================
-                STATIC / LEGAL PAGES
-                ======================================== */}
+            {/* ── Static / Legal ───────────────────────────────────────────── */}
             <Route path="/terms"   element={<TermsPage />} />
             <Route path="/privacy" element={<PrivacyPage />} />
             <Route path="/support" element={<SupportPage />} />
@@ -268,6 +158,7 @@ function App() {
           </Routes>
         </div>
       </Router>
+      </NotificationProvider>
     </UIProvider>
   );
 }

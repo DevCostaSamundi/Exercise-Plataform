@@ -157,10 +157,10 @@ export const NOTIFICATION_ICONS = {
 };
 
 // Minimum withdrawal amount in USD
-export const MIN_WITHDRAWAL_AMOUNT = 100;
+export const MIN_WITHDRAWAL_AMOUNT = 10; // ✅ CORRIGIDO: era 100
 
 // Platform fee percentage
-export const PLATFORM_FEE_PERCENTAGE = 20;
+export const PLATFORM_FEE_PERCENTAGE = 10; // ✅ CORRIGIDO: era 20, plataforma cobra 10%
 
 // Error Messages
 export const ERROR_MESSAGES = {

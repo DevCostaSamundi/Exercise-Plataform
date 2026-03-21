@@ -13,7 +13,7 @@ class TransactionService {
    * Exportar transações para CSV
    */
   async exportTransactions(params = {}) {
-    const response = await api. get('/transactions/export', {
+    const response = await api.get('/transactions/export', {
       params,
       responseType: 'blob',
     });

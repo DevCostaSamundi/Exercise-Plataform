@@ -120,7 +120,7 @@ export const isValidCPF = (cpf) => {
  * @returns {boolean} True se válido
  */
 export const isValidPhone = (phone) => {
-  if (! phone) return false;
+  if (!phone) return false;
   
   const cleaned = phone.replace(/\D/g, '');
   
@@ -177,7 +177,7 @@ export const validateImageFile = (file, maxSizeMB = 5) => {
   const validTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp'];
   
   if (!validTypes.includes(file.type)) {
-    return { valid: false, error: 'Formato inválido.  Use: JPG, PNG, GIF ou WebP' };
+    return { valid: false, error: 'Formato inválido. Use: JPG, PNG, GIF ou WebP' };
   }
   
   const maxSizeBytes = maxSizeMB * 1024 * 1024;
@@ -209,7 +209,7 @@ export const validateVideoFile = (file, maxSizeMB = 100) => {
   const maxSizeBytes = maxSizeMB * 1024 * 1024;
   
   if (file.size > maxSizeBytes) {
-    return { valid: false, error: `Arquivo muito grande.  Máximo: ${maxSizeMB}MB` };
+    return { valid: false, error: `Arquivo muito grande. Máximo: ${maxSizeMB}MB` };
   }
   
   return { valid: true, error: null };

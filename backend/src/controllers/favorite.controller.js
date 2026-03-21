@@ -1,9 +1,8 @@
 import prisma from '../config/database.js';
 import logger from '../utils/logger.js';
-import ApiResponse from '../utils/response.js';
 
 /**
- * Obter favoritos do usuário
+ * Obter favoritos do utilizador
  * GET /api/v1/favorites
  */
 export const getUserFavorites = async (req, res) => {
@@ -37,7 +36,7 @@ export const getUserFavorites = async (req, res) => {
       orderBy,
     });
 
-    const formatted = favorites.map(fav => ({
+    const formatted = favorites.map((fav) => ({
       _id: fav.creator.id,
       username: fav.creator.user.username,
       displayName: fav.creator.user.displayName || fav.creator.user.username,
@@ -63,14 +62,13 @@ export const getUserFavorites = async (req, res) => {
 
 /**
  * Adicionar criador aos favoritos
- * POST /api/v1/favorites/: creatorId
+ * POST /api/v1/favorites/:creatorId
  */
 export const addFavorite = async (req, res) => {
   try {
     const userId = req.user.id;
     const { creatorId } = req.params;
 
-    // Verificar se o criador existe
     const creator = await prisma.creator.findUnique({
       where: { id: creatorId },
     });
@@ -82,13 +80,9 @@ export const addFavorite = async (req, res) => {
       });
     }
 
-    // Verificar se já está nos favoritos
     const existing = await prisma.favorite.findUnique({
       where: {
-        userId_creatorId: {
-          userId,
-          creatorId,
-        },
+        userId_creatorId: { userId, creatorId },
       },
     });
 
@@ -99,12 +93,8 @@ export const addFavorite = async (req, res) => {
       });
     }
 
-    // Adicionar aos favoritos
     await prisma.favorite.create({
-      data: {
-        userId,
-        creatorId,
-      },
+      data: { userId, creatorId },
     });
 
     res.status(201).json({
@@ -131,10 +121,7 @@ export const removeFavorite = async (req, res) => {
 
     const favorite = await prisma.favorite.findUnique({
       where: {
-        userId_creatorId: {
-          userId,
-          creatorId,
-        },
+        userId_creatorId: { userId, creatorId },
       },
     });
 
@@ -146,9 +133,7 @@ export const removeFavorite = async (req, res) => {
     }
 
     await prisma.favorite.delete({
-      where: {
-        id: favorite.id,
-      },
+      where: { id: favorite.id },
     });
 
     res.json({
@@ -175,10 +160,7 @@ export const checkFavorite = async (req, res) => {
 
     const favorite = await prisma.favorite.findUnique({
       where: {
-        userId_creatorId: {
-          userId,
-          creatorId,
-        },
+        userId_creatorId: { userId, creatorId },
       },
     });
 

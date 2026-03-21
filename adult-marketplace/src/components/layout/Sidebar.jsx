@@ -1,36 +1,25 @@
-/**
- * Sidebar Desktop
- * Navegação principal para desktop
- */
-
 import { NavLink } from 'react-router-dom';
 import {
-  FiHome,
-  FiCompass,
-  FiTrendingUp,
-  FiHeart,
-  FiMessageCircle,
-  FiBell,
-  FiUser,
-  FiCreditCard,
-  FiSettings,
-  FiList,
+  FiHome, FiCompass, FiTrendingUp, FiHeart, FiMessageCircle,
+  FiBell, FiUser, FiCreditCard, FiSettings, FiList,
 } from 'react-icons/fi';
 import { useUI } from '../../contexts/UIContext';
 
 const Sidebar = () => {
   const { projectName } = useUI();
+
   const navItems = [
-    { to: '/feed', icon: FiHome, label: 'Feed', badge: null },
-    { to: '/explore', icon: FiCompass, label: 'Explorar', badge: null },
-    { to: '/trending', icon: FiTrendingUp, label: 'Em Alta', badge: null },
-    { to: '/favorites', icon: FiHeart, label: 'Favoritos', badge: null },
-    { to: '/messages', icon: FiMessageCircle, label: 'Mensagens', badge: null },
-    { to: '/notifications', icon: FiBell, label: 'Notificações', badge: null },
-    { to: '/profile', icon: FiUser, label: 'Perfil', badge: null },
-    { to: '/subscriptions', icon: FiList, label: 'Assinaturas', badge: null },
-    { to: '/wallet', icon: FiCreditCard, label: 'Carteira', badge: null },
-    { to: '/settings', icon: FiSettings, label: 'Configurações', badge: null },
+    { to: '/',                icon: FiHome,         label: 'Feed'          },
+    { to: '/explore',         icon: FiCompass,      label: 'Explorar'      },
+    { to: '/trending',        icon: FiTrendingUp,   label: 'Em Alta'       },
+    { to: '/favorites',       icon: FiHeart,        label: 'Favoritos'     },
+    { to: '/messages',        icon: FiMessageCircle,label: 'Mensagens'     },
+    { to: '/notifications',   icon: FiBell,         label: 'Notificações'  },
+    { to: '/profile',         icon: FiUser,         label: 'Perfil'        },
+    // ⚠️  CORRIGIDO: era /subscriptions — App.jsx usa /my-subscriptions
+    { to: '/my-subscriptions',icon: FiList,         label: 'Assinaturas'   },
+    { to: '/wallet',          icon: FiCreditCard,   label: 'Carteira'      },
+    { to: '/settings',        icon: FiSettings,     label: 'Configurações' },
   ];
 
   return (
@@ -43,22 +32,19 @@ const Sidebar = () => {
               <NavLink
                 key={item.to}
                 to={item.to}
+                end={item.to === '/'}
                 className={({ isActive }) =>
-                  `flex items-center gap-3 px-4 py-3 rounded-lg transition-all ${isActive
-                    ? 'bg-black dark:bg-black/20 text-black dark:text-black font-semibold'
-                    : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800'
+                  `flex items-center gap-3 px-4 py-3 rounded-lg transition-all ${
+                    isActive
+                      ? 'bg-black text-white dark:bg-white dark:text-black font-semibold'
+                      : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800'
                   }`
                 }
               >
                 {({ isActive }) => (
                   <>
-                    <Icon className={`text-xl ${isActive ? 'text-black dark:text-black' : ''}`} />
+                    <Icon className={`text-xl ${isActive ? '' : ''}`} />
                     <span className="flex-1">{item.label}</span>
-                    {item.badge && (
-                      <span className="px-2 py-0.5 bg-slate-900 text-white text-xs font-bold rounded-full">
-                        {item.badge}
-                      </span>
-                    )}
                   </>
                 )}
               </NavLink>
@@ -67,13 +53,11 @@ const Sidebar = () => {
         </div>
       </nav>
 
-      {/* Footer */}
+      {/* Footer CTA */}
       <div className="p-4 border-t dark:border-gray-800">
         <div className="bg-black dark:bg-white rounded-lg p-4 text-white dark:text-black">
           <h3 className="font-bold mb-1">{projectName} Premium</h3>
-          <p className="text-xs mb-3 opacity-90">
-            Recursos exclusivos e benefícios especiais
-          </p>
+          <p className="text-xs mb-3 opacity-90">Recursos exclusivos e benefícios especiais</p>
           <button className="w-full bg-white dark:bg-black text-black dark:text-white py-2 rounded-lg font-semibold text-sm hover:opacity-90 transition-colors">
             Saiba Mais
           </button>

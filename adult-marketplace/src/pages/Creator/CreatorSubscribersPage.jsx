@@ -5,10 +5,11 @@ import CreatorSidebar from '../../components/CreatorSidebar';
 import LoadingSpinner from '../../components/LoadingSpinner';
 import ErrorMessage from '../../components/ErrorMessage';
 
+// ✅ CORRIGIDO: era BRL — plataforma opera em USDC/USD
 const formatCurrency = (value) =>
-  new Intl.NumberFormat('pt-BR', {
+  new Intl.NumberFormat('en-US', {
     style: 'currency',
-    currency: 'BRL',
+    currency: 'USD',
   }).format(value);
 
 const formatDate = (dateStr) =>

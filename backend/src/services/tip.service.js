@@ -1,25 +1,15 @@
 import prisma from '../config/database.js';
 import logger from '../utils/logger.js';
 
-/**
- * TipService - Stub implementation for tip/payment processing
- * In production, integrate with real payment gateway
- */
 class TipService {
   /**
-   * Create a tip record (stubbed - no real payment processing)
-   * @param {Object} data - Tip data
-   * @returns {Promise<Object>} Created tip
+   * Criar registo de gorjeta
+   * Em produção: processar pagamento USDC on-chain antes de criar o registo
    */
   async createTip(data) {
     const { fromUserId, toCreatorId, amount, messageId, meta } = data;
 
-    // In production, this would:
-    // 1. Process payment via payment gateway
-    // 2. Create tip record only after payment succeeds
-    // 3. Handle payment failures and retries
-
-    logger.info(`[STUB] Processing tip: ${amount} from ${fromUserId} to ${toCreatorId}`);
+    logger.info(`[STUB] Processing tip: ${amount} USDC from ${fromUserId} to ${toCreatorId}`);
 
     const tip = await prisma.tip.create({
       data: {
@@ -27,9 +17,9 @@ class TipService {
         toCreatorId,
         messageId: messageId || null,
         amount,
-        currency: 'BRL',
-        status: 'completed', // stub: always success
-        meta: meta || null,
+        currency: 'USDC', // ⚠️  CORRIGIDO: era 'BRL' — plataforma opera em USDC/Polygon
+        status:   'completed',
+        meta:     meta || null,
       },
     });
 
@@ -38,33 +28,27 @@ class TipService {
   }
 
   /**
-   * Get tips for a creator
+   * Obter gorjetas de um criador
    */
   async getCreatorTips(creatorId, options = {}) {
     const { page = 1, limit = 50 } = options;
     const skip = (page - 1) * limit;
 
-    const tips = await prisma.tip.findMany({
-      where: { toCreatorId: creatorId },
+    return prisma.tip.findMany({
+      where:   { toCreatorId: creatorId },
       orderBy: { createdAt: 'desc' },
       skip,
       take: limit,
     });
-
-    return tips;
   }
 
   /**
-   * Check if user has ever tipped a creator
+   * Verificar se utilizador já enviou gorjeta a um criador
    */
   async hasUserTippedCreator(userId, creatorId) {
     const tip = await prisma.tip.findFirst({
-      where: {
-        fromUserId: userId,
-        toCreatorId: creatorId,
-      },
+      where: { fromUserId: userId, toCreatorId: creatorId },
     });
-
     return !!tip;
   }
 }

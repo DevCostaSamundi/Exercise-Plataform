@@ -1,5 +1,5 @@
 import { useContext } from 'react';
-import { SocketContext } from '../contexts/SocketContext';
+import SocketContext from '../contexts/SocketContext'; // ✅ CORRIGIDO: default export, não named
 
 /**
  * Hook para usar o Socket.io context

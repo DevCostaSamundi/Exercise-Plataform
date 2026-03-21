@@ -194,7 +194,6 @@ export default function UploadContentPage() {
     setUploadProgress(0);
 
     try {
-      console.log('🚀 Starting upload process...');
 
       // Step 1: Upload files to Cloudinary
       const uploadedMedia = [];
@@ -202,7 +201,6 @@ export default function UploadContentPage() {
 
       for (let i = 0; i < totalFiles; i++) {
         const fileObj = files[i];
-        console.log(`📤 Uploading ${i + 1}/${totalFiles}: `, fileObj.name);
 
         try {
           const result = await creatorPostService.uploadMedia(
@@ -214,7 +212,6 @@ export default function UploadContentPage() {
           const progress = ((i + 1) / totalFiles) * 70;
           setUploadProgress(Math.round(progress));
 
-          console.log(`✅ Uploaded: `, result.url);
         } catch (uploadError) {
           console.error(`❌ Error uploading ${fileObj.name}:`, uploadError);
           throw new Error(`Falha ao fazer upload de ${fileObj.name}`);
@@ -249,7 +246,6 @@ export default function UploadContentPage() {
         scheduledFor,
       };
 
-      console.log('📝 Creating post:', postData);
 
       setUploadProgress(85);
 
@@ -258,7 +254,6 @@ export default function UploadContentPage() {
 
       setUploadProgress(100);
 
-      console.log('✅ Post created successfully!');
 
       // Navigate to posts page
       setTimeout(() => {
@@ -287,10 +282,11 @@ export default function UploadContentPage() {
     return Math.round(bytes / Math.pow(k, i) * 100) / 100 + ' ' + sizes[i];
   };
 
+  // ✅ CORRIGIDO: era BRL — plataforma opera em USDC/USD
   const formatPrice = (value) => {
-    return new Intl.NumberFormat('pt-BR', {
+    return new Intl.NumberFormat('en-US', {
       style: 'currency',
-      currency: 'BRL',
+      currency: 'USD',
     }).format(value);
   };
 

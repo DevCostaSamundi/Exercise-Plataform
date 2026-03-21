@@ -1,7 +1,7 @@
 // pages/subscriber/OrdersPage.jsx
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { orderService } from '../../services/marketplaceService';
+import { orderService } from '../../services';
 
 const STATUS_CONFIG = {
   PENDING:            { label: 'Aguarda pagamento', color: 'text-slate-500',   bg: 'bg-slate-100 dark:bg-slate-800',           icon: '⏳' },

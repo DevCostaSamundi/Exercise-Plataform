@@ -32,15 +32,15 @@ export function connectSocket(token) {
   });
 
   socket.on('connect', () => {
-    console.log('✅ Socket connected:', socket.id);
+    if (import.meta.env.DEV) console.log('✅ Socket connected:', socket.id);
   });
 
   socket.on('connect_error', (err) => {
-    console.error('❌ Socket connect_error:', err.message);
+    if (import.meta.env.DEV) console.error('❌ Socket connect_error:', err.message);
   });
 
   socket.on('disconnect', (reason) => {
-    console.log('⚠️ Socket disconnected:', reason);
+    if (import.meta.env.DEV) console.log('⚠️ Socket disconnected:', reason);
   });
 
   return socket;

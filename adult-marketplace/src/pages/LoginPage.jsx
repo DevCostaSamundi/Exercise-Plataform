@@ -6,7 +6,13 @@ import { useWeb3Auth } from '../hooks/useWeb3Auth';
 export default function LoginPage() {
   const navigate = useNavigate();
   const location = useLocation();
-  const { login: web3AuthLogin, isConnected, isInitialized, loading: web3AuthLoading } = useWeb3Auth();
+  const {
+    login: web3AuthLogin,
+    loginWithEmail: web3AuthLoginWithEmail,
+    isConnected,
+    isInitialized,
+    loading: web3AuthLoading
+  } = useWeb3Auth();
 
   const [formData, setFormData] = useState({
     email: '',
@@ -118,7 +124,7 @@ export default function LoginPage() {
   };
 
   // ... resto do código continua igual
-  const handleSocialLogin = async (provider) => {
+  const handleEmailLogin = async () => {
     if (!isInitialized) {
       alert('Autenticação Web3 ainda está inicializando. Por favor, aguarde um momento.');
       return;
@@ -128,9 +134,36 @@ export default function LoginPage() {
     setErrors({});
 
     try {
-      console.log(`Iniciando login social com ${provider}...`);
+      console.log('Iniciando login com email (mais estável no devnet)...');
 
-      // O hook useWeb3Auth já cuida do modal e do login no backend
+      // ✅ Use email passwordless login (more stable on devnet)
+      const result = await web3AuthLoginWithEmail(formData.email);
+
+      if (result) {
+        console.log('Login com email bem-sucedido!');
+        // O redirecionamento será tratado pelo useEffect acima
+      }
+    } catch (error) {
+      console.error('Erro no login com email:', error);
+      setErrors({ submit: `Erro ao entrar via email. Tente novamente. ${error.message}` });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleSocialLogin = async () => {
+    if (!isInitialized) {
+      alert('Autenticação Web3 ainda está inicializando. Por favor, aguarde um momento.');
+      return;
+    }
+
+    setIsLoading(true);
+    setErrors({});
+
+    try {
+      console.log('Iniciando login social via Web3Auth modal...');
+
+      // ✅ v10: login() abre o modal com todas as opções (Google, Facebook, etc.)
       const result = await web3AuthLogin();
 
       if (result) {
@@ -139,7 +172,7 @@ export default function LoginPage() {
       }
     } catch (error) {
       console.error('Erro no login social:', error);
-      setErrors({ submit: `Erro ao entrar com ${provider}. Tente novamente.` });
+      setErrors({ submit: `Erro ao entrar. Tente novamente.` });
     } finally {
       setIsLoading(false);
     }
@@ -294,10 +327,30 @@ export default function LoginPage() {
             </div>
           </div>
 
+          {/* Email Login (Most Stable) */}
+          {formData.email && (
+            <div className="mb-4">
+              <button
+                type="button"
+                onClick={handleEmailLogin}
+                disabled={isLoading || !formData.email}
+                className="w-full flex items-center justify-center space-x-2 px-4 py-3 bg-emerald-600 hover:bg-emerald-700 disabled:bg-slate-300 disabled:cursor-not-allowed text-white font-medium rounded-lg transition-colors"
+              >
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                </svg>
+                <span className="text-sm">Entrar com Email (Mais Estável)</span>
+              </button>
+              <p className="mt-2 text-xs text-emerald-600 dark:text-emerald-400 text-center">
+                ✅ Recomendado: Recebe um link de confirmação no seu email
+              </p>
+            </div>
+          )}
+
           {/* Social Login */}
           <div className="grid grid-cols-2 gap-3">
             <button
-              onClick={() => handleSocialLogin('Google')}
+              onClick={() => handleSocialLogin()}
               className="flex items-center justify-center space-x-2 px-4 py-3 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors"
             >
               <svg className="w-5 h-5" viewBox="0 0 24 24">
@@ -310,7 +363,7 @@ export default function LoginPage() {
             </button>
 
             <button
-              onClick={() => handleSocialLogin('Facebook')}
+              onClick={() => handleSocialLogin()}
               className="flex items-center justify-center space-x-2 px-4 py-3 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors"
             >
               <svg className="w-5 h-5" fill="#1877F2" viewBox="0 0 24 24">

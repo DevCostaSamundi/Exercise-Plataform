@@ -309,8 +309,8 @@ function StatCard({ title, value, icon, trend, trendUp }) {
         <span className="text-2xl">{icon}</span>
         <span
           className={`text-sm font-semibold ${trendUp
-            ? 'text-slate-800 dark:text-slate-800'
-            : 'text-slate-900 dark:text-slate-900'
+            ? 'text-emerald-600 dark:text-emerald-400'
+            : 'text-red-500 dark:text-red-400'
             }`}
         >
           {trend}

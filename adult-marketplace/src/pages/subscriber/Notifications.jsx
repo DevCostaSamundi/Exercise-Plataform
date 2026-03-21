@@ -7,12 +7,15 @@ export default function Notifications() {
     notifications,
     unreadCount,
     loading,
-    hasMore,
     markAsRead,
     markAllAsRead,
-    loadMore,
-    refresh,
+    fetchNotifications,
   } = useNotifications();
+
+  // Carregar notificações ao montar
+  useEffect(() => {
+    fetchNotifications();
+  }, [fetchNotifications]);
 
   return (
     <div className="flex min-h-screen bg-white dark:bg-slate-950">
@@ -66,17 +69,7 @@ export default function Notifications() {
             </li>
           ))}
         </ul>
-        {hasMore && (
-          <div className="text-center mt-6">
-            <button
-              onClick={loadMore}
-              disabled={loading}
-              className="bg-black hover:bg-black text-white px-6 py-2 rounded-lg font-medium disabled:opacity-50"
-            >
-              {loading ? 'Carregando...' : 'Carregar mais'}
-            </button>
-          </div>
-        )}
+        {/* Paginação via fetchNotifications({ page }) pode ser adicionada quando o backend suportar */}
       </div>
     </div>
   );

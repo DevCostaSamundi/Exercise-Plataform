@@ -1,7 +1,5 @@
-import { PrismaClient } from '@prisma/client';
+import prisma from '../config/database.js';
 import logger from '../utils/logger.js';
-
-const prisma = new PrismaClient();
 
 /**
  * Toggle like on a post
@@ -38,18 +36,12 @@ export const toggleLike = async (req, res) => {
       // Unlike: delete the like and decrement count atomically
       const [, updatedPost] = await prisma.$transaction([
         prisma.like.delete({
-          where: {
-            id: existingLike.id,
-          },
+          where: { id: existingLike.id },
         }),
         prisma.post.update({
           where: { id: postId },
-          data: {
-            likesCount: { decrement: 1 },
-          },
-          select: {
-            likesCount: true,
-          },
+          data: { likesCount: { decrement: 1 } },
+          select: { likesCount: true },
         }),
       ]);
 
@@ -64,19 +56,12 @@ export const toggleLike = async (req, res) => {
       // Like: create a new like and increment count atomically
       const [, updatedPost] = await prisma.$transaction([
         prisma.like.create({
-          data: {
-            postId,
-            userId,
-          },
+          data: { postId, userId },
         }),
         prisma.post.update({
           where: { id: postId },
-          data: {
-            likesCount: { increment: 1 },
-          },
-          select: {
-            likesCount: true,
-          },
+          data: { likesCount: { increment: 1 } },
+          select: { likesCount: true },
         }),
       ]);
 
@@ -106,7 +91,6 @@ export const checkLiked = async (req, res) => {
     const { postId } = req.params;
     const userId = req.user.id;
 
-    // Check if post exists
     const post = await prisma.post.findUnique({
       where: { id: postId },
       select: {
@@ -122,7 +106,6 @@ export const checkLiked = async (req, res) => {
       });
     }
 
-    // Check if user liked the post
     const like = await prisma.like.findUnique({
       where: {
         postId_userId: {
