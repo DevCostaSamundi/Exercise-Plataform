@@ -1,349 +1,663 @@
 // ============================================================
-// AI CATALOG PAGE — Premium dark adult aesthetic
+// AI CATALOG PAGE — Dark Luxury Sensual Redesign
 // ============================================================
 
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { Search, Bot, Star, MessageCircle, Users, Loader2, Sparkles, Heart, Flame } from 'lucide-react';
+import { Search, Star, MessageCircle, Heart, Flame, Sparkles, Loader2, ChevronDown } from 'lucide-react';
 import aiService from '../services/aiService';
 
 const NSFW_BADGES = {
-    soft: { label: 'Soft', emoji: '🌸' },
-    moderate: { label: 'Spicy', emoji: '🔥' },
-    explicit: { label: 'Explicit', emoji: '💋' },
+  soft: { label: 'Soft', color: '#f9a8d4', bg: 'rgba(249,168,212,0.12)', border: 'rgba(249,168,212,0.2)' },
+  moderate: { label: 'Hot', color: '#fb923c', bg: 'rgba(251,146,60,0.12)', border: 'rgba(251,146,60,0.2)' },
+  explicit: { label: 'Explicit', color: '#f43f5e', bg: 'rgba(244,63,94,0.15)', border: 'rgba(244,63,94,0.25)' },
 };
 
 const TEXTS = {
-    pt: {
-        heroTag: 'Powered by AI',
-        title: 'AI Companions',
-        subtitle: 'Personagens únicos. Personalidade real. Sem limites.',
-        searchPlaceholder: 'Pesquisar por nome, tags...',
-        all: 'Todos',
-        count: (n) => `${n} companion${n !== 1 ? 's' : ''}`,
-        noResults: 'Nenhum companion encontrado',
-        noResultsSub: 'Sê o primeiro a criar um.',
-        tryAgain: 'Tenta outra pesquisa.',
-        createBtn: 'Criar Companion',
-        perMonth: '/mês',
-        by: 'por',
-    },
-    en: {
-        heroTag: 'Powered by AI',
-        title: 'AI Companions',
-        subtitle: 'Unique characters. Real personality. No limits.',
-        searchPlaceholder: 'Search by name, tags...',
-        all: 'All',
-        count: (n) => `${n} companion${n !== 1 ? 's' : ''}`,
-        noResults: 'No companions found',
-        noResultsSub: 'Be the first to create one.',
-        tryAgain: 'Try a different search.',
-        createBtn: 'Create Companion',
-        perMonth: '/mo',
-        by: 'by',
-    },
+  pt: {
+    eyebrow: 'Experiências sem limite',
+    title1: 'Encontra a tua',
+    title2: 'companheira perfeita',
+    subtitle: '{t.subtitle}',
+    searchPlaceholder: 'Pesquisa por nome, personalidade, fetiches...',
+    all: '✦ Todas',
+    sectionTitle: (s) => s ? `Resultados para "${s}"` : 'Todas as Companions',
+    available: 'disponíveis',
+    by: 'por',
+    perMonth: '/mês',
+    createBtn: 'Criar Companion',
+    noResults: 'Nenhuma companion encontrada',
+    noResultsSub: (s) => s ? 'Tenta outra pesquisa.' : 'Sê o primeiro a criar uma.',
+    explore: 'Explorar',
+  },
+  en: {
+    eyebrow: 'No-limits experiences',
+    title1: 'Find your',
+    title2: 'perfect companion',
+    subtitle: 'Characters with soul. Conversations that burn. No judgements, no censorship — just you and her.',
+    searchPlaceholder: 'Search by name, personality, fetishes...',
+    all: '✦ All',
+    sectionTitle: (s) => s ? `Results for "${s}"` : 'All Companions',
+    available: 'available',
+    by: 'by',
+    perMonth: '/mo',
+    createBtn: 'Create Companion',
+    noResults: 'No companions found',
+    noResultsSub: (s) => s ? 'Try a different search.' : 'Be the first to create one.',
+    explore: 'Explore',
+  },
 };
 
+// Imagens placeholder sensuais de stock (unsplash)
+const FALLBACK_AVATARS = [
+  'https://images.unsplash.com/photo-1529626455594-4ff0802cfb7e?w=400&h=600&fit=crop&crop=face',
+  'https://images.unsplash.com/photo-1531746020798-e6953c6e8e04?w=400&h=600&fit=crop&crop=face',
+  'https://images.unsplash.com/photo-1488426862026-3ee34a7d66df?w=400&h=600&fit=crop&crop=face',
+  'https://images.unsplash.com/photo-1524502397800-2eeaad7c3fe5?w=400&h=600&fit=crop&crop=face',
+  'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=400&h=600&fit=crop&crop=face',
+  'https://images.unsplash.com/photo-1519699047748-de8e457a634e?w=400&h=600&fit=crop&crop=face',
+  'https://images.unsplash.com/photo-1517841905240-472988babdf9?w=400&h=600&fit=crop&crop=face',
+  'https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=400&h=600&fit=crop&crop=face',
+];
+
 export default function AiCatalogPage() {
-    const [companions, setCompanions] = useState([]);
-    const [loading, setLoading] = useState(true);
-    const [search, setSearch] = useState('');
-    const [language, setLanguage] = useState('');
-    const [uiLang, setUiLang] = useState('pt');
-    const [total, setTotal] = useState(0);
+  const [companions, setCompanions] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [search, setSearch] = useState('');
+  const [language, setLanguage] = useState('');
+  const [uiLang, setUiLang] = useState(() => navigator.language?.startsWith('pt') ? 'pt' : 'en');
+  const [total, setTotal] = useState(0);
+  const [scrolled, setScrolled] = useState(false);
 
-    const t = TEXTS[uiLang] || TEXTS.pt;
+  const t = TEXTS[uiLang] || TEXTS.pt;
 
-    useEffect(() => {
-        loadCompanions();
-    }, [search, language]);
+  useEffect(() => {
+    loadCompanions();
+  }, [search, language]);
 
-    async function loadCompanions() {
-        setLoading(true);
-        try {
-            const params = { limit: 20, sortBy: 'subscriberCount', sortOrder: 'desc' };
-            if (search) params.search = search;
-            if (language) params.language = language;
-            const res = await aiService.getCompanions(params);
-            setCompanions(res.data || []);
-            setTotal(res.pagination?.total || 0);
-        } catch (err) {
-            console.error('Error loading catalog:', err);
-        } finally {
-            setLoading(false);
-        }
+  useEffect(() => {
+    const onScroll = () => setScrolled(window.scrollY > 60);
+    window.addEventListener('scroll', onScroll);
+    return () => window.removeEventListener('scroll', onScroll);
+  }, []);
+
+  function switchLang(val) {
+    if (val === '') {
+      setLanguage('');
+    } else {
+      setLanguage(val);
+      setUiLang(val);
     }
+  }
 
-    function switchLang(lang) {
-        setUiLang(lang);
-        setLanguage(lang);
+  async function loadCompanions() {
+    setLoading(true);
+    try {
+      const params = { limit: 20, sortBy: 'subscriberCount', sortOrder: 'desc' };
+      if (search) params.search = search;
+      if (language) params.language = language;
+      const res = await aiService.getCompanions(params);
+      setCompanions(res.data || []);
+      setTotal(res.pagination?.total || 0);
+    } catch (err) {
+      console.error('Error loading catalog:', err);
+    } finally {
+      setLoading(false);
     }
+  }
 
-    return (
-        <div className="min-h-screen" style={{ background: '#0a0a0a' }}>
+  return (
+    <div style={{ background: '#070709', minHeight: '100vh', fontFamily: "'DM Sans', system-ui, sans-serif" }}>
+      <style>{`
+        @import url('https://fonts.googleapis.com/css2?family=DM+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;1,300&family=Playfair+Display:ital,wght@0,700;1,700&display=swap');
 
-            {/* ── HERO ─────────────────────────────────────────────── */}
-            <div className="relative overflow-hidden" style={{
-                background: 'linear-gradient(135deg, #0a0a0a 0%, #1a0a1e 30%, #2d0a2e 50%, #1a0a1e 70%, #0a0a0a 100%)',
-            }}>
-                {/* Animated glow */}
-                <div className="absolute inset-0 overflow-hidden pointer-events-none">
-                    <div className="absolute -top-40 -right-40 w-96 h-96 rounded-full opacity-20" style={{
-                        background: 'radial-gradient(circle, #ff2d7833 0%, transparent 70%)',
-                        animation: 'pulse 4s ease-in-out infinite',
-                    }} />
-                    <div className="absolute -bottom-20 -left-20 w-72 h-72 rounded-full opacity-15" style={{
-                        background: 'radial-gradient(circle, #d946ef33 0%, transparent 70%)',
-                        animation: 'pulse 5s ease-in-out infinite 1s',
-                    }} />
-                </div>
+        * { box-sizing: border-box; }
 
-                <div className="relative max-w-6xl mx-auto px-4 py-20 text-center">
-                    {/* Tag */}
-                    <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full text-xs font-semibold mb-6" style={{
-                        background: 'linear-gradient(135deg, rgba(255,45,120,0.15), rgba(217,70,239,0.15))',
-                        border: '1px solid rgba(255,45,120,0.25)',
-                        color: '#ff6b9d',
-                    }}>
-                        <Sparkles className="w-3.5 h-3.5" />
-                        {t.heroTag}
-                    </div>
+        body { margin: 0; }
 
-                    <h1 className="text-5xl md:text-6xl font-black tracking-tight mb-4" style={{
-                        background: 'linear-gradient(135deg, #ffffff 0%, #ff6b9d 50%, #d946ef 100%)',
-                        WebkitBackgroundClip: 'text',
-                        WebkitTextFillColor: 'transparent',
-                    }}>
-                        {t.title}
-                    </h1>
-
-                    <p className="text-lg max-w-lg mx-auto mb-10" style={{ color: '#888' }}>
-                        {t.subtitle}
-                    </p>
-
-                    {/* Search */}
-                    <div className="max-w-xl mx-auto relative mb-6">
-                        <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5" style={{ color: '#555' }} />
-                        <input
-                            type="text"
-                            value={search}
-                            onChange={e => setSearch(e.target.value)}
-                            placeholder={t.searchPlaceholder}
-                            className="w-full pl-12 pr-4 py-4 rounded-2xl text-sm focus:outline-none transition-all"
-                            style={{
-                                background: 'rgba(255,255,255,0.04)',
-                                border: '1px solid rgba(255,255,255,0.08)',
-                                color: '#eee',
-                                backdropFilter: 'blur(10px)',
-                            }}
-                            onFocus={e => {
-                                e.target.style.borderColor = 'rgba(255,45,120,0.4)';
-                                e.target.style.boxShadow = '0 0 20px rgba(255,45,120,0.1)';
-                            }}
-                            onBlur={e => {
-                                e.target.style.borderColor = 'rgba(255,255,255,0.08)';
-                                e.target.style.boxShadow = 'none';
-                            }}
-                        />
-                    </div>
-
-                    {/* Language / Filter */}
-                    <div className="flex items-center justify-center gap-2">
-                        {[
-                            { value: '', label: t.all },
-                            { value: 'pt', label: '🇵🇹 Português' },
-                            { value: 'en', label: '🇬🇧 English' },
-                        ].map(opt => (
-                            <button
-                                key={opt.value}
-                                onClick={() => switchLang(opt.value || 'pt')}
-                                className="px-5 py-2 rounded-full text-xs font-semibold transition-all"
-                                style={{
-                                    background: (opt.value === '' ? language === '' : uiLang === opt.value)
-                                        ? 'linear-gradient(135deg, #ff2d78, #d946ef)'
-                                        : 'rgba(255,255,255,0.04)',
-                                    color: (opt.value === '' ? language === '' : uiLang === opt.value) ? '#fff' : '#888',
-                                    border: '1px solid ' + ((opt.value === '' ? language === '' : uiLang === opt.value)
-                                        ? 'transparent'
-                                        : 'rgba(255,255,255,0.08)'),
-                                }}
-                            >
-                                {opt.label}
-                            </button>
-                        ))}
-                    </div>
-                </div>
-            </div>
-
-            {/* ── GRID ─────────────────────────────────────────────── */}
-            <div className="max-w-6xl mx-auto px-4 py-10">
-                <div className="flex items-center justify-between mb-8">
-                    <p className="text-sm font-medium" style={{ color: '#666' }}>
-                        {t.count(total)}
-                    </p>
-                    <Link
-                        to="/creator/ai/new"
-                        className="flex items-center gap-2 px-5 py-2.5 rounded-xl text-xs font-bold transition-all"
-                        style={{
-                            background: 'linear-gradient(135deg, #ff2d78, #d946ef)',
-                            color: '#fff',
-                        }}
-                    >
-                        <Sparkles className="w-3.5 h-3.5" />
-                        {t.createBtn}
-                    </Link>
-                </div>
-
-                {loading ? (
-                    <div className="flex items-center justify-center py-24">
-                        <Loader2 className="w-10 h-10 animate-spin" style={{ color: '#ff2d78' }} />
-                    </div>
-                ) : companions.length === 0 ? (
-                    /* ── EMPTY STATE ─────────────────────────────── */
-                    <div className="text-center py-24">
-                        <div className="w-24 h-24 rounded-3xl mx-auto mb-6 flex items-center justify-center" style={{
-                            background: 'linear-gradient(135deg, rgba(255,45,120,0.1), rgba(217,70,239,0.1))',
-                            border: '1px solid rgba(255,45,120,0.15)',
-                        }}>
-                            <Flame className="w-10 h-10" style={{ color: '#ff2d78' }} />
-                        </div>
-                        <h2 className="text-2xl font-black mb-2" style={{ color: '#eee' }}>
-                            {t.noResults}
-                        </h2>
-                        <p className="text-sm mb-8" style={{ color: '#666' }}>
-                            {search ? t.tryAgain : t.noResultsSub}
-                        </p>
-                        <Link
-                            to="/creator/ai/new"
-                            className="inline-flex items-center gap-2 px-8 py-3.5 rounded-2xl text-sm font-bold transition-all hover:scale-105"
-                            style={{
-                                background: 'linear-gradient(135deg, #ff2d78, #d946ef)',
-                                color: '#fff',
-                                boxShadow: '0 8px 32px rgba(255,45,120,0.3)',
-                            }}
-                        >
-                            <Sparkles className="w-4 h-4" />
-                            {t.createBtn}
-                        </Link>
-                    </div>
-                ) : (
-                    /* ── COMPANION CARDS ─────────────────────────── */
-                    <div className="grid sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-                        {companions.map(comp => {
-                            const badge = NSFW_BADGES[comp.nsfwLevel] || NSFW_BADGES.explicit;
-                            return (
-                                <Link
-                                    key={comp.id}
-                                    to={`/ai/${comp.slug || comp.id}`}
-                                    className="group rounded-2xl overflow-hidden transition-all hover:scale-[1.02]"
-                                    style={{
-                                        background: '#111',
-                                        border: '1px solid rgba(255,255,255,0.06)',
-                                    }}
-                                    onMouseEnter={e => {
-                                        e.currentTarget.style.borderColor = 'rgba(255,45,120,0.3)';
-                                        e.currentTarget.style.boxShadow = '0 8px 40px rgba(255,45,120,0.1)';
-                                    }}
-                                    onMouseLeave={e => {
-                                        e.currentTarget.style.borderColor = 'rgba(255,255,255,0.06)';
-                                        e.currentTarget.style.boxShadow = 'none';
-                                    }}
-                                >
-                                    {/* Avatar */}
-                                    <div className="aspect-[3/4] relative overflow-hidden" style={{ background: '#1a1a1a' }}>
-                                        {comp.avatar ? (
-                                            <img src={comp.avatar} alt={comp.name} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" />
-                                        ) : (
-                                            <div className="w-full h-full flex items-center justify-center">
-                                                <Bot className="w-16 h-16" style={{ color: '#2a2a2a' }} />
-                                            </div>
-                                        )}
-
-                                        {/* Gradient overlay */}
-                                        <div className="absolute inset-0" style={{
-                                            background: 'linear-gradient(0deg, #111 0%, transparent 50%)',
-                                        }} />
-
-                                        {/* NSFW badge */}
-                                        <div className="absolute top-3 right-3 px-2.5 py-1 rounded-full text-[10px] font-bold" style={{
-                                            background: 'rgba(0,0,0,0.7)',
-                                            backdropFilter: 'blur(8px)',
-                                            color: '#ff6b9d',
-                                            border: '1px solid rgba(255,45,120,0.2)',
-                                        }}>
-                                            {badge.emoji} {badge.label}
-                                        </div>
-
-                                        {/* Name overlay */}
-                                        <div className="absolute bottom-0 left-0 right-0 p-4">
-                                            <h3 className="text-lg font-black text-white group-hover:text-pink-400 transition-colors">
-                                                {comp.name}
-                                            </h3>
-                                            <p className="text-[11px] mt-0.5" style={{ color: '#888' }}>
-                                                {t.by} {comp.creator?.displayName || comp.creator?.user?.username || 'Creator'}
-                                            </p>
-                                        </div>
-                                    </div>
-
-                                    {/* Info */}
-                                    <div className="p-4 space-y-3">
-                                        <p className="text-xs leading-relaxed line-clamp-2" style={{ color: '#888' }}>
-                                            {comp.description || comp.personality?.backstory?.slice(0, 80) || 'AI Companion'}
-                                        </p>
-
-                                        {/* Tags */}
-                                        {comp.tags?.length > 0 && (
-                                            <div className="flex flex-wrap gap-1.5">
-                                                {comp.tags.slice(0, 3).map(tag => (
-                                                    <span key={tag} className="px-2 py-0.5 rounded-full text-[10px] font-medium" style={{
-                                                        background: 'rgba(255,45,120,0.08)',
-                                                        color: '#ff6b9d',
-                                                        border: '1px solid rgba(255,45,120,0.12)',
-                                                    }}>
-                                                        {tag}
-                                                    </span>
-                                                ))}
-                                            </div>
-                                        )}
-
-                                        {/* Stats + Price */}
-                                        <div className="flex items-center justify-between pt-2" style={{ borderTop: '1px solid rgba(255,255,255,0.05)' }}>
-                                            <div className="flex items-center gap-3 text-[11px]" style={{ color: '#555' }}>
-                                                <span className="flex items-center gap-1">
-                                                    <Heart className="w-3 h-3" /> {comp.subscriberCount}
-                                                </span>
-                                                <span className="flex items-center gap-1">
-                                                    <MessageCircle className="w-3 h-3" /> {comp.messageCount}
-                                                </span>
-                                                {comp.rating > 0 && (
-                                                    <span className="flex items-center gap-1">
-                                                        <Star className="w-3 h-3" style={{ color: '#f59e0b' }} /> {comp.rating.toFixed(1)}
-                                                    </span>
-                                                )}
-                                            </div>
-                                            <span className="text-sm font-black" style={{
-                                                background: 'linear-gradient(135deg, #ff6b9d, #d946ef)',
-                                                WebkitBackgroundClip: 'text',
-                                                WebkitTextFillColor: 'transparent',
-                                            }}>
-                                                ${comp.monthlyPrice}{t.perMonth}
-                                            </span>
-                                        </div>
-                                    </div>
-                                </Link>
-                            );
-                        })}
-                    </div>
-                )}
-            </div>
-
-            {/* CSS animation */}
-            <style>{`
-        @keyframes pulse {
-          0%, 100% { transform: scale(1); opacity: 0.15; }
-          50% { transform: scale(1.2); opacity: 0.25; }
+        .catalog-hero {
+          position: relative;
+          min-height: 100vh;
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          justify-content: center;
+          overflow: hidden;
+          padding: 40px 24px 60px;
         }
+
+        .hero-bg {
+          position: absolute; inset: 0;
+          background: radial-gradient(ellipse 80% 60% at 50% 0%, rgba(159,18,57,0.35) 0%, transparent 65%),
+                      radial-gradient(ellipse 50% 40% at 90% 80%, rgba(88,28,135,0.25) 0%, transparent 60%),
+                      radial-gradient(ellipse 60% 50% at 10% 60%, rgba(190,18,60,0.15) 0%, transparent 60%),
+                      #070709;
+        }
+
+        .grain {
+          position: absolute; inset: 0; opacity: 0.04; pointer-events: none;
+          background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E");
+          background-size: 200px;
+        }
+
+        .hero-lines {
+          position: absolute; inset: 0; pointer-events: none; overflow: hidden;
+        }
+        .hero-lines::before {
+          content: '';
+          position: absolute;
+          left: 50%; top: -100px;
+          width: 1px; height: 140%;
+          background: linear-gradient(180deg, transparent 0%, rgba(244,63,94,0.25) 30%, rgba(244,63,94,0.08) 70%, transparent 100%);
+          transform: translateX(-50%);
+          animation: lineGlow 4s ease-in-out infinite;
+        }
+
+        @keyframes lineGlow {
+          0%, 100% { opacity: 0.4; }
+          50% { opacity: 1; }
+        }
+
+        .floating-orb {
+          position: absolute;
+          border-radius: 50%;
+          filter: blur(80px);
+          pointer-events: none;
+        }
+
+        @keyframes floatA {
+          0%, 100% { transform: translate(0, 0) scale(1); }
+          50% { transform: translate(-30px, -40px) scale(1.1); }
+        }
+        @keyframes floatB {
+          0%, 100% { transform: translate(0, 0) scale(1); }
+          50% { transform: translate(25px, 30px) scale(0.9); }
+        }
+
+        .hero-eyebrow {
+          display: inline-flex; align-items: center; gap: 8px;
+          padding: 6px 16px; border-radius: 100px;
+          border: 1px solid rgba(244,63,94,0.25);
+          background: rgba(244,63,94,0.06);
+          font-size: 11px; font-weight: 600; letter-spacing: 0.12em;
+          color: #f43f5e; text-transform: uppercase;
+          margin-bottom: 28px;
+          animation: fadeUp 0.8s ease both;
+        }
+
+        .hero-title {
+          font-family: 'Playfair Display', Georgia, serif;
+          font-size: clamp(52px, 8vw, 100px);
+          font-weight: 700;
+          line-height: 1.02;
+          text-align: center;
+          margin: 0 0 12px;
+          animation: fadeUp 0.8s ease 0.1s both;
+        }
+
+        .hero-title-main {
+          display: block;
+          background: linear-gradient(135deg, #fff 0%, #fecdd3 60%, #f43f5e 100%);
+          -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+          background-clip: text;
+        }
+
+        .hero-title-italic {
+          display: block;
+          font-style: italic;
+          background: linear-gradient(135deg, #fda4af 0%, #f43f5e 50%, #be185d 100%);
+          -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+          background-clip: text;
+        }
+
+        .hero-sub {
+          font-size: 17px; font-weight: 300; letter-spacing: 0.02em;
+          color: rgba(255,255,255,0.45);
+          max-width: 480px; text-align: center; line-height: 1.6;
+          margin: 0 auto 44px;
+          animation: fadeUp 0.8s ease 0.2s both;
+        }
+
+        @keyframes fadeUp {
+          from { opacity: 0; transform: translateY(24px); }
+          to { opacity: 1; transform: translateY(0); }
+        }
+
+        .search-wrap {
+          width: 100%; max-width: 560px;
+          position: relative;
+          animation: fadeUp 0.8s ease 0.3s both;
+        }
+
+        .search-input {
+          width: 100%; padding: 18px 24px 18px 54px;
+          background: rgba(255,255,255,0.04);
+          border: 1px solid rgba(255,255,255,0.09);
+          border-radius: 100px;
+          font-size: 15px; color: #fff; outline: none;
+          transition: border-color 0.3s, box-shadow 0.3s, background 0.3s;
+          font-family: inherit;
+          backdrop-filter: blur(12px);
+        }
+        .search-input::placeholder { color: rgba(255,255,255,0.28); }
+        .search-input:focus {
+          border-color: rgba(244,63,94,0.45);
+          box-shadow: 0 0 40px rgba(244,63,94,0.12), 0 0 0 1px rgba(244,63,94,0.12);
+          background: rgba(255,255,255,0.06);
+        }
+
+        .search-icon {
+          position: absolute; left: 20px; top: 50%; transform: translateY(-50%);
+          color: rgba(255,255,255,0.3); pointer-events: none;
+        }
+
+        .filter-row {
+          display: flex; gap: 8px; margin-top: 20px;
+          animation: fadeUp 0.8s ease 0.4s both;
+          flex-wrap: wrap; justify-content: center;
+        }
+
+        .filter-btn {
+          padding: 8px 20px; border-radius: 100px;
+          font-size: 13px; font-weight: 500; letter-spacing: 0.01em;
+          cursor: pointer; transition: all 0.2s;
+          font-family: inherit;
+          border: 1px solid rgba(255,255,255,0.08);
+          background: transparent; color: rgba(255,255,255,0.4);
+        }
+        .filter-btn:hover { border-color: rgba(244,63,94,0.3); color: rgba(255,255,255,0.7); }
+        .filter-btn.active {
+          background: #f43f5e; border-color: #f43f5e;
+          color: #fff;
+          box-shadow: 0 4px 20px rgba(244,63,94,0.35);
+        }
+
+        .scroll-hint {
+          position: absolute; bottom: 32px; left: 50%; transform: translateX(-50%);
+          display: flex; flex-direction: column; align-items: center; gap: 6px;
+          color: rgba(255,255,255,0.2); font-size: 11px; letter-spacing: 0.1em;
+          text-transform: uppercase; animation: bounce 2s ease-in-out infinite;
+        }
+        @keyframes bounce {
+          0%, 100% { transform: translateX(-50%) translateY(0); }
+          50% { transform: translateX(-50%) translateY(8px); }
+        }
+
+        /* ── GRID SECTION ─────────────────────────────────── */
+        .grid-section {
+          max-width: 1400px; margin: 0 auto;
+          padding: 60px 24px 80px;
+        }
+
+        .section-header {
+          display: flex; align-items: baseline; justify-content: space-between;
+          margin-bottom: 36px;
+        }
+
+        .section-title {
+          font-family: 'Playfair Display', serif;
+          font-size: 28px; font-weight: 700;
+          color: #fff;
+        }
+
+        .count-badge {
+          font-size: 13px; color: rgba(255,255,255,0.3); font-weight: 400;
+        }
+
+        .companions-grid {
+          display: grid;
+          grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+          gap: 20px;
+        }
+
+        /* ── CARD ─────────────────────────────────────────── */
+        .companion-card {
+          border-radius: 20px; overflow: hidden;
+          background: #0f0f12;
+          border: 1px solid rgba(255,255,255,0.05);
+          transition: transform 0.35s cubic-bezier(.2,.8,.3,1), box-shadow 0.35s, border-color 0.35s;
+          cursor: pointer; text-decoration: none;
+          display: block;
+          animation: fadeIn 0.5s ease both;
+        }
+        .companion-card:hover {
+          transform: translateY(-6px) scale(1.01);
+          border-color: rgba(244,63,94,0.25);
+          box-shadow: 0 20px 60px rgba(0,0,0,0.6), 0 0 0 1px rgba(244,63,94,0.08), 0 8px 30px rgba(244,63,94,0.15);
+        }
+
+        @keyframes fadeIn {
+          from { opacity: 0; transform: translateY(20px); }
+          to { opacity: 1; transform: translateY(0); }
+        }
+
+        .card-img-wrap {
+          position: relative; aspect-ratio: 3/4; overflow: hidden;
+          background: #1a1a1f;
+        }
+
+        .card-img {
+          width: 100%; height: 100%; object-fit: cover;
+          transition: transform 0.6s cubic-bezier(.2,.8,.3,1), filter 0.4s;
+          filter: brightness(0.9) saturate(1.1);
+        }
+        .companion-card:hover .card-img {
+          transform: scale(1.08);
+          filter: brightness(1) saturate(1.2);
+        }
+
+        .card-img-overlay {
+          position: absolute; inset: 0;
+          background: linear-gradient(0deg, rgba(7,7,9,0.92) 0%, rgba(7,7,9,0.3) 45%, transparent 70%);
+        }
+        .companion-card:hover .card-img-overlay {
+          background: linear-gradient(0deg, rgba(7,7,9,0.88) 0%, rgba(7,7,9,0.2) 50%, transparent 70%);
+        }
+
+        .card-nsfw-badge {
+          position: absolute; top: 14px; right: 14px;
+          padding: 4px 10px; border-radius: 100px;
+          font-size: 10px; font-weight: 700; letter-spacing: 0.08em;
+          text-transform: uppercase;
+          backdrop-filter: blur(8px);
+        }
+
+        .card-bottom {
+          position: absolute; bottom: 0; left: 0; right: 0; padding: 20px 18px 16px;
+        }
+
+        .card-name {
+          font-family: 'Playfair Display', serif;
+          font-size: 22px; font-weight: 700;
+          color: #fff; line-height: 1.1; margin: 0 0 4px;
+          transition: color 0.2s;
+        }
+        .companion-card:hover .card-name { color: #fda4af; }
+
+        .card-creator {
+          font-size: 11px; color: rgba(255,255,255,0.35); font-weight: 400;
+          letter-spacing: 0.05em;
+        }
+
+        .card-body {
+          padding: 16px 18px 18px;
+        }
+
+        .card-desc {
+          font-size: 13px; color: rgba(255,255,255,0.45); line-height: 1.55;
+          margin-bottom: 14px;
+          display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
+        }
+
+        .card-tags {
+          display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 14px;
+        }
+
+        .card-tag {
+          padding: 3px 10px; border-radius: 100px;
+          font-size: 10px; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase;
+          background: rgba(244,63,94,0.08);
+          color: #f43f5e;
+          border: 1px solid rgba(244,63,94,0.15);
+        }
+
+        .card-footer {
+          display: flex; align-items: center; justify-content: space-between;
+          padding-top: 14px;
+          border-top: 1px solid rgba(255,255,255,0.05);
+        }
+
+        .card-stats {
+          display: flex; gap: 12px; align-items: center;
+        }
+
+        .card-stat {
+          display: flex; align-items: center; gap: 4px;
+          font-size: 12px; color: rgba(255,255,255,0.3);
+        }
+
+        .card-price {
+          font-size: 16px; font-weight: 700;
+          background: linear-gradient(135deg, #fda4af, #f43f5e);
+          -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+          background-clip: text;
+        }
+
+        .create-btn {
+          display: inline-flex; align-items: center; gap: 8px;
+          padding: 12px 26px; border-radius: 100px;
+          background: linear-gradient(135deg, #f43f5e, #be185d);
+          color: #fff; font-size: 13px; font-weight: 600;
+          text-decoration: none; letter-spacing: 0.02em;
+          transition: transform 0.2s, box-shadow 0.2s;
+          box-shadow: 0 4px 20px rgba(244,63,94,0.3);
+        }
+        .create-btn:hover {
+          transform: translateY(-2px);
+          box-shadow: 0 8px 30px rgba(244,63,94,0.45);
+        }
+
+        .empty-state {
+          text-align: center; padding: 80px 24px;
+        }
+
+        .loader-wrap {
+          display: flex; align-items: center; justify-content: center;
+          padding: 80px;
+        }
+
+        /* Stagger animation for cards */
+        .companion-card:nth-child(1) { animation-delay: 0ms; }
+        .companion-card:nth-child(2) { animation-delay: 40ms; }
+        .companion-card:nth-child(3) { animation-delay: 80ms; }
+        .companion-card:nth-child(4) { animation-delay: 120ms; }
+        .companion-card:nth-child(5) { animation-delay: 160ms; }
+        .companion-card:nth-child(6) { animation-delay: 200ms; }
+        .companion-card:nth-child(7) { animation-delay: 240ms; }
+        .companion-card:nth-child(8) { animation-delay: 280ms; }
+
+        /* Sticky nav strip */
+        .sticky-strip {
+          position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+          height: 60px; display: flex; align-items: center; justify-content: space-between;
+          padding: 0 32px;
+          transition: background 0.4s, backdrop-filter 0.4s, border-bottom 0.4s;
+        }
+        .sticky-strip.scrolled {
+          background: rgba(7,7,9,0.85);
+          backdrop-filter: blur(20px);
+          border-bottom: 1px solid rgba(255,255,255,0.05);
+        }
+
+        .logo-text {
+          font-family: 'Playfair Display', serif;
+          font-size: 18px; color: #fff; font-weight: 700;
+          text-decoration: none;
+        }
+        .logo-dot { color: #f43f5e; }
       `}</style>
+
+      {/* ── STICKY NAV ─────────────────────────────────────── */}
+      <nav className={`sticky-strip${scrolled ? ' scrolled' : ''}`}>
+        <span className="logo-text">AI<span className="logo-dot">.</span>Companions</span>
+        <Link to="/creator/ai/new" className="create-btn" style={{ padding: '8px 20px', fontSize: '12px' }}>
+          <Sparkles size={13} /> {t.createBtn}
+        </Link>
+      </nav>
+
+      {/* ── HERO ─────────────────────────────────────────────── */}
+      <div className="catalog-hero">
+        <div className="hero-bg" />
+        <div className="grain" />
+        <div className="hero-lines" />
+
+        {/* Floating orbs */}
+        <div className="floating-orb" style={{
+          width: 500, height: 500, top: -100, right: -150,
+          background: 'radial-gradient(circle, rgba(244,63,94,0.18) 0%, transparent 70%)',
+          animation: 'floatA 8s ease-in-out infinite',
+        }} />
+        <div className="floating-orb" style={{
+          width: 400, height: 400, bottom: -50, left: -100,
+          background: 'radial-gradient(circle, rgba(139,92,246,0.12) 0%, transparent 70%)',
+          animation: 'floatB 10s ease-in-out infinite',
+        }} />
+
+        <div style={{ position: 'relative', zIndex: 2, display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+          <div className="hero-eyebrow">
+            <Flame size={10} /> {t.eyebrow}
+          </div>
+
+          <h1 className="hero-title">
+            <span className="hero-title-main">{t.title1}</span>
+            <span className="hero-title-italic">{t.title2}</span>
+          </h1>
+
+          <p className="hero-sub">
+            {t.subtitle}
+          </p>
+
+          {/* Search */}
+          <div className="search-wrap">
+            <Search className="search-icon" size={18} />
+            <input
+              className="search-input"
+              type="text"
+              value={search}
+              onChange={e => setSearch(e.target.value)}
+              placeholder={t.searchPlaceholder}
+            />
+          </div>
+
+          {/* Filters */}
+          <div className="filter-row">
+            {[
+              { value: '', label: t.all },
+              { value: 'pt', label: '🇵🇹 Português' },
+              { value: 'en', label: '🇬🇧 English' },
+            ].map(opt => (
+              <button
+                key={opt.value}
+                className={`filter-btn${language === opt.value ? ' active' : ''}`}
+                onClick={() => switchLang(opt.value)}
+              >
+                {opt.label}
+              </button>
+            ))}
+          </div>
         </div>
-    );
+
+        <div className="scroll-hint">
+          <span>{t.explore}</span>
+          <ChevronDown size={14} />
+        </div>
+      </div>
+
+      {/* ── GRID ─────────────────────────────────────────────── */}
+      <section className="grid-section">
+        <div className="section-header">
+          <h2 className="section-title">
+            {t.sectionTitle(search)}
+          </h2>
+          <span className="count-badge">{total} {t.available}</span>
+        </div>
+
+        {loading ? (
+          <div className="loader-wrap">
+            <Loader2 size={32} style={{ color: '#f43f5e', animation: 'spin 1s linear infinite' }} />
+          </div>
+        ) : companions.length === 0 ? (
+          <div className="empty-state">
+            <div style={{
+              width: 80, height: 80, borderRadius: 24, margin: '0 auto 24px',
+              background: 'rgba(244,63,94,0.08)',
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              border: '1px solid rgba(244,63,94,0.15)',
+            }}>
+              <Flame size={32} color="#f43f5e" />
+            </div>
+            <h3 style={{ fontFamily: "'Playfair Display', serif", fontSize: 28, color: '#fff', marginBottom: 12 }}>
+              {t.noResults}
+            </h3>
+            <p style={{ color: 'rgba(255,255,255,0.35)', marginBottom: 32 }}>
+              {t.noResultsSub(search)}
+            </p>
+            <Link to="/creator/ai/new" className="create-btn">
+              <Sparkles size={15} /> {t.createBtn}
+            </Link>
+          </div>
+        ) : (
+          <div className="companions-grid">
+            {companions.map((comp, i) => {
+              const badge = NSFW_BADGES[comp.nsfwLevel] || NSFW_BADGES.explicit;
+              const imgSrc = comp.avatar || FALLBACK_AVATARS[i % FALLBACK_AVATARS.length];
+              return (
+                <Link
+                  key={comp.id}
+                  to={`/ai/${comp.slug || comp.id}`}
+                  className="companion-card"
+                  style={{ animationDelay: `${i * 40}ms` }}
+                >
+                  <div className="card-img-wrap">
+                    <img src={imgSrc} alt={comp.name} className="card-img" />
+                    <div className="card-img-overlay" />
+
+                    {/* NSFW Badge */}
+                    <div className="card-nsfw-badge" style={{
+                      background: badge.bg, color: badge.color, border: `1px solid ${badge.border}`,
+                    }}>
+                      {badge.label}
+                    </div>
+
+                    {/* Name overlay */}
+                    <div className="card-bottom">
+                      <h3 className="card-name">{comp.name}</h3>
+                      <p className="card-creator">
+                        {t.by} {comp.creator?.displayName || comp.creator?.user?.username || 'Creator'}
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="card-body">
+                    <p className="card-desc">
+                      {comp.description || comp.personality?.backstory?.slice(0, 90) || 'Companion IA exclusiva'}
+                    </p>
+
+                    {comp.tags?.length > 0 && (
+                      <div className="card-tags">
+                        {comp.tags.slice(0, 3).map(tag => (
+                          <span key={tag} className="card-tag">{tag}</span>
+                        ))}
+                      </div>
+                    )}
+
+                    <div className="card-footer">
+                      <div className="card-stats">
+                        <span className="card-stat">
+                          <Heart size={12} /> {comp.subscriberCount}
+                        </span>
+                        <span className="card-stat">
+                          <MessageCircle size={12} /> {comp.messageCount}
+                        </span>
+                        {comp.rating > 0 && (
+                          <span className="card-stat" style={{ color: '#fbbf24' }}>
+                            <Star size={12} /> {comp.rating.toFixed(1)}
+                          </span>
+                        )}
+                      </div>
+                      <span className="card-price">${comp.monthlyPrice}{t.perMonth}</span>
+                    </div>
+                  </div>
+                </Link>
+              );
+            })}
+          </div>
+        )}
+      </section>
+
+      <style>{`
+        @keyframes spin { to { transform: rotate(360deg); } }
+      `}</style>
+    </div>
+  );
 }

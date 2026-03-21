@@ -1,290 +1,599 @@
 // ============================================================
-// AI COMPANION PROFILE PAGE — Dark premium adult aesthetic
+// AI COMPANION PROFILE PAGE — Dark Luxury Sensual Redesign
 // ============================================================
 
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
-import { Bot, MessageCircle, Users, Star, Loader2, ArrowLeft, Sparkles, Shield, Zap, Heart, Flame } from 'lucide-react';
+import { MessageCircle, Star, Loader2, ArrowLeft, Sparkles, Shield, Zap, Heart, Flame, Lock, Check } from 'lucide-react';
 import aiService from '../services/aiService';
 
 const PLANS = [
-    { id: 'free', icon: '🆓', msgs: { pt: '20 msgs/dia', en: '20 msgs/day' }, memory: { pt: 'Sessão', en: 'Session' }, price: 0 },
-    { id: 'basic', icon: '⚡', msgs: { pt: '200 msgs/dia', en: '200 msgs/day' }, memory: { pt: '30 dias', en: '30 days' }, price: null },
-    { id: 'premium', icon: '👑', msgs: { pt: 'Ilimitado', en: 'Unlimited' }, memory: { pt: 'Permanente', en: 'Permanent' }, price: null },
-    { id: 'ultra', icon: '💎', msgs: { pt: 'Ilimitado + HD', en: 'Unlimited + HD' }, memory: { pt: 'Permanente', en: 'Permanent' }, price: null },
+  {
+    id: 'free', label: 'Descoberta', emoji: '✦', price: 0,
+    perks: ['20 mensagens/dia', 'Memória de sessão', 'Acesso básico'],
+    highlight: false,
+  },
+  {
+    id: 'basic', label: 'Íntimo', emoji: '🔥', price: null,
+    perks: ['200 mensagens/dia', 'Memória 30 dias', 'Modo sensual'],
+    highlight: false,
+  },
+  {
+    id: 'premium', label: 'Sem Limites', emoji: '👑', price: null,
+    perks: ['Mensagens ilimitadas', 'Memória permanente', 'Modo explicit', 'Prioridade de resposta'],
+    highlight: true,
+  },
+  {
+    id: 'ultra', label: 'Ultra VIP', emoji: '💎', price: null,
+    perks: ['Ilimitado + HD', 'Memória permanente', 'Todos os modos', 'Acesso antecipado'],
+    highlight: false,
+  },
 ];
 
-const T = {
-    pt: {
-        back: 'Voltar',
-        by: 'por',
-        personality: 'Personalidade',
-        tone: 'Tom',
-        appearance: 'Aparência',
-        skin: 'Pele', body: 'Corpo', hair: 'Cabelo', eyes: 'Olhos',
-        subscribers: 'Assinantes', messages: 'Mensagens', rating: 'Rating',
-        activeSub: 'Assinatura activa',
-        plan: 'Plano',
-        msgsToday: 'Msgs hoje',
-        openChat: 'Abrir Chat',
-        choosePlan: 'Escolhe um plano',
-        subscribe: 'Assinar agora',
-        processing: 'A processar...',
-        free: 'Grátis',
-        perMonth: '/mês',
-        memory: 'Memória',
-        tags: 'Tags',
-    },
-    en: {
-        back: 'Back',
-        by: 'by',
-        personality: 'Personality',
-        tone: 'Tone',
-        appearance: 'Appearance',
-        skin: 'Skin', body: 'Body', hair: 'Hair', eyes: 'Eyes',
-        subscribers: 'Subscribers', messages: 'Messages', rating: 'Rating',
-        activeSub: 'Active subscription',
-        plan: 'Plan',
-        msgsToday: 'Msgs today',
-        openChat: 'Open Chat',
-        choosePlan: 'Choose a plan',
-        subscribe: 'Subscribe now',
-        processing: 'Processing...',
-        free: 'Free',
-        perMonth: '/mo',
-        memory: 'Memory',
-        tags: 'Tags',
-    },
-};
+const FALLBACK_COVERS = [
+  'https://images.unsplash.com/photo-1557804506-669a67965ba0?w=1400&h=500&fit=crop',
+  'https://images.unsplash.com/photo-1478760329108-5c3ed9d495a0?w=1400&h=500&fit=crop',
+  'https://images.unsplash.com/photo-1518655048521-f130df041f66?w=1400&h=500&fit=crop',
+];
+
+const FALLBACK_AVATARS = [
+  'https://images.unsplash.com/photo-1529626455594-4ff0802cfb7e?w=300&h=400&fit=crop&crop=face',
+  'https://images.unsplash.com/photo-1531746020798-e6953c6e8e04?w=300&h=400&fit=crop&crop=face',
+  'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=300&h=400&fit=crop&crop=face',
+];
 
 export default function AiCompanionProfilePage() {
-    const { idOrSlug } = useParams();
-    const navigate = useNavigate();
-    const [lang] = useState(() => navigator.language?.startsWith('pt') ? 'pt' : 'en');
-    const t = T[lang] || T.pt;
+  const { idOrSlug } = useParams();
+  const navigate = useNavigate();
 
-    const [companion, setCompanion] = useState(null);
-    const [loading, setLoading] = useState(true);
-    const [subscribing, setSubscribing] = useState(false);
-    const [error, setError] = useState('');
-    const [selectedPlan, setSelectedPlan] = useState('basic');
+  const [lang, setLang] = useState(() => navigator.language?.startsWith('pt') ? 'pt' : 'en');
+  const [companion, setCompanion] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [subscribing, setSubscribing] = useState(false);
+  const [error, setError] = useState('');
+  const [selectedPlan, setSelectedPlan] = useState('premium');
+  const [imgIdx] = useState(() => Math.floor(Math.random() * FALLBACK_AVATARS.length));
 
-    useEffect(() => { loadCompanion(); }, [idOrSlug]);
+  useEffect(() => { loadCompanion(); }, [idOrSlug]);
 
-    async function loadCompanion() {
-        setLoading(true);
-        try {
-            const res = await aiService.getCompanion(idOrSlug);
-            setCompanion(res.data);
-        } catch { setError('Companion not found.'); }
-        finally { setLoading(false); }
-    }
+  async function loadCompanion() {
+    setLoading(true);
+    try {
+      const res = await aiService.getCompanion(idOrSlug);
+      setCompanion(res.data);
+    } catch { setError('Companion não encontrada.'); }
+    finally { setLoading(false); }
+  }
 
-    async function handleSubscribe() {
-        setSubscribing(true); setError('');
-        try {
-            await aiService.subscribe(companion.id, selectedPlan);
-            navigate(`/ai/${companion.id}/chat`);
-        } catch (err) { setError(err.response?.data?.message || 'Error.'); }
-        finally { setSubscribing(false); }
-    }
+  async function handleSubscribe() {
+    setSubscribing(true); setError('');
+    try {
+      await aiService.subscribe(companion.id, selectedPlan);
+      navigate(`/ai/${companion.id}/chat`);
+    } catch (err) { setError(err.response?.data?.message || 'Erro ao subscrever.'); }
+    finally { setSubscribing(false); }
+  }
 
-    if (loading) return (
-        <div className="flex items-center justify-center min-h-screen" style={{ background: '#0a0a0a' }}>
-            <Loader2 className="w-10 h-10 animate-spin" style={{ color: '#ff2d78' }} />
-        </div>
-    );
+  if (loading) return (
+    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '100vh', background: '#070709' }}>
+      <Loader2 size={36} style={{ color: '#f43f5e', animation: 'spin 1s linear infinite' }} />
+      <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
+    </div>
+  );
 
-    if (!companion) return (
-        <div className="flex flex-col items-center justify-center min-h-screen gap-4" style={{ background: '#0a0a0a' }}>
-            <Bot className="w-16 h-16" style={{ color: '#333' }} />
-            <p style={{ color: '#666' }}>{error}</p>
-            <Link to="/ai" style={{ color: '#ff6b9d' }} className="text-sm hover:underline">{t.back}</Link>
-        </div>
-    );
+  if (!companion) return (
+    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minHeight: '100vh', background: '#070709', gap: 16 }}>
+      <Flame size={48} color="#f43f5e" opacity={0.4} />
+      <p style={{ color: 'rgba(255,255,255,0.4)', fontFamily: 'system-ui' }}>{error}</p>
+      <Link to="/ai" style={{ color: '#f43f5e', fontSize: 14, fontFamily: 'system-ui' }}>← Voltar ao catálogo</Link>
+    </div>
+  );
 
-    const p = companion.personality || {};
-    const a = companion.appearance || {};
-    const sub = companion.userSubscription;
-    const hasActiveSub = sub?.status === 'active';
+  const p = companion.personality || {};
+  const a = companion.appearance || {};
+  const sub = companion.userSubscription;
+  const hasActiveSub = sub?.status === 'active';
+  const avatarSrc = companion.avatar || FALLBACK_AVATARS[imgIdx];
+  const coverSrc = companion.coverImage || FALLBACK_COVERS[imgIdx % FALLBACK_COVERS.length];
 
-    return (
-        <div className="min-h-screen" style={{ background: '#0a0a0a' }}>
-            {/* Cover */}
-            <div className="h-72 relative overflow-hidden" style={{
-                background: 'linear-gradient(135deg, #1a0a1e 0%, #2d0a2e 50%, #0a0a0a 100%)',
+  return (
+    <div style={{ background: '#070709', minHeight: '100vh', fontFamily: "'DM Sans', system-ui, sans-serif" }}>
+      <style>{`
+        @import url('https://fonts.googleapis.com/css2?family=DM+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&family=Playfair+Display:ital,wght@0,700;1,600;1,700&display=swap');
+        * { box-sizing: border-box; }
+
+        @keyframes spin { to { transform: rotate(360deg); } }
+        @keyframes fadeUp {
+          from { opacity: 0; transform: translateY(20px); }
+          to { opacity: 1; transform: translateY(0); }
+        }
+        @keyframes shimmer {
+          0% { background-position: -200% center; }
+          100% { background-position: 200% center; }
+        }
+
+        .profile-page { max-width: 1100px; margin: 0 auto; padding: 0 24px 80px; }
+
+        /* Cover */
+        .cover-wrap {
+          position: relative; height: 340px; overflow: hidden;
+          margin-bottom: -110px;
+        }
+        .cover-img {
+          width: 100%; height: 100%; object-fit: cover; object-position: center 30%;
+          filter: brightness(0.45) saturate(1.3);
+        }
+        .cover-grad {
+          position: absolute; inset: 0;
+          background: linear-gradient(0deg, #070709 0%, rgba(7,7,9,0.5) 40%, transparent 80%),
+                      linear-gradient(90deg, rgba(7,7,9,0.6) 0%, transparent 50%);
+        }
+
+        /* Back btn */
+        .back-btn {
+          position: absolute; top: 20px; left: 24px;
+          width: 40px; height: 40px; border-radius: 12px;
+          background: rgba(7,7,9,0.5); border: 1px solid rgba(255,255,255,0.08);
+          backdrop-filter: blur(12px);
+          display: flex; align-items: center; justify-content: center;
+          cursor: pointer; transition: background 0.2s;
+          color: rgba(255,255,255,0.7);
+        }
+        .back-btn:hover { background: rgba(244,63,94,0.2); color: #fff; border-color: rgba(244,63,94,0.3); }
+
+        /* Identity */
+        .identity {
+          display: flex; align-items: flex-end; gap: 24px;
+          position: relative; z-index: 2;
+          margin-bottom: 40px;
+          animation: fadeUp 0.6s ease both;
+        }
+
+        .avatar-frame {
+          width: 130px; height: 155px; border-radius: 20px;
+          overflow: hidden; flex-shrink: 0;
+          border: 3px solid rgba(244,63,94,0.4);
+          box-shadow: 0 12px 40px rgba(244,63,94,0.25), 0 4px 12px rgba(0,0,0,0.6);
+          position: relative;
+        }
+        .avatar-frame img { width: 100%; height: 100%; object-fit: cover; }
+
+        .live-dot {
+          position: absolute; bottom: 10px; right: 10px;
+          width: 10px; height: 10px; border-radius: 50%;
+          background: #4ade80;
+          box-shadow: 0 0 0 2px #070709, 0 0 8px rgba(74,222,128,0.6);
+        }
+
+        .identity-text { padding-bottom: 6px; flex: 1; }
+
+        .identity-name {
+          font-family: 'Playfair Display', serif;
+          font-size: clamp(32px, 5vw, 52px);
+          font-weight: 700; color: #fff;
+          margin: 0 0 6px; line-height: 1.05;
+        }
+
+        .identity-creator {
+          font-size: 13px; color: rgba(255,255,255,0.35);
+          letter-spacing: 0.04em; margin-bottom: 12px;
+        }
+
+        .identity-tags {
+          display: flex; flex-wrap: wrap; gap: 6px;
+        }
+
+        .identity-tag {
+          padding: 4px 12px; border-radius: 100px;
+          font-size: 11px; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase;
+          background: rgba(244,63,94,0.1); color: #f43f5e;
+          border: 1px solid rgba(244,63,94,0.2);
+        }
+
+        /* Layout grid */
+        .layout {
+          display: grid; grid-template-columns: 1fr 340px; gap: 28px;
+          animation: fadeUp 0.6s ease 0.15s both;
+        }
+        @media (max-width: 768px) {
+          .layout { grid-template-columns: 1fr; }
+        }
+
+        /* Panels */
+        .panel {
+          background: #0d0d10; border: 1px solid rgba(255,255,255,0.05);
+          border-radius: 20px; padding: 28px;
+          margin-bottom: 20px;
+        }
+
+        .panel-title {
+          font-size: 13px; font-weight: 700; letter-spacing: 0.1em;
+          text-transform: uppercase; color: rgba(255,255,255,0.35);
+          margin: 0 0 20px; display: flex; align-items: center; gap: 8px;
+        }
+        .panel-title-accent { width: 18px; height: 2px; background: #f43f5e; border-radius: 1px; }
+
+        .bio-text {
+          font-size: 15px; line-height: 1.75;
+          color: rgba(255,255,255,0.6); font-weight: 300;
+          font-style: italic;
+        }
+
+        /* Traits */
+        .traits-grid { display: flex; flex-wrap: wrap; gap: 8px; }
+        .trait-pill {
+          padding: 7px 16px; border-radius: 100px;
+          font-size: 13px; font-weight: 500;
+          background: rgba(255,255,255,0.04);
+          color: rgba(255,255,255,0.6);
+          border: 1px solid rgba(255,255,255,0.07);
+          transition: all 0.2s;
+        }
+        .trait-pill:hover {
+          background: rgba(244,63,94,0.08);
+          color: #fda4af; border-color: rgba(244,63,94,0.2);
+        }
+
+        /* Appearance grid */
+        .appearance-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+        .appearance-item {
+          background: rgba(255,255,255,0.02); border-radius: 12px;
+          padding: 12px 16px;
+          border: 1px solid rgba(255,255,255,0.04);
+        }
+        .appearance-label { font-size: 10px; color: rgba(255,255,255,0.25); text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 4px; }
+        .appearance-value { font-size: 14px; color: rgba(255,255,255,0.7); font-weight: 500; }
+
+        /* Stats row */
+        .stats-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
+        .stat-item {
+          background: rgba(255,255,255,0.02); border-radius: 14px;
+          padding: 18px; text-align: center;
+          border: 1px solid rgba(255,255,255,0.04);
+        }
+        .stat-value {
+          font-size: 26px; font-weight: 700; color: #fff;
+          font-family: 'Playfair Display', serif;
+        }
+        .stat-label { font-size: 11px; color: rgba(255,255,255,0.3); margin-top: 4px; }
+
+        /* Subscribe panel */
+        .sub-panel {
+          background: linear-gradient(145deg, #0d0d10, #110a0e);
+          border: 1px solid rgba(244,63,94,0.12);
+          border-radius: 24px; padding: 28px; position: sticky; top: 24px;
+        }
+
+        .sub-panel-title {
+          font-family: 'Playfair Display', serif;
+          font-size: 22px; font-weight: 700; color: #fff;
+          margin: 0 0 6px;
+        }
+        .sub-panel-sub {
+          font-size: 13px; color: rgba(255,255,255,0.35);
+          margin: 0 0 24px; line-height: 1.5;
+        }
+
+        /* Plan cards */
+        .plan-card {
+          border-radius: 14px; padding: 16px;
+          border: 1px solid rgba(255,255,255,0.06);
+          background: rgba(255,255,255,0.02);
+          cursor: pointer; transition: all 0.25s;
+          margin-bottom: 10px; position: relative;
+          overflow: hidden;
+        }
+        .plan-card:hover {
+          border-color: rgba(244,63,94,0.25);
+          background: rgba(244,63,94,0.04);
+        }
+        .plan-card.selected {
+          border-color: rgba(244,63,94,0.45);
+          background: rgba(244,63,94,0.07);
+          box-shadow: 0 0 0 1px rgba(244,63,94,0.2);
+        }
+        .plan-card.highlight-plan::before {
+          content: 'MAIS POPULAR';
+          position: absolute; top: 0; right: 0;
+          background: linear-gradient(135deg, #f43f5e, #be185d);
+          color: #fff; font-size: 9px; font-weight: 800; letter-spacing: 0.12em;
+          padding: 4px 10px; border-radius: 0 14px 0 10px;
+        }
+
+        .plan-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; }
+        .plan-name-wrap { display: flex; align-items: center; gap: 8px; }
+        .plan-emoji { font-size: 16px; }
+        .plan-name { font-size: 14px; font-weight: 700; color: #fff; }
+        .plan-price {
+          font-size: 16px; font-weight: 700;
+          background: linear-gradient(135deg, #fda4af, #f43f5e);
+          -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+          background-clip: text;
+        }
+
+        .plan-perks { display: flex; flex-direction: column; gap: 5px; }
+        .plan-perk {
+          display: flex; align-items: center; gap: 7px;
+          font-size: 12px; color: rgba(255,255,255,0.4);
+        }
+        .plan-perk-check { color: #f43f5e; flex-shrink: 0; }
+
+        /* CTA Button */
+        .cta-btn {
+          width: 100%; padding: 16px;
+          background: linear-gradient(135deg, #f43f5e, #be185d);
+          border: none; border-radius: 14px;
+          color: #fff; font-size: 15px; font-weight: 700;
+          cursor: pointer; transition: all 0.25s;
+          display: flex; align-items: center; justify-content: center; gap: 10px;
+          font-family: inherit; letter-spacing: 0.02em;
+          box-shadow: 0 6px 24px rgba(244,63,94,0.35);
+          margin-top: 16px;
+        }
+        .cta-btn:hover:not(:disabled) {
+          transform: translateY(-2px);
+          box-shadow: 0 10px 32px rgba(244,63,94,0.5);
+        }
+        .cta-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+        /* Active sub panel */
+        .active-sub {
+          border: 1px solid rgba(74,222,128,0.2);
+          background: rgba(74,222,128,0.04);
+          border-radius: 14px; padding: 18px; margin-bottom: 16px;
+        }
+        .active-sub-header {
+          display: flex; align-items: center; gap: 8px;
+          color: #4ade80; font-size: 13px; font-weight: 700; margin-bottom: 12px;
+        }
+
+        .usage-bar-wrap { margin-top: 10px; }
+        .usage-bar-label {
+          display: flex; justify-content: space-between;
+          font-size: 11px; color: rgba(255,255,255,0.3); margin-bottom: 6px;
+        }
+        .usage-bar-bg { height: 4px; background: rgba(255,255,255,0.06); border-radius: 4px; overflow: hidden; }
+        .usage-bar-fill {
+          height: 100%; border-radius: 4px;
+          background: linear-gradient(90deg, #f43f5e, #be185d);
+          transition: width 0.5s ease;
+        }
+
+        .open-chat-btn {
+          display: block; width: 100%; padding: 16px;
+          background: linear-gradient(135deg, #f43f5e, #be185d);
+          border-radius: 14px; color: #fff; font-size: 15px; font-weight: 700;
+          text-decoration: none; text-align: center;
+          transition: all 0.25s; font-family: inherit;
+          box-shadow: 0 6px 24px rgba(244,63,94,0.35);
+          letter-spacing: 0.02em;
+        }
+        .open-chat-btn:hover {
+          transform: translateY(-2px);
+          box-shadow: 0 10px 32px rgba(244,63,94,0.5);
+        }
+
+        .error-msg {
+          background: rgba(239,68,68,0.08); border: 1px solid rgba(239,68,68,0.15);
+          border-radius: 10px; padding: 10px 14px;
+          font-size: 12px; color: #f87171; margin-bottom: 12px;
+        }
+
+        /* Divider */
+        .divider {
+          border: none; border-top: 1px solid rgba(255,255,255,0.04);
+          margin: 24px 0;
+        }
+
+        /* Security note */
+        .security-note {
+          display: flex; align-items: center; gap: 6px; justify-content: center;
+          font-size: 11px; color: rgba(255,255,255,0.2); margin-top: 12px;
+        }
+      `}</style>
+
+      {/* ── COVER ────────────────────────────────────────── */}
+      <div className="cover-wrap">
+        <img src={coverSrc} alt="" className="cover-img" />
+        <div className="cover-grad" />
+        <button className="back-btn" onClick={() => navigate(-1)}>
+          <ArrowLeft size={18} />
+        </button>
+        {/* Language switcher */}
+        <div style={{
+          position: 'absolute', top: 20, right: 24,
+          display: 'flex', gap: 6,
+        }}>
+          {['pt', 'en'].map(l => (
+            <button key={l} onClick={() => setLang(l)} style={{
+              padding: '5px 13px', borderRadius: 100,
+              fontSize: 12, fontWeight: 600, cursor: 'pointer',
+              fontFamily: 'inherit', transition: 'all 0.2s',
+              background: lang === l ? 'rgba(244,63,94,0.9)' : 'rgba(7,7,9,0.5)',
+              color: lang === l ? '#fff' : 'rgba(255,255,255,0.5)',
+              border: `1px solid ${lang === l ? 'transparent' : 'rgba(255,255,255,0.12)'}`,
+              backdropFilter: 'blur(8px)',
             }}>
-                {companion.coverImage && (
-                    <img src={companion.coverImage} alt="" className="w-full h-full object-cover absolute inset-0 opacity-60" />
-                )}
-                <div className="absolute inset-0" style={{ background: 'linear-gradient(0deg, #0a0a0a 0%, transparent 60%)' }} />
-                <button onClick={() => navigate(-1)} className="absolute top-4 left-4 p-2.5 rounded-xl transition-colors"
-                    style={{ background: 'rgba(0,0,0,0.5)', backdropFilter: 'blur(8px)', border: '1px solid rgba(255,255,255,0.06)' }}>
-                    <ArrowLeft className="w-5 h-5 text-white" />
-                </button>
-            </div>
-
-            <div className="max-w-4xl mx-auto px-4 -mt-24 relative z-10 pb-12">
-                {/* Avatar + Name */}
-                <div className="flex items-end gap-5 mb-8">
-                    <div className="w-36 h-36 rounded-2xl flex items-center justify-center overflow-hidden flex-shrink-0"
-                        style={{
-                            background: 'linear-gradient(135deg, #ff2d78, #d946ef)',
-                            border: '3px solid #0a0a0a',
-                            boxShadow: '0 8px 32px rgba(255,45,120,0.3)',
-                        }}>
-                        {companion.avatar
-                            ? <img src={companion.avatar} alt={companion.name} className="w-full h-full object-cover" />
-                            : <Bot className="w-14 h-14 text-white" />
-                        }
-                    </div>
-                    <div className="pb-3">
-                        <div className="flex items-center gap-2 mb-1">
-                            <h1 className="text-3xl font-black text-white">{companion.name}</h1>
-                            <Sparkles className="w-5 h-5" style={{ color: '#ff6b9d' }} />
-                        </div>
-                        <p className="text-sm" style={{ color: '#666' }}>
-                            {t.by} {companion.creator?.displayName || companion.creator?.user?.username}
-                        </p>
-                    </div>
-                </div>
-
-                <div className="grid lg:grid-cols-3 gap-5">
-                    {/* Left */}
-                    <div className="lg:col-span-2 space-y-5">
-                        {/* Description */}
-                        <div className="rounded-2xl p-6" style={{ background: '#111', border: '1px solid rgba(255,255,255,0.06)' }}>
-                            <p className="leading-relaxed" style={{ color: '#aaa' }}>
-                                {companion.description || p.backstory || 'No description.'}
-                            </p>
-                        </div>
-
-                        {/* Personality */}
-                        <div className="rounded-2xl p-6 space-y-4" style={{ background: '#111', border: '1px solid rgba(255,255,255,0.06)' }}>
-                            <h2 className="font-bold text-white flex items-center gap-2">🎭 {t.personality}</h2>
-                            {p.traits?.length > 0 && (
-                                <div className="flex flex-wrap gap-2">
-                                    {p.traits.map(tr => (
-                                        <span key={tr} className="px-3 py-1.5 rounded-full text-xs font-medium" style={{
-                                            background: 'rgba(255,45,120,0.08)', color: '#ff6b9d', border: '1px solid rgba(255,45,120,0.15)',
-                                        }}>{tr}</span>
-                                    ))}
-                                </div>
-                            )}
-                            {p.tone && <p className="text-sm" style={{ color: '#666' }}>{t.tone}: <strong style={{ color: '#ccc' }}>{p.tone}</strong></p>}
-                        </div>
-
-                        {/* Appearance */}
-                        {(a.skinTone || a.bodyType || a.hairColor || a.eyeColor) && (
-                            <div className="rounded-2xl p-6 space-y-3" style={{ background: '#111', border: '1px solid rgba(255,255,255,0.06)' }}>
-                                <h2 className="font-bold text-white">👤 {t.appearance}</h2>
-                                <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-                                    {[
-                                        { label: t.skin, value: a.skinTone },
-                                        { label: t.body, value: a.bodyType },
-                                        { label: t.hair, value: a.hairColor },
-                                        { label: t.eyes, value: a.eyeColor },
-                                    ].filter(x => x.value).map(x => (
-                                        <div key={x.label} className="rounded-xl p-3" style={{ background: '#1a1a1a' }}>
-                                            <p className="text-[11px]" style={{ color: '#555' }}>{x.label}</p>
-                                            <p className="text-sm font-medium" style={{ color: '#ddd' }}>{x.value}</p>
-                                        </div>
-                                    ))}
-                                </div>
-                            </div>
-                        )}
-
-                        {/* Stats */}
-                        <div className="flex gap-3">
-                            {[
-                                { icon: Heart, label: t.subscribers, value: companion.subscriberCount },
-                                { icon: MessageCircle, label: t.messages, value: companion.messageCount },
-                                { icon: Star, label: t.rating, value: companion.rating > 0 ? companion.rating.toFixed(1) : '—' },
-                            ].map(s => (
-                                <div key={s.label} className="flex-1 rounded-xl p-4 text-center" style={{ background: '#111', border: '1px solid rgba(255,255,255,0.06)' }}>
-                                    <s.icon className="w-5 h-5 mx-auto mb-1" style={{ color: '#555' }} />
-                                    <p className="text-lg font-black text-white">{s.value}</p>
-                                    <p className="text-[11px]" style={{ color: '#555' }}>{s.label}</p>
-                                </div>
-                            ))}
-                        </div>
-                    </div>
-
-                    {/* Right — Subscribe */}
-                    <div className="space-y-5">
-                        {hasActiveSub ? (
-                            <div className="rounded-2xl p-6 space-y-4" style={{ background: '#111', border: '1px solid rgba(255,45,120,0.2)' }}>
-                                <div className="flex items-center gap-2" style={{ color: '#4ade80' }}>
-                                    <Shield className="w-5 h-5" />
-                                    <span className="font-bold text-sm">{t.activeSub}</span>
-                                </div>
-                                <p className="text-sm" style={{ color: '#666' }}>
-                                    {t.plan}: <strong className="capitalize" style={{ color: '#ccc' }}>{sub.plan}</strong>
-                                </p>
-                                <p className="text-sm" style={{ color: '#666' }}>
-                                    {t.msgsToday}: <strong style={{ color: '#ccc' }}>{sub.dailyMsgsUsed}/{sub.dailyMsgLimit >= 999999 ? '∞' : sub.dailyMsgLimit}</strong>
-                                </p>
-                                <Link to={`/ai/${companion.id}/chat`}
-                                    className="w-full block text-center py-3.5 rounded-xl font-bold text-sm text-white transition-all hover:scale-[1.02]"
-                                    style={{ background: 'linear-gradient(135deg, #ff2d78, #d946ef)', boxShadow: '0 4px 20px rgba(255,45,120,0.3)' }}>
-                                    💬 {t.openChat}
-                                </Link>
-                            </div>
-                        ) : (
-                            <div className="rounded-2xl p-6 space-y-4" style={{ background: '#111', border: '1px solid rgba(255,255,255,0.06)' }}>
-                                <h3 className="font-bold text-white text-center text-sm">{t.choosePlan}</h3>
-                                {PLANS.map(plan => (
-                                    <button key={plan.id} onClick={() => setSelectedPlan(plan.id)}
-                                        className="w-full text-left p-4 rounded-xl transition-all"
-                                        style={{
-                                            background: selectedPlan === plan.id ? 'rgba(255,45,120,0.08)' : '#1a1a1a',
-                                            border: '1px solid ' + (selectedPlan === plan.id ? 'rgba(255,45,120,0.3)' : 'rgba(255,255,255,0.04)'),
-                                        }}>
-                                        <div className="flex items-center justify-between mb-1">
-                                            <span className="font-bold text-sm text-white">{plan.icon} {plan.id.charAt(0).toUpperCase() + plan.id.slice(1)}</span>
-                                            <span className="font-bold text-sm" style={{
-                                                background: 'linear-gradient(135deg, #ff6b9d, #d946ef)',
-                                                WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent',
-                                            }}>
-                                                {plan.price !== null
-                                                    ? (plan.price === 0 ? t.free : `$${plan.price}`)
-                                                    : `$${companion.monthlyPrice}`
-                                                }{t.perMonth}
-                                            </span>
-                                        </div>
-                                        <p className="text-[11px]" style={{ color: '#666' }}>
-                                            {plan.msgs[lang]} · {t.memory}: {plan.memory[lang]}
-                                        </p>
-                                    </button>
-                                ))}
-
-                                {error && <p className="text-xs" style={{ color: '#ef4444' }}>{error}</p>}
-
-                                <button onClick={handleSubscribe} disabled={subscribing}
-                                    className="w-full py-3.5 rounded-xl font-bold text-sm text-white transition-all hover:scale-[1.02] disabled:opacity-50 flex items-center justify-center gap-2"
-                                    style={{ background: 'linear-gradient(135deg, #ff2d78, #d946ef)', boxShadow: '0 4px 20px rgba(255,45,120,0.3)' }}>
-                                    {subscribing ? <Loader2 className="w-5 h-5 animate-spin" /> : <Zap className="w-5 h-5" />}
-                                    {subscribing ? t.processing : t.subscribe}
-                                </button>
-                            </div>
-                        )}
-
-                        {/* Tags */}
-                        {companion.tags?.length > 0 && (
-                            <div className="rounded-2xl p-5" style={{ background: '#111', border: '1px solid rgba(255,255,255,0.06)' }}>
-                                <h3 className="font-bold text-sm text-white mb-3">{t.tags}</h3>
-                                <div className="flex flex-wrap gap-2">
-                                    {companion.tags.map(tag => (
-                                        <span key={tag} className="px-3 py-1 rounded-full text-[11px]" style={{
-                                            background: 'rgba(255,255,255,0.04)', color: '#888', border: '1px solid rgba(255,255,255,0.06)',
-                                        }}>{tag}</span>
-                                    ))}
-                                </div>
-                            </div>
-                        )}
-                    </div>
-                </div>
-            </div>
+              {l === 'pt' ? '🇵🇹 PT' : '🇬🇧 EN'}
+            </button>
+          ))}
         </div>
-    );
+      </div>
+
+      {/* ── CONTENT ──────────────────────────────────────── */}
+      <div className="profile-page">
+
+        {/* Identity */}
+        <div className="identity">
+          <div className="avatar-frame">
+            <img src={avatarSrc} alt={companion.name} />
+            <div className="live-dot" />
+          </div>
+          <div className="identity-text">
+            <h1 className="identity-name">{companion.name}</h1>
+            <p className="identity-creator">
+              criada por {companion.creator?.displayName || companion.creator?.user?.username || 'Creator'}
+            </p>
+            {companion.tags?.length > 0 && (
+              <div className="identity-tags">
+                {companion.tags.slice(0, 4).map(tag => (
+                  <span key={tag} className="identity-tag">{tag}</span>
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Layout */}
+        <div className="layout">
+
+          {/* ── LEFT COLUMN ────────────────────────────── */}
+          <div>
+            {/* Bio */}
+            <div className="panel">
+              <p className="panel-title">
+                <span className="panel-title-accent" /> Sobre ela
+              </p>
+              <p className="bio-text">
+                {companion.description || p.backstory || 'Uma companion IA única, pronta para explorar contigo.'}
+              </p>
+            </div>
+
+            {/* Personality */}
+            {p.traits?.length > 0 && (
+              <div className="panel">
+                <p className="panel-title">
+                  <span className="panel-title-accent" /> Personalidade
+                </p>
+                <div className="traits-grid">
+                  {p.traits.map(tr => (
+                    <span key={tr} className="trait-pill">{tr}</span>
+                  ))}
+                </div>
+                {p.tone && (
+                  <p style={{ marginTop: 16, fontSize: 13, color: 'rgba(255,255,255,0.3)' }}>
+                    Tom de conversa: <span style={{ color: '#fda4af' }}>{p.tone}</span>
+                  </p>
+                )}
+              </div>
+            )}
+
+            {/* Appearance */}
+            {(a.skinTone || a.bodyType || a.hairColor || a.eyeColor) && (
+              <div className="panel">
+                <p className="panel-title">
+                  <span className="panel-title-accent" /> Aparência
+                </p>
+                <div className="appearance-grid">
+                  {[
+                    { label: 'Pele', value: a.skinTone },
+                    { label: 'Corpo', value: a.bodyType },
+                    { label: 'Cabelo', value: a.hairColor },
+                    { label: 'Olhos', value: a.eyeColor },
+                  ].filter(x => x.value).map(x => (
+                    <div key={x.label} className="appearance-item">
+                      <div className="appearance-label">{x.label}</div>
+                      <div className="appearance-value">{x.value}</div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Stats */}
+            <div className="stats-row">
+              {[
+                { icon: <Heart size={16} color="#f43f5e" />, value: companion.subscriberCount, label: 'Assinantes' },
+                { icon: <MessageCircle size={16} color="#a78bfa" />, value: companion.messageCount, label: 'Mensagens' },
+                { icon: <Star size={16} color="#fbbf24" />, value: companion.rating > 0 ? companion.rating.toFixed(1) : '—', label: 'Rating' },
+              ].map(s => (
+                <div key={s.label} className="stat-item">
+                  <div style={{ marginBottom: 8 }}>{s.icon}</div>
+                  <div className="stat-value">{s.value}</div>
+                  <div className="stat-label">{s.label}</div>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* ── RIGHT COLUMN — SUBSCRIBE ───────────────── */}
+          <div>
+            <div className="sub-panel">
+              {hasActiveSub ? (
+                <>
+                  <div className="active-sub">
+                    <div className="active-sub-header">
+                      <Shield size={15} /> Assinatura activa
+                    </div>
+                    <p style={{ fontSize: 13, color: 'rgba(255,255,255,0.4)', margin: '0 0 8px' }}>
+                      Plano <strong style={{ color: '#fff', textTransform: 'capitalize' }}>{sub.plan}</strong>
+                    </p>
+                    <div className="usage-bar-wrap">
+                      <div className="usage-bar-label">
+                        <span>Mensagens hoje</span>
+                        <span>{sub.dailyMsgsUsed}/{sub.dailyMsgLimit >= 999999 ? '∞' : sub.dailyMsgLimit}</span>
+                      </div>
+                      <div className="usage-bar-bg">
+                        <div className="usage-bar-fill" style={{
+                          width: `${Math.min((sub.dailyMsgsUsed / (sub.dailyMsgLimit >= 999999 ? sub.dailyMsgsUsed + 50 : sub.dailyMsgLimit)) * 100, 100)}%`
+                        }} />
+                      </div>
+                    </div>
+                  </div>
+                  <Link to={`/ai/${companion.id}/chat`} className="open-chat-btn">
+                    💬 Continuar a conversa
+                  </Link>
+                </>
+              ) : (
+                <>
+                  <h3 className="sub-panel-title">Começa agora</h3>
+                  <p className="sub-panel-sub">Escolhe o teu plano e entra neste mundo sem filtros.</p>
+
+                  {PLANS.map(plan => (
+                    <div
+                      key={plan.id}
+                      className={`plan-card${selectedPlan === plan.id ? ' selected' : ''}${plan.highlight ? ' highlight-plan' : ''}`}
+                      onClick={() => setSelectedPlan(plan.id)}
+                    >
+                      <div className="plan-header">
+                        <div className="plan-name-wrap">
+                          <span className="plan-emoji">{plan.emoji}</span>
+                          <span className="plan-name">{plan.label}</span>
+                        </div>
+                        <span className="plan-price">
+                          {plan.price === 0 ? 'Grátis' : plan.price !== null ? `$${plan.price}/mês` : `$${companion.monthlyPrice}/mês`}
+                        </span>
+                      </div>
+                      <div className="plan-perks">
+                        {plan.perks.map(perk => (
+                          <div key={perk} className="plan-perk">
+                            <Check size={11} className="plan-perk-check" />
+                            {perk}
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  ))}
+
+                  {error && <div className="error-msg">{error}</div>}
+
+                  <button className="cta-btn" onClick={handleSubscribe} disabled={subscribing}>
+                    {subscribing
+                      ? <Loader2 size={18} style={{ animation: 'spin 1s linear infinite' }} />
+                      : <Zap size={18} />
+                    }
+                    {subscribing ? 'A processar...' : 'Assinar agora'}
+                  </button>
+
+                  <div className="security-note">
+                    <Lock size={11} /> Pagamento seguro · Cancela a qualquer momento
+                  </div>
+                </>
+              )}
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
 }

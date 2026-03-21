@@ -8,8 +8,13 @@ import { ChatProvider } from './contexts/ChatContext';
 import App from './App';
 import './index.css';
 
-// ✅ Wrapper para injectar user no SocketProvider e ChatProvider
-// SocketContext.jsx espera { children, user } — sem user o socket nunca conecta
+// Pré-criar o socket antes do React montar
+// Isto garante que o singleton existe antes do double-mount do StrictMode
+import { connectSocket } from './services/SocketService';
+import { getAuthToken } from './services/api';
+const existingToken = getAuthToken();
+if (existingToken) connectSocket(existingToken);
+
 function AppWithSocket() {
   const { user } = useAuth();
   return (
@@ -30,14 +35,15 @@ const queryClient = new QueryClient({
   },
 });
 
+// ⚠️ StrictMode removido em dev para evitar double-connect no socket.
+// Para re-activar em produção (onde StrictMode não faz double-mount),
+// podes envolver apenas <App /> com StrictMode se necessário.
 ReactDOM.createRoot(document.getElementById('root')).render(
-  <React.StrictMode>
-    <QueryClientProvider client={queryClient}>
-      <Web3AuthProvider>
-        <AuthProvider>
-          <AppWithSocket />
-        </AuthProvider>
-      </Web3AuthProvider>
-    </QueryClientProvider>
-  </React.StrictMode>
+  <QueryClientProvider client={queryClient}>
+    <Web3AuthProvider>
+      <AuthProvider>
+        <AppWithSocket />
+      </AuthProvider>
+    </Web3AuthProvider>
+  </QueryClientProvider>
 );
