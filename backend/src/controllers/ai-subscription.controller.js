@@ -7,6 +7,28 @@ import { PrismaClient } from '@prisma/client';
 
 const prisma = new PrismaClient();
 
+// Helper: verifica e debita saldo USDC da wallet do utilizador
+async function chargeWallet(tx, userId, amountUSD) {
+    const wallet = await tx.userWallet.findUnique({ where: { userId } });
+
+    if (!wallet) {
+        throw new Error('WALLET_NOT_FOUND');
+    }
+
+    const currentBalance = parseFloat(wallet.balanceUSD.toString());
+    if (currentBalance < amountUSD) {
+        throw new Error(`INSUFFICIENT_BALANCE:${currentBalance.toFixed(2)}`);
+    }
+
+    await tx.userWallet.update({
+        where: { userId },
+        data: {
+            balanceUSD: { decrement: amountUSD },
+            totalSpent: { increment: amountUSD },
+        },
+    });
+}
+
 // Planos disponíveis
 const PLANS = {
     free: { price: 0, dailyMsgLimit: 20, label: 'Free' },
@@ -18,6 +40,7 @@ const PLANS = {
 // ── POST /api/v1/ai/subscribe/:companionId ───────────────────
 
 export const subscribe = async (req, res) => {
+    let priceUSD = 0;
     try {
         const userId = req.user.id;
         const { companionId } = req.params;
@@ -51,41 +74,51 @@ export const subscribe = async (req, res) => {
         }
 
         const planConfig = PLANS[plan];
-        const priceUSD = plan === 'free' ? 0 : companion.monthlyPrice;
+        priceUSD = plan === 'free' ? 0 : companion.monthlyPrice;
         const expiresAt = new Date();
         expiresAt.setDate(expiresAt.getDate() + 30);
 
-        // Criar ou reactivar subscrição
-        const subscription = existing
-            ? await prisma.aiSubscription.update({
-                where: { id: existing.id },
-                data: {
-                    plan,
-                    status: 'active',
-                    priceUSD,
-                    dailyMsgLimit: planConfig.dailyMsgLimit,
-                    dailyMsgsUsed: 0,
-                    lastResetAt: new Date(),
-                    startedAt: new Date(),
-                    expiresAt,
-                    cancelledAt: null,
-                },
-            })
-            : await prisma.aiSubscription.create({
-                data: {
-                    userId,
-                    companionId,
-                    plan,
-                    priceUSD,
-                    dailyMsgLimit: planConfig.dailyMsgLimit,
-                    expiresAt,
-                },
+        // Executar em transação: verificar pagamento e criar subscrição atomicamente
+        const subscription = await prisma.$transaction(async (tx) => {
+            // Verificar e debitar saldo USDC para planos pagos
+            if (priceUSD > 0) {
+                await chargeWallet(tx, userId, priceUSD);
+            }
+
+            // Criar ou reactivar subscrição
+            const sub = existing
+                ? await tx.aiSubscription.update({
+                    where: { id: existing.id },
+                    data: {
+                        plan,
+                        status: 'active',
+                        priceUSD,
+                        dailyMsgLimit: planConfig.dailyMsgLimit,
+                        dailyMsgsUsed: 0,
+                        lastResetAt: new Date(),
+                        startedAt: new Date(),
+                        expiresAt,
+                        cancelledAt: null,
+                    },
+                })
+                : await tx.aiSubscription.create({
+                    data: {
+                        userId,
+                        companionId,
+                        plan,
+                        priceUSD,
+                        dailyMsgLimit: planConfig.dailyMsgLimit,
+                        expiresAt,
+                    },
+                });
+
+            // Incrementar contagem de assinantes
+            await tx.aiCompanion.update({
+                where: { id: companionId },
+                data: { subscriberCount: { increment: 1 } },
             });
 
-        // Incrementar contagem de assinantes
-        await prisma.aiCompanion.update({
-            where: { id: companionId },
-            data: { subscriberCount: { increment: 1 } },
+            return sub;
         });
 
         res.status(201).json({
@@ -94,6 +127,19 @@ export const subscribe = async (req, res) => {
             message: `Assinatura ${planConfig.label} activada para ${companion.name}!`,
         });
     } catch (error) {
+        if (error.message === 'WALLET_NOT_FOUND') {
+            return res.status(402).json({ success: false, message: 'Carteira não encontrada. Configura a tua wallet para assinar planos pagos.' });
+        }
+
+        if (error.message?.startsWith('INSUFFICIENT_BALANCE:')) {
+            const balance = error.message.split(':')[1];
+            return res.status(402).json({
+                success: false,
+                message: 'Saldo USDC insuficiente para activar este plano.',
+                data: { currentBalance: parseFloat(balance), required: priceUSD },
+            });
+        }
+
         console.error('[AI Subscription] Erro ao assinar:', error);
         res.status(500).json({ success: false, message: 'Erro ao processar assinatura.' });
     }

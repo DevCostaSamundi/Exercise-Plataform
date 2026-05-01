@@ -49,6 +49,9 @@ const aiService = {
 
     getPlans: () =>
         api.get('/ai/plans').then(r => r.data),
+
+    getWebSocketUrl: (companionId) =>
+        api.get('/ai/ws-url', { params: { companionId } }).then(r => r.data),
 };
 
 export default aiService;
