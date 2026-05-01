@@ -64,10 +64,12 @@ export const sendMessage = async (req, res) => {
         }
 
         // 3. Verificar limite diário de mensagens
-        // Reset diário se necessário
+        // Reset diário se necessário — usa UTC para evitar inconsistências de timezone
         const now = new Date();
         const lastReset = new Date(subscription.lastResetAt);
-        const isSameDay = now.toDateString() === lastReset.toDateString();
+        const nowUTC = now.toISOString().split('T')[0];
+        const lastResetUTC = lastReset.toISOString().split('T')[0];
+        const isSameDay = nowUTC === lastResetUTC;
 
         if (!isSameDay) {
             await prisma.aiSubscription.update({
@@ -77,10 +79,17 @@ export const sendMessage = async (req, res) => {
             subscription.dailyMsgsUsed = 0;
         }
 
+        // Validação de segurança: dailyMsgLimit nunca deve ser negativo
+        if (subscription.dailyMsgLimit < 0) {
+            console.warn(`[AI Chat] dailyMsgLimit inválido para subscrição ${subscription.id} (companion: ${companionId}, user: ${userId}). Valor: ${subscription.dailyMsgLimit}`);
+            return res.status(500).json({ success: false, message: 'Configuração de limite inválida. Contacta o suporte.' });
+        }
+
         if (subscription.dailyMsgsUsed >= subscription.dailyMsgLimit) {
+            console.info(`[AI Chat] Limite diário atingido — user: ${userId}, companion: ${companionId}, used: ${subscription.dailyMsgsUsed}/${subscription.dailyMsgLimit}`);
             return res.status(429).json({
                 success: false,
-                message: `Atingiste o limite diário de ${subscription.dailyMsgLimit} mensagens. Faz upgrade do plano para mais.`,
+                message: `Atingiste o limite diário de ${subscription.dailyMsgLimit} mensagens com este companion. Faz upgrade do plano para mais.`,
                 dailyLimit: subscription.dailyMsgLimit,
                 dailyUsed: subscription.dailyMsgsUsed,
             });
